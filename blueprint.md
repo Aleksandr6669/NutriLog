@@ -17,24 +17,20 @@ This document outlines the structure and design of the Calorie Tracker Flutter a
 
 **2. Search Screen (`lib/screens/search/search_screen.dart`)**
 
-*   **Purpose:** Allows users to search for food items to add to their diary.
+*   **Purpose:** Allows users to search for food items to add to their diary and access the AI recognition feature.
 *   **Design:**
-    *   **AppBar:** Titled "Поиск продуктов" with a back arrow and a help icon.
-    *   **Search Bar:** A prominent search bar at the top.
-    *   **Quick Actions:** Buttons for "Сканер", "AI Поиск", and "Галерея".
-    *   **Recent Searches:** A list of the user's recent search queries.
-    *   **AI Favorites:** A horizontally scrolling list of food items suggested by AI.
+    *   **AppBar:** Titled "Поиск продуктов".
+    *   **AI Search Button:** A prominent button to navigate to the AI food recognition screen.
 
 **3. Recognition Screen (`lib/screens/recognition/recognition_screen.dart`)**
 
-*   **Purpose:** To identify a food item from an image and display its nutritional information.
+*   **Purpose:** To identify a food item from an image using the Gemini API and allow the user to add it to their diary.
 *   **Design:**
-    *   **Image Header:** A large image of the food item at the top.
-    *   **Recognition Result:** Shows the name of the food as identified by AI, with an option to edit it.
-    *   **Nutrition Info:** Cards displaying the calories, protein, fat, and carbs.
-    *   **Portion Weight:** An option to adjust the serving size.
-    *   **Favorite Toggle:** A switch to add the food to the user's favorites.
-    *   **Bottom Bar:** A "Сохранить в дневник" button.
+    *   **Image Picker:** A large, interactive area to pick an image from the gallery.
+    *   **Image Preview:** Displays the selected image.
+    *   **Analysis Result:** Shows the name of the food and its calorie count as identified by the AI.
+    *   **Loading Indicator:** A spinner is displayed while the AI is analyzing the image.
+    *   **Add to Diary:** A button to save the recognized food to the user's diary.
 
 **4. Details Screen (`lib/screens/details/details_screen.dart`)**
 
@@ -66,13 +62,14 @@ This document outlines the structure and design of the Calorie Tracker Flutter a
     *   **Activity Level:** A card indicating the user's activity level.
     *   **Settings Section:** A list of settings options: Личные данные, Уведомления, Приватность, and Выйти.
 
-### Current Task: Enhance Analysis Screen
+### Current Task: Implement AI Food Recognition
 
 **Plan:**
 
-1.  **Calorie Visualization:** Implement a line chart to display the user's calorie intake over the last seven days.
-2.  **Macronutrient Distribution:** Create a pie chart to visualize the ratio of proteins, fats, and carbohydrates in the user's diet.
-3.  **Data Integration:** Fetch all required data from the `DiaryProvider` to populate the charts.
+1.  **Dependencies**: Added `image_picker` and `firebase_ai` to `pubspec.yaml`.
+2.  **Recognition Screen**: Created `lib/screens/recognition/recognition_screen.dart` with UI for image selection and analysis via Gemini.
+3.  **Search Screen**: Created `lib/screens/search/search_screen.dart` as a placeholder to launch the recognition screen.
+4.  **Navigation**: Updated `lib/main.dart` to include routes for the new screens and updated the bottom navigation bar to include a "Поиск" tab.
 
 ### Navigation
 

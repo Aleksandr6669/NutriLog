@@ -4,21 +4,33 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // This file will be generated
 
-import 'screens/diary/diary_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/analysis/analysis_screen.dart';
 import 'screens/search/search_screen.dart';
+import 'screens/recognition/recognition_screen.dart';
 import 'providers/diary_provider.dart';
 
-Future main() async {
-  await dotenv.load(fileName: ".env");
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("Firebase initialization failed: $e");
+    // Handle errors, maybe show a fallback UI
+  }
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => DiaryProvider()),
-      
       ],
       child: const CalorieTrackerApp(),
     ),
@@ -41,7 +53,7 @@ class ThemeProvider with ChangeNotifier {
 //--------- APP ROUTER ---------//
 
 final _router = GoRouter(
-  initialLocation: '/diary',
+  initialLocation: '/',
   routes: [
     ShellRoute(
       builder: (context, state, child) {
@@ -49,16 +61,21 @@ final _router = GoRouter(
       },
       routes: [
         GoRoute(
-          path: '/diary',
-          builder: (context, state) => const DiaryScreen(),
+          path: '/',
+          builder: (context, state) => const HomeScreen(),
         ),
+        GoRoute(
+            path: '/search',
+            builder: (context, state) => const SearchScreen(),
+            routes: [
+              GoRoute(
+                path: 'recognition',
+                builder: (context, state) => const RecognitionScreen(),
+              ),
+            ]),
         GoRoute(
           path: '/analysis',
           builder: (context, state) => const AnalysisScreen(),
-        ),
-        GoRoute(
-          path: '/search',
-          builder: (context, state) => const SearchScreen(),
         ),
         GoRoute(
           path: '/profile',
@@ -107,24 +124,24 @@ class MainScreen extends StatelessWidget {
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        selectedFontSize: 10,
-        unselectedFontSize: 10,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Symbols.menu_book),
-            label: 'ДНЕВНИК',
+            label: 'Дневник',
           ),
           BottomNavigationBarItem(
             icon: Icon(Symbols.search),
-            label: 'ПОИСК',
+            label: 'Поиск',
           ),
           BottomNavigationBarItem(
             icon: Icon(Symbols.bar_chart),
-            label: 'АНАЛИЗ',
+            label: 'Анализ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Symbols.person),
-            label: 'ПРОФИЛЬ',
+            label: 'Профиль',
           ),
         ],
       ),
@@ -133,7 +150,7 @@ class MainScreen extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/diary')) {
+    if (location.startsWith('/') && location.length == 1) {
       return 0;
     }
     if (location.startsWith('/search')) {
@@ -151,7 +168,7 @@ class MainScreen extends StatelessWidget {
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        GoRouter.of(context).go('/diary');
+        GoRouter.of(context).go('/');
         break;
       case 1:
         GoRouter.of(context).go('/search');
@@ -217,7 +234,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey[200]!),
+        //side: BorderSide(color: Colors.grey[200]!),
       ),
     ),
   );
@@ -252,7 +269,7 @@ class AppTheme {
       color: const Color(0xFF1A2C21),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey[800]!),
+        // side: BorderSide(color: Colors.grey[800]!),
       ),
     ),
   );

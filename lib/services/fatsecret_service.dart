@@ -41,6 +41,7 @@ class FatsecretService {
       Uri.parse(_baseUrl),
       headers: {
         'Authorization': 'Bearer $_accessToken',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: {
         'method': 'foods.search',
@@ -54,36 +55,15 @@ class FatsecretService {
       if (data['foods'] != null && data['foods']['food'] != null) {
         final List<dynamic> foodList = data['foods']['food'];
         return foodList.map((json) => FatsecretFood.fromJson(json)).toList();
-      } else {
-        return [];
       }
+      return [];
     } else {
-      throw Exception('Failed to search for foods');
-    }
-  }
-
-  Future<FatsecretFood> getFood(String foodId) async {
-    if (_accessToken == null) {
-      await _authenticate();
-    }
-
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Authorization': 'Bearer $_accessToken',
-      },
-      body: {
-        'method': 'food.get.v2',
-        'food_id': foodId,
-        'format': 'json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return FatsecretFood.fromJson(data['food']);
-    } else {
-      throw Exception('Failed to get food details');
+      // If token expired, re-authenticate and retry once.
+      if (response.statusCode == 401) {
+        await _authenticate();
+        return searchFoods(query); // Retry the request
+      }
+      throw Exception('Failed to search foods: ${response.body}');
     }
   }
 }

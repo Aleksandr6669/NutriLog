@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "746066998910",
+    "firebase_url": "https://actionslibrary-dcfab.firebaseio.com",
+    "project_id": "actionslibrary-dcfab",
+    "storage_bucket": "actionslibrary-dcfab.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746066998910:android:e2a51755f620c4c04b8a2f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1XdmFwf2IhGf_-DGxYaNcJn900V66Tm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746066998910:android:f63acc25b35355af4b8a2f",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1XdmFwf2IhGf_-DGxYaNcJn900V66Tm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
