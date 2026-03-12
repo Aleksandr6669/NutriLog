@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: const SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 120), // Increased bottom padding for Nav Bar
         child: Column(
           children: [
             _CaloriesCard(),
