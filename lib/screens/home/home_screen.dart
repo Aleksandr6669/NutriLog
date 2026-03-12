@@ -205,6 +205,7 @@ class _MealsSection extends StatelessWidget {
               Text('Врием воды', style: theme.textTheme.headlineSmall?.copyWith(color: theme.colorScheme.onSurface)),
             ],
           ),
+           const SizedBox(height: 16),
           _WaterCard(liters: (glassesDrunk * litersPerGlass), onAdd: onAddGlass),
          
       ],
