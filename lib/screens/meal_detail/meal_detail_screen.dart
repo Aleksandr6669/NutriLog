@@ -120,11 +120,12 @@ class _MealSummaryCard extends StatelessWidget {
              Text('Сводка за прием пищи', style: theme.textTheme.headlineSmall),
              const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _MacroCircle(label: 'Углеводы', amount: totalNutrients.carbs, goal: carbsGoal, color: AppColors.primary),
-                _MacroCircle(label: 'Белки', amount: totalNutrients.protein, goal: proteinGoal, color: Colors.orange),
-                _MacroCircle(label: 'Жиры', amount: totalNutrients.fat, goal: fatGoal, color: Colors.blue),
+                Expanded(child: _MacroCircle(label: 'Углеводы', amount: totalNutrients.carbs, goal: carbsGoal, color: AppColors.primary)),
+                const SizedBox(width: 12),
+                Expanded(child: _MacroCircle(label: 'Белки', amount: totalNutrients.protein, goal: proteinGoal, color: Colors.orange)),
+                const SizedBox(width: 12),
+                Expanded(child: _MacroCircle(label: 'Жиры', amount: totalNutrients.fat, goal: fatGoal, color: Colors.blue)),
               ],
             ),
           ],
@@ -149,13 +150,13 @@ class _MacroCircle extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          width: 80, height: 80,
+          width: 260, height: 260,
           child: Stack(
             alignment: Alignment.center,
             children: [
               CircularProgressIndicator(
                 value: progress,
-                strokeWidth: 8,
+                strokeWidth: 6,
                 backgroundColor: color.withOpacity(0.15),
                 color: color,
               ),
