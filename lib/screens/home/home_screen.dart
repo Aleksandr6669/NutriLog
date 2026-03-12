@@ -162,13 +162,13 @@ class _MealsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _MealCard(name: 'Завтрак', recommended: '450 - 600', calories: '320', icon: Symbols.wb_sunny, iconBg: Color(0xFFFFF4E6), iconColor: Colors.orange, consumed: true),
+          const _MealCard(name: 'Завтрак', recommended: '450 - 600', calories: '320', icon: Symbols.wb_sunny, iconBg: Color(0xFFFFF4E6), iconColor: Colors.orange, consumed: true),
           const SizedBox(height: 12),
-          _MealCard(name: 'Обед', recommended: '600 - 800', calories: '520', icon: Symbols.lunch_dining, iconBg: Color(0xFFE6F9F0), iconColor: AppColors.primary, consumed: true),
+          const _MealCard(name: 'Обед', recommended: '600 - 800', calories: '520', icon: Symbols.lunch_dining, iconBg: Color(0xFFE6F9F0), iconColor: AppColors.primary, consumed: true),
           const SizedBox(height: 12),
-          _MealCard(name: 'Ужин', recommended: '450 - 600', calories: '0', icon: Symbols.nights_stay, iconBg: Color(0xFFEEF2FF), iconColor: Colors.indigo),
+          const _MealCard(name: 'Ужин', recommended: '450 - 600', calories: '0', icon: Symbols.nights_stay, iconBg: Color(0xFFEEF2FF), iconColor: Colors.indigo),
           const SizedBox(height: 12),
-          _MealCard(name: 'Перекус', recommended: '150 - 250', calories: '0', icon: Symbols.cookie, iconBg: Color(0xFFFCE7F3), iconColor: Colors.pink),
+          const _MealCard(name: 'Перекус', recommended: '150 - 250', calories: '0', icon: Symbols.cookie, iconBg: Color(0xFFFCE7F3), iconColor: Colors.pink),
       ],
     );
   }

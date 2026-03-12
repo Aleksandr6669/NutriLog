@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'dart:math' as math;
 import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';

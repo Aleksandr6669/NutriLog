@@ -4,10 +4,13 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'dart:ui';
 import 'screens/home/home_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
+import 'screens/stats/stats_screen.dart'; // Импортируем новый экран
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 
 void main() {
+  // Эта строка может помочь решить проблему с загрузкой шрифтов в некоторых средах
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const MyApp());
 }
 
@@ -38,8 +41,7 @@ class _MainScreenState extends State<MainScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     RecipesScreen(),
-    // TODO: Add other screens here
-    Center(child: Text('Analysis Screen')),
+    StatsScreen(), // <--- ЗАМЕНА
     Center(child: Text('Profile Screen')),
   ];
 

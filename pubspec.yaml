@@ -26,6 +26,7 @@ dependencies:
 
   # Firebase & AI (for future use)
   firebase_ai: ^0.1.0 # Corrected version
+  fl_chart: ^1.1.1
 
 
 dev_dependencies:
