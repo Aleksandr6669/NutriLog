@@ -11,6 +11,6 @@ class AppColors {
   static final Color subtleTextDark = Colors.grey.shade400;
   static const Color cardLight = Colors.white;
   static const Color cardDark = Color(0xFF1A2C21);
-  static final Color cardBorderLight = Colors.grey.shade200.withOpacity(0.5);
-  static final Color cardBorderDark = Colors.grey.shade800.withOpacity(0.5);
+  static final Color cardBorderLight = Colors.grey.shade200.withAlpha(128); // 0.5 opacity
+  static final Color cardBorderDark = Colors.grey.shade800.withAlpha(128); // 0.5 opacity
 }

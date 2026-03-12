@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../main.dart';
 import 'dart:math' as math;
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
@@ -14,11 +13,11 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Symbols.calendar_today, color: AppColors.primary, size: 28),
-            const SizedBox(width: 8),
-            const Text('Сегодня'),
+            SizedBox(width: 8),
+            Text('Сегодня'),
           ],
         ),
         actions: [
@@ -26,20 +25,18 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(width: 16),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120), // Padding for nav bar
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(
           children: [
-            _buildCaloriesCard(theme),
-            const SizedBox(height: 16),
-            _buildMacronutrients(theme),
-            const SizedBox(height: 24),
-            _buildMealsSection(theme),
+            _CaloriesCard(),
+            SizedBox(height: 16),
+            _Macronutrients(),
+            SizedBox(height: 24),
+            _MealsSection(),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(theme),
-      extendBody: true,
     );
   }
 
@@ -49,14 +46,20 @@ class HomeScreen extends StatelessWidget {
       height: 44,
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withAlpha(26), // 0.1 opacity
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: AppColors.primary, size: 24),
     );
   }
+}
 
-  Widget _buildCaloriesCard(ThemeData theme) {
+class _CaloriesCard extends StatelessWidget {
+  const _CaloriesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
        shape: RoundedRectangleBorder(
         borderRadius: AppStyles.largeBorderRadius,
@@ -64,7 +67,7 @@ class HomeScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: AppStyles.largeBorderRadius,
-          border: Border.all(color: AppColors.primary.withOpacity(0.1))
+          border: Border.all(color: AppColors.primary.withAlpha(26)) // 0.1 opacity
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -119,20 +122,31 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildMacronutrients(ThemeData theme) {
-    return Row(
+class _Macronutrients extends StatelessWidget {
+  const _Macronutrients();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
       children: [
         Expanded(child: _MacronutrientCard(name: 'Углеводы', value: '120г', total: '250г', percentage: 0.48, color: AppColors.primary)),
-        const SizedBox(width: 12),
-        Expanded(child: _MacronutrientCard(name: 'Белки', value: '60г', total: '150г', percentage: 0.4, color: Colors.orange.shade400)),
-        const SizedBox(width: 12),
-        Expanded(child: _MacronutrientCard(name: 'Жиры', value: '45г', total: '70г', percentage: 0.64, color: Colors.blue.shade400)),
+        SizedBox(width: 12),
+        Expanded(child: _MacronutrientCard(name: 'Белки', value: '60г', total: '150г', percentage: 0.4, color: Colors.orange)),
+        SizedBox(width: 12),
+        Expanded(child: _MacronutrientCard(name: 'Жиры', value: '45г', total: '70г', percentage: 0.64, color: Colors.blue)),
       ],
     );
   }
+}
 
-  Widget _buildMealsSection(ThemeData theme) {
+class _MealsSection extends StatelessWidget {
+  const _MealsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
          Row(
@@ -142,7 +156,7 @@ class HomeScreen extends StatelessWidget {
               Text('Приемы пищи', style: theme.textTheme.headlineSmall?.copyWith(color: theme.colorScheme.onSurface)),
               TextButton(
                 onPressed: () {},
-                child: Text('История', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
+                child: const Text('История', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
               ),
             ],
           ),
@@ -157,41 +171,6 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildBottomNavigationBar(ThemeData theme) {
-    return Container(
-      height: 90,
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.bottomNavigationBarTheme.backgroundColor?.withOpacity(0.9),
-        borderRadius: AppStyles.defaultBorderRadius,
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            spreadRadius: -5,
-            offset: const Offset(0, 10)
-          )
-        ]
-      ),
-      child: ClipRRect(
-        borderRadius: AppStyles.defaultBorderRadius,
-        child: BottomNavigationBar(
-          currentIndex: 0,
-          onTap: (index) {},
-          backgroundColor: Colors.transparent,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Symbols.menu_book, weight: 300), activeIcon: Icon(Symbols.menu_book, fill: 1, weight: 600), label: 'Дневник'),
-            BottomNavigationBarItem(icon: Icon(Symbols.receipt_long, weight: 300), activeIcon: Icon(Symbols.receipt_long, fill: 1, weight: 600), label: 'Рецепты'),
-            BottomNavigationBarItem(icon: Icon(Symbols.analytics, weight: 300), activeIcon: Icon(Symbols.analytics, fill: 1, weight: 600), label: 'Анализ'),
-            BottomNavigationBarItem(icon: Icon(Symbols.person, weight: 300), activeIcon: Icon(Symbols.person, fill: 1, weight: 600), label: 'Профиль'),
-          ],
-        ),
-      ),
-    );
-  }
-
 }
 
 // --- Local Widgets for HomeScreen ---
@@ -208,11 +187,9 @@ class _CircularProgress extends StatelessWidget {
       painter: _CircularProgressPainter(
         progress: progress,
         strokeWidth: strokeWidth,
-        backgroundColor: AppColors.primary.withOpacity(0.1),
+        backgroundColor: AppColors.primary.withAlpha(26), // 0.1 opacity
         progressColor: AppColors.primary,
       ),
-      // By adding an empty Container as a child, we force the CustomPaint
-      // to expand to the size of its parent (the 240x240 SizedBox).
       child: Container(),
     );
   }
@@ -277,7 +254,7 @@ class _MacronutrientCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: percentage,
                 minHeight: 6,
-                backgroundColor: color.withOpacity(0.15),
+                backgroundColor: color.withAlpha(38), // 0.15 opacity
                 color: color,
               ),
             ),
@@ -349,7 +326,7 @@ class _MealCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.primary,
-                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))]
+                  boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(77), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))]
                 ),
                 child: const Icon(Symbols.add, color: Colors.white, size: 28),
               ),
