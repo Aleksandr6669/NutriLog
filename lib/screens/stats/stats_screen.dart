@@ -322,7 +322,7 @@ class _StatsScreenState extends State<StatsScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Symbols.auto_awesome, color: AppColors.primary, size: 32),
+            const Icon(Symbols.auto_awesome, color: AppColors.primary, size: 32),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

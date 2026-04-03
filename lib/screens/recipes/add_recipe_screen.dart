@@ -3,7 +3,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
 import '../../models/food_item.dart';
 import '../../widgets/icon_picker_dialog.dart';
-import '../../styles/app_styles.dart';
 
 class AddRecipeScreen extends StatefulWidget {
   // Добавляем опциональный параметр для редактирования
@@ -60,20 +59,20 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       _proteinController.text = nutrients.protein.toString();
       _carbsController.text = nutrients.carbs.toString();
       _fatController.text = nutrients.fat.toString();
-      _fiberController.text = nutrients.fiber?.toString() ?? '';
-      _sugarController.text = nutrients.sugar?.toString() ?? '';
-      _saturatedFatController.text = nutrients.saturatedFat?.toString() ?? '';
-      _polyunsaturatedFatController.text = nutrients.polyunsaturatedFat?.toString() ?? '';
-      _monounsaturatedFatController.text = nutrients.monounsaturatedFat?.toString() ?? '';
-      _transFatController.text = nutrients.transFat?.toString() ?? '';
-      _cholesterolController.text = nutrients.cholesterol?.toString() ?? '';
-      _sodiumController.text = nutrients.sodium?.toString() ?? '';
-      _potassiumController.text = nutrients.potassium?.toString() ?? '';
-      _vitaminAController.text = nutrients.vitaminA?.toString() ?? '';
-      _vitaminCController.text = nutrients.vitaminC?.toString() ?? '';
-      _vitaminDController.text = nutrients.vitaminD?.toString() ?? '';
-      _calciumController.text = nutrients.calcium?.toString() ?? '';
-      _ironController.text = nutrients.iron?.toString() ?? '';
+      _fiberController.text = nutrients.fiber.toString() ?? '';
+      _sugarController.text = nutrients.sugar.toString() ?? '';
+      _saturatedFatController.text = nutrients.saturatedFat.toString() ?? '';
+      _polyunsaturatedFatController.text = nutrients.polyunsaturatedFat.toString() ?? '';
+      _monounsaturatedFatController.text = nutrients.monounsaturatedFat.toString() ?? '';
+      _transFatController.text = nutrients.transFat.toString() ?? '';
+      _cholesterolController.text = nutrients.cholesterol.toString() ?? '';
+      _sodiumController.text = nutrients.sodium.toString() ?? '';
+      _potassiumController.text = nutrients.potassium.toString() ?? '';
+      _vitaminAController.text = nutrients.vitaminA.toString() ?? '';
+      _vitaminCController.text = nutrients.vitaminC.toString() ?? '';
+      _vitaminDController.text = nutrients.vitaminD.toString() ?? '';
+      _calciumController.text = nutrients.calcium.toString() ?? '';
+      _ironController.text = nutrients.iron.toString() ?? '';
     }
   }
 

@@ -1,68 +1,91 @@
-# My Flutter App
+# NutriLog - Calorie Tracker with AI
 
-A modern and feature-rich Flutter application designed to showcase a variety of native capabilities and provide a smooth user experience.
+NutriLog - это современное Flutter-приложение для отслеживания питания и подсчета калорий, интегрированное с ИИ для умного анализа и персонализированных рекомендаций. Приложение предоставляет пользователям удобный способ мониторинга потребления калорий, белков, жиров и углеводов, а также отслеживания воды и тренировок.
 
-## ✨ Features
+## ✨ Функции
 
-This application integrates several powerful packages to deliver a robust feature set:
+### Главный экран (HomeScreen)
+- **Сводка за день:** Круговая диаграмма с общим количеством потребленных калорий и оставшимся лимитом.
+- **Карточки БЖУ:** Наглядное отображение белков, жиров и углеводов.
+- **Трекер воды:** Интерактивная карточка для отслеживания выпитой воды с прогрессом до дневной цели.
+- **Список приемов пищи:** Разделы для завтрака, обеда, ужина и перекусов с возможностью добавления продуктов.
 
--   **🌐 In-App Web Browser:** Utilizes `webview_flutter` to seamlessly display web content within the app.
--   **🔒 Runtime Permissions:** Employs `permission_handler` to gracefully request and handle necessary device permissions (e.g., camera, location, storage).
--   **📶 Connectivity Monitoring:** Uses `connectivity_plus` to monitor the device's network state and adapt the app's behavior accordingly.
--   **💾 Local Data Persistence:** Leverages `shared_preferences` to store simple key-value data locally, such as user settings or session information.
--   **📁 File Selection:** Integrates `file_picker` to allow users to easily select files from their device storage.
+### Экран рецептов (RecipesScreen)
+- **Список рецептов:** Карточки с изображением, названием, калорийностью и временем приготовления.
+- **Фильтрация и поиск:** Возможность фильтровать по категориям и искать по названию.
+- **Добавление и редактирование рецептов:** Полнофункциональные формы для создания и изменения рецептов.
 
-## 🚀 Getting Started
+### Экран статистики (StatsScreen)
+- **Переключатель периода:** Просмотр данных за неделю или месяц.
+- **Графики:** Линейные графики для динамики калорий и веса.
+- **Среднее БЖУ:** Круговая диаграмма соотношения макронутриентов.
+- **Карточки прогресса:** Показатели шагов, веса, тренировок и воды.
+- **AI-анализ:** Умные рекомендации и отчеты от ИИ.
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing.
+### Экран профиля (ProfileScreen)
+- **Личные данные:** Настройка роста, веса, возраста, пола.
+- **Цели:** Установка ежедневных лимитов калорий, воды, шагов.
+- **Тема:** Переключение между светлой и темной темой.
 
-### Prerequisites
+### Интеграция с ИИ
+- **Firebase AI:** Использование Gemini для анализа питания и генерации рекомендаций.
+- **Умный анализ:** Персонализированные советы по питанию и тренировкам.
 
-You need to have the Flutter SDK installed on your machine. For instructions on how to install Flutter, please see the [official Flutter documentation](https://docs.flutter.dev/get-started/install).
+## 🚀 Начало работы
 
-### Installation & Setup
+### Предварительные требования
+- Установленный Flutter SDK. Инструкции по установке: [официальная документация Flutter](https://docs.flutter.dev/get-started/install).
 
-1.  **Clone the repository** or download the source code.
-2.  **Navigate to the project directory** in your terminal.
-3.  **Install dependencies** by running the following command:
-    ```bash
-    flutter pub get
-    ```
+### Установка и настройка
+1. **Клонируйте репозиторий** или скачайте исходный код.
+2. **Перейдите в директорию проекта** в терминале.
+3. **Установите зависимости:**
+   ```bash
+   flutter pub get
+   ```
 
-### Running the Application
-
-To run the application, use the following command with a connected device or an open emulator:
-
+### Запуск приложения
+Запустите приложение на подключенном устройстве или эмуляторе:
 ```bash
 flutter run
 ```
 
-### `android_build.yml` (Manual Build)
+## 📦 Основные пакеты
 
-This workflow is designed to build the Android application and generate a release-ready App Bundle (`.aab`).
+- `google_fonts`: Кастомные шрифты для красивого оформления.
+- `provider`: Управление состоянием приложения.
+- `material_symbols_icons`: Современные иконки Material Design.
+- `percent_indicator`: Прогресс-индикаторы для трекеров.
+- `go_router`: Навигация между экранами.
+- `image_picker`: Выбор изображений для рецептов.
+- `http`: HTTP-запросы для API.
+- `flutter_dotenv`: Управление переменными окружения.
+- `firebase_ai`: Интеграция с Firebase AI для ИИ-функций.
+- `fl_chart`: Графики для статистики.
 
--   **Trigger:** This workflow is triggered manually via the `workflow_dispatch` event from the GitHub Actions UI.
--   **Process:**
-    1.  Sets up the build environment on an `ubuntu-latest` runner.
-    2.  Builds the Android App Bundle using the `flutter build appbundle` command.
-    3.  Uploads the generated `.aab` file as a build artifact, making it available for download and for publishing to the Google Play Store.
+## 🔧 Сборки
 
-### `ios_build.yml` (Manual Build)
+### Android Build (android_build.yml)
+- **Триггер:** Ручной запуск через GitHub Actions.
+- **Процесс:**
+  1. Настройка среды на `ubuntu-latest`.
+  2. Сборка Android App Bundle: `flutter build appbundle`.
+  3. Загрузка `.aab` файла как артефакта для публикации в Google Play.
 
-This workflow is responsible for building the iOS application.
+### iOS Build (ios_build.yml)
+- **Триггер:** Ручной запуск через GitHub Actions.
+- **Процесс:**
+  1. Настройка среды на `macos-latest`.
+  2. Сборка iOS приложения: `flutter build ios --release --no-codesign`.
+  3. Загрузка `Runner.app` как артефакта.
 
--   **Trigger:** This workflow is also triggered manually using `workflow_dispatch`.
--   **Process:**
-    1.  Sets up the build environment on a `macos-latest` runner, which is required for iOS builds.
-    2.  Builds the iOS application using the `flutter build ios --release --no-codesign` command. The `--no-codesign` flag is used as code signing will typically be handled later in the distribution process (e.g., via Xcode or a dedicated CD service).
-    3.  Uploads the resulting `Runner.app` directory as a build artifact.
+## 📱 Поддерживаемые платформы
+- Android
+- iOS
+- Web (предварительная поддержка)
 
-## 📦 Core Packages
+## 🤝 Вклад в проект
+Мы приветствуем вклад в развитие NutriLog! Пожалуйста, создавайте issues и pull requests для улучшений и исправлений.
 
--   `flutter`
--   `webview_flutter`
--   `permission_handler`
--   `connectivity_plus`
--   `shared_preferences`
--   `file_picker`
--   `flutter_lints`
+## 📄 Лицензия
+Этот проект лицензирован под MIT License.
