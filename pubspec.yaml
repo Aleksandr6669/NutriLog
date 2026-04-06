@@ -21,9 +21,6 @@ dependencies:
   image_picker: ^1.0.7
   http: ^1.2.0
   flutter_dotenv: ^5.1.0
-
-  # Firebase & AI (for future use)
-  firebase_ai: ^0.1.0 # Corrected version
   fl_chart: ^1.1.1
   intl: ^0.20.2
   table_calendar: ^3.2.0
