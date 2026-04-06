@@ -24,7 +24,7 @@ class _StatsScreenState extends State<StatsScreen> {
   bool _isWeekly = true;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
-  final AiService _aiService = AiService();
+  // final AiService _aiService = AiService(); // Commented out for now
 
   late Future<Map<String, dynamic>> _dataFuture;
 
@@ -80,7 +80,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final workouts = logs.where((log) => log.activityCalories > 0).length;
     final avgWater = logs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/ logCount;
 
-    final aiReport = await _aiService.getWeeklyAnalysis(logs, profile);
+    // final aiReport = await _aiService.getWeeklyAnalysis(logs, profile); // Commented out for now
+    const aiReport = 'Отчет от AI временно отключен.'; // Placeholder
 
     final result = {
       'calories': caloriesData,
