@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           CircleAvatar(
             radius: 50,
             backgroundImage: NetworkImage(avatarUrl),
-            backgroundColor: theme.colorScheme.surfaceVariant,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
           ),
           const SizedBox(height: 16),
           Text(name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),

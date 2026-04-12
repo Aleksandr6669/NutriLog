@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';

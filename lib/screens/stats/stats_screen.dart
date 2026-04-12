@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
-import '../../services/ai_service.dart';
 import '../../services/daily_log_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
