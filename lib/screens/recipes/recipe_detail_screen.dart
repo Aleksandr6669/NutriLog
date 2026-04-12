@@ -1,68 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../models/recipe.dart';
-import '../../models/food_item.dart';
-import '../../styles/app_styles.dart';
+import 'package:nutri_log/models/recipe.dart';
+import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/services/recipe_service.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   final Recipe recipe;
 
   const RecipeDetailScreen({super.key, required this.recipe});
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final nutrients = recipe.nutrients;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(recipe.name),
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Подтверждение'),
+        content: Text('Вы уверены, что хотите удалить рецепт "${recipe.name}"?'),
         actions: [
-          IconButton(
-            // TODO: Implement adding recipe to a meal
-            icon: const Icon(Symbols.add_shopping_cart),
-            onPressed: () {},
-            tooltip: 'Добавить в прием пищи',
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
+    );
+
+    if (confirmed == true) {
+      await RecipeService().deleteRecipe(recipe.id);
+      if (context.mounted) {
+        Navigator.of(context).pop(true);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade50,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          if (recipe.isUserRecipe)
+            IconButton(
+              icon: const Icon(Symbols.delete, weight: 400),
+              onPressed: () => _confirmDelete(context),
+              tooltip: 'Удалить рецепт',
+            ),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(theme),
+            _buildHeader(context),
             const SizedBox(height: 24),
-            Text('Пищевая ценность (на порцию)', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 12),
-            _buildNutritionalDetails(theme, nutrients),
+            _buildNutrientsCard(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
+      color: Colors.white,
+      elevation: 0.5,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Center(
           child: Column(
             children: [
               CircleAvatar(
-                radius: 40,
-                backgroundColor: theme.colorScheme.primary.withAlpha(26), // 10% opacity
-                child: Icon(recipe.icon, size: 40, color: theme.colorScheme.primary),
+                radius: 56,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                child: Icon(recipe.icon, size: 56, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: 16),
-              Text(recipe.name, style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
+              Text(
+                recipe.name,
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
               if (recipe.description.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
                     recipe.description,
-                    style: theme.textTheme.bodyLarge?.copyWith(color: theme.textTheme.bodySmall?.color),
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -73,66 +111,102 @@ class RecipeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNutritionalDetails(ThemeData theme, NutritionalInfo nutrients) {
+  Widget _buildNutrientsCard(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
+      color: Colors.white,
+      elevation: 0.5,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow(theme, 'Калории', '${nutrients.calories} ккал'),
-            _buildDivider(),
-            _buildDetailRow(theme, 'Белки', '${nutrients.protein.toStringAsFixed(1)} г'),
-            _buildDetailRow(theme, 'Углеводы', '${nutrients.carbs.toStringAsFixed(1)} г'),
-            _buildDetailRow(theme, '   в т.ч. Сахар', '${nutrients.sugar.toStringAsFixed(1)} г', isSub: true),
-            _buildDetailRow(theme, '   в т.ч. Клетчатка', '${nutrients.fiber.toStringAsFixed(1)} г', isSub: true),
-            _buildDivider(),
-            _buildDetailRow(theme, 'Жиры', '${nutrients.fat.toStringAsFixed(1)} г'),
-            _buildDetailRow(theme, '   Насыщенные', '${nutrients.saturatedFat.toStringAsFixed(1)} г', isSub: true),
-            _buildDetailRow(theme, '   Полиненасыщенные', '${nutrients.polyunsaturatedFat.toStringAsFixed(1)} г', isSub: true),
-            _buildDetailRow(theme, '   Мононенасыщенные', '${nutrients.monounsaturatedFat.toStringAsFixed(1)} г', isSub: true),
-            _buildDetailRow(theme, '   Трансжиры', '${nutrients.transFat.toStringAsFixed(1)} г', isSub: true),
-             if (nutrients.cholesterol > 0 || nutrients.sodium > 0) ...[
-                _buildDivider(),
-                if (nutrients.cholesterol > 0) _buildDetailRow(theme, 'Холестерин', '${nutrients.cholesterol.toStringAsFixed(0)} мг'),
-                if (nutrients.sodium > 0) _buildDetailRow(theme, 'Натрий', '${nutrients.sodium.toStringAsFixed(0)} мг'),
-             ],
-             if (nutrients.vitaminA > 0 || nutrients.vitaminC > 0 || nutrients.calcium > 0 || nutrients.iron > 0) ...[
-                _buildDivider(),
-                if (nutrients.vitaminA > 0) _buildDetailRow(theme, 'Витамин A', '${nutrients.vitaminA}%'),
-                if (nutrients.vitaminC > 0) _buildDetailRow(theme, 'Витамин C', '${nutrients.vitaminC}%'),
-                if (nutrients.calcium > 0) _buildDetailRow(theme, 'Кальций', '${nutrients.calcium}%'),
-                if (nutrients.iron > 0) _buildDetailRow(theme, 'Железо', '${nutrients.iron}%'),
-             ]
+            const Text(
+              'Пищевая ценность (на порцию)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _nutrientRow('Калории', recipe.nutrients['calories'], 'ккал'),
+            const Divider(height: 24),
+            _nutrientGroup('Основные', [
+              _nutrientRow('Белки', recipe.nutrients['protein'], 'г'),
+              _nutrientRow('Углеводы', recipe.nutrients['carbs'], 'г', subRows: [
+                _nutrientSubRow('в т.ч. Сахар', recipe.nutrients['sugar'], 'г'),
+                _nutrientSubRow('в т.ч. Клетчатка', recipe.nutrients['fiber'], 'г'),
+              ]),
+              _nutrientRow('Жиры', recipe.nutrients['fat'], 'г', subRows: [
+                _nutrientSubRow('Насыщенные', recipe.nutrients['saturated_fat'], 'г'),
+                _nutrientSubRow('Полиненасыщенные', recipe.nutrients['polyunsaturated_fat'], 'г'),
+                _nutrientSubRow('Мононенасыщенные', recipe.nutrients['monounsaturated_fat'], 'г'),
+                _nutrientSubRow('Трансжиры', recipe.nutrients['trans_fat'], 'г'),
+              ]),
+            ]),
+            const Divider(height: 24),
+            _nutrientGroup('Минералы', [
+              _nutrientRow('Холестерин', recipe.nutrients['cholesterol'], 'мг'),
+              _nutrientRow('Натрий', recipe.nutrients['sodium'], 'мг'),
+              _nutrientRow('Калий', recipe.nutrients['potassium'], 'мг'),
+            ]),
+            const Divider(height: 24),
+            _nutrientGroup('Витамины', [
+              _nutrientRow('Витамин A', recipe.nutrients['vitamin_a'], 'мкг'),
+              _nutrientRow('Витамин C', recipe.nutrients['vitamin_c'], 'мг'),
+              _nutrientRow('Витамин D', recipe.nutrients['vitamin_d'], 'мкг'),
+              _nutrientRow('Кальций', recipe.nutrients['calcium'], 'мг'),
+              _nutrientRow('Железо', recipe.nutrients['iron'], 'мг'),
+            ]),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(ThemeData theme, String label, String value, {bool isSub = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: isSub ? theme.textTheme.bodyMedium : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.normal),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
+  Widget _nutrientGroup(String title, List<Widget> rows) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        ...rows,
+      ],
     );
   }
 
-  Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: Divider(height: 1),
+  Widget _nutrientRow(String label, double? value, String unit, {List<Widget> subRows = const []}) {
+    final displayValue = (value ?? 0.0).toStringAsFixed(1);
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Text('$displayValue $unit', style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        if (subRows.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 8),
+            child: Column(children: subRows),
+          ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _nutrientSubRow(String label, double? value, String unit) {
+    final displayValue = (value ?? 0.0).toStringAsFixed(1);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          Text('$displayValue $unit', style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+        ],
+      ),
     );
   }
 }

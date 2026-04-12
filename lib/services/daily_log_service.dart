@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/daily_log.dart';
 import '../models/food_item.dart';
-import 'recipe_service.dart'; // Для доступа к маппингу иконок
+import 'recipe_loader.dart'; // Для доступа к маппингу иконок
 
 class DailyLogService {
   static final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
@@ -29,7 +29,7 @@ class DailyLogService {
         final items = (itemsJson as List).map((itemJson) {
           final nutrientsJson = itemJson['nutrients'];
           return FoodItem(
-            icon: RecipeService.getIcon(itemJson['icon'] ?? ''),
+            icon: RecipeLoader.getIcon(itemJson['icon'] ?? ''),
             name: itemJson['name'] ?? '',
             description: itemJson['description'] ?? '',
             nutrients: NutritionalInfo.fromJson(nutrientsJson),

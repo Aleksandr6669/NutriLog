@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:nutri_log/screens/meal_detail/food_item_detail_screen.dart';
 import '../../models/food_item.dart';
-import '../../models/recipe.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
-import '../recipes/recipe_detail_screen.dart';
 
 class MealDetailScreen extends StatelessWidget {
   final String mealName;
@@ -31,7 +30,7 @@ class MealDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.add_circle_outline),
-            onPressed: () { 
+            onPressed: () {
               // TODO: Implement add food functionality
             },
             tooltip: 'Добавить продукт',
@@ -213,16 +212,9 @@ class _FoodListItem extends StatelessWidget {
   const _FoodListItem({required this.item});
 
   void _navigateToDetail(BuildContext context, FoodItem item) {
-    // Конвертируем FoodItem в Recipe, чтобы использовать существующий экран
-    final recipe = Recipe(
-      name: item.name,
-      description: item.description,
-      icon: item.icon,
-      nutrients: item.nutrients,
-    );
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => RecipeDetailScreen(recipe: recipe),
+        builder: (context) => FoodItemDetailScreen(item: item),
       ),
     );
   }

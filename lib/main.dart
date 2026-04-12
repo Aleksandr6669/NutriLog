@@ -202,6 +202,7 @@ ThemeData _buildTheme(Brightness brightness) {
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: background,
     useMaterial3: true,
+    fontFamily: 'Manrope',
   );
 
   return baseTheme.copyWith(
@@ -211,18 +212,18 @@ ThemeData _buildTheme(Brightness brightness) {
       surface: cardColor,
       onSurface: textColor,
     ),
-    textTheme: GoogleFonts.manropeTextTheme(baseTheme.textTheme).apply(
+    textTheme: baseTheme.textTheme.apply(
       bodyColor: textColor,
       displayColor: textColor,
     ).copyWith(
-      displayLarge: TextStyle(fontWeight: FontWeight.w800, fontSize: 48, letterSpacing: -1, color: textColor),
-      headlineSmall: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: textColor),
-      titleLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor),
-      titleMedium: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
-      bodyLarge: TextStyle(fontSize: 14, color: textColor),
-      bodyMedium: TextStyle(fontSize: 12, color: textColor),
-      bodySmall: TextStyle(color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.w500),
-      labelSmall: TextStyle(color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.bold, ),
+      displayLarge: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 48, letterSpacing: -1, color: textColor),
+      headlineSmall: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 20, color: textColor),
+      titleLarge: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 18, color: textColor),
+      titleMedium: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
+      bodyLarge: TextStyle(fontFamily: 'Manrope', fontSize: 14, color: textColor),
+      bodyMedium: TextStyle(fontFamily: 'Manrope', fontSize: 12, color: textColor),
+      bodySmall: TextStyle(fontFamily: 'Manrope', color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.w500),
+      labelSmall: TextStyle(fontFamily: 'Manrope', color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.bold),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
@@ -237,7 +238,7 @@ ThemeData _buildTheme(Brightness brightness) {
       elevation: 0,
       backgroundColor: Colors.transparent,
       foregroundColor: textColor,
-      titleTextStyle: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 22, color: textColor),
+      titleTextStyle: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 22, color: textColor),
       centerTitle: false,
     ),
      elevatedButtonTheme: ElevatedButtonThemeData(
@@ -246,7 +247,7 @@ ThemeData _buildTheme(Brightness brightness) {
         foregroundColor: AppColors.onPrimary,
         shape: RoundedRectangleBorder(borderRadius: AppStyles.buttonRadius),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        textStyle: const TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 16),
         elevation: 0,
       ),
     ),
@@ -262,8 +263,8 @@ ThemeData _buildTheme(Brightness brightness) {
       type: BottomNavigationBarType.fixed,
       showSelectedLabels: true,
       showUnselectedLabels: true,
-      selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-      unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+      selectedLabelStyle: const TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
+      unselectedLabelStyle: const TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
     ),
   );
 }
