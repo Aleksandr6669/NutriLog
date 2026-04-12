@@ -8,8 +8,9 @@ class ProgressCard extends StatelessWidget {
   final String value;
   final String unit;
   final Color color;
-  final int? goal;
+  final num? goal;
   final bool isWeight;
+  final bool isWater;
 
   const ProgressCard({
     super.key,
@@ -20,6 +21,7 @@ class ProgressCard extends StatelessWidget {
     required this.color,
     this.goal,
     this.isWeight = false,
+    this.isWater = false,
   });
 
   @override
@@ -77,6 +79,7 @@ class ProgressCard extends StatelessWidget {
   String? _getGoalText() {
     if (goal == null || goal == 0) return null;
     if (isWeight) return 'Цель: ${goal!.toStringAsFixed(0)} кг';
-    return 'Цель: $goal';
+    if (isWater) return 'Цель: ${goal!.toStringAsFixed(1)} л';
+    return 'Цель: ${goal!.toInt()}';
   }
 }

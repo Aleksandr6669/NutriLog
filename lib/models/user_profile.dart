@@ -36,15 +36,15 @@ class UserProfile {
 
     return UserProfile(
       userName: json['userName'] ?? 'Пользователь',
-      weight: (json['weight'] as num?)?.toDouble() ?? 75.0,
-      weightGoal: (json['weightGoal'] as num?)?.toDouble() ?? 70.0,
-      calorieGoal: json['calorieGoal'] ?? 2000,
-      waterGoal: json['waterGoal'] ?? 2000,
-      activityGoal: json['activityGoal'] ?? 300,
-      stepsGoal: json['stepsGoal'] ?? 8000,
-      proteinGoal: json['proteinGoal'] ?? 150,
-      carbsGoal: json['carbsGoal'] ?? 200,
-      fatGoal: json['fatGoal'] ?? 70,
+      weight: (json['userWeight'] as num?)?.toDouble() ?? 0,
+      weightGoal: (json['weightGoal'] as num?)?.toDouble() ?? 0,
+      calorieGoal: json['calorieGoal'] ?? 0,
+      waterGoal: json['waterGoal'] ?? 0,
+      activityGoal: json['activityGoal'] ?? 0,
+      stepsGoal: json['stepsGoal'] ?? 0,
+      proteinGoal: json['proteinGoal'] ?? 0,
+      carbsGoal: json['carbsGoal'] ?? 0,
+      fatGoal: json['fatGoal'] ?? 0,
       weightHistory: weightHistoryList,
     );
   }

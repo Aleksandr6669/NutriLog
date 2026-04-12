@@ -52,6 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileContent(BuildContext context, Map<String, dynamic> data) {
     final theme = Theme.of(context);
+    final waterGoalLiters = (data['waterGoal'] as int) / 1000.0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -68,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildInfoRow(theme, 'Возраст', '${data['userAge']} лет'),
               _buildInfoRow(theme, 'Рост', '${data['userHeight']} см'),
               _buildInfoRow(theme, 'Вес', '${data['userWeight']} кг'),
+              _buildInfoRow(theme, 'Цель по весу', '${data['weightGoal']} кг'),
               _buildInfoRow(theme, 'Пол', data['userGender']),
             ],
           ),
@@ -78,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Symbols.track_changes,
             children: [
               _buildInfoRow(theme, 'Калории', '${data['calorieGoal']} ккал'),
-              _buildInfoRow(theme, 'Вода', '${data['waterGoal']} мл'),
+              _buildInfoRow(theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
               _buildInfoRow(theme, 'Активность', '${data['activityGoal']} ккал'),
               _buildInfoRow(theme, 'Шаги', '${data['stepsGoal']} шагов'),
               const Divider(height: 16),

@@ -262,6 +262,7 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Widget _buildProgressCards(ThemeData theme, int avgSteps, double latestWeight, int workouts, int avgWater, UserProfile profile) {
+    final waterGoalLiters = profile.waterGoal / 1000.0;
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -271,9 +272,9 @@ class _StatsScreenState extends State<StatsScreen> {
       childAspectRatio: 1.6, 
       children: [
         ProgressCard(icon: Symbols.footprint, title: 'Шаги', value: avgSteps.toString(), unit: 'в среднем', color: AppColors.primary, goal: profile.stepsGoal),
-        ProgressCard(icon: Symbols.weight, title: 'Вес', value: latestWeight.toStringAsFixed(1), unit: 'кг', color: Colors.orange, goal: profile.weightGoal.toInt(), isWeight: true),
+        ProgressCard(icon: Symbols.weight, title: 'Вес', value: latestWeight.toStringAsFixed(1), unit: 'кг', color: Colors.orange, goal: profile.weightGoal, isWeight: true),
         ProgressCard(icon: Symbols.fitness_center, title: 'Активность', value: workouts.toString(), unit: _isWeekly ? 'в неделю' : 'в месяц', color: Colors.blue),
-        ProgressCard(icon: Symbols.water_drop, title: 'Вода', value: (avgWater / 1000).toStringAsFixed(1), unit: 'л, в среднем', color: Colors.lightBlue, goal: profile.waterGoal ~/ 1000),
+        ProgressCard(icon: Symbols.water_drop, title: 'Вода', value: (avgWater / 1000).toStringAsFixed(1), unit: 'л, в среднем', color: Colors.lightBlue, goal: waterGoalLiters, isWater: true),
       ],
     );
   }
