@@ -15,12 +15,12 @@ class NutritionalInfo {
   final double potassium; // mg
   final double fiber;
   final double sugar;
-  // Vitamins (as a percentage of DV - Daily Value)
-  final int vitaminA;
-  final int vitaminC;
-  final int vitaminD;
-  final int calcium; // %
-  final int iron; // %
+  // Vitamins & Minerals in absolute values
+  final double vitaminA; // mcg (micrograms)
+  final double vitaminC; // mg
+  final double vitaminD; // mcg (micrograms) / IU
+  final double calcium;  // mg
+  final double iron;     // mg
 
   NutritionalInfo({
     required this.calories,
@@ -58,18 +58,16 @@ class NutritionalInfo {
       potassium: (json['potassium'] as num?)?.toDouble() ?? 0.0,
       fiber: (json['fiber'] as num?)?.toDouble() ?? 0.0,
       sugar: (json['sugar'] as num?)?.toDouble() ?? 0.0,
-      vitaminA: (json['vitaminA'] as num?)?.toInt() ?? 0,
-      vitaminC: (json['vitaminC'] as num?)?.toInt() ?? 0,
-      vitaminD: (json['vitaminD'] as num?)?.toInt() ?? 0,
-      calcium: (json['calcium'] as num?)?.toInt() ?? 0,
-      iron: (json['iron'] as num?)?.toInt() ?? 0,
+      vitaminA: (json['vitaminA'] as num?)?.toDouble() ?? 0,
+      vitaminC: (json['vitaminC'] as num?)?.toDouble() ?? 0,
+      vitaminD: (json['vitaminD'] as num?)?.toDouble() ?? 0,
+      calcium: (json['calcium'] as num?)?.toDouble() ?? 0,
+      iron: (json['iron'] as num?)?.toDouble() ?? 0,
     );
   }
 
-  // Helper to create an empty info object
   static NutritionalInfo get zero => NutritionalInfo(calories: 0, protein: 0, carbs: 0, fat: 0);
 
-  // Helper to add two NutritionalInfo objects together
   NutritionalInfo operator +(NutritionalInfo other) {
     return NutritionalInfo(
       calories: calories + other.calories,

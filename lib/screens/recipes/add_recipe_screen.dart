@@ -5,7 +5,6 @@ import '../../models/food_item.dart';
 import '../../widgets/icon_picker_dialog.dart';
 
 class AddRecipeScreen extends StatefulWidget {
-  // Добавляем опциональный параметр для редактирования
   final Recipe? recipeToEdit;
 
   const AddRecipeScreen({super.key, this.recipeToEdit});
@@ -48,7 +47,6 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     _isEditing = widget.recipeToEdit != null;
 
     if (_isEditing) {
-      // Если редактируем, заполняем поля
       final recipe = widget.recipeToEdit!;
       _nameController.text = recipe.name;
       _descriptionController.text = recipe.description;
@@ -80,7 +78,25 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    // ... dispose all other controllers
+    // Dispose all other controllers
+    _caloriesController.dispose();
+    _proteinController.dispose();
+    _carbsController.dispose();
+    _fatController.dispose();
+    _fiberController.dispose();
+    _sugarController.dispose();
+    _saturatedFatController.dispose();
+    _polyunsaturatedFatController.dispose();
+    _monounsaturatedFatController.dispose();
+    _transFatController.dispose();
+    _cholesterolController.dispose();
+    _sodiumController.dispose();
+    _potassiumController.dispose();
+    _vitaminAController.dispose();
+    _vitaminCController.dispose();
+    _vitaminDController.dispose();
+    _calciumController.dispose();
+    _ironController.dispose();
     super.dispose();
   }
 
@@ -93,9 +109,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     );
   }
 
-  // Helper to safely parse text to double
   double _parseDouble(String text) => double.tryParse(text.replaceAll(',', '.')) ?? 0.0;
-  int _parseInt(String text) => int.tryParse(text.replaceAll(',', '.')) ?? 0;
 
   void _saveRecipe() {
     if (_formKey.currentState!.validate()) {
@@ -117,11 +131,11 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           cholesterol: _parseDouble(_cholesterolController.text),
           sodium: _parseDouble(_sodiumController.text),
           potassium: _parseDouble(_potassiumController.text),
-          vitaminA: _parseInt(_vitaminAController.text),
-          vitaminC: _parseInt(_vitaminCController.text),
-          vitaminD: _parseInt(_vitaminDController.text),
-          calcium: _parseInt(_calciumController.text),
-          iron: _parseInt(_ironController.text),
+          vitaminA: _parseDouble(_vitaminAController.text),
+          vitaminC: _parseDouble(_vitaminCController.text),
+          vitaminD: _parseDouble(_vitaminDController.text),
+          calcium: _parseDouble(_calciumController.text),
+          iron: _parseDouble(_ironController.text),
         ),
       );
       Navigator.of(context).pop(resultingRecipe);
@@ -159,7 +173,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     );
   }
   
-    Widget _buildGeneralInfoCard() {
+  Widget _buildGeneralInfoCard() {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -174,7 +188,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 borderRadius: BorderRadius.circular(50),
                 child: CircleAvatar(
                   radius: 40,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(26), // 10% opacity
+                  backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(26),
                   child: Icon(_selectedIcon, size: 40, color: Theme.of(context).colorScheme.primary),
                 ),
               ),
@@ -248,23 +262,23 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 const SizedBox(height: 12),
                 _buildNutrientField(_potassiumController, 'Калий', 'мг'),
                 const SizedBox(height: 12),
-                Text('Витамины (% от суточной нормы)', style: Theme.of(context).textTheme.titleMedium),
+                Text('Витамины и минералы', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _buildNutrientField(_vitaminAController, 'Витамин A', '%')),
+                    Expanded(child: _buildNutrientField(_vitaminAController, 'Витамин A', 'мкг')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildNutrientField(_vitaminCController, 'Витамин C', '%')),
+                    Expanded(child: _buildNutrientField(_vitaminCController, 'Витамин C', 'мг')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildNutrientField(_vitaminDController, 'Витамин D', '%')),
+                    Expanded(child: _buildNutrientField(_vitaminDController, 'Витамин D', 'мкг')),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _buildNutrientField(_calciumController, 'Кальций', '%')),
+                    Expanded(child: _buildNutrientField(_calciumController, 'Кальций', 'мг')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildNutrientField(_ironController, 'Железо', '%')),
+                    Expanded(child: _buildNutrientField(_ironController, 'Железо', 'мг')),
                   ],
                 ),
               ],

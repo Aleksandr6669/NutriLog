@@ -68,7 +68,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   double _parseDouble(String text) => double.tryParse(text.replaceAll(',', '.')) ?? 0.0;
-  int _parseInt(String text) => int.tryParse(text.replaceAll(',', '.')) ?? 0;
 
   void _saveChanges() {
     if (_formKey.currentState!.validate()) {
@@ -86,11 +85,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         cholesterol: _parseDouble(_cholesterolController.text),
         sodium: _parseDouble(_sodiumController.text),
         potassium: _parseDouble(_potassiumController.text),
-        vitaminA: _parseInt(_vitaminAController.text),
-        vitaminC: _parseInt(_vitaminCController.text),
-        vitaminD: _parseInt(_vitaminDController.text),
-        calcium: _parseInt(_calciumController.text),
-        iron: _parseInt(_ironController.text),
+        vitaminA: _parseDouble(_vitaminAController.text),
+        vitaminC: _parseDouble(_vitaminCController.text),
+        vitaminD: _parseDouble(_vitaminDController.text),
+        calcium: _parseDouble(_calciumController.text),
+        iron: _parseDouble(_ironController.text),
       );
 
       final updatedRecipe = Recipe(
@@ -177,13 +176,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
 
               _buildNutritionCard(
-                title: 'Витамины (% от суточной нормы)',
+                title: 'Витамины и Минералы',
                 children: [
-                  _buildTextField(_vitaminAController, 'Витамин A (%)', isNumeric: true),
-                  _buildTextField(_vitaminCController, 'Витамин C (%)', isNumeric: true, topPadding: 16),
-                  _buildTextField(_vitaminDController, 'Витамин D (%)', isNumeric: true, topPadding: 16),
-                  _buildTextField(_calciumController, 'Кальций (%)', isNumeric: true, topPadding: 16),
-                  _buildTextField(_ironController, 'Железо (%)', isNumeric: true, topPadding: 16),
+                  _buildTextField(_vitaminAController, 'Витамин A (мкг)', isNumeric: true),
+                  _buildTextField(_vitaminCController, 'Витамин C (мг)', isNumeric: true, topPadding: 16),
+                  _buildTextField(_vitaminDController, 'Витамин D (мкг)', isNumeric: true, topPadding: 16),
+                  _buildTextField(_calciumController, 'Кальций (мг)', isNumeric: true, topPadding: 16),
+                  _buildTextField(_ironController, 'Железо (мг)', isNumeric: true, topPadding: 16),
                 ]
               ),
             ],

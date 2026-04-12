@@ -13,6 +13,7 @@ jobs:
         with:
           channel: 'stable'
           architecture: x64
+      
       - run: flutter pub get
       - run: pod install --project-directory=ios
       - run: pod repo update
