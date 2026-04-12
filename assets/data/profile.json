@@ -7,11 +7,5 @@
   "stepsGoal": 10000,
   "proteinGoal": 165,
   "carbsGoal": 220,
-  "fatGoal": 73,
-  "weightHistory": [
-    {"date": "2026-05-01", "weight": 76.5},
-    {"date": "2026-05-10", "weight": 76.1},
-    {"date": "2026-05-20", "weight": 75.8},
-    {"date": "2026-05-27", "weight": 75.5}
-  ]
+  "fatGoal": 73
 }

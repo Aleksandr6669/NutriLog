@@ -150,7 +150,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 24),
                 Text('Среднее БЖУ', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildPieChartAndLegend(theme, data['avgCarbs'], data['avgProtein'], data['avgFat']),
+                _buildPieChartAndLegend(theme, (data['avgCarbs'] as num).toDouble(), (data['avgProtein'] as num).toDouble(), (data['avgFat'] as num).toDouble()),
                 const SizedBox(height: 24),
                 Text('Прогресс', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
