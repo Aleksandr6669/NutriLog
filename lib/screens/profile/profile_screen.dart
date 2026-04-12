@@ -1,7 +1,11 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:nutri_log/models/user_profile.dart';
+import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
+import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
+import 'package:nutri_log/services/profile_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,18 +15,41 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<Map<String, dynamic>> _profileData;
+  final ProfileService _profileService = ProfileService();
+  late Future<UserProfile> _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    _profileData = _loadProfileData();
+    _loadProfile();
   }
 
-  Future<Map<String, dynamic>> _loadProfileData() async {
-    final String response = await rootBundle.loadString('assets/data/profile.json');
-    final data = await json.decode(response);
-    return data;
+  void _loadProfile() {
+    setState(() {
+      _profileFuture = _profileService.loadProfile();
+    });
+  }
+
+  Future<void> _navigateTo(Widget screen) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+    );
+
+    if (result == true) {
+      _loadProfile();
+    }
+  }
+
+  Future<void> _pickImage(UserProfile profile) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      final updatedProfile = profile.copyWith(avatarImagePath: image.path);
+      await _profileService.saveProfile(updatedProfile);
+      _loadProfile();
+    }
   }
 
   @override
@@ -32,16 +59,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Профиль'),
         centerTitle: true,
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _profileData,
+      body: FutureBuilder<UserProfile>(
+        future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Ошибка загрузки: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            final data = snapshot.data!;
-            return _buildProfileContent(context, data);
+            final profile = snapshot.data!;
+            return _buildProfileContent(context, profile);
           } else {
             return const Center(child: Text('Нет данных для отображения'));
           }
@@ -50,27 +77,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildProfileContent(BuildContext context, UserProfile profile) {
     final theme = Theme.of(context);
-    final waterGoalLiters = (data['waterGoal'] as int) / 1000.0;
+    final waterGoalLiters = profile.waterGoal / 1000.0;
+    final weightGoal = profile.weightGoal.truncateToDouble() == profile.weightGoal
+        ? profile.weightGoal.toInt().toString()
+        : profile.weightGoal.toStringAsFixed(1);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildProfileHeader(theme, data['userAvatarUrl'], data['userName'], data['userEmail']),
+          _buildProfileHeader(theme, profile),
           const SizedBox(height: 24),
           _buildSectionCard(
             theme: theme,
             title: 'Физические параметры',
             icon: Symbols.accessibility_new,
+            onEdit: () => _navigateTo(EditPhysicalParamsScreen(profile: profile)),
             children: [
-              _buildInfoRow(theme, 'Возраст', '${data['userAge']} лет'),
-              _buildInfoRow(theme, 'Рост', '${data['userHeight']} см'),
-              _buildInfoRow(theme, 'Вес', '${data['userWeight']} кг'),
-              _buildInfoRow(theme, 'Цель по весу', '${data['weightGoal']} кг'),
-              _buildInfoRow(theme, 'Пол', data['userGender']),
+              _buildInfoRow(theme, 'Возраст', '${profile.age} лет'),
+              _buildInfoRow(theme, 'Рост', '${profile.height} см'),
+              _buildInfoRow(theme, 'Вес', '${profile.weight} кг'),
+              _buildInfoRow(theme, 'Пол', profile.gender.toString().split('.').last),
             ],
           ),
           const SizedBox(height: 16),
@@ -78,15 +108,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme: theme,
             title: 'Дневные цели',
             icon: Symbols.track_changes,
+            onEdit: () => _navigateTo(EditGoalsScreen(profile: profile)),
             children: [
-              _buildInfoRow(theme, 'Калории', '${data['calorieGoal']} ккал'),
+              _buildInfoRow(theme, 'Цель по весу', '$weightGoal кг'),
+               const Divider(height: 16),
+              _buildInfoRow(theme, 'Калории', '${profile.calorieGoal} ккал'),
               _buildInfoRow(theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
-              _buildInfoRow(theme, 'Активность', '${data['activityGoal']} ккал'),
-              _buildInfoRow(theme, 'Шаги', '${data['stepsGoal']} шагов'),
+              _buildInfoRow(theme, 'Шаги', '${profile.stepsGoal} шагов'),
               const Divider(height: 16),
-              _buildInfoRow(theme, 'Белки', '${data['proteinGoal']} г'),
-              _buildInfoRow(theme, 'Углеводы', '${data['carbsGoal']} г'),
-              _buildInfoRow(theme, 'Жиры', '${data['fatGoal']} г'),
+              _buildInfoRow(theme, 'Белки', '${profile.proteinGoal} г'),
+              _buildInfoRow(theme, 'Углеводы', '${profile.carbsGoal} г'),
+              _buildInfoRow(theme, 'Жиры', '${profile.fatGoal} г'),
             ],
           ),
           const SizedBox(height: 16),
@@ -110,19 +142,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme, String avatarUrl, String name, String email) {
+  Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
+    ImageProvider<Object> backgroundImage;
+    if (profile.avatarImagePath != null && profile.avatarImagePath!.isNotEmpty) {
+      backgroundImage = FileImage(File(profile.avatarImagePath!));
+    } else {
+      backgroundImage = const NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d');
+    }
+
     return Center(
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(avatarUrl),
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+          InkWell(
+            onTap: () => _pickImage(profile),
+            borderRadius: BorderRadius.circular(50),
+            child: CircleAvatar(
+              radius: 50,
+              backgroundImage: backgroundImage,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
           ),
           const SizedBox(height: 16),
-          Text(name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(email, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(profile.name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -133,6 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required IconData icon,
     required List<Widget> children,
+    required VoidCallback onEdit,
   }) {
     return Card(
       child: Padding(
@@ -147,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(title, style: theme.textTheme.titleLarge),
                 const Spacer(),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: onEdit,
                   icon: const Icon(Symbols.edit, size: 20),
                   tooltip: 'Редактировать',
                 )

@@ -1,19 +1,51 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
-import '../models/user_profile.dart';
+import 'package:nutri_log/models/user_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileService {
+  static const String _profileKey = 'user_profile';
+
   Future<UserProfile> loadProfile() async {
-    try {
-      final String jsonString = await rootBundle.loadString('assets/data/profile.json');
-      final Map<String, dynamic> jsonMap = json.decode(jsonString);
-      return UserProfile.fromJson(jsonMap);
-    } catch (e) {
-      // Если что-то пошло не так, возвращаем профиль по умолчанию
-      return UserProfile.fromJson(const {}); // Пустой JSON для создания профиля по умолчанию
+    final prefs = await SharedPreferences.getInstance();
+    final String? profileString = prefs.getString(_profileKey);
+
+    if (profileString != null) {
+      try {
+        final Map<String, dynamic> jsonMap = json.decode(profileString);
+        return UserProfile.fromJson(jsonMap);
+      } catch (e) {
+        // Если данные повреждены, возвращаем профиль по умолчанию
+        return _createAndSaveDefaultProfile();
+      }
+    } else {
+      // Если данных нет, создаем профиль по умолчанию
+      return _createAndSaveDefaultProfile();
     }
   }
 
-  // TODO: Добавить метод для сохранения профиля
-  // Future<void> saveProfile(UserProfile profile) async { ... }
+  Future<void> saveProfile(UserProfile profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String profileString = json.encode(profile.toJson());
+    await prefs.setString(_profileKey, profileString);
+  }
+
+  Future<UserProfile> _createAndSaveDefaultProfile() async {
+    const defaultProfile = UserProfile(
+      name: 'Алиса',
+      gender: Gender.female,
+      age: 28,
+      height: 168,
+      weight: 62.5,
+      weightGoal: 60.0,
+      calorieGoal: 1800,
+      proteinGoal: 120,
+      fatGoal: 60,
+      carbsGoal: 195,
+      waterGoal: 2000,
+      stepsGoal: 10000,
+      weightHistory: [],
+    );
+    await saveProfile(defaultProfile);
+    return defaultProfile;
+  }
 }

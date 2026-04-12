@@ -14,7 +14,7 @@
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       "Dart-Code.flutter"
-      "Dart-Code.dart-code"
+      "Dart-Code.dart-code" 
     ];
     workspace = {
       # Runs when a workspace is first created with this `dev.nix` file

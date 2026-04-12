@@ -1,4 +1,4 @@
-name: NutriLog
+name: nutri_log
 description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
@@ -18,12 +18,14 @@ dependencies:
   go_router: ^13.2.0 # Added go_router
 
   # Functionality
-  image_picker: ^1.0.7
+  image_picker: ^1.2.1
   http: ^1.2.0
   flutter_dotenv: ^5.1.0
   fl_chart: ^1.1.1
   intl: ^0.20.2
   table_calendar: ^3.2.0
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.5
 
 
 dev_dependencies:

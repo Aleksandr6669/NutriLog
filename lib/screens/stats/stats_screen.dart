@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -23,7 +24,6 @@ class _StatsScreenState extends State<StatsScreen> {
   bool _isWeekly = true;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
-  // final AiService _aiService = AiService(); // Commented out for now
 
   late Future<Map<String, dynamic>> _dataFuture;
 
@@ -39,28 +39,16 @@ class _StatsScreenState extends State<StatsScreen> {
     final startDate = _isWeekly
         ? DateTime.utc(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1))
         : DateTime.utc(now.year, now.month, 1);
-    final endDate = _isWeekly 
-        ? startDate.add(const Duration(days: 6)) 
+    final endDate = _isWeekly
+        ? startDate.add(const Duration(days: 6))
         : DateTime.utc(now.year, now.month + 1, 0);
 
-    developer.log('Period: $_isWeekly | Start: $startDate, End: $endDate', name: 'StatsScreen');
-
     final logs = await _logService.getLogsForPeriod(startDate, endDate);
-    developer.log('Loaded ${logs.length} logs from the service.', name: 'StatsScreen');
-    if (logs.isNotEmpty) {
-      for (var log in logs) {
-        developer.log('Log for ${log.date}: Calories=${log.totalNutrients.calories}, Weight=${log.weight}', name: 'StatsScreen.LogDetails');
-      }
-    }
-
     final profile = await _profileService.loadProfile();
-    developer.log('Loaded profile for ${profile.userName}.', name: 'StatsScreen');
 
     final caloriesData = logs.map((log) => log.totalNutrients.calories).toList();
     final weightData = logs.map((log) => log.weight ?? 0.0).toList();
-    developer.log('Processed calories data: $caloriesData', name: 'StatsScreen');
-    developer.log('Processed weight data: $weightData', name: 'StatsScreen');
-    
+
     int logCount = logs.where((log) => !log.isEmpty).length;
     if (logCount == 0) logCount = 1;
 
@@ -79,10 +67,9 @@ class _StatsScreenState extends State<StatsScreen> {
     final workouts = logs.where((log) => log.activityCalories > 0).length;
     final avgWater = logs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/ logCount;
 
-    // final aiReport = await _aiService.getWeeklyAnalysis(logs, profile); // Commented out for now
-    const aiReport = 'Отчет от AI временно отключен.'; // Placeholder
+    const aiReport = 'Отчет от AI временно отключен.';
 
-    final result = {
+    return {
       'calories': caloriesData,
       'weight': weightData,
       'avgCarbs': avgCarbs,
@@ -95,8 +82,6 @@ class _StatsScreenState extends State<StatsScreen> {
       'profile': profile,
       'aiReport': aiReport,
     };
-    developer.log('Finished loading data. Result: $result', name: 'StatsScreen');
-    return result;
   }
 
   void _onPeriodChanged(bool isWeekly) {
@@ -121,11 +106,9 @@ class _StatsScreenState extends State<StatsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            developer.log('Error in FutureBuilder: ${snapshot.error}', name: 'StatsScreen', error: snapshot.error, stackTrace: snapshot.stackTrace);
             return Center(child: Text('Ошибка загрузки данных: ${snapshot.error}'));
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty || (snapshot.data!['calories'] as List).isEmpty) {
-             developer.log('FutureBuilder completed with no data.', name: 'StatsScreen');
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Нет данных для анализа.'));
           }
 
@@ -166,7 +149,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildPeriodToggle(ThemeData theme) {
+   Widget _buildPeriodToggle(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -192,25 +175,25 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
     );
   }
-  
+
   Widget _buildCaloriesChart(ThemeData theme, List<double> calories, double goal) {
     return _LineChart(
-        data: calories,
-        goal: goal,
-        lineColor: AppColors.primary,
-        gradientColor: AppColors.primary.withAlpha(77),
-        labels: _isWeekly ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] : null,
+      data: calories,
+      goal: goal,
+      lineColor: AppColors.primary,
+      gradientColor: AppColors.primary.withAlpha(77),
+      labels: _isWeekly ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] : null,
     );
   }
 
   Widget _buildWeightChart(ThemeData theme, List<double> weightData, double goal) {
-     return _LineChart(
-        data: weightData.where((w) => w > 0).toList(),
-        goal: goal,
-        lineColor: Colors.orange,
-        gradientColor: Colors.orange.withAlpha(77),
-        labels: _isWeekly ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] : null,
-        isWeight: true,
+    return _LineChart(
+      data: weightData,
+      goal: goal,
+      lineColor: Colors.orange,
+      gradientColor: Colors.orange.withAlpha(77),
+      labels: _isWeekly ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] : null,
+      isWeight: true,
     );
   }
 
@@ -241,17 +224,19 @@ class _StatsScreenState extends State<StatsScreen> {
               flex: 3,
               child: SizedBox(
                 height: 140,
-                child: hasData ? PieChart(
-                  PieChartData(
-                    sections: [
-                      PieChartSectionData(value: carbs, color: AppColors.primary, radius: 40, showTitle: false),
-                      PieChartSectionData(value: protein, color: Colors.orange, radius: 40, showTitle: false),
-                      PieChartSectionData(value: fat, color: Colors.blue, radius: 40, showTitle: false),
-                    ],
-                    centerSpaceRadius: 30,
-                    sectionsSpace: 4,
-                  ),
-                ) : Center(child: Text('Нет данных', style: theme.textTheme.bodySmall, textAlign: TextAlign.center,)),
+                child: hasData
+                    ? PieChart(
+                        PieChartData(
+                          sections: [
+                            PieChartSectionData(value: carbs, color: AppColors.primary, radius: 40, showTitle: false),
+                            PieChartSectionData(value: protein, color: Colors.orange, radius: 40, showTitle: false),
+                            PieChartSectionData(value: fat, color: Colors.blue, radius: 40, showTitle: false),
+                          ],
+                          centerSpaceRadius: 30,
+                          sectionsSpace: 4,
+                        ),
+                      )
+                    : Center(child: Text('Нет данных', style: theme.textTheme.bodySmall, textAlign: TextAlign.center)),
               ),
             ),
           ],
@@ -268,7 +253,7 @@ class _StatsScreenState extends State<StatsScreen> {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.6, 
+      childAspectRatio: 1.6,
       children: [
         ProgressCard(icon: Symbols.footprint, title: 'Шаги', value: avgSteps.toString(), unit: 'в среднем', color: AppColors.primary, goal: profile.stepsGoal),
         ProgressCard(icon: Symbols.weight, title: 'Вес', value: latestWeight.toStringAsFixed(1), unit: 'кг', color: Colors.orange, goal: profile.weightGoal, isWeight: true),
@@ -322,25 +307,25 @@ class _ToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-        color: isSelected ? AppColors.primary : theme.cardColor,
+      color: isSelected ? AppColors.primary : theme.cardColor,
+      borderRadius: AppStyles.buttonRadius,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: AppStyles.buttonRadius,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppStyles.buttonRadius,
-          child: Center(
-            child: Padding( 
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                text,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: isSelected ? AppColors.onPrimary : theme.colorScheme.onSurface.withAlpha(178),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ), 
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              text,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: isSelected ? AppColors.onPrimary : theme.colorScheme.onSurface.withAlpha(178),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
 
@@ -352,12 +337,96 @@ class _LineChart extends StatelessWidget {
   final List<String>? labels;
   final bool isWeight;
 
-  const _LineChart({required this.data, required this.goal, required this.lineColor, required this.gradientColor, this.labels, this.isWeight = false});
+  const _LineChart({
+    required this.data,
+    required this.goal,
+    required this.lineColor,
+    required this.gradientColor,
+    this.labels,
+    this.isWeight = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasData = data.where((d) => d > 0).isNotEmpty;
+    final List<double> chartData = isWeight ? data.where((d) => d > 0).toList() : data;
+    final bool hasData = chartData.isNotEmpty;
+
+    double minY = hasData ? chartData.reduce(min) : 0;
+    double maxY = hasData ? chartData.reduce(max) : goal;
+
+    minY = min(minY, goal);
+    maxY = max(maxY, goal);
+
+    if (minY == maxY) {
+        minY -= 10;
+        maxY += 10;
+    }
+
+    final double verticalPadding = (maxY - minY) * 0.2;
+    minY -= verticalPadding;
+    maxY += verticalPadding;
+
+    if (minY < 0 && chartData.every((d) => d >= 0)) {
+      minY = 0;
+    }
+
+    List<LineChartBarData> generateLineBars() {
+      if (isWeight) {
+        final List<LineChartBarData> lineBars = [];
+        List<FlSpot> currentSegment = [];
+
+        for (int i = 0; i < data.length; i++) {
+          if (data[i] > 0) {
+            currentSegment.add(FlSpot(i.toDouble(), data[i]));
+          } else {
+            if (currentSegment.isNotEmpty) {
+              lineBars.add(LineChartBarData(
+                spots: currentSegment,
+                isCurved: true,
+                color: lineColor,
+                barWidth: 4,
+                isStrokeCapRound: true,
+                dotData: const FlDotData(show: true),
+                belowBarData: BarAreaData(show: false),
+              ));
+              currentSegment = [];
+            }
+          }
+        }
+        if (currentSegment.isNotEmpty) {
+          lineBars.add(LineChartBarData(
+            spots: currentSegment,
+            isCurved: true,
+            color: lineColor,
+            barWidth: 4,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: true),
+            belowBarData: BarAreaData(show: false),
+          ));
+        }
+        return lineBars;
+      } else {
+        return [
+          LineChartBarData(
+            spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
+            isCurved: true,
+            color: lineColor,
+            barWidth: 4,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: true),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [gradientColor, gradientColor.withAlpha(0)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ];
+      }
+    }
 
     return AspectRatio(
       aspectRatio: 1.7,
@@ -365,66 +434,100 @@ class _LineChart extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 24, 12),
-          child: hasData ? LineChart(
-            LineChartData(
-              gridData: const FlGridData(show: false),
-              titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: labels != null,
-                    reservedSize: 30,
-                    interval: 1,
-                    getTitlesWidget: (value, meta) {
-                      if (labels == null || value.toInt() >= labels!.length) return const SizedBox();
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Text(labels![value.toInt()], style: theme.textTheme.bodySmall),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              borderData: FlBorderData(show: false),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
-                  isCurved: true,
-                  color: lineColor,
-                  barWidth: 4,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      colors: [gradientColor, gradientColor.withAlpha(0)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+          child: hasData
+              ? LineChart(
+                  LineChartData(
+                    lineTouchData: LineTouchData(
+                      handleBuiltInTouches: true,
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (spot) => theme.cardColor,
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            return LineTooltipItem(
+                              '${spot.y.toStringAsFixed(isWeight ? 1 : 0)} ${isWeight ? 'кг' : 'ккал'}',
+                              TextStyle(
+                                color: spot.bar.color ?? lineColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(
+                          color: theme.dividerColor.withAlpha(50),
+                          strokeWidth: 1,
+                          dashArray: [4, 2],
+                        );
+                      },
+                    ),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40,
+                          getTitlesWidget: (value, meta) {
+                            if (value == meta.min || value == meta.max) {
+                              return SideTitleWidget(
+                                meta: meta,
+                                child: Text(value.toStringAsFixed(isWeight ? 1 : 0), style: theme.textTheme.bodySmall),
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: labels != null,
+                          reservedSize: 30,
+                          interval: 1,
+                          getTitlesWidget: (value, meta) {
+                            if (labels == null || value.toInt() >= labels!.length) {
+                              return const SizedBox();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Text(labels![value.toInt()], style: theme.textTheme.bodySmall),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    minY: minY,
+                    maxY: maxY,
+                    lineBarsData: generateLineBars(),
+                    extraLinesData: ExtraLinesData(
+                      horizontalLines: [
+                        HorizontalLine(
+                          y: goal,
+                          color: theme.dividerColor.withAlpha(204),
+                          strokeWidth: 2,
+                          dashArray: [8, 4],
+                          label: HorizontalLineLabel(
+                            show: true,
+                            alignment: Alignment.topRight,
+                            padding: const EdgeInsets.only(right: 5, bottom: 2),
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.dividerColor),
+                            labelResolver: (_) => isWeight ? 'Цель: ${goal.toStringAsFixed(1)} кг' : 'Цель: ${goal.toInt()} ккал',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
-              extraLinesData: ExtraLinesData(
-                horizontalLines: [
-                  HorizontalLine(
-                    y: goal,
-                    color: theme.dividerColor.withAlpha(204),
-                    strokeWidth: 2,
-                    dashArray: [8, 4],
-                    label: HorizontalLineLabel(
-                        show: true,
-                        alignment: Alignment.topRight,
-                        padding: const EdgeInsets.only(right: 5, bottom: 2),
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.dividerColor),
-                        labelResolver: (_) => isWeight ? 'Цель: ${goal.toStringAsFixed(1)} кг' : 'Цель: ${goal.toInt()} ккал',
-                    )
-                  ),
-                ],
-              ),
-            ),
-          ) : const Center(child: Text('Нет данных для отображения', style: TextStyle(color: Colors.grey))),
+                )
+              : Center(
+                  child: Text(
+                  'Нет данных для отображения',
+                  style: theme.textTheme.bodySmall,
+                )),
         ),
       ),
     );

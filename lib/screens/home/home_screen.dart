@@ -13,6 +13,7 @@ import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../meal_detail/meal_detail_screen.dart';
 import '../../models/food_item.dart';
+import '../profile/edit_goals_screen.dart'; // Изменено
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -97,6 +98,28 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _reloadProfile() {
+    if (mounted) {
+      setState(() {
+        _userProfileFuture = _profileService.loadProfile();
+      });
+    }
+  }
+
+  Future<void> _navigateToEditGoals(UserProfile profile) async { // Изменено
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditGoalsScreen(profile: profile), // Изменено
+      ),
+    );
+
+    if (result == true) {
+      _reloadProfile();
+      _loadLogForSelectedDate(); // Also reload log data in case goals changed
+    }
+  }
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -112,50 +135,62 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 16,
-        title: InkWell(
-          onTap: _toggleCalendarVisibility,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Symbols.calendar_month, color: AppColors.primary, size: 28),
-                const SizedBox(width: 12),
-                Text(_formatDate(_selectedDay), style: theme.textTheme.titleLarge?.copyWith(fontSize: 20)),
-                const SizedBox(width: 8),
-                Icon(
-                  _isCalendarVisible ? Symbols.arrow_drop_up : Symbols.arrow_drop_down,
-                  color: theme.textTheme.bodySmall?.color,
-                  size: 28,
+    return FutureBuilder<UserProfile>(
+      future: _userProfileFuture,
+      builder: (context, userSnapshot) {
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+           return Scaffold(
+            appBar: AppBar(), 
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (userSnapshot.hasError || !userSnapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Ошибка')),
+            body: Center(child: Text('Ошибка загрузки профиля: ${userSnapshot.error}')),
+          );
+        }
+
+        final userProfile = userSnapshot.data!;
+
+        return Scaffold(
+          appBar: AppBar(
+            titleSpacing: 16,
+            title: InkWell(
+              onTap: _toggleCalendarVisibility,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Symbols.calendar_month, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 12),
+                    Text(_formatDate(_selectedDay), style: theme.textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    Icon(
+                      _isCalendarVisible ? Symbols.arrow_drop_up : Symbols.arrow_drop_down,
+                      color: theme.textTheme.bodySmall?.color,
+                      size: 28,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Symbols.edit_note, size: 28),
+                onPressed: () => _navigateToEditGoals(userProfile), // Изменено
+                tooltip: 'Редактировать цели', // Изменено
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
-        ),
-        centerTitle: false,
-      ),
-      body: Stack(
-        children: [
-          FutureBuilder<UserProfile>(
-            future: _userProfileFuture,
-            builder: (context, userSnapshot) {
-              if (userSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (userSnapshot.hasError) {
-                return Center(child: Text('Ошибка: ${userSnapshot.error}'));
-              }
-              if (!userSnapshot.hasData) {
-                return const Center(child: Text('Не удалось загрузить профиль.'));
-              }
-
-              final userProfile = userSnapshot.data!;
-
-              return _isLoadingLog
+          body: Stack(
+            children: [
+              _isLoadingLog
                   ? const Center(child: CircularProgressIndicator())
                   : _currentDailyLog == null
                       ? const Center(child: Text('Нет данных для этой даты.'))
@@ -170,12 +205,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               _MealsSection(dailyLog: _currentDailyLog!, profile: userProfile, onDataChanged: _loadLogForSelectedDate),
                             ],
                           ),
-                        );
-            },
+                        ),
+              _buildCalendarOverlay(),
+            ],
           ),
-          _buildCalendarOverlay(),
-        ],
-      ),
+        );
+      },
     );
   }
 
