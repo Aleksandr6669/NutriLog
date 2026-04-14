@@ -4,7 +4,6 @@ import '../../models/recipe.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
 import '../../styles/app_styles.dart';
-import '../../styles/app_colors.dart';
 import 'edit_recipe_screen.dart';
 import 'recipe_detail_screen.dart';
 
@@ -34,7 +33,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() => _isLoading = true);
     final defaultRecipes = await RecipeLoader.loadRecipesFromAssets();
     final userRecipes = await _recipeService.loadUserRecipes();
-    
+
     for (var recipe in userRecipes) {
       recipe.isUserRecipe = true;
     }
@@ -58,13 +57,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() {
       _filteredRecipes = _allRecipes.where((recipe) {
         return recipe.name.toLowerCase().contains(query) ||
-               recipe.description.toLowerCase().contains(query);
+            recipe.description.toLowerCase().contains(query);
       }).toList();
     });
   }
 
   void _navigateAndRefresh(Widget screen) async {
-    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => screen));
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => screen));
     if (result == true) {
       _loadAllRecipes();
     }
@@ -102,7 +102,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        title: const Text('Мои рецепты', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text('Мои рецепты',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add_circle_outline, size: 28),
@@ -155,7 +156,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
         return _RecipeListItem(
           recipe: recipe,
           onTap: () => _navigateAndRefresh(RecipeDetailScreen(recipe: recipe)),
-          onEdit: recipe.isUserRecipe ? () => _navigateAndRefresh(EditRecipeScreen(recipe: recipe)) : null,
+          onEdit: recipe.isUserRecipe
+              ? () => _navigateAndRefresh(EditRecipeScreen(recipe: recipe))
+              : null,
           onDelete: recipe.isUserRecipe ? () => _deleteRecipe(recipe) : null,
         );
       },
@@ -230,20 +233,24 @@ class _RecipeListItem extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                child: Icon(recipe.icon, color: theme.colorScheme.primary, size: 28),
+                child: Icon(recipe.icon,
+                    color: theme.colorScheme.primary, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(recipe.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    Text(recipe.name,
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w500)),
                     if (recipe.description.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: Text(
                           recipe.description,
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 14),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

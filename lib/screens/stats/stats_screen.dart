@@ -34,10 +34,12 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<Map<String, dynamic>> _loadData() async {
-    developer.log('Starting to load data for stats screen...', name: 'StatsScreen');
+    developer.log('Starting to load data for stats screen...',
+        name: 'StatsScreen');
     final now = DateTime.now();
     final startDate = _isWeekly
-        ? DateTime.utc(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1))
+        ? DateTime.utc(now.year, now.month, now.day)
+            .subtract(Duration(days: now.weekday - 1))
         : DateTime.utc(now.year, now.month, 1);
     final endDate = _isWeekly
         ? startDate.add(const Duration(days: 6))
@@ -46,26 +48,33 @@ class _StatsScreenState extends State<StatsScreen> {
     final logs = await _logService.getLogsForPeriod(startDate, endDate);
     final profile = await _profileService.loadProfile();
 
-    final caloriesData = logs.map((log) => log.totalNutrients.calories).toList();
+    final caloriesData =
+        logs.map((log) => log.totalNutrients.calories).toList();
     final weightData = logs.map((log) => log.weight ?? 0.0).toList();
 
     int logCount = logs.where((log) => !log.isEmpty).length;
     if (logCount == 0) logCount = 1;
 
-    final totalCarbs = logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.carbs);
-    final totalProtein = logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.protein);
-    final totalFat = logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
+    final totalCarbs =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.carbs);
+    final totalProtein =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.protein);
+    final totalFat =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
     final totalMacros = totalCarbs + totalProtein + totalFat;
 
     final avgCarbs = totalMacros > 0 ? (totalCarbs / totalMacros) * 100 : 0;
     final avgProtein = totalMacros > 0 ? (totalProtein / totalMacros) * 100 : 0;
     final avgFat = totalMacros > 0 ? (totalFat / totalMacros) * 100 : 0;
 
-    final avgSteps = logs.fold<int>(0, (sum, log) => sum + log.steps) ~/ logCount;
-    final latestWeightLog = logs.lastWhere((log) => log.weight != null, orElse: () => DailyLog.empty(now));
+    final avgSteps =
+        logs.fold<int>(0, (sum, log) => sum + log.steps) ~/ logCount;
+    final latestWeightLog = logs.lastWhere((log) => log.weight != null,
+        orElse: () => DailyLog.empty(now));
     final latestWeight = latestWeightLog.weight ?? profile.weight;
     final workouts = logs.where((log) => log.activityCalories > 0).length;
-    final avgWater = logs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/ logCount;
+    final avgWater =
+        logs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/ logCount;
 
     const aiReport = 'Отчет от AI временно отключен.';
 
@@ -106,7 +115,8 @@ class _StatsScreenState extends State<StatsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Ошибка загрузки данных: ${snapshot.error}'));
+            return Center(
+                child: Text('Ошибка загрузки данных: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Нет данных для анализа.'));
@@ -124,7 +134,8 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 24),
                 Text('Динамика калорий', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildCaloriesChart(theme, data['calories'], profile.calorieGoal.toDouble()),
+                _buildCaloriesChart(
+                    theme, data['calories'], profile.calorieGoal.toDouble()),
                 const SizedBox(height: 24),
                 Text('Динамика веса', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
@@ -132,11 +143,21 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 24),
                 Text('Среднее БЖУ', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildPieChartAndLegend(theme, (data['avgCarbs'] as num).toDouble(), (data['avgProtein'] as num).toDouble(), (data['avgFat'] as num).toDouble()),
+                _buildPieChartAndLegend(
+                    theme,
+                    (data['avgCarbs'] as num).toDouble(),
+                    (data['avgProtein'] as num).toDouble(),
+                    (data['avgFat'] as num).toDouble()),
                 const SizedBox(height: 24),
                 Text('Прогресс', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildProgressCards(theme, data['avgSteps'], data['latestWeight'], data['workouts'], data['avgWater'], profile),
+                _buildProgressCards(
+                    theme,
+                    data['avgSteps'],
+                    data['latestWeight'],
+                    data['workouts'],
+                    data['avgWater'],
+                    profile),
                 const SizedBox(height: 24),
                 Text('Отчет от AI', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
@@ -149,7 +170,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-   Widget _buildPeriodToggle(ThemeData theme) {
+  Widget _buildPeriodToggle(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -176,7 +197,8 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildCaloriesChart(ThemeData theme, List<double> calories, double goal) {
+  Widget _buildCaloriesChart(
+      ThemeData theme, List<double> calories, double goal) {
     return _LineChart(
       data: calories,
       goal: goal,
@@ -186,7 +208,8 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildWeightChart(ThemeData theme, List<double> weightData, double goal) {
+  Widget _buildWeightChart(
+      ThemeData theme, List<double> weightData, double goal) {
     return _LineChart(
       data: weightData,
       goal: goal,
@@ -197,7 +220,8 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildPieChartAndLegend(ThemeData theme, double carbs, double protein, double fat) {
+  Widget _buildPieChartAndLegend(
+      ThemeData theme, double carbs, double protein, double fat) {
     final hasData = carbs + protein + fat > 0;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
@@ -211,11 +235,20 @@ class _StatsScreenState extends State<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ChartLegendItem(color: AppColors.primary, text: 'Углеводы', percentage: carbs.round()),
+                  ChartLegendItem(
+                      color: AppColors.primary,
+                      text: 'Углеводы',
+                      percentage: carbs.round()),
                   const SizedBox(height: 12),
-                  ChartLegendItem(color: Colors.orange, text: 'Белки', percentage: protein.round()),
+                  ChartLegendItem(
+                      color: Colors.orange,
+                      text: 'Белки',
+                      percentage: protein.round()),
                   const SizedBox(height: 12),
-                  ChartLegendItem(color: Colors.blue, text: 'Жиры', percentage: fat.round()),
+                  ChartLegendItem(
+                      color: Colors.blue,
+                      text: 'Жиры',
+                      percentage: fat.round()),
                 ],
               ),
             ),
@@ -228,15 +261,30 @@ class _StatsScreenState extends State<StatsScreen> {
                     ? PieChart(
                         PieChartData(
                           sections: [
-                            PieChartSectionData(value: carbs, color: AppColors.primary, radius: 40, showTitle: false),
-                            PieChartSectionData(value: protein, color: Colors.orange, radius: 40, showTitle: false),
-                            PieChartSectionData(value: fat, color: Colors.blue, radius: 40, showTitle: false),
+                            PieChartSectionData(
+                                value: carbs,
+                                color: AppColors.primary,
+                                radius: 40,
+                                showTitle: false),
+                            PieChartSectionData(
+                                value: protein,
+                                color: Colors.orange,
+                                radius: 40,
+                                showTitle: false),
+                            PieChartSectionData(
+                                value: fat,
+                                color: Colors.blue,
+                                radius: 40,
+                                showTitle: false),
                           ],
                           centerSpaceRadius: 30,
                           sectionsSpace: 4,
                         ),
                       )
-                    : Center(child: Text('Нет данных', style: theme.textTheme.bodySmall, textAlign: TextAlign.center)),
+                    : Center(
+                        child: Text('Нет данных',
+                            style: theme.textTheme.bodySmall,
+                            textAlign: TextAlign.center)),
               ),
             ),
           ],
@@ -245,7 +293,8 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildProgressCards(ThemeData theme, int avgSteps, double latestWeight, int workouts, int avgWater, UserProfile profile) {
+  Widget _buildProgressCards(ThemeData theme, int avgSteps, double latestWeight,
+      int workouts, int avgWater, UserProfile profile) {
     final waterGoalLiters = profile.waterGoal / 1000.0;
     return GridView.count(
       crossAxisCount: 2,
@@ -255,10 +304,35 @@ class _StatsScreenState extends State<StatsScreen> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.6,
       children: [
-        ProgressCard(icon: Symbols.footprint, title: 'Шаги', value: avgSteps.toString(), unit: 'в среднем', color: AppColors.primary, goal: profile.stepsGoal),
-        ProgressCard(icon: Symbols.weight, title: 'Вес', value: latestWeight.toStringAsFixed(1), unit: 'кг', color: Colors.orange, goal: profile.weightGoal, isWeight: true),
-        ProgressCard(icon: Symbols.fitness_center, title: 'Активность', value: workouts.toString(), unit: _isWeekly ? 'в неделю' : 'в месяц', color: Colors.blue),
-        ProgressCard(icon: Symbols.water_drop, title: 'Вода', value: (avgWater / 1000).toStringAsFixed(1), unit: 'л, в среднем', color: Colors.lightBlue, goal: waterGoalLiters, isWater: true),
+        ProgressCard(
+            icon: Symbols.footprint,
+            title: 'Шаги',
+            value: avgSteps.toString(),
+            unit: 'в среднем',
+            color: AppColors.primary,
+            goal: profile.stepsGoal),
+        ProgressCard(
+            icon: Symbols.weight,
+            title: 'Вес',
+            value: latestWeight.toStringAsFixed(1),
+            unit: 'кг',
+            color: Colors.orange,
+            goal: profile.weightGoal,
+            isWeight: true),
+        ProgressCard(
+            icon: Symbols.fitness_center,
+            title: 'Активность',
+            value: workouts.toString(),
+            unit: _isWeekly ? 'в неделю' : 'в месяц',
+            color: Colors.blue),
+        ProgressCard(
+            icon: Symbols.water_drop,
+            title: 'Вода',
+            value: (avgWater / 1000).toStringAsFixed(1),
+            unit: 'л, в среднем',
+            color: Colors.lightBlue,
+            goal: waterGoalLiters,
+            isWater: true),
       ],
     );
   }
@@ -268,23 +342,30 @@ class _StatsScreenState extends State<StatsScreen> {
       color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.largeBorderRadius,
-        side: BorderSide(color: const Color.fromARGB(252, 179, 250, 209).withAlpha(51)),
+        side: BorderSide(
+            color: const Color.fromARGB(252, 179, 250, 209).withAlpha(51)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Row(
           children: [
-            const Icon(Symbols.smart_toy, color: AppColors.primary, size: 32, fill: 1),
+            const Icon(Symbols.smart_toy,
+                color: AppColors.primary, size: 32, fill: 1),
             const SizedBox(width: 6),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Анализ недели', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha(255), fontWeight: FontWeight.bold)),
+                  Text('Анализ недели',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(255),
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Text(
                     aiReport,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13, color: theme.colorScheme.onSurface.withAlpha(204)),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 13,
+                        color: theme.colorScheme.onSurface.withAlpha(204)),
                   ),
                 ],
               ),
@@ -301,7 +382,8 @@ class _ToggleButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ToggleButton({required this.text, required this.isSelected, required this.onTap});
+  const _ToggleButton(
+      {required this.text, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -318,7 +400,9 @@ class _ToggleButton extends StatelessWidget {
             child: Text(
               text,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: isSelected ? AppColors.onPrimary : theme.colorScheme.onSurface.withAlpha(178),
+                color: isSelected
+                    ? AppColors.onPrimary
+                    : theme.colorScheme.onSurface.withAlpha(178),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -349,7 +433,8 @@ class _LineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final List<double> chartData = isWeight ? data.where((d) => d > 0).toList() : data;
+    final List<double> chartData =
+        isWeight ? data.where((d) => d > 0).toList() : data;
     final bool hasData = chartData.isNotEmpty;
 
     double minY = hasData ? chartData.reduce(min) : 0;
@@ -359,8 +444,8 @@ class _LineChart extends StatelessWidget {
     maxY = max(maxY, goal);
 
     if (minY == maxY) {
-        minY -= 10;
-        maxY += 10;
+      minY -= 10;
+      maxY += 10;
     }
 
     final double verticalPadding = (maxY - minY) * 0.2;
@@ -409,7 +494,11 @@ class _LineChart extends StatelessWidget {
       } else {
         return [
           LineChartBarData(
-            spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
+            spots: data
+                .asMap()
+                .entries
+                .map((e) => FlSpot(e.key.toDouble(), e.value))
+                .toList(),
             isCurved: true,
             color: lineColor,
             barWidth: 4,
@@ -431,7 +520,8 @@ class _LineChart extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.7,
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
+        shape:
+            RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 24, 12),
           child: hasData
@@ -440,7 +530,6 @@ class _LineChart extends StatelessWidget {
                     lineTouchData: LineTouchData(
                       handleBuiltInTouches: true,
                       touchTooltipData: LineTouchTooltipData(
-                        getTooltipColor: (spot) => theme.cardColor,
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             return LineTooltipItem(
@@ -473,28 +562,34 @@ class _LineChart extends StatelessWidget {
                           getTitlesWidget: (value, meta) {
                             if (value == meta.min || value == meta.max) {
                               return SideTitleWidget(
-                                meta: meta,
-                                child: Text(value.toStringAsFixed(isWeight ? 1 : 0), style: theme.textTheme.bodySmall),
+                                axisSide: meta.axisSide,
+                                child: Text(
+                                    value.toStringAsFixed(isWeight ? 1 : 0),
+                                    style: theme.textTheme.bodySmall),
                               );
                             }
                             return const SizedBox();
                           },
                         ),
                       ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: labels != null,
                           reservedSize: 30,
                           interval: 1,
                           getTitlesWidget: (value, meta) {
-                            if (labels == null || value.toInt() >= labels!.length) {
+                            if (labels == null ||
+                                value.toInt() >= labels!.length) {
                               return const SizedBox();
                             }
                             return Padding(
                               padding: const EdgeInsets.only(top: 10.0),
-                              child: Text(labels![value.toInt()], style: theme.textTheme.bodySmall),
+                              child: Text(labels![value.toInt()],
+                                  style: theme.textTheme.bodySmall),
                             );
                           },
                         ),
@@ -515,8 +610,11 @@ class _LineChart extends StatelessWidget {
                             show: true,
                             alignment: Alignment.topRight,
                             padding: const EdgeInsets.only(right: 5, bottom: 2),
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.dividerColor),
-                            labelResolver: (_) => isWeight ? 'Цель: ${goal.toStringAsFixed(1)} кг' : 'Цель: ${goal.toInt()} ккал',
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: theme.dividerColor),
+                            labelResolver: (_) => isWeight
+                                ? 'Цель: ${goal.toStringAsFixed(1)} кг'
+                                : 'Цель: ${goal.toInt()} ккал',
                           ),
                         ),
                       ],

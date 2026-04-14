@@ -11,22 +11,22 @@ dependencies:
     sdk: flutter
 
   # UI & Theming
-  google_fonts: ^8.0.2
-  provider: ^6.1.5+1
-  material_symbols_icons: ^4.2906.0
-  percent_indicator: ^4.2.3
-  go_router: ^13.2.0 # Added go_router
+  google_fonts: ^4.0.0
+  provider: ^6.0.0
+  material_symbols_icons: ^4.0.0
+  percent_indicator: ^4.0.0
+  go_router: ^12.0.0
 
   # Functionality
-  image_picker: ^1.2.1
-  http: ^1.2.0
-  flutter_dotenv: ^5.1.0
-  fl_chart: ^1.1.1
-  intl: ^0.20.2
-  table_calendar: ^3.2.0
-  path_provider: ^2.1.5
-  shared_preferences: ^2.5.5
-  uuid: ^4.5.3
+  image_picker: ^1.0.0
+  http: ^1.1.0
+  flutter_dotenv: ^5.0.0
+  fl_chart: ^0.65.0
+  intl: ^0.18.0
+  table_calendar: ^3.0.0
+  path_provider: ^2.0.0
+  shared_preferences: ^2.0.0
+  uuid: ^3.0.0
 
 
 dev_dependencies:
@@ -37,9 +37,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
   assets:
     - assets/images/
     - assets/data/
-
-  
+    - assets/data/daily_log.json
+    - assets/data/profile.json
+    - assets/data/recipes.json
   

@@ -14,7 +14,8 @@ class RecipeDetailScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Подтверждение'),
-        content: Text('Вы уверены, что хотите удалить рецепт "${recipe.name}"?'),
+        content:
+            Text('Вы уверены, что хотите удалить рецепт "${recipe.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -38,8 +39,6 @@ class RecipeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -49,7 +48,8 @@ class RecipeDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(recipe.name,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           if (recipe.isUserRecipe)
             IconButton(
@@ -87,12 +87,14 @@ class RecipeDetailScreen extends StatelessWidget {
               CircleAvatar(
                 radius: 56,
                 backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                child: Icon(recipe.icon, size: 56, color: theme.colorScheme.primary),
+                child: Icon(recipe.icon,
+                    size: 56, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: 16),
               Text(
                 recipe.name,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               if (recipe.description.isNotEmpty)
@@ -131,15 +133,22 @@ class RecipeDetailScreen extends StatelessWidget {
             const Divider(height: 24),
             _nutrientGroup('Основные', [
               _nutrientRow('Белки', recipe.nutrients['protein'], 'г'),
-              _nutrientRow('Углеводы', recipe.nutrients['carbs'], 'г', subRows: [
-                _nutrientSubRow('в т.ч. Сахар', recipe.nutrients['sugar'], 'г'),
-                _nutrientSubRow('в т.ч. Клетчатка', recipe.nutrients['fiber'], 'г'),
-              ]),
+              _nutrientRow('Углеводы', recipe.nutrients['carbs'], 'г',
+                  subRows: [
+                    _nutrientSubRow(
+                        'в т.ч. Сахар', recipe.nutrients['sugar'], 'г'),
+                    _nutrientSubRow(
+                        'в т.ч. Клетчатка', recipe.nutrients['fiber'], 'г'),
+                  ]),
               _nutrientRow('Жиры', recipe.nutrients['fat'], 'г', subRows: [
-                _nutrientSubRow('Насыщенные', recipe.nutrients['saturated_fat'], 'г'),
-                _nutrientSubRow('Полиненасыщенные', recipe.nutrients['polyunsaturated_fat'], 'г'),
-                _nutrientSubRow('Мононенасыщенные', recipe.nutrients['monounsaturated_fat'], 'г'),
-                _nutrientSubRow('Трансжиры', recipe.nutrients['trans_fat'], 'г'),
+                _nutrientSubRow(
+                    'Насыщенные', recipe.nutrients['saturated_fat'], 'г'),
+                _nutrientSubRow('Полиненасыщенные',
+                    recipe.nutrients['polyunsaturated_fat'], 'г'),
+                _nutrientSubRow('Мононенасыщенные',
+                    recipe.nutrients['monounsaturated_fat'], 'г'),
+                _nutrientSubRow(
+                    'Трансжиры', recipe.nutrients['trans_fat'], 'г'),
               ]),
             ]),
             const Divider(height: 24),
@@ -168,21 +177,26 @@ class RecipeDetailScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
-          child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          child: Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
         ...rows,
       ],
     );
   }
 
-  Widget _nutrientRow(String label, double? value, String unit, {List<Widget> subRows = const []}) {
+  Widget _nutrientRow(String label, double? value, String unit,
+      {List<Widget> subRows = const []}) {
     final displayValue = (value ?? 0.0).toStringAsFixed(1);
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             Text('$displayValue $unit', style: const TextStyle(fontSize: 16)),
           ],
         ),
@@ -203,8 +217,10 @@ class RecipeDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
-          Text('$displayValue $unit', style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+          Text(label,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          Text('$displayValue $unit',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
         ],
       ),
     );
