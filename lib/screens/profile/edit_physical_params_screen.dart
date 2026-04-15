@@ -175,10 +175,14 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         child: Ink(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.1) : theme.cardColor,
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.1)
+                : (theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade200),
             borderRadius: AppStyles.buttonRadius,
             border: Border.all(
-              color: isSelected ? AppColors.primary : theme.dividerColor,
+              color: isSelected
+                  ? AppColors.primary
+                  : (theme.brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400),
               width: isSelected ? 2 : 1,
             ),
           ),

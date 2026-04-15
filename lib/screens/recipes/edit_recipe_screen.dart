@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/recipe_service.dart';
+import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 
 class EditRecipeScreen extends StatefulWidget {
@@ -77,43 +78,50 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Выберите иконку', style: TextStyle(fontWeight: FontWeight.bold)),
-        shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: GridView.builder(
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final canvasColor = theme.brightness == Brightness.dark ? AppColors.cardDark : AppColors.cardLight;
+        final unselectedBg = theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100;
+        final unselectedIcon = theme.brightness == Brightness.dark ? Colors.grey.shade300 : Colors.grey.shade700;
+        return AlertDialog(
+          backgroundColor: canvasColor,
+          title: const Text('Выберите иконку', style: TextStyle(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: GridView.builder(
+              shrinkWrap: true,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemCount: icons.length,
+              itemBuilder: (context, index) {
+                final icon = icons[index];
+                final isSelected = _selectedIcon == icon;
+                return InkWell(
+                  onTap: () {
+                    setState(() => _selectedIcon = icon);
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary.withValues(alpha: 0.16) : unselectedBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isSelected ? AppColors.primary : unselectedIcon,
+                    ),
+                  ),
+                );
+              },
             ),
-            itemCount: icons.length,
-            itemBuilder: (context, index) {
-              final icon = icons[index];
-              final isSelected = _selectedIcon == icon;
-              return InkWell(
-                onTap: () {
-                  setState(() => _selectedIcon = icon);
-                  Navigator.pop(context);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey[700],
-                  ),
-                ),
-              );
-            },
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -198,8 +206,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 borderRadius: BorderRadius.circular(50),
                 child: CircleAvatar(
                   radius: 48,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  child: Icon(_selectedIcon, size: 48, color: Theme.of(context).colorScheme.primary),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                  child: Icon(_selectedIcon, size: 48, color: AppColors.primary),
                 ),
               ),
             ),

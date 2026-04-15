@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/recipe_loader.dart';
 
 class Recipe {
@@ -55,19 +54,6 @@ class Recipe {
   }
 
   static String _iconToString(IconData icon) {
-    // This mapping should be robustly managed in a real app, maybe with a Map
-    if (icon == Symbols.lunch_dining) return 'lunch_dining';
-    if (icon == Symbols.local_bar) return 'local_bar';
-    if (icon == Symbols.cake) return 'cake';
-    if (icon == Symbols.fastfood) return 'fastfood';
-    if (icon == Symbols.breakfast_dining) return 'breakfast_dining';
-    if (icon == Symbols.ramen_dining) return 'ramen_dining';
-    if (icon == Symbols.icecream) return 'icecream';
-    if (icon == Symbols.local_pizza) return 'local_pizza';
-    if (icon == Symbols.set_meal) return 'set_meal';
-    if (icon == Symbols.dinner_dining) return 'dinner_dining';
-    if (icon == Symbols.blender) return 'blender';
-    if (icon == Symbols.soup_kitchen) return 'soup_kitchen';
-    return 'restaurant';
+    return RecipeLoader.getIconName(icon);
   }
 }

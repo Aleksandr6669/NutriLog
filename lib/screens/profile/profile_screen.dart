@@ -1,11 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
 import 'package:nutri_log/services/profile_service.dart';
+import 'package:nutri_log/styles/app_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +16,21 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _profileService = ProfileService();
   late Future<UserProfile> _profileFuture;
+  static const String _avatarPrefix = 'icon:';
+  static const String _defaultAvatarKey = 'person';
+  static const Map<String, IconData> _avatarIcons = {
+    'person': Symbols.person,
+    'account': Symbols.account_circle,
+    'face': Symbols.face,
+    'face2': Symbols.face_2,
+    'face3': Symbols.face_3,
+    'face4': Symbols.face_4,
+    'boy': Symbols.boy,
+    'girl': Symbols.girl,
+    'man': Symbols.man,
+    'woman': Symbols.woman,
+    'people': Symbols.emoji_people,
+  };
 
   @override
   void initState() {
@@ -41,15 +55,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _pickImage(UserProfile profile) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  String _avatarKeyFromProfile(UserProfile profile) {
+    final value = profile.avatarImagePath;
+    if (value == null || value.isEmpty) return _defaultAvatarKey;
+    return value.startsWith(_avatarPrefix) ? value.substring(_avatarPrefix.length) : _defaultAvatarKey;
+  }
 
-    if (image != null) {
-      final updatedProfile = profile.copyWith(avatarImagePath: image.path);
-      await _profileService.saveProfile(updatedProfile);
-      _loadProfile();
-    }
+  IconData _avatarIconFromProfile(UserProfile profile) {
+    final key = _avatarKeyFromProfile(profile);
+    return _avatarIcons[key] ?? _avatarIcons[_defaultAvatarKey]!;
+  }
+
+  Future<void> _pickAvatarIcon(UserProfile profile) async {
+    final currentKey = _avatarKeyFromProfile(profile);
+    final selectedKey = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Выберите аватар', style: theme.textTheme.titleLarge),
+                const SizedBox(height: 12),
+                GridView.builder(
+                  shrinkWrap: true,
+                  itemCount: _avatarIcons.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemBuilder: (context, index) {
+                    final entry = _avatarIcons.entries.elementAt(index);
+                    final isSelected = entry.key == currentKey;
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => Navigator.pop(context, entry.key),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.16)
+                              : AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.primary.withValues(alpha: 0.35),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Icon(
+                          entry.value,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedKey == null || selectedKey == currentKey) return;
+
+    final updatedProfile = profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');
+    await _profileService.saveProfile(updatedProfile);
+    _loadProfile();
   }
 
   @override
@@ -143,23 +223,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
-    ImageProvider<Object> backgroundImage;
-    if (profile.avatarImagePath != null && profile.avatarImagePath!.isNotEmpty) {
-      backgroundImage = FileImage(File(profile.avatarImagePath!));
-    } else {
-      backgroundImage = const NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d');
-    }
+    final avatarIcon = _avatarIconFromProfile(profile);
 
     return Center(
       child: Column(
         children: [
           InkWell(
-            onTap: () => _pickImage(profile),
+            onTap: () => _pickAvatarIcon(profile),
             borderRadius: BorderRadius.circular(50),
             child: CircleAvatar(
               radius: 50,
-              backgroundImage: backgroundImage,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+              child: Icon(avatarIcon, size: 56, color: AppColors.primary),
             ),
           ),
           const SizedBox(height: 16),
