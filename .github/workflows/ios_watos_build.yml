@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_ios_development:
+    name: 🎉 iOS+WatOS Build
     runs-on: macos-latest
 
     steps:
