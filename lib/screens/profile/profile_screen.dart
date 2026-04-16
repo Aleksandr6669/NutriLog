@@ -95,14 +95,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final entry = _avatarIcons.entries.elementAt(index);
                     final isSelected = entry.key == currentKey;
                     return InkWell(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(999),
                       onTap: () => Navigator.pop(context, entry.key),
                       child: Ink(
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.primary.withValues(alpha: 0.16)
                               : AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(999),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.primary
@@ -111,6 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         child: Icon(
+                          size: 48,
                           entry.value,
                           color: AppColors.primary,
                         ),
