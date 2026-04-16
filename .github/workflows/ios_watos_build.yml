@@ -21,15 +21,14 @@ jobs:
         run: pod install
         working-directory: ios
 
-      # Сборка Flutter iOS части
+    
       - name: Build Flutter iOS
         run: flutter build ios --release --no-codesign
 
-      # Архивация iOS + watchOS таргетов
       - name: Archive app
         run: xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner archive -archivePath build/Runner.xcarchive
 
-      # Экспорт IPA
+    
       - name: Export IPA
         run: xcodebuild -exportArchive -archivePath build/Runner.xcarchive -exportOptionsPlist ios/ExportOptions.plist -exportPath build
 
