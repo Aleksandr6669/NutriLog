@@ -153,7 +153,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Рецепт сохранён!'),
+            content: Text('Рецепт сохранён!', style: TextStyle(fontSize: 18)),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(top: 0, left: 16, right: 16),
