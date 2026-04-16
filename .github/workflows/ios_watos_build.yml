@@ -1,0 +1,40 @@
+name: Build iOS + watchOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - run: flutter pub get
+
+      - name: Install CocoaPods
+        run: pod install
+        working-directory: ios
+
+      # Сборка Flutter iOS части
+      - name: Build Flutter iOS
+        run: flutter build ios --release --no-codesign
+
+      # Архивация iOS + watchOS таргетов
+      - name: Archive app
+        run: xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner archive -archivePath build/Runner.xcarchive
+
+      # Экспорт IPA
+      - name: Export IPA
+        run: xcodebuild -exportArchive -archivePath build/Runner.xcarchive -exportOptionsPlist ios/ExportOptions.plist -exportPath build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-ipa
+          path: build/Runner.ipa
