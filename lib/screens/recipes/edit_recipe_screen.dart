@@ -151,6 +151,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       }
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Рецепт сохранён!'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+          ),
+        );
         Navigator.pop(context, true);
       }
     }
