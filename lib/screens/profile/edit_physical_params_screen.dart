@@ -6,6 +6,8 @@ import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 
+
+
 class EditPhysicalParamsScreen extends StatefulWidget {
   final UserProfile profile;
 
@@ -61,6 +63,8 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
           const SnackBar(
             content: Text('Физические параметры обновлены!'),
             backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
           ),
         );
         Navigator.pop(context, true);

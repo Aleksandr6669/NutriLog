@@ -70,6 +70,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
           const SnackBar(
             content: Text('Дневные цели обновлены!'),
             backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
           ),
         );
         Navigator.pop(context, true);
