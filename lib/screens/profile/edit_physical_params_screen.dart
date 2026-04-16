@@ -61,7 +61,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Физические параметры обновлены!'),
+            content: Text('Физические параметры обновлены!', style: TextStyle(fontSize: 18)),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(top: 0, left: 16, right: 16),

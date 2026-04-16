@@ -68,7 +68,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Дневные цели обновлены!'),
+            content: Text('Дневные цели обновлены!', style: TextStyle(fontSize: 18)),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(top: 0, left: 16, right: 16),
