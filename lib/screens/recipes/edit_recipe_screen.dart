@@ -156,7 +156,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             content: Text('Рецепт сохранён!'),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+            margin: EdgeInsets.only(top: 50, left: 16, right: 16),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
           ),
         );
         Navigator.pop(context, true);
