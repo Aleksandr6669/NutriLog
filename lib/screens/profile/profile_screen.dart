@@ -68,60 +68,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _pickAvatarIcon(UserProfile profile) async {
     final currentKey = _avatarKeyFromProfile(profile);
-    final selectedKey = await showModalBottomSheet<String>(
+    final selectedKey = await showDialog<String>(
       context: context,
-      showDragHandle: true,
       builder: (context) {
         final theme = Theme.of(context);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Выберите аватар', style: theme.textTheme.titleLarge),
-                const SizedBox(height: 12),
-                GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: _avatarIcons.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+        final canvasColor =
+            theme.brightness == Brightness.dark ? AppColors.cardDark : AppColors.cardLight;
+        final unselectedBg = theme.brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100;
+        final unselectedIcon = theme.brightness == Brightness.dark
+            ? Colors.grey.shade300
+            : Colors.grey.shade700;
+        return AlertDialog(
+          backgroundColor: canvasColor,
+          title: const Text('Выберите аватар', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: GridView.builder(
+              shrinkWrap: true,
+              itemCount: _avatarIcons.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemBuilder: (context, index) {
+                final entry = _avatarIcons.entries.elementAt(index);
+                final isSelected = entry.key == currentKey;
+                return InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => Navigator.pop(context, entry.key),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.16)
+                          : unselectedBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      entry.value,
+                      color: isSelected ? AppColors.primary : unselectedIcon,
+                    ),
                   ),
-                  itemBuilder: (context, index) {
-                    final entry = _avatarIcons.entries.elementAt(index);
-                    final isSelected = entry.key == currentKey;
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(999),
-                      onTap: () => Navigator.pop(context, entry.key),
-                      child: Ink(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.16)
-                              : AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.primary.withValues(alpha: 0.35),
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Icon(
-                          size: 48,
-                          entry.value,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                );
+              },
             ),
           ),
         );

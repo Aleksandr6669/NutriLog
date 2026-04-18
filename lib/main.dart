@@ -6,13 +6,13 @@ import 'dart:ui';
 import 'screens/home/home_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
-import 'screens/stats/stats_screen.dart'; 
+import 'screens/stats/stats_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 
-void main() async { 
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('ru_RU', null); 
+  await initializeDateFormatting('ru_RU', null);
   GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const MyApp());
 }

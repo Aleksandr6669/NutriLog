@@ -1,4 +1,5 @@
 {
   "IDX.agenticWorkspace": true,
-  "remote.autoForwardPortsFallback": 0
+  "remote.autoForwardPortsFallback": 0,
+  "cmake.sourceDirectory": "/workspaces/NutriLog/linux/flutter"
 }
