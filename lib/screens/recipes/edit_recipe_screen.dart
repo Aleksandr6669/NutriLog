@@ -16,6 +16,20 @@ class EditRecipeScreen extends StatefulWidget {
 }
 
 class _EditRecipeScreenState extends State<EditRecipeScreen> {
+  static const List<String> unitOptions = [
+    'г',      // граммы
+    'мг',     // миллиграммы
+    'кг',     // килограммы
+    'шт',     // штуки
+    'пачка',  // пачка
+    'упак',   // упаковка
+    'л',      // литры
+    'мл',     // миллилитры
+    'ч.л.',   // чайная ложка
+    'ст.л.',  // столовая ложка
+    'стакан', // стакан
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _recipeService = RecipeService();
 
@@ -26,6 +40,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   // Nutrient controllers
   final Map<String, TextEditingController> _nutrientControllers = {};
+  final List<_IngredientFormItem> _ingredientItems = [];
+  bool _autoCalculateCalories = true;
+  bool _isSyncingCalories = false;
 
   final List<String> _nutrientKeys = [
     'calories', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'saturated_fat', 
@@ -46,14 +63,96 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         text: widget.recipe?.nutrients[key]?.toString() ?? '0.0'
       );
     }
+
+    final loadedIngredients = widget.recipe?.ingredients ?? const [];
+    if (loadedIngredients.isEmpty) {
+      _ingredientItems.add(_IngredientFormItem());
+    } else {
+      for (final ingredient in loadedIngredients) {
+        _ingredientItems.add(
+          _IngredientFormItem(
+            name: ingredient.name,
+            quantity: ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
+            unit: ingredient.unit,
+          ),
+        );
+      }
+    }
+
+    _autoCalculateCalories = _shouldEnableAutoCalories();
+    _nutrientControllers['protein']?.addListener(_onMacroChanged);
+    _nutrientControllers['carbs']?.addListener(_onMacroChanged);
+    _nutrientControllers['fat']?.addListener(_onMacroChanged);
+
+    if (_autoCalculateCalories) {
+      _applyAutoCalories();
+    }
+  }
+
+  bool _shouldEnableAutoCalories() {
+    if (widget.recipe == null) return true;
+
+    final recipeNutrients = widget.recipe?.nutrients ?? const {};
+    final protein = recipeNutrients['protein'] ?? 0;
+    final carbs = recipeNutrients['carbs'] ?? 0;
+    final fat = recipeNutrients['fat'] ?? 0;
+    final calories = recipeNutrients['calories'] ?? 0;
+    final calculated = protein * 4 + carbs * 4 + fat * 9;
+    return (calories - calculated).abs() < 0.2;
+  }
+
+  double _parseAmount(String value) {
+    return double.tryParse(value.replaceAll(',', '.')) ?? 0;
+  }
+
+  String _formatNumber(double value) {
+    final rounded = double.parse(value.toStringAsFixed(1));
+    if (rounded.truncateToDouble() == rounded) {
+      return rounded.toInt().toString();
+    }
+    return rounded.toStringAsFixed(1);
+  }
+
+  void _onMacroChanged() {
+    if (!_autoCalculateCalories || _isSyncingCalories) return;
+    _applyAutoCalories();
+  }
+
+  void _applyAutoCalories() {
+    final protein = _parseAmount(_nutrientControllers['protein']?.text ?? '0');
+    final carbs = _parseAmount(_nutrientControllers['carbs']?.text ?? '0');
+    final fat = _parseAmount(_nutrientControllers['fat']?.text ?? '0');
+    final calories = protein * 4 + carbs * 4 + fat * 9;
+
+    _isSyncingCalories = true;
+    _nutrientControllers['calories']?.text = _formatNumber(calories);
+    _isSyncingCalories = false;
+  }
+
+  void _addIngredientRow() {
+    setState(() {
+      _ingredientItems.add(_IngredientFormItem());
+    });
+  }
+
+  void _removeIngredientRow(int index) {
+    final item = _ingredientItems.removeAt(index);
+    item.dispose();
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _nutrientControllers['protein']?.removeListener(_onMacroChanged);
+    _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
+    _nutrientControllers['fat']?.removeListener(_onMacroChanged);
     _nameController.dispose();
     _descriptionController.dispose();
     for (var controller in _nutrientControllers.values) {
       controller.dispose();
+    }
+    for (final ingredientItem in _ingredientItems) {
+      ingredientItem.dispose();
     }
     super.dispose();
   }
@@ -129,8 +228,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (_formKey.currentState!.validate()) {
       final Map<String, double> nutrients = {};
       for (var key in _nutrientKeys) {
-        nutrients[key] = double.tryParse(_nutrientControllers[key]!.text) ?? 0.0;
+        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
       }
+
+      final ingredients = _ingredientItems
+          .map(
+            (item) => RecipeIngredient(
+              name: item.nameController.text.trim(),
+              quantity: _parseAmount(item.quantityController.text),
+              unit: item.unit.trim(),
+            ),
+          )
+          .where((ingredient) => ingredient.name.isNotEmpty)
+          .toList();
 
       final recipe = Recipe(
         id: widget.recipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -139,8 +249,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         nutrients: nutrients,
         icon: _selectedIcon,
         isUserRecipe: true,
-        // Ingredients and instructions are not in this design, so we save them as empty.
-        ingredients: widget.recipe?.ingredients ?? [],
+        ingredients: ingredients,
         instructions: widget.recipe?.instructions ?? [],
       );
 
@@ -189,6 +298,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             children: [
               _buildMainInfoCard(),
               const SizedBox(height: 20),
+              _buildIngredientsCard(),
+              const SizedBox(height: 20),
               _buildNutrientsCard(),
             ],
           ),
@@ -199,7 +310,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Widget _buildMainInfoCard() {
     return Card(
-      elevation: 0.5, shadowColor: Colors.black.withOpacity(0.1),
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -238,7 +350,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Widget _buildNutrientsCard() {
     return Card(
-      elevation: 0.5, shadowColor: Colors.black.withOpacity(0.1),
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
@@ -247,7 +360,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           children: [
             const Text('Пищевая ценность (на порцию)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            _nutrientRow([ ('calories', 'Калории', 'ккал')]),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Автоподсчёт калорий по БЖУ'),
+              subtitle: const Text('Формула: белки×4 + углеводы×4 + жиры×9'),
+              value: _autoCalculateCalories,
+              onChanged: (value) {
+                setState(() => _autoCalculateCalories = value);
+                if (value) _applyAutoCalories();
+              },
+            ),
+            const SizedBox(height: 8),
+            _nutrientRow([('calories', 'Калории', 'ккал')], isReadOnly: _autoCalculateCalories),
             const SizedBox(height: 8),
             _nutrientRow([('protein', 'Белки', 'г'), ('carbs', 'Углеводы', 'г'), ('fat', 'Жиры', 'г')]),
             const SizedBox(height: 8),
@@ -283,29 +407,161 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
-  Widget _nutrientRow(List<(String, String, String)> fields) {
+  Widget _buildIngredientsCard() {
+    return Card(
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('Состав', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                IconButton(
+                  tooltip: 'Добавить ингредиент',
+                  onPressed: _addIngredientRow,
+                  icon: const Icon(Symbols.add_circle),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...List.generate(_ingredientItems.length, (index) {
+              final item = _ingredientItems[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: TextFormField(
+                        controller: item.nameController,
+                        decoration: AppStyles.underlineInputDecoration(label: 'Ингредиент'),
+                        textInputAction: TextInputAction.next,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 3,
+                      child: TextFormField(
+                        controller: item.quantityController,
+                        decoration: AppStyles.underlineInputDecoration(label: 'Кол-во'),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))],
+                        textInputAction: TextInputAction.next,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: item.unit.isEmpty ? unitOptions.first : item.unit,
+                        items: unitOptions
+                            .map((unit) => DropdownMenuItem(
+                                  value: unit,
+                                  child: Text(unit, style: const TextStyle(fontSize: 13)),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => item.unit = value);
+                          }
+                        },
+                        decoration: InputDecoration(
+                          labelText: 'Ед.',
+                          border: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      tooltip: 'Удалить',
+                      onPressed: () => _removeIngredientRow(index),
+                      icon: const Icon(
+                        Symbols.remove_circle,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const Text(
+              'Примеры: Морковь 120 г, Яйца 2 шт, Масло 1 ст.л.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _nutrientRow(List<(String, String, String)> fields, {bool isReadOnly = false}) {
     return Row(
       children: fields.map((field) {
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: _nutrientTextFormField(_nutrientControllers[field.$1]!, field.$2, field.$3),
+            child: _nutrientTextFormField(
+              _nutrientControllers[field.$1]!,
+              field.$2,
+              field.$3,
+              readOnly: isReadOnly && field.$1 == 'calories',
+            ),
           ),
         );
       }).toList(),
     );
   }
 
-  Widget _nutrientTextFormField(TextEditingController controller, String label, String suffix) {
+  Widget _nutrientTextFormField(
+    TextEditingController controller,
+    String label,
+    String suffix, {
+    bool readOnly = false,
+  }) {
     return TextFormField(
       controller: controller,
+      readOnly: readOnly,
       decoration: AppStyles.underlineInputDecoration(label: label, suffix: suffix),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))],
       validator: (value) {
-        if (double.tryParse(value ?? '') == null) return 'Число';
+        if (value == null || value.isEmpty) return null;
+        if (double.tryParse(value.replaceAll(',', '.')) == null) return 'Число';
         return null;
       },
     );
+  }
+}
+
+class _IngredientFormItem {
+  final TextEditingController nameController;
+  final TextEditingController quantityController;
+  String unit;
+
+  _IngredientFormItem({
+    String name = '',
+    String quantity = '',
+    String unit = '',
+  })  : nameController = TextEditingController(text: name),
+        quantityController = TextEditingController(text: quantity),
+        unit = unit.isEmpty ? 'г' : unit;
+
+  void dispose() {
+    nameController.dispose();
+    quantityController.dispose();
   }
 }

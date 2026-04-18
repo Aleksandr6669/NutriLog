@@ -9,7 +9,14 @@
       "protein": 10,
       "carbs": 60,
       "fat": 8
-    }
+    },
+    "ingredients": [
+      { "name": "Овсяные хлопья", "quantity": 50, "unit": "г" },
+      { "name": "Молоко", "quantity": 200, "unit": "мл" },
+      { "name": "Банан", "quantity": 1, "unit": "шт" },
+      { "name": "Ягоды (черника или малина)", "quantity": 50, "unit": "г" },
+      { "name": "Мёд", "quantity": 1, "unit": "ст.л." }
+    ]
   },
   {
     "name": "Куриная грудка на гриле",
@@ -20,7 +27,14 @@
       "protein": 50,
       "carbs": 30,
       "fat": 15
-    }
+    },
+    "ingredients": [
+      { "name": "Куриная грудка", "quantity": 200, "unit": "г" },
+      { "name": "Киноа", "quantity": 100, "unit": "г" },
+      { "name": "Помидоры", "quantity": 100, "unit": "г" },
+      { "name": "Брокколи", "quantity": 150, "unit": "г" },
+      { "name": "Оливковое масло", "quantity": 1, "unit": "ст.л." }
+    ]
   },
   {
     "name": "Салат Цезарь",
@@ -31,7 +45,14 @@
       "protein": 30,
       "carbs": 15,
       "fat": 25
-    }
+    },
+    "ingredients": [
+      { "name": "Салат Айсберг", "quantity": 150, "unit": "г" },
+      { "name": "Курица вареная", "quantity": 150, "unit": "г" },
+      { "name": "Сухарики", "quantity": 30, "unit": "г" },
+      { "name": "Сыр Пармезан", "quantity": 40, "unit": "г" },
+      { "name": "Соус Цезарь", "quantity": 3, "unit": "ст.л." }
+    ]
   },
   {
     "name": "Смузи 'Зеленый детокс'",
@@ -42,7 +63,14 @@
       "protein": 5,
       "carbs": 35,
       "fat": 1
-    }
+    },
+    "ingredients": [
+      { "name": "Шпинат свежий", "quantity": 100, "unit": "г" },
+      { "name": "Яблоко", "quantity": 1, "unit": "шт" },
+      { "name": "Банан", "quantity": 1, "unit": "шт" },
+      { "name": "Вода", "quantity": 250, "unit": "мл" },
+      { "name": "Лед", "quantity": 150, "unit": "г" }
+    ]
   },
   {
     "name": "Лосось запеченный",
@@ -53,7 +81,14 @@
       "protein": 45,
       "carbs": 5,
       "fat": 40
-    }
+    },
+    "ingredients": [
+      { "name": "Филе лосося", "quantity": 200, "unit": "г" },
+      { "name": "Лимон", "quantity": 0.5, "unit": "шт" },
+      { "name": "Оливковое масло", "quantity": 2, "unit": "ст.л." },
+      { "name": "Чеснок", "quantity": 2, "unit": "шт" },
+      { "name": "Свежие травы (укроп, петрушка)", "quantity": 20, "unit": "г" }
+    ]
   },
   {
     "name": "Греческий салат",
@@ -64,7 +99,14 @@
       "protein": 8,
       "carbs": 10,
       "fat": 25
-    }
+    },
+    "ingredients": [
+      { "name": "Помидоры", "quantity": 200, "unit": "г" },
+      { "name": "Огурец", "quantity": 1, "unit": "шт" },
+      { "name": "Маслины", "quantity": 50, "unit": "г" },
+      { "name": "Сыр Фета", "quantity": 100, "unit": "г" },
+      { "name": "Оливковое масло", "quantity": 3, "unit": "ст.л." }
+    ]
   },
   {
     "name": "Паста Карбонара",
@@ -75,7 +117,14 @@
       "protein": 25,
       "carbs": 70,
       "fat": 28
-    }
+    },
+    "ingredients": [
+      { "name": "Спагетти", "quantity": 150, "unit": "г" },
+      { "name": "Бекон", "quantity": 100, "unit": "г" },
+      { "name": "Яйца", "quantity": 2, "unit": "шт" },
+      { "name": "Сливки", "quantity": 100, "unit": "мл" },
+      { "name": "Пармезан", "quantity": 50, "unit": "г" }
+    ]
   },
   {
     "name": "Протеиновый коктейль",
@@ -86,7 +135,14 @@
       "protein": 30,
       "carbs": 20,
       "fat": 5
-    }
+    },
+    "ingredients": [
+      { "name": "Протеиновый порошок", "quantity": 30, "unit": "г" },
+      { "name": "Молоко", "quantity": 300, "unit": "мл" },
+      { "name": "Банан", "quantity": 1, "unit": "шт" },
+      { "name": "Арахисовое масло", "quantity": 1, "unit": "ст.л." },
+      { "name": "Льд", "quantity": 100, "unit": "г" }
+    ]
   },
   {
     "name": "Чечевичный суп",
@@ -97,7 +153,14 @@
       "protein": 18,
       "carbs": 55,
       "fat": 4
-    }
+    },
+    "ingredients": [
+      { "name": "Чечевица красная", "quantity": 100, "unit": "г" },
+      { "name": "Морковь", "quantity": 100, "unit": "г" },
+      { "name": "Лук репчатый", "quantity": 50, "unit": "г" },
+      { "name": "Овощной бульон", "quantity": 500, "unit": "мл" },
+      { "name": "Оливковое масло", "quantity": 1, "unit": "ст.л." }
+    ]
   },
   {
     "name": "Творожная запеканка",
@@ -108,6 +171,13 @@
       "protein": 20,
       "carbs": 25,
       "fat": 12
-    }
+    },
+    "ingredients": [
+      { "name": "Творог", "quantity": 300, "unit": "г" },
+      { "name": "Яйца", "quantity": 3, "unit": "шт" },
+      { "name": "Изюм", "quantity": 50, "unit": "г" },
+      { "name": "Сметана", "quantity": 100, "unit": "г" },
+      { "name": "Сахар", "quantity": 3, "unit": "ст.л." }
+    ]
   }
 ]

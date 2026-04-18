@@ -38,8 +38,6 @@ class RecipeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -65,6 +63,10 @@ class RecipeDetailScreen extends StatelessWidget {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
+            if (recipe.ingredients.isNotEmpty) ...[
+              _buildIngredientsCard(),
+              const SizedBox(height: 24),
+            ],
             _buildNutrientsCard(context),
           ],
         ),
@@ -77,7 +79,7 @@ class RecipeDetailScreen extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 0.5,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -86,7 +88,7 @@ class RecipeDetailScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 56,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
                 child: Icon(recipe.icon, size: 56, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: 16),
@@ -111,11 +113,54 @@ class RecipeDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildIngredientsCard() {
+    return Card(
+      color: Colors.white,
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Состав',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            ...recipe.ingredients.map(
+              (ingredient) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(Symbols.circle, size: 8, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        ingredient.displayValue,
+                        style: const TextStyle(fontSize: 15, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNutrientsCard(BuildContext context) {
     return Card(
       color: Colors.white,
       elevation: 0.5,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.all(20.0),

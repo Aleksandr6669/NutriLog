@@ -38,8 +38,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
       recipe.isUserRecipe = true;
     }
 
+    // Пользовательские рецепты сверху (новые первыми), встроенные внизу
+    userRecipes.sort((a, b) => b.id.compareTo(a.id));
+    final allRecipes = [...userRecipes, ...defaultRecipes];
+
     setState(() {
-      _allRecipes = [...userRecipes, ...defaultRecipes];
+      _allRecipes = allRecipes;
       _filteredRecipes = _allRecipes;
       _isLoading = false;
     });
