@@ -19,7 +19,6 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _profileService = ProfileService();
 
-  late TextEditingController _weightGoalController;
   late TextEditingController _calorieGoalController;
   late TextEditingController _waterGoalController;
   late TextEditingController _stepsGoalController;
@@ -30,18 +29,22 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   @override
   void initState() {
     super.initState();
-    _weightGoalController = TextEditingController(text: widget.profile.weightGoal.toString());
-    _calorieGoalController = TextEditingController(text: widget.profile.calorieGoal.toString());
-    _waterGoalController = TextEditingController(text: widget.profile.waterGoal.toString());
-    _stepsGoalController = TextEditingController(text: widget.profile.stepsGoal.toString());
-    _proteinGoalController = TextEditingController(text: widget.profile.proteinGoal.toString());
-    _carbsGoalController = TextEditingController(text: widget.profile.carbsGoal.toString());
-    _fatGoalController = TextEditingController(text: widget.profile.fatGoal.toString());
+    _calorieGoalController =
+        TextEditingController(text: widget.profile.calorieGoal.toString());
+    _waterGoalController =
+        TextEditingController(text: widget.profile.waterGoal.toString());
+    _stepsGoalController =
+        TextEditingController(text: widget.profile.stepsGoal.toString());
+    _proteinGoalController =
+        TextEditingController(text: widget.profile.proteinGoal.toString());
+    _carbsGoalController =
+        TextEditingController(text: widget.profile.carbsGoal.toString());
+    _fatGoalController =
+        TextEditingController(text: widget.profile.fatGoal.toString());
   }
 
   @override
   void dispose() {
-    _weightGoalController.dispose();
     _calorieGoalController.dispose();
     _waterGoalController.dispose();
     _stepsGoalController.dispose();
@@ -54,7 +57,6 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final updatedProfile = widget.profile.copyWith(
-        weightGoal: double.parse(_weightGoalController.text),
         calorieGoal: int.parse(_calorieGoalController.text),
         waterGoal: int.parse(_waterGoalController.text),
         stepsGoal: int.parse(_stepsGoalController.text),
@@ -68,7 +70,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Дневные цели обновлены!', style: TextStyle(fontSize: 18)),
+            content:
+                Text('Дневные цели обновлены!', style: TextStyle(fontSize: 18)),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(top: 0, left: 16, right: 16),
@@ -99,21 +102,14 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
           child: Column(
             children: [
               _buildTextFormField(
-                controller: _weightGoalController,
-                label: 'Цель по весу (кг)',
-                icon: Symbols.flag,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}'))],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по весу' : null,
-              ),
-              const SizedBox(height: 16),
-              _buildTextFormField(
                 controller: _calorieGoalController,
                 label: 'Калории (ккал)',
                 icon: Symbols.local_fire_department,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по калориям' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по калориям'
+                    : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
@@ -122,7 +118,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 icon: Symbols.water_drop,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по воде' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по воде'
+                    : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
@@ -131,7 +129,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 icon: Symbols.directions_walk,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по шагам' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по шагам'
+                    : null,
               ),
               const Divider(height: 32),
               _buildTextFormField(
@@ -140,7 +140,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 icon: Symbols.egg,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по белкам' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по белкам'
+                    : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
@@ -149,7 +151,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 icon: Symbols.bakery_dining,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по углеводам' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по углеводам'
+                    : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
@@ -158,7 +162,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 icon: Symbols.oil_barrel,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty ? 'Введите цель по жирам' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Введите цель по жирам'
+                    : null,
               ),
             ],
           ),

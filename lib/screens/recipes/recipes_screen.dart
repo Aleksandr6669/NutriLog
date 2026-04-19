@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_loader.dart';
@@ -33,7 +34,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() => _isLoading = true);
     final defaultRecipes = await RecipeLoader.loadRecipesFromAssets();
     final userRecipes = await _recipeService.loadUserRecipes();
-    
+
     for (var recipe in userRecipes) {
       recipe.isUserRecipe = true;
     }
@@ -61,16 +62,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() {
       _filteredRecipes = _allRecipes.where((recipe) {
         return recipe.name.toLowerCase().contains(query) ||
-               recipe.description.toLowerCase().contains(query);
+            recipe.description.toLowerCase().contains(query);
       }).toList();
     });
   }
 
-  void _navigateAndRefresh(Widget screen) async {
-    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => screen));
+  Future<void> _navigateAndRefresh(Widget screen) async {
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => screen));
     if (result == true) {
       _loadAllRecipes();
     }
+  }
+
+  Future<void> _editRecipe(Recipe recipe) async {
+    await _navigateAndRefresh(EditRecipeScreen(recipe: recipe));
   }
 
   Future<void> _deleteRecipe(Recipe recipe) async {
@@ -98,6 +104,42 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
   }
 
+  Future<void> _showAndroidContextMenu(Recipe recipe) async {
+    final selectedAction = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Symbols.edit),
+                title: const Text('Редактировать'),
+                onTap: () => Navigator.pop(context, 'edit'),
+              ),
+              ListTile(
+                leading: const Icon(Symbols.delete, color: Colors.red),
+                title:
+                    const Text('Удалить', style: TextStyle(color: Colors.red)),
+                onTap: () => Navigator.pop(context, 'delete'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedAction == 'edit') {
+      await _editRecipe(recipe);
+    } else if (selectedAction == 'delete') {
+      await _deleteRecipe(recipe);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +147,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        title: const Text('Мои рецепты', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text('Мои рецепты',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add_circle_outline, size: 28),
@@ -155,13 +198,81 @@ class _RecipesScreenState extends State<RecipesScreen> {
       itemCount: _filteredRecipes.length,
       itemBuilder: (context, index) {
         final recipe = _filteredRecipes[index];
-        return _RecipeListItem(
+        final item = _RecipeListItem(
           recipe: recipe,
           onTap: () => _navigateAndRefresh(RecipeDetailScreen(recipe: recipe)),
-          onEdit: recipe.isUserRecipe ? () => _navigateAndRefresh(EditRecipeScreen(recipe: recipe)) : null,
-          onDelete: recipe.isUserRecipe ? () => _deleteRecipe(recipe) : null,
+          onLongPress: recipe.isUserRecipe &&
+                  defaultTargetPlatform == TargetPlatform.android
+              ? () => _showAndroidContextMenu(recipe)
+              : null,
+        );
+
+        if (!recipe.isUserRecipe) return item;
+
+        return Dismissible(
+          key: ValueKey('recipe-swipe-${recipe.id}'),
+          direction: DismissDirection.horizontal,
+          background: _buildSwipeBackground(
+            alignment: Alignment.centerLeft,
+            color: Colors.blue.shade600,
+            icon: Symbols.edit,
+            label: 'Редактировать',
+          ),
+          secondaryBackground: _buildSwipeBackground(
+            alignment: Alignment.centerRight,
+            color: Colors.red.shade600,
+            icon: Symbols.delete,
+            label: 'Удалить',
+          ),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              await _editRecipe(recipe);
+              return false;
+            }
+            if (direction == DismissDirection.endToStart) {
+              await _deleteRecipe(recipe);
+              return false;
+            }
+            return false;
+          },
+          child: item,
         );
       },
+    );
+  }
+
+  Widget _buildSwipeBackground({
+    required Alignment alignment,
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: AppStyles.cardRadius,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      alignment: alignment,
+      child: Row(
+        mainAxisAlignment: alignment == Alignment.centerLeft
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
+        children: [
+          if (alignment == Alignment.centerRight)
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
+          if (alignment == Alignment.centerRight) const SizedBox(width: 8),
+          Icon(icon, color: Colors.white),
+          if (alignment == Alignment.centerLeft) const SizedBox(width: 8),
+          if (alignment == Alignment.centerLeft)
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 
@@ -201,14 +312,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
 class _RecipeListItem extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  final VoidCallback? onLongPress;
 
   const _RecipeListItem({
     required this.recipe,
     required this.onTap,
-    this.onEdit,
-    this.onDelete,
+    this.onLongPress,
   });
 
   @override
@@ -223,6 +332,7 @@ class _RecipeListItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: AppStyles.cardRadius,
         splashColor: theme.colorScheme.primary.withOpacity(0.1),
         highlightColor: theme.colorScheme.primary.withOpacity(0.05),
@@ -233,20 +343,24 @@ class _RecipeListItem extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                child: Icon(recipe.icon, color: theme.colorScheme.primary, size: 28),
+                child: Icon(recipe.icon,
+                    color: theme.colorScheme.primary, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(recipe.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    Text(recipe.name,
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w500)),
                     if (recipe.description.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: Text(
                           recipe.description,
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 14),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -254,20 +368,6 @@ class _RecipeListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onEdit != null)
-                IconButton(
-                  icon: const Icon(Symbols.edit, weight: 300),
-                  onPressed: onEdit,
-                  tooltip: 'Редактировать',
-                  color: Colors.grey.shade500,
-                ),
-              if (onDelete != null)
-                IconButton(
-                  icon: const Icon(Symbols.delete, weight: 300),
-                  onPressed: onDelete,
-                  tooltip: 'Удалить',
-                  color: Colors.red.shade300,
-                ),
             ],
           ),
         ),

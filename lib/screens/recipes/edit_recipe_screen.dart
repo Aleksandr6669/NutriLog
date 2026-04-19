@@ -17,16 +17,16 @@ class EditRecipeScreen extends StatefulWidget {
 
 class _EditRecipeScreenState extends State<EditRecipeScreen> {
   static const List<String> unitOptions = [
-    'г',      // граммы
-    'мг',     // миллиграммы
-    'кг',     // килограммы
-    'шт',     // штуки
-    'пачка',  // пачка
-    'упак',   // упаковка
-    'л',      // литры
-    'мл',     // миллилитры
-    'ч.л.',   // чайная ложка
-    'ст.л.',  // столовая ложка
+    'г', // граммы
+    'мг', // миллиграммы
+    'кг', // килограммы
+    'шт', // штуки
+    'пачка', // пачка
+    'упак', // упаковка
+    'л', // литры
+    'мл', // миллилитры
+    'ч.л.', // чайная ложка
+    'ст.л.', // столовая ложка
     'стакан', // стакан
   ];
 
@@ -45,23 +45,38 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isSyncingCalories = false;
 
   final List<String> _nutrientKeys = [
-    'calories', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'saturated_fat', 
-    'polyunsaturated_fat', 'monounsaturated_fat', 'trans_fat', 'cholesterol', 
-    'sodium', 'potassium', 'vitamin_a', 'vitamin_c', 'vitamin_d', 'calcium', 'iron'
+    'calories',
+    'protein',
+    'carbs',
+    'fat',
+    'fiber',
+    'sugar',
+    'saturated_fat',
+    'polyunsaturated_fat',
+    'monounsaturated_fat',
+    'trans_fat',
+    'cholesterol',
+    'sodium',
+    'potassium',
+    'vitamin_a',
+    'vitamin_c',
+    'vitamin_d',
+    'calcium',
+    'iron'
   ];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.recipe?.name ?? '');
-    _descriptionController = TextEditingController(text: widget.recipe?.description ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.recipe?.description ?? '');
     _selectedIcon = widget.recipe?.icon ?? Symbols.restaurant;
 
     // Initialize all nutrient controllers
     for (var key in _nutrientKeys) {
       _nutrientControllers[key] = TextEditingController(
-        text: widget.recipe?.nutrients[key]?.toString() ?? '0.0'
-      );
+          text: widget.recipe?.nutrients[key]?.toString() ?? '0.0');
     }
 
     final loadedIngredients = widget.recipe?.ingredients ?? const [];
@@ -72,7 +87,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _ingredientItems.add(
           _IngredientFormItem(
             name: ingredient.name,
-            quantity: ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
+            quantity:
+                ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
             unit: ingredient.unit,
           ),
         );
@@ -159,19 +175,41 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   void _showIconPicker() {
     final icons = [
-      Symbols.restaurant, Symbols.lunch_dining, Symbols.local_bar, 
-      Symbols.cake, Symbols.fastfood, Symbols.breakfast_dining, 
-      Symbols.ramen_dining, Symbols.icecream, Symbols.local_pizza, 
-      Symbols.set_meal, Symbols.dinner_dining, Symbols.blender, 
-      Symbols.soup_kitchen, Symbols.coffee, Symbols.wine_bar,
-      Symbols.liquor, Symbols.bakery_dining, Symbols.egg,
-      Symbols.egg_alt, Symbols.cooking, Symbols.kebab_dining,
-      Symbols.takeout_dining, Symbols.rice_bowl,
-      Symbols.cookie, Symbols.donut_large,
-      Symbols.local_cafe, Symbols.local_drink, Symbols.tapas,
-      Symbols.flatware, Symbols.outdoor_grill, Symbols.kitchen,
-      Symbols.microwave, Symbols.skillet,
-      Symbols.nutrition, Symbols.eco,
+      Symbols.restaurant,
+      Symbols.lunch_dining,
+      Symbols.local_bar,
+      Symbols.cake,
+      Symbols.fastfood,
+      Symbols.breakfast_dining,
+      Symbols.ramen_dining,
+      Symbols.icecream,
+      Symbols.local_pizza,
+      Symbols.set_meal,
+      Symbols.dinner_dining,
+      Symbols.blender,
+      Symbols.soup_kitchen,
+      Symbols.coffee,
+      Symbols.wine_bar,
+      Symbols.liquor,
+      Symbols.bakery_dining,
+      Symbols.egg,
+      Symbols.egg_alt,
+      Symbols.cooking,
+      Symbols.kebab_dining,
+      Symbols.takeout_dining,
+      Symbols.rice_bowl,
+      Symbols.cookie,
+      Symbols.donut_large,
+      Symbols.local_cafe,
+      Symbols.local_drink,
+      Symbols.tapas,
+      Symbols.flatware,
+      Symbols.outdoor_grill,
+      Symbols.kitchen,
+      Symbols.microwave,
+      Symbols.skillet,
+      Symbols.nutrition,
+      Symbols.eco,
       Symbols.restaurant_menu
     ];
 
@@ -179,12 +217,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       context: context,
       builder: (context) {
         final theme = Theme.of(context);
-        final canvasColor = theme.brightness == Brightness.dark ? AppColors.cardDark : AppColors.cardLight;
-        final unselectedBg = theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100;
-        final unselectedIcon = theme.brightness == Brightness.dark ? Colors.grey.shade300 : Colors.grey.shade700;
+        final canvasColor = theme.brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight;
+        final unselectedBg = theme.brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100;
+        final unselectedIcon = theme.brightness == Brightness.dark
+            ? Colors.grey.shade300
+            : Colors.grey.shade700;
         return AlertDialog(
           backgroundColor: canvasColor,
-          title: const Text('Выберите иконку', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Выберите иконку',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
           content: SizedBox(
             width: double.maxFinite,
@@ -207,7 +252,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withValues(alpha: 0.16) : unselectedBg,
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.16)
+                          : unselectedBg,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -243,7 +290,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           .toList();
 
       final recipe = Recipe(
-        id: widget.recipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id: widget.recipe?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text,
         description: _descriptionController.text,
         nutrients: nutrients,
@@ -273,6 +321,34 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
   }
 
+  Future<void> _deleteRecipe() async {
+    if (widget.recipe == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удалить рецепт?'),
+        content: Text(
+            'Вы уверены, что хотите удалить рецепт "${widget.recipe!.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    await _recipeService.deleteRecipe(widget.recipe!.id);
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -280,8 +356,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: Text(widget.recipe == null ? 'Новый рецепт' : 'Редактировать рецепт', style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context)),
+        title: Text(
+            widget.recipe == null ? 'Новый рецепт' : 'Редактировать рецепт',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save, weight: 600),
@@ -301,6 +381,21 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               _buildIngredientsCard(),
               const SizedBox(height: 20),
               _buildNutrientsCard(),
+              if (widget.recipe != null) ...[
+                const SizedBox(height: 24),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton.icon(
+                    onPressed: _deleteRecipe,
+                    icon: const Icon(Symbols.delete),
+                    label: const Text('Удалить рецепт'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -318,7 +413,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Основная информация', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Основная информация',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             Center(
               child: InkWell(
@@ -327,20 +423,24 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 child: CircleAvatar(
                   radius: 48,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                  child: Icon(_selectedIcon, size: 48, color: AppColors.primary),
+                  child:
+                      Icon(_selectedIcon, size: 48, color: AppColors.primary),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             TextFormField(
               controller: _nameController,
-              decoration: AppStyles.underlineInputDecoration(label: 'Название рецепта'),
-              validator: (value) => value == null || value.isEmpty ? 'Введите название' : null,
+              decoration:
+                  AppStyles.underlineInputDecoration(label: 'Название рецепта'),
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Введите название' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration: AppStyles.underlineInputDecoration(label: 'Краткое описание'),
+              decoration:
+                  AppStyles.underlineInputDecoration(label: 'Краткое описание'),
             ),
           ],
         ),
@@ -358,7 +458,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Пищевая ценность (на порцию)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Пищевая ценность (на порцию)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -371,34 +472,53 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               },
             ),
             const SizedBox(height: 8),
-            _nutrientRow([('calories', 'Калории', 'ккал')], isReadOnly: _autoCalculateCalories),
+            _nutrientRow([('calories', 'Калории', 'ккал')],
+                isReadOnly: _autoCalculateCalories),
             const SizedBox(height: 8),
-            _nutrientRow([('protein', 'Белки', 'г'), ('carbs', 'Углеводы', 'г'), ('fat', 'Жиры', 'г')]),
+            _nutrientRow([
+              ('protein', 'Белки', 'г'),
+              ('carbs', 'Углеводы', 'г'),
+              ('fat', 'Жиры', 'г')
+            ]),
             const SizedBox(height: 8),
             ExpansionTile(
-              title: const Text('Дополнительно', style: TextStyle(fontWeight: FontWeight.w500)),
+              title: const Text('Дополнительно',
+                  style: TextStyle(fontWeight: FontWeight.w500)),
               tilePadding: EdgeInsets.zero,
               childrenPadding: const EdgeInsets.only(top: 8),
               children: [
-                _nutrientRow([('fiber', 'Клетчатка', 'г'), ('sugar', 'Сахар', 'г')]),
+                _nutrientRow(
+                    [('fiber', 'Клетчатка', 'г'), ('sugar', 'Сахар', 'г')]),
                 const SizedBox(height: 8),
-                 _nutrientRow([('saturated_fat', 'Насыщенные жиры', 'г')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('polyunsaturated_fat', 'Полиненасыщенные жиры', 'г')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('monounsaturated_fat', 'Мононенасыщенные жиры', 'г')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('trans_fat', 'Трансжиры', 'г')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('cholesterol', 'Холестерин', 'мг'), ('sodium', 'Натрий', 'мг')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('potassium', 'Калий', 'мг')]),
-                 const SizedBox(height: 24),
-                 const Text('Витамины и минералы', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                 const SizedBox(height: 16),
-                 _nutrientRow([('vitamin_a', 'Витамин A', 'мкг'), ('vitamin_c', 'Витамин C', 'мг'), ('vitamin_d', 'Витамин D', 'мкг')]),
-                 const SizedBox(height: 8),
-                 _nutrientRow([('calcium', 'Кальций', 'мг'), ('iron', 'Железо', 'мг')]),
+                _nutrientRow([('saturated_fat', 'Насыщенные жиры', 'г')]),
+                const SizedBox(height: 8),
+                _nutrientRow(
+                    [('polyunsaturated_fat', 'Полиненасыщенные жиры', 'г')]),
+                const SizedBox(height: 8),
+                _nutrientRow(
+                    [('monounsaturated_fat', 'Мононенасыщенные жиры', 'г')]),
+                const SizedBox(height: 8),
+                _nutrientRow([('trans_fat', 'Трансжиры', 'г')]),
+                const SizedBox(height: 8),
+                _nutrientRow([
+                  ('cholesterol', 'Холестерин', 'мг'),
+                  ('sodium', 'Натрий', 'мг')
+                ]),
+                const SizedBox(height: 8),
+                _nutrientRow([('potassium', 'Калий', 'мг')]),
+                const SizedBox(height: 24),
+                const Text('Витамины и минералы',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                _nutrientRow([
+                  ('vitamin_a', 'Витамин A', 'мкг'),
+                  ('vitamin_c', 'Витамин C', 'мг'),
+                  ('vitamin_d', 'Витамин D', 'мкг')
+                ]),
+                const SizedBox(height: 8),
+                _nutrientRow(
+                    [('calcium', 'Кальций', 'мг'), ('iron', 'Железо', 'мг')]),
               ],
             ),
           ],
@@ -420,7 +540,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             Row(
               children: [
                 const Expanded(
-                  child: Text('Состав', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Состав',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
                 IconButton(
                   tooltip: 'Добавить ингредиент',
@@ -441,7 +563,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       flex: 5,
                       child: TextFormField(
                         controller: item.nameController,
-                        decoration: AppStyles.underlineInputDecoration(label: 'Ингредиент'),
+                        decoration: AppStyles.underlineInputDecoration(
+                            label: 'Ингредиент'),
                         textInputAction: TextInputAction.next,
                       ),
                     ),
@@ -450,9 +573,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       flex: 3,
                       child: TextFormField(
                         controller: item.quantityController,
-                        decoration: AppStyles.underlineInputDecoration(label: 'Кол-во'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))],
+                        decoration:
+                            AppStyles.underlineInputDecoration(label: 'Кол-во'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*[\.,]?\d*'))
+                        ],
                         textInputAction: TextInputAction.next,
                       ),
                     ),
@@ -460,11 +588,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     Expanded(
                       flex: 2,
                       child: DropdownButtonFormField<String>(
-                        initialValue: item.unit.isEmpty ? unitOptions.first : item.unit,
+                        initialValue:
+                            item.unit.isEmpty ? unitOptions.first : item.unit,
                         items: unitOptions
                             .map((unit) => DropdownMenuItem(
                                   value: unit,
-                                  child: Text(unit, style: const TextStyle(fontSize: 13)),
+                                  child: Text(unit,
+                                      style: const TextStyle(fontSize: 13)),
                                 ))
                             .toList(),
                         onChanged: (value) {
@@ -480,7 +610,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 8),
                           isDense: true,
                         ),
                       ),
@@ -508,7 +639,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
-  Widget _nutrientRow(List<(String, String, String)> fields, {bool isReadOnly = false}) {
+  Widget _nutrientRow(List<(String, String, String)> fields,
+      {bool isReadOnly = false}) {
     return Row(
       children: fields.map((field) {
         return Expanded(
@@ -535,9 +667,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return TextFormField(
       controller: controller,
       readOnly: readOnly,
-      decoration: AppStyles.underlineInputDecoration(label: label, suffix: suffix),
+      decoration:
+          AppStyles.underlineInputDecoration(label: label, suffix: suffix),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))
+      ],
       validator: (value) {
         if (value == null || value.isEmpty) return null;
         if (double.tryParse(value.replaceAll(',', '.')) == null) return 'Число';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -23,9 +24,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calorie Tracker',
+      title: 'NutriLog',
       theme: _buildTheme(Brightness.light),
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ru', 'RU'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ru', 'RU'),
+        Locale('en', 'US'),
+      ],
       home: const MainScreen(),
     );
   }
@@ -98,7 +109,8 @@ class _BottomNavBar extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: Container(
             decoration: BoxDecoration(
-              color: theme.bottomNavigationBarTheme.backgroundColor?.withAlpha(180),
+              color: theme.bottomNavigationBarTheme.backgroundColor
+                  ?.withAlpha(180),
               border: Border.all(color: AppColors.primary.withAlpha(30)),
             ),
             child: Row(
@@ -156,11 +168,11 @@ class _NavItem extends StatelessWidget {
     final color = isSelected
         ? theme.bottomNavigationBarTheme.selectedItemColor
         : theme.bottomNavigationBarTheme.unselectedItemColor;
-    
+
     final labelStyle = (isSelected
-        ? theme.bottomNavigationBarTheme.selectedLabelStyle
-        : theme.bottomNavigationBarTheme.unselectedLabelStyle)
-      ?.copyWith(color: color);
+            ? theme.bottomNavigationBarTheme.selectedLabelStyle
+            : theme.bottomNavigationBarTheme.unselectedLabelStyle)
+        ?.copyWith(color: color);
 
     return Expanded(
       child: InkWell(
@@ -191,11 +203,14 @@ class _NavItem extends StatelessWidget {
 ThemeData _buildTheme(Brightness brightness) {
   final bool isLight = brightness == Brightness.light;
 
-  final Color background = isLight ? AppColors.backgroundLight : AppColors.backgroundDark;
+  final Color background =
+      isLight ? AppColors.backgroundLight : AppColors.backgroundDark;
   final Color textColor = isLight ? AppColors.textLight : AppColors.textDark;
-  final Color subtleTextColor = isLight ? AppColors.subtleTextLight : AppColors.subtleTextDark;
+  final Color subtleTextColor =
+      isLight ? AppColors.subtleTextLight : AppColors.subtleTextDark;
   final Color cardColor = isLight ? AppColors.cardLight : AppColors.cardDark;
-  final Color cardBorderColor = isLight ? AppColors.cardBorderLight : AppColors.cardBorderDark;
+  final Color cardBorderColor =
+      isLight ? AppColors.cardBorderLight : AppColors.cardBorderDark;
 
   final baseTheme = ThemeData(
     brightness: brightness,
@@ -212,19 +227,50 @@ ThemeData _buildTheme(Brightness brightness) {
       surface: cardColor,
       onSurface: textColor,
     ),
-    textTheme: baseTheme.textTheme.apply(
-      bodyColor: textColor,
-      displayColor: textColor,
-    ).copyWith(
-      displayLarge: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 48, letterSpacing: -1, color: textColor),
-      headlineSmall: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 20, color: textColor),
-      titleLarge: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 18, color: textColor),
-      titleMedium: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
-      bodyLarge: TextStyle(fontFamily: 'Manrope', fontSize: 14, color: textColor),
-      bodyMedium: TextStyle(fontFamily: 'Manrope', fontSize: 12, color: textColor),
-      bodySmall: TextStyle(fontFamily: 'Manrope', color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.w500),
-      labelSmall: TextStyle(fontFamily: 'Manrope', color: subtleTextColor, fontSize: 10, letterSpacing: 0.5, fontWeight: FontWeight.bold),
-    ),
+    textTheme: baseTheme.textTheme
+        .apply(
+          bodyColor: textColor,
+          displayColor: textColor,
+        )
+        .copyWith(
+          displayLarge: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.w800,
+              fontSize: 48,
+              letterSpacing: -1,
+              color: textColor),
+          headlineSmall: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
+              color: textColor),
+          titleLarge: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: textColor),
+          titleMedium: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: textColor),
+          bodyLarge:
+              TextStyle(fontFamily: 'Manrope', fontSize: 14, color: textColor),
+          bodyMedium:
+              TextStyle(fontFamily: 'Manrope', fontSize: 12, color: textColor),
+          bodySmall: TextStyle(
+              fontFamily: 'Manrope',
+              color: subtleTextColor,
+              fontSize: 10,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w500),
+          labelSmall: TextStyle(
+              fontFamily: 'Manrope',
+              color: subtleTextColor,
+              fontSize: 10,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.bold),
+        ),
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -238,23 +284,25 @@ ThemeData _buildTheme(Brightness brightness) {
       elevation: 0,
       backgroundColor: Colors.transparent,
       foregroundColor: textColor,
-      titleTextStyle: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 22, color: textColor),
+      titleTextStyle: TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w800,
+          fontSize: 22,
+          color: textColor),
       centerTitle: false,
     ),
-     elevatedButtonTheme: ElevatedButtonThemeData(
+    elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         shape: RoundedRectangleBorder(borderRadius: AppStyles.buttonRadius),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        textStyle: const TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 16),
+        textStyle: const TextStyle(
+            fontFamily: 'Manrope', fontWeight: FontWeight.bold, fontSize: 16),
         elevation: 0,
       ),
     ),
-    iconTheme: IconThemeData(
-      color: textColor,
-      size: 28
-    ),
+    iconTheme: IconThemeData(color: textColor, size: 28),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: cardColor.withAlpha(204),
       selectedItemColor: AppColors.primary,
@@ -263,8 +311,10 @@ ThemeData _buildTheme(Brightness brightness) {
       type: BottomNavigationBarType.fixed,
       showSelectedLabels: true,
       showUnselectedLabels: true,
-      selectedLabelStyle: const TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
-      unselectedLabelStyle: const TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
+      selectedLabelStyle: const TextStyle(
+          fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
+      unselectedLabelStyle: const TextStyle(
+          fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.bold),
     ),
   );
 }
