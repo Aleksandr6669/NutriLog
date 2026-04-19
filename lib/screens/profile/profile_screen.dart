@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
+import 'package:nutri_log/screens/profile/edit_general_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
 import 'package:nutri_log/services/profile_service.dart';
@@ -16,6 +17,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _profileService = ProfileService();
   late Future<UserProfile> _profileFuture;
+  bool _isEditingName = false;
+  final TextEditingController _nameController = TextEditingController();
+  final FocusNode _nameFocusNode = FocusNode();
   static const String _avatarPrefix = 'icon:';
   static const String _defaultAvatarKey = 'person';
   static const Map<String, IconData> _avatarIcons = {
@@ -36,6 +40,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+    _nameFocusNode.addListener(() {
+      if (!_nameFocusNode.hasFocus && _isEditingName) {
+        _saveNameFromController();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nameFocusNode.dispose();
+    super.dispose();
   }
 
   void _loadProfile() {
@@ -58,7 +74,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _avatarKeyFromProfile(UserProfile profile) {
     final value = profile.avatarImagePath;
     if (value == null || value.isEmpty) return _defaultAvatarKey;
-    return value.startsWith(_avatarPrefix) ? value.substring(_avatarPrefix.length) : _defaultAvatarKey;
+    return value.startsWith(_avatarPrefix)
+        ? value.substring(_avatarPrefix.length)
+        : _defaultAvatarKey;
   }
 
   IconData _avatarIconFromProfile(UserProfile profile) {
@@ -72,8 +90,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) {
         final theme = Theme.of(context);
-        final canvasColor =
-            theme.brightness == Brightness.dark ? AppColors.cardDark : AppColors.cardLight;
+        final canvasColor = theme.brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight;
         final unselectedBg = theme.brightness == Brightness.dark
             ? Colors.grey.shade800
             : Colors.grey.shade100;
@@ -82,7 +101,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : Colors.grey.shade700;
         return AlertDialog(
           backgroundColor: canvasColor,
-          title: const Text('Выберите аватар', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Выберите аватар',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: double.maxFinite,
             child: GridView.builder(
@@ -121,7 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (selectedKey == null || selectedKey == currentKey) return;
 
-    final updatedProfile = profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');
+    final updatedProfile =
+        profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');
     await _profileService.saveProfile(updatedProfile);
     _loadProfile();
   }
@@ -154,9 +175,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileContent(BuildContext context, UserProfile profile) {
     final theme = Theme.of(context);
     final waterGoalLiters = profile.waterGoal / 1000.0;
-    final weightGoal = profile.weightGoal.truncateToDouble() == profile.weightGoal
-        ? profile.weightGoal.toInt().toString()
-        : profile.weightGoal.toStringAsFixed(1);
+    final weightGoal =
+        profile.weightGoal.truncateToDouble() == profile.weightGoal
+            ? profile.weightGoal.toInt().toString()
+            : profile.weightGoal.toStringAsFixed(1);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -169,12 +191,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme: theme,
             title: 'Физические параметры',
             icon: Symbols.accessibility_new,
-            onEdit: () => _navigateTo(EditPhysicalParamsScreen(profile: profile)),
+            onEdit: () =>
+                _navigateTo(EditPhysicalParamsScreen(profile: profile)),
             children: [
+              _buildInfoRow(theme, 'Дата рождения',
+                  '${profile.birthDate.day.toString().padLeft(2, '0')}.${profile.birthDate.month.toString().padLeft(2, '0')}.${profile.birthDate.year}'),
               _buildInfoRow(theme, 'Возраст', '${profile.age} лет'),
               _buildInfoRow(theme, 'Рост', '${profile.height} см'),
               _buildInfoRow(theme, 'Вес', '${profile.weight} кг'),
-              _buildInfoRow(theme, 'Пол', profile.gender.toString().split('.').last),
+              _buildInfoRow(theme, 'Пол', profile.gender.ruLabel),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            theme: theme,
+            title: 'Общие цели',
+            icon: Symbols.flag,
+            onEdit: () => _navigateTo(EditGeneralGoalsScreen(profile: profile)),
+            children: [
+              _buildInfoRow(theme, 'Цель по весу', '$weightGoal кг'),
+              _buildInfoRow(theme, 'Тип цели', profile.goalType.ruLabel),
             ],
           ),
           const SizedBox(height: 16),
@@ -184,10 +220,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Symbols.track_changes,
             onEdit: () => _navigateTo(EditGoalsScreen(profile: profile)),
             children: [
-              _buildInfoRow(theme, 'Цель по весу', '$weightGoal кг'),
-               const Divider(height: 16),
               _buildInfoRow(theme, 'Калории', '${profile.calorieGoal} ккал'),
-              _buildInfoRow(theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
+              _buildInfoRow(
+                  theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
               _buildInfoRow(theme, 'Шаги', '${profile.stepsGoal} шагов'),
               const Divider(height: 16),
               _buildInfoRow(theme, 'Белки', '${profile.proteinGoal} г'),
@@ -196,15 +231,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildSettingsCard(theme),
-          const SizedBox(height: 24),
           Center(
             child: ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Symbols.logout),
-              label: const Text('Выйти'),
+              icon: const Icon(Symbols.login),
+              label: const Text('Авторизация'),
               style: ElevatedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.primary,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 shadowColor: Colors.transparent,
@@ -214,6 +247,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  void _startEditingName(UserProfile profile) {
+    _nameController.text = profile.name;
+    setState(() => _isEditingName = true);
+    Future.microtask(() => _nameFocusNode.requestFocus());
+  }
+
+  Future<void> _saveNameFromController() async {
+    final newName = _nameController.text.trim();
+    setState(() => _isEditingName = false);
+    if (newName.isEmpty) return;
+    final profile = await _profileFuture;
+    if (newName == profile.name) return;
+    final updated = profile.copyWith(name: newName);
+    await _profileService.saveProfile(updated);
+    _loadProfile();
   }
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
@@ -232,7 +282,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(profile.name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+          _isEditingName
+              ? SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _nameController,
+                    focusNode: _nameFocusNode,
+                    textAlign: TextAlign.center,
+                    textAlignVertical: TextAlignVertical.center,
+                    textCapitalization: TextCapitalization.words,
+                    style: theme.textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onSubmitted: (_) => _saveNameFromController(),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () => _startEditingName(profile),
+                  child: Text(profile.name,
+                      style: theme.textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                ),
         ],
       ),
     );
@@ -281,27 +358,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: theme.textTheme.bodyLarge),
-          Text(value, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(value,
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(fontWeight: FontWeight.bold)),
         ],
-      ),
-    );
-  }
-  
-  Widget _buildSettingsCard(ThemeData theme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            SwitchListTile(
-              title: const Text('Уведомления'),
-              value: true, 
-              onChanged: (value) {},
-              secondary: const Icon(Symbols.notifications),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ],
-        ),
       ),
     );
   }

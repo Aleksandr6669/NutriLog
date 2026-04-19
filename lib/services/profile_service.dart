@@ -30,20 +30,21 @@ class ProfileService {
   }
 
   Future<UserProfile> _createAndSaveDefaultProfile() async {
-    const defaultProfile = UserProfile(
+    final defaultProfile = UserProfile(
       name: 'Алиса',
       gender: Gender.female,
-      age: 28,
+      birthDate: DateTime(1997, 6, 15),
       height: 168,
       weight: 62.5,
       weightGoal: 60.0,
+      goalType: GoalType.healthyEating,
       calorieGoal: 1800,
       proteinGoal: 120,
       fatGoal: 60,
       carbsGoal: 195,
       waterGoal: 2000,
       stepsGoal: 10000,
-      weightHistory: [],
+      weightHistory: const [],
     );
     await saveProfile(defaultProfile);
     return defaultProfile;
