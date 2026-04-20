@@ -81,6 +81,39 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppStyles.cardRadius,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Symbols.info,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Этот раздел задает вашу главную стратегию:\n'
+                          'целевой вес и формат цели (снижение, набор и т.д.).\n'
+                          'На основе этих данных приложение подсказывает\n'
+                          'подходящий вектор питания и прогресса.',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    height: 1.35,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _weightGoalController,
                 keyboardType:
@@ -194,7 +227,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              _goalTypeHint(goal),
+              goal.ruHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
                 fontSize: 13,
@@ -220,21 +253,6 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
         return Symbols.eco;
       case GoalType.energetic:
         return Symbols.bolt;
-    }
-  }
-
-  String _goalTypeHint(GoalType goal) {
-    switch (goal) {
-      case GoalType.loseWeight:
-        return 'Мягкое снижение веса за счет умеренного дефицита калорий, контроля порций и стабильного режима питания без резких ограничений.';
-      case GoalType.gainWeight:
-        return 'Постепенный набор веса через аккуратный профицит калорий, регулярные приемы пищи и отслеживание динамики каждую неделю.';
-      case GoalType.gainMuscle:
-        return 'Рост мышечной массы с фокусом на белок, силовые тренировки и восстановление, чтобы прогресс был заметным и устойчивым.';
-      case GoalType.healthyEating:
-        return 'Сбалансированный рацион на каждый день: больше цельных продуктов, разнообразие нутриентов и комфортный ритм без перегибов.';
-      case GoalType.energetic:
-        return 'Больше энергии на весь день за счет регулярного питания, качественного сна, достаточной воды и более ровного уровня активности.';
     }
   }
 }

@@ -7,13 +7,17 @@ import 'dart:math' as math;
 
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
+import '../../models/recipe.dart';
 import '../../services/daily_log_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../meal_detail/meal_detail_screen.dart';
 import '../../models/food_item.dart';
+import '../recipes/recipes_screen.dart';
 import '../profile/edit_goals_screen.dart'; // Изменено
+import 'activity_log_screen.dart';
+import 'weight_entry_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingLog = false;
         });
       }
+      await _loadLoggedDates();
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -72,7 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingLog = false;
         });
       }
+      await _loadLoggedDates();
     }
+  }
+
+  bool _isLoggedDay(DateTime day) {
+    return _loggedDates.any((d) => isSameDay(d, day));
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -106,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _navigateToEditGoals(UserProfile profile) async { // Изменено
+  Future<void> _navigateToEditGoals(UserProfile profile) async {
+    // Изменено
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -139,8 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
       future: _userProfileFuture,
       builder: (context, userSnapshot) {
         if (userSnapshot.connectionState == ConnectionState.waiting) {
-           return Scaffold(
-            appBar: AppBar(), 
+          return Scaffold(
+            appBar: AppBar(),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
@@ -148,7 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (userSnapshot.hasError || !userSnapshot.hasData) {
           return Scaffold(
             appBar: AppBar(title: const Text('Ошибка')),
-            body: Center(child: Text('Ошибка загрузки профиля: ${userSnapshot.error}')),
+            body: Center(
+                child: Text('Ошибка загрузки профиля: ${userSnapshot.error}')),
           );
         }
 
@@ -161,16 +173,22 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: _toggleCalendarVisibility,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Symbols.calendar_month, color: AppColors.primary, size: 28),
+                    const Icon(Symbols.calendar_month,
+                        color: AppColors.primary, size: 28),
                     const SizedBox(width: 12),
-                    Text(_formatDate(_selectedDay), style: theme.textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    Text(_formatDate(_selectedDay),
+                        style:
+                            theme.textTheme.titleLarge?.copyWith(fontSize: 20)),
                     const SizedBox(width: 8),
                     Icon(
-                      _isCalendarVisible ? Symbols.arrow_drop_up : Symbols.arrow_drop_down,
+                      _isCalendarVisible
+                          ? Symbols.arrow_drop_up
+                          : Symbols.arrow_drop_down,
                       color: theme.textTheme.bodySmall?.color,
                       size: 28,
                     ),
@@ -198,11 +216,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                           child: Column(
                             children: [
-                              _CaloriesCard(dailyLog: _currentDailyLog!, profile: userProfile),
+                              _CaloriesCard(
+                                  dailyLog: _currentDailyLog!,
+                                  profile: userProfile),
                               const SizedBox(height: 16),
-                              _Macronutrients(dailyLog: _currentDailyLog!, profile: userProfile),
+                              _Macronutrients(
+                                  dailyLog: _currentDailyLog!,
+                                  profile: userProfile),
                               const SizedBox(height: 24),
-                              _MealsSection(dailyLog: _currentDailyLog!, profile: userProfile, onDataChanged: _loadLogForSelectedDate),
+                              _MealsSection(
+                                dailyLog: _currentDailyLog!,
+                                profile: userProfile,
+                                onDataChanged: _loadLogForSelectedDate,
+                                selectedDate: _selectedDay,
+                              ),
                             ],
                           ),
                         ),
@@ -262,15 +289,13 @@ class _HomeScreenState extends State<HomeScreen> {
         onDaySelected: _onDaySelected,
         calendarFormat: CalendarFormat.month,
         startingDayOfWeek: StartingDayOfWeek.monday,
-        eventLoader: (day) {
-          final normalizedDay = DateTime.utc(day.year, day.month, day.day);
-          return _loggedDates.any((d) => isSameDay(d, normalizedDay)) ? ['logged'] : [];
-        },
+        eventLoader: (day) => _isLoggedDay(day) ? ['logged'] : [],
         headerStyle: const HeaderStyle(
           titleCentered: true,
           formatButtonVisible: false,
           leftChevronIcon: Icon(Symbols.chevron_left, color: AppColors.primary),
-          rightChevronIcon: Icon(Symbols.chevron_right, color: AppColors.primary),
+          rightChevronIcon:
+              Icon(Symbols.chevron_right, color: AppColors.primary),
         ),
         calendarStyle: const CalendarStyle(
           todayDecoration: BoxDecoration(
@@ -287,28 +312,26 @@ class _HomeScreenState extends State<HomeScreen> {
             return const SizedBox.shrink();
           },
           defaultBuilder: (context, day, focusedDay) {
-            final normalizedDay = DateTime.utc(day.year, day.month, day.day);
-            if (_loggedDates.any((d) => isSameDay(d, normalizedDay))) {
-              return Center(
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withAlpha(76),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: const TextStyle().copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+            if (!_isLoggedDay(day)) return null;
+
+            return Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withAlpha(90),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '${day.day}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
-              );
-            }
-            return null;
+              ),
+            );
           },
           selectedBuilder: (context, day, focusedDay) {
             return Center(
@@ -329,12 +352,33 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
           todayBuilder: (context, day, focusedDay) {
+            if (_isLoggedDay(day)) {
+              return Center(
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withAlpha(90),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+
             return Center(
               child: Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(76),
+                  color: Colors.grey.withAlpha(40),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -365,18 +409,22 @@ class _CaloriesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final consumedCals = dailyLog.totalNutrients.calories;
-    final remainingCals = profile.calorieGoal - consumedCals + dailyLog.activityCalories;
-    final progress = (profile.calorieGoal > 0) ? (consumedCals / profile.calorieGoal) : 0.0;
+    final effectiveConsumed =
+        math.max(0.0, consumedCals - dailyLog.activityCalories);
+    final remainingCals = profile.calorieGoal - effectiveConsumed;
+    final ratio =
+        profile.calorieGoal > 0 ? effectiveConsumed / profile.calorieGoal : 0.0;
+    final progress = ratio.clamp(0.0, 1.0);
+    final progressColor = _goalAwareCalorieColor(ratio, profile.goalType);
 
     return Card(
-       shape: RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: AppStyles.largeBorderRadius,
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: AppStyles.largeBorderRadius,
-          border: Border.all(color: AppColors.primary.withAlpha(26))
-        ),
+            borderRadius: AppStyles.largeBorderRadius,
+            border: Border.all(color: AppColors.primary.withAlpha(26))),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Column(
@@ -387,12 +435,22 @@ class _CaloriesCard extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    _CircularProgress(progress: progress, strokeWidth: 12),
+                    _CircularProgress(
+                      progress: progress,
+                      strokeWidth: 12,
+                      progressColor: progressColor,
+                    ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(remainingCals.toStringAsFixed(0), style: theme.textTheme.displayLarge?.copyWith(fontSize: 52, color: theme.colorScheme.onSurface)),
-                        Text('осталось ккал', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.8, color: theme.textTheme.bodySmall?.color)),
+                        Text(remainingCals.toStringAsFixed(0),
+                            style: theme.textTheme.displayLarge?.copyWith(
+                                fontSize: 52,
+                                color: theme.colorScheme.onSurface)),
+                        Text('осталось ккал',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                                letterSpacing: 0.8,
+                                color: theme.textTheme.bodySmall?.color)),
                       ],
                     )
                   ],
@@ -404,11 +462,23 @@ class _CaloriesCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem(theme, Symbols.restaurant, consumedCals.toStringAsFixed(0), 'ККал', color: AppColors.primary),
-                    SizedBox(height: 40, child: VerticalDivider(color: theme.dividerColor, thickness: 1)),
-                    _buildStatItem(theme, Symbols.fitness_center, dailyLog.activityCalories.toString(), 'Актив', color: Colors.orange.shade400),
-                    SizedBox(height: 40, child: VerticalDivider(color: theme.dividerColor, thickness: 1)),
-                    _buildStatItem(theme, Symbols.flag, profile.calorieGoal.toString(), 'Цель', color: Colors.blue.shade400),
+                    _buildStatItem(theme, Symbols.restaurant,
+                        consumedCals.toStringAsFixed(0), 'ККал',
+                        color: AppColors.primary),
+                    SizedBox(
+                        height: 40,
+                        child: VerticalDivider(
+                            color: theme.dividerColor, thickness: 1)),
+                    _buildStatItem(theme, Symbols.fitness_center,
+                        dailyLog.activityCalories.toString(), 'Актив',
+                        color: Colors.orange.shade400),
+                    SizedBox(
+                        height: 40,
+                        child: VerticalDivider(
+                            color: theme.dividerColor, thickness: 1)),
+                    _buildStatItem(theme, Symbols.flag,
+                        profile.calorieGoal.toString(), 'Цель',
+                        color: Colors.blue.shade400),
                   ],
                 ),
               ),
@@ -419,14 +489,20 @@ class _CaloriesCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(ThemeData theme, IconData icon, String value, String label, {Color? color}) {
+  Widget _buildStatItem(
+      ThemeData theme, IconData icon, String value, String label,
+      {Color? color}) {
     return Column(
       children: [
         Icon(icon, color: color ?? AppColors.primary, size: 24),
         const SizedBox(height: 8),
-        Text(value, style: theme.textTheme.titleLarge?.copyWith(fontSize: 18, color: theme.colorScheme.onSurface)),
+        Text(value,
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontSize: 18, color: theme.colorScheme.onSurface)),
         const SizedBox(height: 2),
-        Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.textTheme.bodySmall?.color)),
+        Text(label,
+            style: theme.textTheme.labelSmall
+                ?.copyWith(color: theme.textTheme.bodySmall?.color)),
       ],
     );
   }
@@ -442,11 +518,34 @@ class _Macronutrients extends StatelessWidget {
     final nutrients = dailyLog.totalNutrients;
     return Row(
       children: [
-        Expanded(child: _MacronutrientCard(name: 'Углеводы', value: '${nutrients.carbs.toStringAsFixed(0)}г', total: '${profile.carbsGoal}г', percentage: profile.carbsGoal > 0 ? nutrients.carbs / profile.carbsGoal : 0, color: AppColors.primary)),
+        Expanded(
+            child: _MacronutrientCard(
+                name: 'Углеводы',
+                value: '${nutrients.carbs.toStringAsFixed(0)}г',
+                total: '${profile.carbsGoal}г',
+                percentage: profile.carbsGoal > 0
+                    ? nutrients.carbs / profile.carbsGoal
+                    : 0,
+                color: AppColors.primary)),
         const SizedBox(width: 12),
-        Expanded(child: _MacronutrientCard(name: 'Белки', value: '${nutrients.protein.toStringAsFixed(0)}г', total: '${profile.proteinGoal}г', percentage: profile.proteinGoal > 0 ? nutrients.protein / profile.proteinGoal : 0, color: Colors.orange)),
+        Expanded(
+            child: _MacronutrientCard(
+                name: 'Белки',
+                value: '${nutrients.protein.toStringAsFixed(0)}г',
+                total: '${profile.proteinGoal}г',
+                percentage: profile.proteinGoal > 0
+                    ? nutrients.protein / profile.proteinGoal
+                    : 0,
+                color: Colors.orange)),
         const SizedBox(width: 12),
-        Expanded(child: _MacronutrientCard(name: 'Жиры', value: '${nutrients.fat.toStringAsFixed(0)}г', total: '${profile.fatGoal}г', percentage: profile.fatGoal > 0 ? nutrients.fat / profile.fatGoal : 0, color: Colors.blue)),
+        Expanded(
+            child: _MacronutrientCard(
+                name: 'Жиры',
+                value: '${nutrients.fat.toStringAsFixed(0)}г',
+                total: '${profile.fatGoal}г',
+                percentage:
+                    profile.fatGoal > 0 ? nutrients.fat / profile.fatGoal : 0,
+                color: Colors.blue)),
       ],
     );
   }
@@ -455,80 +554,136 @@ class _Macronutrients extends StatelessWidget {
 class _MealsSection extends StatelessWidget {
   final DailyLog dailyLog;
   final UserProfile profile;
-  final VoidCallback onDataChanged;
+  final Future<void> Function() onDataChanged;
+  final DateTime selectedDate;
 
-  const _MealsSection({required this.dailyLog, required this.profile, required this.onDataChanged});
+  const _MealsSection({
+    required this.dailyLog,
+    required this.profile,
+    required this.onDataChanged,
+    required this.selectedDate,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
-         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('Приемы пищи', style: theme.textTheme.headlineSmall?.copyWith(color: theme.colorScheme.onSurface)),
-              TextButton(
-                onPressed: () {
-                  // TODO: Implement meal history navigation
-                },
-                child: const Text('История', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ..._buildMealCards(context, dailyLog, onDataChanged),
-          const SizedBox(height: 18),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('Вода', style: theme.textTheme.headlineSmall?.copyWith(color: theme.colorScheme.onSurface)),
-            ],
-          ),
-           const SizedBox(height: 16),
-          _WaterCard(
-            waterIntake: dailyLog.waterIntake, 
-            waterGoal: profile.waterGoal, 
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Приемы пищи',
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(color: theme.colorScheme.onSurface)),
+            TextButton(
+              onPressed: () {
+                // TODO: Implement meal history navigation
+              },
+              child: const Text('История',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ..._buildMealCards(context, dailyLog, onDataChanged, selectedDate),
+        const SizedBox(height: 18),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Вода',
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(color: theme.colorScheme.onSurface)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _WaterCard(
+            waterIntake: dailyLog.waterIntake,
+            waterGoal: profile.waterGoal,
             onAdd: () async {
-              // TODO: Implement water adding and saving logic
-              // Example: 
-              // final service = DailyLogService();
-              // await service.addWater(dailyLog.date, 250); // Add 250ml
-              // onDataChanged(); // Reload data
-            }
-          ),
-         
+              final service = DailyLogService();
+              await service.addWater(selectedDate, amount: 250);
+              await onDataChanged();
+            },
+            onRemove: () async {
+              final service = DailyLogService();
+              await service.removeWater(selectedDate, amount: 250);
+              await onDataChanged();
+            }),
+        const SizedBox(height: 22),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Физическое состояние',
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(color: theme.colorScheme.onSurface)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _ActivityWeightRow(
+          dailyLog: dailyLog,
+          profile: profile,
+          selectedDate: selectedDate,
+          onDataChanged: onDataChanged,
+        ),
       ],
     );
   }
 
-  List<Widget> _buildMealCards(BuildContext context, DailyLog log, VoidCallback onDataChanged) {
+  List<Widget> _buildMealCards(
+    BuildContext context,
+    DailyLog log,
+    Future<void> Function() onDataChanged,
+    DateTime selectedDate,
+  ) {
     const mealOrder = ['Завтрак', 'Обед', 'Ужин', 'Перекусы'];
     const mealDetails = {
-      'Завтрак': {'icon': Symbols.wb_sunny, 'iconBg': Color(0xFFFFF4E6), 'iconColor': Colors.orange, 'rec': '450 - 600'},
-      'Обед': {'icon': Symbols.lunch_dining, 'iconBg': Color(0xFFE6F9F0), 'iconColor': AppColors.primary, 'rec': '600 - 800'},
-      'Ужин': {'icon': Symbols.nights_stay, 'iconBg': Color(0xFFEEF2FF), 'iconColor': Colors.indigo, 'rec': '450 - 600'},
-      'Перекусы': {'icon': Symbols.cookie, 'iconBg': Color(0xFFFCE7F3), 'iconColor': Colors.pink, 'rec': '150 - 250'},
+      'Завтрак': {
+        'icon': Symbols.wb_sunny,
+        'iconBg': Color(0xFFFFF4E6),
+        'iconColor': Colors.orange,
+      },
+      'Обед': {
+        'icon': Symbols.lunch_dining,
+        'iconBg': Color(0xFFE6F9F0),
+        'iconColor': AppColors.primary,
+      },
+      'Ужин': {
+        'icon': Symbols.nights_stay,
+        'iconBg': Color(0xFFEEF2FF),
+        'iconColor': Colors.indigo,
+      },
+      'Перекусы': {
+        'icon': Symbols.cookie,
+        'iconBg': Color(0xFFFCE7F3),
+        'iconColor': Colors.pink,
+      },
     };
 
     return mealOrder.map((mealName) {
       final items = log.meals[mealName] ?? [];
-      final calories = items.fold<double>(0, (sum, item) => sum + item.nutrients.calories);
+      final calories =
+          items.fold<double>(0, (sum, item) => sum + item.nutrients.calories);
       final details = mealDetails[mealName]!;
+      final recommendation = _mealRecommendationByGoal(profile, mealName);
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 12.0),
         child: _MealCard(
           mealName: mealName,
-          recommended: details['rec'] as String,
+          recommended: '${recommendation.minKcal} - ${recommendation.maxKcal}',
           calories: calories.toStringAsFixed(0),
           icon: details['icon'] as IconData,
           iconBg: details['iconBg'] as Color,
           iconColor: details['iconColor'] as Color,
           items: items,
           onDataChanged: onDataChanged,
+          selectedDate: selectedDate,
         ),
       );
     }).toList();
@@ -539,8 +694,13 @@ class _WaterCard extends StatelessWidget {
   final int waterIntake; // в мл
   final int waterGoal; // в мл
   final VoidCallback onAdd;
+  final VoidCallback onRemove;
 
-  const _WaterCard({required this.waterIntake, required this.waterGoal, required this.onAdd});
+  const _WaterCard(
+      {required this.waterIntake,
+      required this.waterGoal,
+      required this.onAdd,
+      required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -559,35 +719,62 @@ class _WaterCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: iconColor.withAlpha(30),
-                borderRadius: AppStyles.mediumBorderRadius
-              ),
-              child: const Icon(Symbols.water_drop, color: iconColor, size: 28, fill: 1),
+                  color: iconColor.withAlpha(30),
+                  borderRadius: AppStyles.mediumBorderRadius),
+              child: const Icon(Symbols.water_drop,
+                  color: iconColor, size: 28, fill: 1),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Вода', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+                  Text('Вода',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: theme.colorScheme.onSurface)),
                   const SizedBox(height: 2),
-                  Text('Цель: ${goalLiters.toStringAsFixed(1)} л', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 11, color: theme.textTheme.bodySmall?.color)),
+                  Text('Цель: ${goalLiters.toStringAsFixed(1)} л',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 11,
+                          color: theme.textTheme.bodySmall?.color)),
                 ],
               ),
             ),
             const SizedBox(width: 16),
-            Text('${liters.toStringAsFixed(2)} л', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+            Text('${liters.toStringAsFixed(2)} л',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(color: theme.colorScheme.onSurface)),
             const SizedBox(width: 12),
+            InkWell(
+              onTap: onRemove,
+              borderRadius: BorderRadius.circular(22),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue.withAlpha(30),
+                    border: Border.all(color: Colors.blue.withAlpha(60))),
+                child: const Icon(Symbols.remove, color: Colors.blue, size: 24),
+              ),
+            ),
+            const SizedBox(width: 8),
             InkWell(
               onTap: onAdd,
               borderRadius: BorderRadius.circular(22),
               child: Container(
-                width: 44, height: 44,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: iconColor,
-                   boxShadow: [BoxShadow(color: iconColor.withAlpha(100), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))]
-                ),
+                    shape: BoxShape.circle,
+                    color: iconColor,
+                    boxShadow: [
+                      BoxShadow(
+                          color: iconColor.withAlpha(100),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 5))
+                    ]),
                 child: const Icon(Symbols.add, color: Colors.white, size: 28),
               ),
             ),
@@ -598,11 +785,141 @@ class _WaterCard extends StatelessWidget {
   }
 }
 
+class _ActivityWeightRow extends StatelessWidget {
+  final DailyLog dailyLog;
+  final UserProfile profile;
+  final DateTime selectedDate;
+  final Future<void> Function() onDataChanged;
+
+  const _ActivityWeightRow({
+    required this.dailyLog,
+    required this.profile,
+    required this.selectedDate,
+    required this.onDataChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ActionInfoCard(
+            title: 'Активность',
+            value: '${dailyLog.activityCalories} ккал',
+            icon: Symbols.fitness_center,
+            iconColor: Colors.orange,
+            onTap: () async {
+              final result = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (_) => ActivityLogScreen(
+                    date: selectedDate,
+                    initialActivities: dailyLog.activities,
+                  ),
+                ),
+              );
+              if (result == true) {
+                await onDataChanged();
+              }
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _ActionInfoCard(
+            title: 'Вес',
+            value: dailyLog.weight == null
+                ? 'Не указан'
+                : '${dailyLog.weight!.toStringAsFixed(1)} кг',
+            icon: Symbols.monitor_weight,
+            iconColor: Colors.indigo,
+            onTap: () async {
+              final result = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (_) => WeightEntryScreen(
+                    date: selectedDate,
+                    currentWeight: dailyLog.weight,
+                    profile: profile,
+                  ),
+                ),
+              );
+              if (result == true) {
+                await onDataChanged();
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionInfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _ActionInfoCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppStyles.cardRadius,
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withAlpha(25),
+                  borderRadius: AppStyles.mediumBorderRadius,
+                ),
+                child: Icon(icon, color: iconColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(value, style: theme.textTheme.titleMedium),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CircularProgress extends StatelessWidget {
   final double progress;
   final double strokeWidth;
+  final Color? progressColor;
 
-  const _CircularProgress({required this.progress, this.strokeWidth = 12});
+  const _CircularProgress({
+    required this.progress,
+    this.strokeWidth = 12,
+    this.progressColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -611,33 +928,191 @@ class _CircularProgress extends StatelessWidget {
         progress: progress,
         strokeWidth: strokeWidth,
         backgroundColor: AppColors.primary.withAlpha(26),
-        progressColor: AppColors.primary,
+        progressColor: progressColor ?? AppColors.primary,
       ),
       child: Container(),
     );
   }
 }
 
+class _MealRecommendation {
+  final int minKcal;
+  final int maxKcal;
+
+  const _MealRecommendation({required this.minKcal, required this.maxKcal});
+}
+
+_MealRecommendation _mealRecommendationByGoal(
+    UserProfile profile, String mealName) {
+  final int dailyGoal = math.max(profile.calorieGoal, 1200);
+
+  final Map<String, double> shares;
+  switch (profile.goalType) {
+    case GoalType.loseWeight:
+      shares = const {
+        'Завтрак': 0.25,
+        'Обед': 0.38,
+        'Ужин': 0.30,
+        'Перекусы': 0.07,
+      };
+      break;
+    case GoalType.gainWeight:
+      shares = const {
+        'Завтрак': 0.22,
+        'Обед': 0.33,
+        'Ужин': 0.25,
+        'Перекусы': 0.20,
+      };
+      break;
+    case GoalType.gainMuscle:
+      shares = const {
+        'Завтрак': 0.24,
+        'Обед': 0.34,
+        'Ужин': 0.26,
+        'Перекусы': 0.16,
+      };
+      break;
+    case GoalType.energetic:
+      shares = const {
+        'Завтрак': 0.27,
+        'Обед': 0.35,
+        'Ужин': 0.26,
+        'Перекусы': 0.12,
+      };
+      break;
+    case GoalType.healthyEating:
+      shares = const {
+        'Завтрак': 0.25,
+        'Обед': 0.35,
+        'Ужин': 0.28,
+        'Перекусы': 0.12,
+      };
+      break;
+  }
+
+  final double share = shares[mealName] ?? 0.25;
+  final int center = (dailyGoal * share).round();
+  final double spread = switch (profile.goalType) {
+    GoalType.loseWeight => 0.10,
+    GoalType.gainMuscle => 0.11,
+    GoalType.gainWeight => 0.12,
+    GoalType.healthyEating => 0.12,
+    GoalType.energetic => 0.14,
+  };
+
+  final int minKcal = math.max(60, (center * (1 - spread)).round());
+  final int maxKcal = math.max(minKcal + 40, (center * (1 + spread)).round());
+  return _MealRecommendation(minKcal: minKcal, maxKcal: maxKcal);
+}
+
+Color _goalAwareCalorieColor(double ratio, GoalType goalType) {
+  final List<Color> redPalette = [
+    Colors.red.shade300,
+    Colors.red.shade400,
+    Colors.red.shade500,
+    Colors.red.shade600,
+    Colors.red.shade700,
+    Colors.red.shade800,
+    Colors.red.shade900,
+  ];
+
+  final List<Color> successPalette = switch (goalType) {
+    GoalType.loseWeight => [
+        Colors.lightGreen.shade300,
+        Colors.lightGreen.shade400,
+        Colors.lightGreen.shade500,
+        Colors.green.shade500,
+        Colors.green.shade600,
+        Colors.green.shade700,
+        Colors.green.shade800,
+      ],
+    GoalType.gainWeight => [
+        Colors.lightBlue.shade300,
+        Colors.lightBlue.shade400,
+        Colors.blue.shade400,
+        Colors.blue.shade500,
+        Colors.blue.shade600,
+        Colors.blue.shade700,
+        Colors.blue.shade800,
+      ],
+    GoalType.gainMuscle => [
+        Colors.cyan.shade300,
+        Colors.cyan.shade400,
+        Colors.teal.shade400,
+        Colors.teal.shade500,
+        Colors.teal.shade600,
+        Colors.teal.shade700,
+        Colors.teal.shade800,
+      ],
+    GoalType.healthyEating => [
+        Colors.lime.shade300,
+        Colors.lime.shade400,
+        Colors.lightGreen.shade500,
+        Colors.green.shade500,
+        Colors.green.shade600,
+        Colors.green.shade700,
+        Colors.green.shade800,
+      ],
+    GoalType.energetic => [
+        Colors.amber.shade300,
+        Colors.amber.shade400,
+        Colors.amber.shade500,
+        Colors.orange.shade500,
+        Colors.orange.shade600,
+        Colors.deepOrange.shade600,
+        Colors.deepOrange.shade700,
+      ],
+  };
+
+  // После цели считаем относительно 100% дневного плана.
+  const target = 1.0;
+
+  final bool isOnTrack = switch (goalType) {
+    GoalType.loseWeight => ratio <= target,
+    GoalType.gainWeight => ratio >= target,
+    GoalType.gainMuscle => ratio >= target,
+    GoalType.healthyEating => (ratio - target).abs() <= 0.08,
+    GoalType.energetic => ratio >= 0.95,
+  };
+
+  final double strength = ((ratio - target).abs() / 0.45).clamp(0.0, 1.0);
+  final int index = (strength * 6).round();
+
+  return isOnTrack ? successPalette[index] : redPalette[index];
+}
+
 class _CircularProgressPainter extends CustomPainter {
-  final double progress; 
+  final double progress;
   final double strokeWidth;
   final Color backgroundColor;
   final Color progressColor;
 
-  _CircularProgressPainter({required this.progress, required this.strokeWidth, required this.backgroundColor, required this.progressColor});
+  _CircularProgressPainter(
+      {required this.progress,
+      required this.strokeWidth,
+      required this.backgroundColor,
+      required this.progressColor});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
-    if (radius <= 0) return; 
+    if (radius <= 0) return;
 
-    final backgroundPaint = Paint()..color = backgroundColor..strokeWidth = strokeWidth..style = PaintingStyle.stroke;
+    final backgroundPaint = Paint()
+      ..color = backgroundColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, radius, backgroundPaint);
 
-    final progressPaint = Paint()..color = progressColor..strokeWidth = strokeWidth..style = PaintingStyle.stroke..strokeCap = StrokeCap.round;
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
     final sweepAngle = 2 * math.pi * progress;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi / 2, sweepAngle, false, progressPaint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2, sweepAngle, false, progressPaint);
   }
 
   @override
@@ -648,8 +1123,13 @@ class _MacronutrientCard extends StatelessWidget {
   final String name, value, total;
   final double percentage;
   final Color color;
-  
-  const _MacronutrientCard({required this.name, required this.value, required this.total, required this.percentage, required this.color});
+
+  const _MacronutrientCard(
+      {required this.name,
+      required this.value,
+      required this.total,
+      required this.percentage,
+      required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -667,8 +1147,13 @@ class _MacronutrientCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(name, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-                Text('${(percentage * 100).toInt()}%', style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.bold)),
+                Text(name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface)),
+                Text('${(percentage * 100).toInt()}%',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: color, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 8),
@@ -684,10 +1169,17 @@ class _MacronutrientCard extends StatelessWidget {
             const SizedBox(height: 8),
             RichText(
               text: TextSpan(
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurface),
                 children: [
-                  TextSpan(text: value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  TextSpan(text: ' / $total', style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontWeight: FontWeight.normal)),
+                  TextSpan(
+                      text: value,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(
+                      text: ' / $total',
+                      style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color,
+                          fontWeight: FontWeight.normal)),
                 ],
               ),
             ),
@@ -703,18 +1195,34 @@ class _MealCard extends StatelessWidget {
   final IconData icon;
   final Color iconBg, iconColor;
   final List<FoodItem> items;
-  final VoidCallback onDataChanged;
+  final Future<void> Function() onDataChanged;
+  final DateTime selectedDate;
 
   const _MealCard({
-    required this.mealName, 
-    required this.recommended, 
-    required this.calories, 
-    required this.icon, 
-    required this.iconBg, 
+    required this.mealName,
+    required this.recommended,
+    required this.calories,
+    required this.icon,
+    required this.iconBg,
     required this.iconColor,
     required this.items,
-    required this.onDataChanged
+    required this.onDataChanged,
+    required this.selectedDate,
   });
+
+  Future<void> _addFromRecipes(BuildContext context) async {
+    final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
+      MaterialPageRoute(
+        builder: (context) => const RecipesScreen(selectionMode: true),
+      ),
+    );
+
+    if (selectedRecipes == null || selectedRecipes.isEmpty) return;
+
+    final service = DailyLogService();
+    await service.addRecipesToMeal(selectedDate, mealName, selectedRecipes);
+    await onDataChanged();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -724,17 +1232,23 @@ class _MealCard extends StatelessWidget {
       onTap: () async {
         final result = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => MealDetailScreen(mealName: mealName, items: items)),
+          MaterialPageRoute(
+            builder: (context) => MealDetailScreen(
+              mealName: mealName,
+              items: items,
+              date: selectedDate,
+            ),
+          ),
         );
         if (result == true) {
-          onDataChanged();
+          await onDataChanged();
         }
       },
       borderRadius: AppStyles.cardRadius,
       child: Opacity(
         opacity: isNotEaten ? 0.7 : 1.0,
         child: Card(
-           shape: RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius: AppStyles.cardRadius,
           ),
           child: Padding(
@@ -745,45 +1259,60 @@ class _MealCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isNotEaten ? (theme.brightness == Brightness.light ? Colors.grey.shade100 : Colors.grey.shade800) : iconBg,
-                    borderRadius: AppStyles.mediumBorderRadius
-                  ),
-                  child: Icon(icon, color: isNotEaten ? (theme.brightness == Brightness.light ? Colors.grey.shade400 : Colors.grey.shade600) : iconColor, size: 28),
+                      color: isNotEaten
+                          ? (theme.brightness == Brightness.light
+                              ? Colors.grey.shade100
+                              : Colors.grey.shade800)
+                          : iconBg,
+                      borderRadius: AppStyles.mediumBorderRadius),
+                  child: Icon(icon,
+                      color: isNotEaten
+                          ? (theme.brightness == Brightness.light
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600)
+                          : iconColor,
+                      size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(mealName, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+                      Text(mealName,
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(color: theme.colorScheme.onSurface)),
                       const SizedBox(height: 2),
-                      Text('Реком: $recommended ккал', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 11, color: theme.textTheme.bodySmall?.color)),
+                      Text('Реком: $recommended ккал',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 11,
+                              color: theme.textTheme.bodySmall?.color)),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
                 if (!isNotEaten)
-                  Text('$calories ккал', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+                  Text('$calories ккал',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: theme.colorScheme.onSurface)),
                 const SizedBox(width: 12),
                 InkWell(
-                  onTap: () async {
-                     final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => MealDetailScreen(mealName: mealName, items: items)),
-                      );
-                      if (result == true) {
-                        onDataChanged();
-                      }
-                  },
+                  onTap: () => _addFromRecipes(context),
                   borderRadius: BorderRadius.circular(22),
                   child: Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary,
-                      boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(77), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))]
-                    ),
-                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
+                        shape: BoxShape.circle,
+                        color: AppColors.primary,
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.primary.withAlpha(77),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 5))
+                        ]),
+                    child:
+                        const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),
                 ),
               ],

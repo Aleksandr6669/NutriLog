@@ -94,6 +94,38 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppStyles.cardRadius,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Symbols.info,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Здесь указываются базовые физические параметры:\n'
+                          'пол, возраст, рост и текущий вес.\n'
+                          'Эти данные нужны для точного расчета\n'
+                          'норм и персональных рекомендаций.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            height: 1.35,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _nameController,
                 label: 'Имя',

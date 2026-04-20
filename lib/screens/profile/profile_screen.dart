@@ -4,6 +4,7 @@ import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/screens/profile/edit_general_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
+import 'package:nutri_log/services/daily_log_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 
@@ -16,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _profileService = ProfileService();
+  final DailyLogService _dailyLogService = DailyLogService();
   late Future<UserProfile> _profileFuture;
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
@@ -54,7 +56,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  void _loadProfile() {
+  Future<void> _loadProfile() async {
+    await _dailyLogService.syncProfileWeightFromLogs();
+    if (!mounted) return;
     setState(() {
       _profileFuture = _profileService.loadProfile();
     });
@@ -67,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result == true) {
-      _loadProfile();
+      await _loadProfile();
     }
   }
 

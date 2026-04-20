@@ -42,7 +42,8 @@ class RecipeIngredient {
     if (quantity <= 0 && unit.isEmpty) return name;
 
     final isInteger = quantity.truncateToDouble() == quantity;
-    final quantityText = isInteger ? quantity.toInt().toString() : quantity.toStringAsFixed(1);
+    final quantityText =
+        isInteger ? quantity.toInt().toString() : quantity.toStringAsFixed(1);
     final amountText = unit.isEmpty ? quantityText : '$quantityText $unit';
     return '$name — $amountText';
   }
@@ -72,8 +73,11 @@ class Recipe {
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
     // Updated to parse to Map<String, double>
-    final Map<String, double> nutrients = (json['nutrients'] as Map<String, dynamic>?)
-        ?.map((key, value) => MapEntry(key, (value as num).toDouble())) ?? {};
+    final Map<String, double> nutrients = (json['nutrients']
+                as Map<String, dynamic>?)
+            ?.map((key, value) => MapEntry(key, (value as num).toDouble())) ??
+        {};
+    final fallbackName = (json['name'] as String? ?? 'recipe').trim();
     final rawIngredients = json['ingredients'] as List<dynamic>? ?? const [];
     final ingredients = rawIngredients
         .map(RecipeIngredient.fromDynamic)
@@ -81,12 +85,16 @@ class Recipe {
         .toList();
 
     return Recipe(
-      id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: (json['id'] as String?)?.trim().isNotEmpty == true
+          ? (json['id'] as String).trim()
+          : 'recipe_${DateTime.now().microsecondsSinceEpoch}_${fallbackName.hashCode}',
       name: json['name'] ?? 'Без названия',
       description: json['description'] ?? '',
       nutrients: nutrients,
       ingredients: ingredients,
-      instructions: json['instructions'] != null ? List<String>.from(json['instructions']) : [],
+      instructions: json['instructions'] != null
+          ? List<String>.from(json['instructions'])
+          : [],
       icon: RecipeLoader.getIcon(json['icon'] as String? ?? 'restaurant'),
       isUserRecipe: json['isUserRecipe'] ?? false,
     );
@@ -98,7 +106,8 @@ class Recipe {
       'name': name,
       'description': description,
       'nutrients': nutrients, // Already Map<String, double>
-      'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList(),
+      'ingredients':
+          ingredients.map((ingredient) => ingredient.toJson()).toList(),
       'instructions': instructions,
       'icon': _iconToString(icon),
       'isUserRecipe': isUserRecipe,

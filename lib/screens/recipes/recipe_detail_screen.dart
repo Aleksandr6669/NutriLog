@@ -6,8 +6,15 @@ import 'package:nutri_log/styles/app_styles.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   final Recipe recipe;
+  final bool selectionMode;
+  final bool isSelected;
 
-  const RecipeDetailScreen({super.key, required this.recipe});
+  const RecipeDetailScreen({
+    super.key,
+    required this.recipe,
+    this.selectionMode = false,
+    this.isSelected = false,
+  });
 
   Future<void> _openEditScreen(BuildContext context) async {
     final result = await Navigator.of(context).push<bool>(
@@ -32,7 +39,15 @@ class RecipeDetailScreen extends StatelessWidget {
         title: Text(recipe.name,
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          if (recipe.isUserRecipe)
+          if (selectionMode)
+            IconButton(
+              icon: const Icon(Symbols.add_circle),
+              onPressed: () => Navigator.of(context).pop(true),
+              tooltip: isSelected
+                  ? 'Добавить еще в прием пищи'
+                  : 'Добавить в прием пищи',
+            )
+          else if (recipe.isUserRecipe)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),
@@ -119,12 +134,9 @@ class RecipeDetailScreen extends StatelessWidget {
               (ingredient) => Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2),
-                      child: Icon(Symbols.circle, size: 8, color: Colors.grey),
-                    ),
+                    const Icon(Symbols.circle, size: 8, color: Colors.grey),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -178,21 +190,22 @@ class RecipeDetailScreen extends StatelessWidget {
                     recipe.nutrients['monounsaturated_fat'], 'г'),
                 _nutrientSubRow(
                     'Трансжиры', recipe.nutrients['trans_fat'], 'г'),
+                _nutrientSubRow(
+                    'Холестерин', recipe.nutrients['cholesterol'], 'мг'),
               ]),
             ]),
             const Divider(height: 24),
             _nutrientGroup('Минералы', [
-              _nutrientRow('Холестерин', recipe.nutrients['cholesterol'], 'мг'),
               _nutrientRow('Натрий', recipe.nutrients['sodium'], 'мг'),
               _nutrientRow('Калий', recipe.nutrients['potassium'], 'мг'),
+              _nutrientRow('Кальций', recipe.nutrients['calcium'], 'мг'),
+              _nutrientRow('Железо', recipe.nutrients['iron'], 'мг'),
             ]),
             const Divider(height: 24),
             _nutrientGroup('Витамины', [
               _nutrientRow('Витамин A', recipe.nutrients['vitamin_a'], 'мкг'),
               _nutrientRow('Витамин C', recipe.nutrients['vitamin_c'], 'мг'),
               _nutrientRow('Витамин D', recipe.nutrients['vitamin_d'], 'мкг'),
-              _nutrientRow('Кальций', recipe.nutrients['calcium'], 'мг'),
-              _nutrientRow('Железо', recipe.nutrients['iron'], 'мг'),
             ]),
           ],
         ),
@@ -218,6 +231,7 @@ class RecipeDetailScreen extends StatelessWidget {
   Widget _nutrientRow(String label, double? value, String unit,
       {List<Widget> subRows = const []}) {
     final displayValue = (value ?? 0.0).toStringAsFixed(1);
+    final visibleSubRows = subRows.whereType<Widget>().toList();
     return Column(
       children: [
         Row(
@@ -229,10 +243,10 @@ class RecipeDetailScreen extends StatelessWidget {
             Text('$displayValue $unit', style: const TextStyle(fontSize: 16)),
           ],
         ),
-        if (subRows.isNotEmpty)
+        if (visibleSubRows.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 8),
-            child: Column(children: subRows),
+            child: Column(children: visibleSubRows),
           ),
         const SizedBox(height: 8),
       ],
