@@ -19,8 +19,8 @@ class NutritionalInfo {
   final double vitaminA; // mcg (micrograms)
   final double vitaminC; // mg
   final double vitaminD; // mcg (micrograms) / IU
-  final double calcium;  // mg
-  final double iron;     // mg
+  final double calcium; // mg
+  final double iron; // mg
 
   NutritionalInfo({
     required this.calories,
@@ -50,8 +50,10 @@ class NutritionalInfo {
       carbs: (json['carbs'] as num?)?.toDouble() ?? 0.0,
       fat: (json['fat'] as num?)?.toDouble() ?? 0.0,
       saturatedFat: (json['saturatedFat'] as num?)?.toDouble() ?? 0.0,
-      polyunsaturatedFat: (json['polyunsaturatedFat'] as num?)?.toDouble() ?? 0.0,
-      monounsaturatedFat: (json['monounsaturatedFat'] as num?)?.toDouble() ?? 0.0,
+      polyunsaturatedFat:
+          (json['polyunsaturatedFat'] as num?)?.toDouble() ?? 0.0,
+      monounsaturatedFat:
+          (json['monounsaturatedFat'] as num?)?.toDouble() ?? 0.0,
       transFat: (json['transFat'] as num?)?.toDouble() ?? 0.0,
       cholesterol: (json['cholesterol'] as num?)?.toDouble() ?? 0.0,
       sodium: (json['sodium'] as num?)?.toDouble() ?? 0.0,
@@ -66,7 +68,8 @@ class NutritionalInfo {
     );
   }
 
-  static NutritionalInfo get zero => NutritionalInfo(calories: 0, protein: 0, carbs: 0, fat: 0);
+  static NutritionalInfo get zero =>
+      NutritionalInfo(calories: 0, protein: 0, carbs: 0, fat: 0);
 
   NutritionalInfo operator +(NutritionalInfo other) {
     return NutritionalInfo(
@@ -97,11 +100,15 @@ class FoodItem {
   final String name;
   final String description;
   final NutritionalInfo nutrients;
+  final List<Map<String, dynamic>> recipeIngredients;
+  final List<String> recipeInstructions;
 
   FoodItem({
     required this.icon,
     required this.name,
     required this.description,
     required this.nutrients,
+    this.recipeIngredients = const [],
+    this.recipeInstructions = const [],
   });
 }

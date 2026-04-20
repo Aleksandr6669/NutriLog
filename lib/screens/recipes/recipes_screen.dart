@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
+import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import 'edit_recipe_screen.dart';
 import 'recipe_detail_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
-  const RecipesScreen({super.key});
+  final bool selectionMode;
+  final Set<String> initialSelectedRecipeIds;
+
+  const RecipesScreen({
+    super.key,
+    this.selectionMode = false,
+    this.initialSelectedRecipeIds = const <String>{},
+  });
 
   @override
   State<RecipesScreen> createState() => _RecipesScreenState();
@@ -22,12 +29,211 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _allRecipes = [];
   List<Recipe> _filteredRecipes = [];
   bool _isLoading = true;
+  bool _selectedRecipesCollapsed = true;
+  late Map<String, int> _selectedRecipeCounts;
 
   @override
   void initState() {
     super.initState();
+    _selectedRecipeCounts = {
+      for (final id in widget.initialSelectedRecipeIds) id: 1,
+    };
     _loadAllRecipes();
     _searchController.addListener(_filterRecipes);
+  }
+
+  void _addRecipeSelection(Recipe recipe) {
+    setState(() {
+      _selectedRecipeCounts[recipe.id] =
+          (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
+    });
+  }
+
+  void _removeRecipeSelection(Recipe recipe) {
+    final currentCount = _selectedRecipeCounts[recipe.id] ?? 0;
+    if (currentCount <= 0) return;
+
+    setState(() {
+      if (currentCount == 1) {
+        _selectedRecipeCounts.remove(recipe.id);
+      } else {
+        _selectedRecipeCounts[recipe.id] = currentCount - 1;
+      }
+    });
+  }
+
+  Future<void> _openRecipeDetail(Recipe recipe) async {
+    if (!widget.selectionMode) {
+      await _navigateAndRefresh(RecipeDetailScreen(recipe: recipe));
+      return;
+    }
+
+    final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
+    final detailResult = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => RecipeDetailScreen(
+          recipe: recipe,
+          selectionMode: true,
+          isSelected: isSelected,
+        ),
+      ),
+    );
+
+    if (detailResult == null) return;
+
+    if (detailResult) {
+      _addRecipeSelection(recipe);
+    }
+  }
+
+  void _finishSelection() {
+    final selectedRecipes = <Recipe>[];
+    for (final recipe in _allRecipes) {
+      final count = _selectedRecipeCounts[recipe.id] ?? 0;
+      for (var i = 0; i < count; i++) {
+        selectedRecipes.add(recipe);
+      }
+    }
+    Navigator.of(context).pop(selectedRecipes);
+  }
+
+  Widget _buildSelectedRecipesBar(ThemeData theme) {
+    if (!widget.selectionMode || _selectedRecipeCounts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedRecipes = _allRecipes
+        .where((recipe) => (_selectedRecipeCounts[recipe.id] ?? 0) > 0)
+        .toList();
+    final totalSelected =
+        _selectedRecipeCounts.values.fold<int>(0, (a, b) => a + b);
+    final canCollapse = selectedRecipes.length > 3;
+    final visibleRecipes = (_selectedRecipesCollapsed && canCollapse)
+        ? selectedRecipes.take(3).toList()
+        : selectedRecipes;
+    final screenHeight = MediaQuery.of(context).size.height;
+    const oneCardHeight = 76.0;
+    final collapsedMaxHeight = screenHeight * 0.24;
+    final expandedMaxHeight = (screenHeight * 0.78) - oneCardHeight;
+    final panelListMaxHeight =
+        _selectedRecipesCollapsed ? collapsedMaxHeight : expandedMaxHeight;
+    final panelColor = AppColors.primary.withAlpha(24);
+    final itemBgColor = Colors.white.withAlpha(220);
+    const iconColor = AppColors.primary;
+    final recipeTiles = visibleRecipes.map(
+      (recipe) {
+        final count = _selectedRecipeCounts[recipe.id] ?? 0;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: itemBgColor,
+              borderRadius: AppStyles.smallBorderRadius,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  recipe.icon,
+                  size: 18,
+                  color: iconColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${recipe.name} x$count',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.remove_circle, size: 18),
+                  color: iconColor,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _removeRecipeSelection(recipe),
+                  tooltip: 'Убрать одну порцию',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).toList();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: panelColor,
+          borderRadius: AppStyles.mediumBorderRadius,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Добавлено: $totalSelected',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: panelListMaxHeight),
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(children: recipeTiles),
+                ),
+              ),
+            ),
+            if (canCollapse)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedRecipesCollapsed = !_selectedRecipesCollapsed;
+                    });
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _selectedRecipesCollapsed
+                            ? Symbols.expand_more
+                            : Symbols.expand_less,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _selectedRecipesCollapsed
+                            ? 'Показать все (${selectedRecipes.length})'
+                            : 'Свернуть до 3',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadAllRecipes() async {
@@ -101,65 +307,51 @@ class _RecipesScreenState extends State<RecipesScreen> {
     if (confirmed == true) {
       await _recipeService.deleteRecipe(recipe.id);
       _loadAllRecipes();
-    }
-  }
-
-  Future<void> _showAndroidContextMenu(Recipe recipe) async {
-    final selectedAction = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Symbols.edit),
-                title: const Text('Редактировать'),
-                onTap: () => Navigator.pop(context, 'edit'),
-              ),
-              ListTile(
-                leading: const Icon(Symbols.delete, color: Colors.red),
-                title:
-                    const Text('Удалить', style: TextStyle(color: Colors.red)),
-                onTap: () => Navigator.pop(context, 'delete'),
-              ),
-            ],
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Рецепт удалён!', style: TextStyle(fontSize: 18)),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
           ),
         );
-      },
-    );
-
-    if (selectedAction == 'edit') {
-      await _editRecipe(recipe);
-    } else if (selectedAction == 'delete') {
-      await _deleteRecipe(recipe);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        title: const Text('Мои рецепты',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: Text(
+          widget.selectionMode ? 'Добавить в прием пищи' : 'Мои рецепты',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Symbols.add_circle_outline, size: 28),
-            onPressed: () => _navigateAndRefresh(const EditRecipeScreen()),
-            tooltip: 'Добавить рецепт',
-          ),
+          if (widget.selectionMode)
+            IconButton(
+              icon: const Icon(Symbols.check_circle, size: 28),
+              onPressed: _finishSelection,
+              tooltip: 'Готово',
+            )
+          else
+            IconButton(
+              icon: const Icon(Symbols.add_circle_outline, size: 28),
+              onPressed: () => _navigateAndRefresh(const EditRecipeScreen()),
+              tooltip: 'Добавить рецепт',
+            ),
         ],
       ),
       body: Column(
         children: [
           _buildSearchField(),
+          _buildSelectedRecipesBar(theme),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -180,6 +372,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
         decoration: InputDecoration(
           hintText: 'Найти рецепт...',
           prefixIcon: Icon(Symbols.search, color: Colors.grey.shade600),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Symbols.close, color: Colors.grey.shade600),
+                  tooltip: 'Очистить поиск',
+                  onPressed: () {
+                    _searchController.clear();
+                    _filterRecipes();
+                  },
+                )
+              : null,
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
@@ -198,14 +400,33 @@ class _RecipesScreenState extends State<RecipesScreen> {
       itemCount: _filteredRecipes.length,
       itemBuilder: (context, index) {
         final recipe = _filteredRecipes[index];
+        final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
         final item = _RecipeListItem(
           recipe: recipe,
-          onTap: () => _navigateAndRefresh(RecipeDetailScreen(recipe: recipe)),
-          onLongPress: recipe.isUserRecipe &&
-                  defaultTargetPlatform == TargetPlatform.android
-              ? () => _showAndroidContextMenu(recipe)
-              : null,
+          isSelectionMode: widget.selectionMode,
+          isSelected: isSelected,
+          onTap: () => _openRecipeDetail(recipe),
+          onActionTap:
+              widget.selectionMode ? () => _addRecipeSelection(recipe) : null,
         );
+
+        if (widget.selectionMode) {
+          return Dismissible(
+            key: ValueKey('recipe-add-swipe-${recipe.id}'),
+            direction: DismissDirection.startToEnd,
+            background: _buildSwipeBackground(
+              alignment: Alignment.centerLeft,
+              color: Colors.green.shade600,
+              icon: Symbols.add_circle,
+              label: 'Добавить',
+            ),
+            confirmDismiss: (_) async {
+              _addRecipeSelection(recipe);
+              return false;
+            },
+            child: item,
+          );
+        }
 
         if (!recipe.isUserRecipe) return item;
 
@@ -312,12 +533,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
 class _RecipeListItem extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
-  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onActionTap;
 
   const _RecipeListItem({
     required this.recipe,
     required this.onTap,
-    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onActionTap,
   });
 
   @override
@@ -332,7 +557,6 @@ class _RecipeListItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
-        onLongPress: onLongPress,
         borderRadius: AppStyles.cardRadius,
         splashColor: theme.colorScheme.primary.withOpacity(0.1),
         highlightColor: theme.colorScheme.primary.withOpacity(0.05),
@@ -368,6 +592,15 @@ class _RecipeListItem extends StatelessWidget {
                   ],
                 ),
               ),
+              if (isSelectionMode)
+                IconButton(
+                  icon: Icon(
+                    Symbols.add_circle,
+                    color: theme.colorScheme.primary,
+                  ),
+                  onPressed: onActionTap,
+                  tooltip: isSelected ? 'Добавить еще' : 'Добавить',
+                ),
             ],
           ),
         ),

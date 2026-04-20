@@ -1,183 +1,2822 @@
-
 [
   {
-    "name": "Овсянка с фруктами",
-    "description": "Полезный и сытный завтрак",
+    "id": "builtin_001",
+    "name": "Овсянка на молоке",
+    "description": "Классический повседневный завтрак",
     "icon": "breakfast_dining",
     "nutrients": {
-      "calories": 350,
+      "calories": 280,
       "protein": 10,
-      "carbs": 60,
-      "fat": 8
+      "carbs": 41,
+      "fat": 8,
+      "sugar": 14.4,
+      "fiber": 4.9,
+      "saturated_fat": 2.6,
+      "polyunsaturated_fat": 1.8,
+      "monounsaturated_fat": 2.2,
+      "trans_fat": 0.2,
+      "cholesterol": 16,
+      "sodium": 228,
+      "potassium": 446,
+      "calcium": 65,
+      "iron": 1,
+      "vitamin_a": 49,
+      "vitamin_c": 10.2,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Овсяные хлопья", "quantity": 50, "unit": "г" },
-      { "name": "Молоко", "quantity": 200, "unit": "мл" },
-      { "name": "Банан", "quantity": 1, "unit": "шт" },
-      { "name": "Ягоды (черника или малина)", "quantity": 50, "unit": "г" },
-      { "name": "Мёд", "quantity": 1, "unit": "ст.л." }
+      {
+        "name": "Овсяные хлопья",
+        "quantity": 50,
+        "unit": "г"
+      },
+      {
+        "name": "Молоко 2.5%",
+        "quantity": 200,
+        "unit": "мл"
+      },
+      {
+        "name": "Вода",
+        "quantity": 100,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Смешайте молоко и воду.",
+      "Добавьте хлопья и варите 5-7 минут.",
+      "Подавайте теплой."
     ]
   },
   {
-    "name": "Куриная грудка на гриле",
-    "description": "С овощами и киноа",
+    "id": "builtin_002",
+    "name": "Омлет из 2 яиц",
+    "description": "Быстрый белковый завтрак",
+    "icon": "egg_alt",
+    "nutrients": {
+      "calories": 210,
+      "protein": 14,
+      "carbs": 2,
+      "fat": 16,
+      "sugar": 0.7,
+      "fiber": 0.2,
+      "saturated_fat": 5.3,
+      "polyunsaturated_fat": 3.5,
+      "monounsaturated_fat": 4.5,
+      "trans_fat": 0.3,
+      "cholesterol": 22,
+      "sodium": 186,
+      "potassium": 244,
+      "calcium": 81,
+      "iron": 1.2,
+      "vitamin_a": 73,
+      "vitamin_c": 2.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Яйца",
+        "quantity": 2,
+        "unit": "шт"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 40,
+        "unit": "мл"
+      },
+      {
+        "name": "Соль",
+        "quantity": 1,
+        "unit": "щеп"
+      }
+    ],
+    "instructions": [
+      "Взбейте яйца с молоком.",
+      "Вылейте на разогретую сковороду.",
+      "Готовьте 3-4 минуты."
+    ]
+  },
+  {
+    "id": "builtin_003",
+    "name": "Гречка с курицей",
+    "description": "Повседневный обед",
+    "icon": "lunch_dining",
+    "nutrients": {
+      "calories": 430,
+      "protein": 33,
+      "carbs": 42,
+      "fat": 12,
+      "sugar": 14.7,
+      "fiber": 5,
+      "saturated_fat": 4,
+      "polyunsaturated_fat": 2.6,
+      "monounsaturated_fat": 3.4,
+      "trans_fat": 0.2,
+      "cholesterol": 53,
+      "sodium": 318,
+      "potassium": 636,
+      "calcium": 157,
+      "iron": 2.4,
+      "vitamin_a": 61,
+      "vitamin_c": 10.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Гречка",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Куриная грудка",
+        "quantity": 130,
+        "unit": "г"
+      },
+      {
+        "name": "Оливковое масло",
+        "quantity": 5,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите гречку до готовности.",
+      "Курицу обжарьте/потушите.",
+      "Подавайте вместе."
+    ]
+  },
+  {
+    "id": "builtin_004",
+    "name": "Рис с овощами",
+    "description": "Легкий гарнир на каждый день",
+    "icon": "rice_bowl",
+    "nutrients": {
+      "calories": 320,
+      "protein": 7,
+      "carbs": 58,
+      "fat": 6,
+      "sugar": 20.3,
+      "fiber": 7,
+      "saturated_fat": 2,
+      "polyunsaturated_fat": 1.3,
+      "monounsaturated_fat": 1.7,
+      "trans_fat": 0.1,
+      "cholesterol": 11,
+      "sodium": 252,
+      "potassium": 524,
+      "calcium": 53,
+      "iron": 0.8,
+      "vitamin_a": 43,
+      "vitamin_c": 13.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Рис",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Овощная смесь",
+        "quantity": 150,
+        "unit": "г"
+      },
+      {
+        "name": "Растительное масло",
+        "quantity": 5,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите рис.",
+      "Овощи потушите на сковороде.",
+      "Смешайте и прогрейте 2 минуты."
+    ]
+  },
+  {
+    "id": "builtin_005",
+    "name": "Куриный суп",
+    "description": "Домашний суп на обед",
+    "icon": "soup_kitchen",
+    "nutrients": {
+      "calories": 190,
+      "protein": 14,
+      "carbs": 12,
+      "fat": 8,
+      "sugar": 4.2,
+      "fiber": 1.4,
+      "saturated_fat": 2.6,
+      "polyunsaturated_fat": 1.8,
+      "monounsaturated_fat": 2.2,
+      "trans_fat": 0.2,
+      "cholesterol": 22,
+      "sodium": 174,
+      "potassium": 304,
+      "calcium": 81,
+      "iron": 1.2,
+      "vitamin_a": 49,
+      "vitamin_c": 4.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Куриное филе",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Картофель",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Морковь",
+        "quantity": 50,
+        "unit": "г"
+      },
+      {
+        "name": "Вода",
+        "quantity": 400,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Сварите куриный бульон.",
+      "Добавьте овощи и варите до мягкости.",
+      "Посолите по вкусу."
+    ]
+  },
+  {
+    "id": "builtin_006",
+    "name": "Борщ домашний",
+    "description": "Популярный суп со свеклой",
+    "icon": "soup_kitchen",
+    "nutrients": {
+      "calories": 240,
+      "protein": 12,
+      "carbs": 20,
+      "fat": 11,
+      "sugar": 7,
+      "fiber": 2.4,
+      "saturated_fat": 3.6,
+      "polyunsaturated_fat": 2.4,
+      "monounsaturated_fat": 3.1,
+      "trans_fat": 0.2,
+      "cholesterol": 19,
+      "sodium": 204,
+      "potassium": 336,
+      "calcium": 73,
+      "iron": 1.1,
+      "vitamin_a": 58,
+      "vitamin_c": 6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Свекла",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Капуста",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Картофель",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Мясо",
+        "quantity": 70,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Подготовьте бульон.",
+      "Добавьте овощи по очереди.",
+      "Томите до готовности."
+    ]
+  },
+  {
+    "id": "builtin_007",
+    "name": "Паста с томатным соусом",
+    "description": "Быстрое блюдо на ужин",
+    "icon": "dinner_dining",
+    "nutrients": {
+      "calories": 410,
+      "protein": 12,
+      "carbs": 68,
+      "fat": 10,
+      "sugar": 23.8,
+      "fiber": 8.2,
+      "saturated_fat": 3.3,
+      "polyunsaturated_fat": 2.2,
+      "monounsaturated_fat": 2.8,
+      "trans_fat": 0.2,
+      "cholesterol": 19,
+      "sodium": 306,
+      "potassium": 624,
+      "calcium": 73,
+      "iron": 1.1,
+      "vitamin_a": 55,
+      "vitamin_c": 15.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Паста",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Томатный соус",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Сыр",
+        "quantity": 15,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Отварите пасту аль денте.",
+      "Прогрейте соус.",
+      "Смешайте и посыпьте сыром."
+    ]
+  },
+  {
+    "id": "builtin_008",
+    "name": "Картофельное пюре с котлетой",
+    "description": "Классический домашний ужин",
+    "icon": "dinner_dining",
+    "nutrients": {
+      "calories": 520,
+      "protein": 24,
+      "carbs": 48,
+      "fat": 25,
+      "sugar": 16.8,
+      "fiber": 5.8,
+      "saturated_fat": 8.3,
+      "polyunsaturated_fat": 5.5,
+      "monounsaturated_fat": 7,
+      "trans_fat": 0.5,
+      "cholesterol": 38,
+      "sodium": 372,
+      "potassium": 600,
+      "calcium": 121,
+      "iron": 1.8,
+      "vitamin_a": 100,
+      "vitamin_c": 11.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Картофель",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 60,
+        "unit": "мл"
+      },
+      {
+        "name": "Котлета мясная",
+        "quantity": 120,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сделайте пюре из картофеля.",
+      "Котлету обжарьте/запеките.",
+      "Подавайте горячим."
+    ]
+  },
+  {
+    "id": "builtin_009",
+    "name": "Салат из огурцов и помидоров",
+    "description": "Легкий свежий салат",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 90,
+      "protein": 2,
+      "carbs": 8,
+      "fat": 5,
+      "sugar": 2.8,
+      "fiber": 1,
+      "saturated_fat": 1.7,
+      "polyunsaturated_fat": 1.1,
+      "monounsaturated_fat": 1.4,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 114,
+      "potassium": 184,
+      "calcium": 33,
+      "iron": 0.5,
+      "vitamin_a": 40,
+      "vitamin_c": 3.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Огурец",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Помидор",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Масло",
+        "quantity": 5,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Нарежьте овощи.",
+      "Добавьте соль и масло.",
+      "Перемешайте перед подачей."
+    ]
+  },
+  {
+    "id": "builtin_010",
+    "name": "Творог 5%",
+    "description": "Простой белковый перекус",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 170,
+      "protein": 17,
+      "carbs": 3,
+      "fat": 9,
+      "sugar": 1,
+      "fiber": 0.4,
+      "saturated_fat": 3,
+      "polyunsaturated_fat": 2,
+      "monounsaturated_fat": 2.5,
+      "trans_fat": 0.2,
+      "cholesterol": 0,
+      "sodium": 162,
+      "potassium": 274,
+      "calcium": 93,
+      "iron": 1.4,
+      "vitamin_a": 52,
+      "vitamin_c": 2.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Творог 5%",
+        "quantity": 180,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Готово к употреблению."
+    ]
+  },
+  {
+    "id": "builtin_011",
+    "name": "Яблоко",
+    "description": "Фрукт для перекуса",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 52,
+      "protein": 0.3,
+      "carbs": 14,
+      "fat": 0.2,
+      "sugar": 4.9,
+      "fiber": 1.7,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 91,
+      "potassium": 206,
+      "calcium": 26,
+      "iron": 0.4,
+      "vitamin_a": 25.6,
+      "vitamin_c": 4.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Яблоко",
+        "quantity": 150,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте и ешьте свежим."
+    ]
+  },
+  {
+    "id": "builtin_012",
+    "name": "Банан",
+    "description": "Быстрый углеводный перекус",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 89,
+      "protein": 1.1,
+      "carbs": 23,
+      "fat": 0.3,
+      "sugar": 8,
+      "fiber": 2.8,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0.1,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 113,
+      "potassium": 267,
+      "calcium": 29,
+      "iron": 0.5,
+      "vitamin_a": 25.9,
+      "vitamin_c": 6.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Банан",
+        "quantity": 120,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Очистите от кожуры перед употреблением."
+    ]
+  },
+  {
+    "id": "builtin_013",
+    "name": "Апельсин",
+    "description": "Сочный цитрус",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 47,
+      "protein": 0.9,
+      "carbs": 12,
+      "fat": 0.1,
+      "sugar": 4.2,
+      "fiber": 1.4,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 88,
+      "potassium": 199,
+      "calcium": 29,
+      "iron": 0.5,
+      "vitamin_a": 25.3,
+      "vitamin_c": 4.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Апельсин",
+        "quantity": 150,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Очистите, разделите на дольки."
+    ]
+  },
+  {
+    "id": "builtin_014",
+    "name": "Груша",
+    "description": "Сладкий фрукт",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 57,
+      "protein": 0.4,
+      "carbs": 15,
+      "fat": 0.1,
+      "sugar": 5.3,
+      "fiber": 1.8,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 94,
+      "potassium": 213,
+      "calcium": 27,
+      "iron": 0.4,
+      "vitamin_a": 25.3,
+      "vitamin_c": 5,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Груша",
+        "quantity": 160,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте перед употреблением."
+    ]
+  },
+  {
+    "id": "builtin_015",
+    "name": "Киви",
+    "description": "Фрукт с ярким вкусом",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 61,
+      "protein": 1.1,
+      "carbs": 15,
+      "fat": 0.5,
+      "sugar": 5.3,
+      "fiber": 1.8,
+      "saturated_fat": 0.2,
+      "polyunsaturated_fat": 0.1,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 97,
+      "potassium": 219,
+      "calcium": 29,
+      "iron": 0.5,
+      "vitamin_a": 26.5,
+      "vitamin_c": 5,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Киви",
+        "quantity": 100,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Очистите кожуру и нарежьте."
+    ]
+  },
+  {
+    "id": "builtin_016",
+    "name": "Виноград",
+    "description": "Сладкие ягоды",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 69,
+      "protein": 0.7,
+      "carbs": 18,
+      "fat": 0.2,
+      "sugar": 6.3,
+      "fiber": 2.2,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 101,
+      "potassium": 234,
+      "calcium": 28,
+      "iron": 0.4,
+      "vitamin_a": 25.6,
+      "vitamin_c": 5.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Виноград",
+        "quantity": 120,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Промойте, удалите веточки."
+    ]
+  },
+  {
+    "id": "builtin_017",
+    "name": "Клубника",
+    "description": "Свежая ягода",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 32,
+      "protein": 0.7,
+      "carbs": 8,
+      "fat": 0.3,
+      "sugar": 2.8,
+      "fiber": 1,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0.1,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 79,
+      "potassium": 174,
+      "calcium": 28,
+      "iron": 0.4,
+      "vitamin_a": 25.9,
+      "vitamin_c": 3.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Клубника",
+        "quantity": 150,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте ягоды и удалите хвостики."
+    ]
+  },
+  {
+    "id": "builtin_018",
+    "name": "Черника",
+    "description": "Ягоды для перекуса",
+    "icon": "nutrition",
+    "nutrients": {
+      "calories": 57,
+      "protein": 0.7,
+      "carbs": 14,
+      "fat": 0.3,
+      "sugar": 4.9,
+      "fiber": 1.7,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0.1,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 94,
+      "potassium": 210,
+      "calcium": 28,
+      "iron": 0.4,
+      "vitamin_a": 25.9,
+      "vitamin_c": 4.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Черника",
+        "quantity": 100,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Промойте и подавайте охлажденной."
+    ]
+  },
+  {
+    "id": "builtin_019",
+    "name": "Огурец",
+    "description": "Свежий овощ",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 15,
+      "protein": 0.7,
+      "carbs": 3.6,
+      "fat": 0.1,
+      "sugar": 1.3,
+      "fiber": 0.4,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 69,
+      "potassium": 147,
+      "calcium": 28,
+      "iron": 0.4,
+      "vitamin_a": 25.3,
+      "vitamin_c": 2.7,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Огурец",
+        "quantity": 150,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте и нарежьте по желанию."
+    ]
+  },
+  {
+    "id": "builtin_020",
+    "name": "Помидор",
+    "description": "Сочный овощ",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 18,
+      "protein": 0.9,
+      "carbs": 3.9,
+      "fat": 0.2,
+      "sugar": 1.4,
+      "fiber": 0.5,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 71,
+      "potassium": 151,
+      "calcium": 29,
+      "iron": 0.5,
+      "vitamin_a": 25.6,
+      "vitamin_c": 2.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Помидор",
+        "quantity": 150,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте и нарежьте."
+    ]
+  },
+  {
+    "id": "builtin_021",
+    "name": "Морковь",
+    "description": "Хрустящий овощ",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 41,
+      "protein": 0.9,
+      "carbs": 10,
+      "fat": 0.2,
+      "sugar": 3.5,
+      "fiber": 1.2,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 85,
+      "potassium": 187,
+      "calcium": 29,
+      "iron": 0.5,
+      "vitamin_a": 25.6,
+      "vitamin_c": 4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Морковь",
+        "quantity": 120,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Помойте, очистите и ешьте свежей."
+    ]
+  },
+  {
+    "id": "builtin_022",
+    "name": "Брокколи на пару",
+    "description": "Гарнир из овощей",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 35,
+      "protein": 2.8,
+      "carbs": 7,
+      "fat": 0.4,
+      "sugar": 2.4,
+      "fiber": 0.8,
+      "saturated_fat": 0.1,
+      "polyunsaturated_fat": 0.1,
+      "monounsaturated_fat": 0.1,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 81,
+      "potassium": 184,
+      "calcium": 36,
+      "iron": 0.6,
+      "vitamin_a": 26.2,
+      "vitamin_c": 3.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Брокколи",
+        "quantity": 180,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Разделите на соцветия.",
+      "Готовьте на пару 6-8 минут."
+    ]
+  },
+  {
+    "id": "builtin_023",
+    "name": "Авокадо",
+    "description": "Полезные жиры",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 160,
+      "protein": 2,
+      "carbs": 9,
+      "fat": 15,
+      "sugar": 3.2,
+      "fiber": 1.1,
+      "saturated_fat": 5,
+      "polyunsaturated_fat": 3.3,
+      "monounsaturated_fat": 4.2,
+      "trans_fat": 0.3,
+      "cholesterol": 0,
+      "sodium": 156,
+      "potassium": 190,
+      "calcium": 33,
+      "iron": 0.5,
+      "vitamin_a": 70,
+      "vitamin_c": 3.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Авокадо",
+        "quantity": 100,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Очистите от кожуры и нарежьте."
+    ]
+  },
+  {
+    "id": "builtin_024",
+    "name": "Кефир 1%",
+    "description": "Кисломолочный напиток",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 40,
+      "protein": 3,
+      "carbs": 4,
+      "fat": 1,
+      "sugar": 1.4,
+      "fiber": 0.5,
+      "saturated_fat": 0.3,
+      "polyunsaturated_fat": 0.2,
+      "monounsaturated_fat": 0.3,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 84,
+      "potassium": 168,
+      "calcium": 37,
+      "iron": 0.6,
+      "vitamin_a": 28,
+      "vitamin_c": 2.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Кефир 1%",
+        "quantity": 250,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Подавайте охлажденным."
+    ]
+  },
+  {
+    "id": "builtin_025",
+    "name": "Молоко 2.5%",
+    "description": "Базовый молочный продукт",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 52,
+      "protein": 2.8,
+      "carbs": 4.7,
+      "fat": 2.5,
+      "sugar": 1.6,
+      "fiber": 0.6,
+      "saturated_fat": 0.8,
+      "polyunsaturated_fat": 0.6,
+      "monounsaturated_fat": 0.7,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 91,
+      "potassium": 171,
+      "calcium": 36,
+      "iron": 0.6,
+      "vitamin_a": 32.5,
+      "vitamin_c": 2.9,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Молоко 2.5%",
+        "quantity": 250,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Готово к употреблению."
+    ]
+  },
+  {
+    "id": "builtin_026",
+    "name": "Йогурт натуральный",
+    "description": "Без добавок",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 62,
+      "protein": 4.3,
+      "carbs": 4.7,
+      "fat": 3,
+      "sugar": 1.6,
+      "fiber": 0.6,
+      "saturated_fat": 1,
+      "polyunsaturated_fat": 0.7,
+      "monounsaturated_fat": 0.8,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 97,
+      "potassium": 183,
+      "calcium": 42,
+      "iron": 0.7,
+      "vitamin_a": 34,
+      "vitamin_c": 2.9,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Йогурт натуральный",
+        "quantity": 180,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Употребляйте охлажденным."
+    ]
+  },
+  {
+    "id": "builtin_027",
+    "name": "Сырники",
+    "description": "Домашнее блюдо к завтраку",
+    "icon": "bakery_dining",
+    "nutrients": {
+      "calories": 290,
+      "protein": 17,
+      "carbs": 25,
+      "fat": 14,
+      "sugar": 8.8,
+      "fiber": 3,
+      "saturated_fat": 4.6,
+      "polyunsaturated_fat": 3.1,
+      "monounsaturated_fat": 3.9,
+      "trans_fat": 0.3,
+      "cholesterol": 27,
+      "sodium": 234,
+      "potassium": 406,
+      "calcium": 93,
+      "iron": 1.4,
+      "vitamin_a": 67,
+      "vitamin_c": 7,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Творог",
+        "quantity": 200,
+        "unit": "г"
+      },
+      {
+        "name": "Яйцо",
+        "quantity": 1,
+        "unit": "шт"
+      },
+      {
+        "name": "Мука",
+        "quantity": 30,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Смешайте ингредиенты.",
+      "Сформируйте сырники.",
+      "Обжарьте до золотистой корочки."
+    ]
+  },
+  {
+    "id": "builtin_028",
+    "name": "Греческий йогурт с медом",
+    "description": "Легкий белковый перекус",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 170,
+      "protein": 12,
+      "carbs": 18,
+      "fat": 5,
+      "sugar": 6.3,
+      "fiber": 2.2,
+      "saturated_fat": 1.7,
+      "polyunsaturated_fat": 1.1,
+      "monounsaturated_fat": 1.4,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 162,
+      "potassium": 324,
+      "calcium": 73,
+      "iron": 1.1,
+      "vitamin_a": 40,
+      "vitamin_c": 5.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Греческий йогурт",
+        "quantity": 170,
+        "unit": "г"
+      },
+      {
+        "name": "Мед",
+        "quantity": 10,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Добавьте мед в йогурт.",
+      "Перемешайте перед подачей."
+    ]
+  },
+  {
+    "id": "builtin_029",
+    "name": "Бутерброд с сыром",
+    "description": "Простой перекус",
+    "icon": "takeout_dining",
+    "nutrients": {
+      "calories": 260,
+      "protein": 10,
+      "carbs": 28,
+      "fat": 11,
+      "sugar": 9.8,
+      "fiber": 3.4,
+      "saturated_fat": 3.6,
+      "polyunsaturated_fat": 2.4,
+      "monounsaturated_fat": 3.1,
+      "trans_fat": 0.2,
+      "cholesterol": 16,
+      "sodium": 216,
+      "potassium": 368,
+      "calcium": 65,
+      "iron": 1,
+      "vitamin_a": 58,
+      "vitamin_c": 7.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Хлеб цельнозерновой",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Сыр",
+        "quantity": 30,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Соберите бутерброд.",
+      "По желанию подогрейте 1-2 минуты."
+    ]
+  },
+  {
+    "id": "builtin_030",
+    "name": "Сэндвич с индейкой",
+    "description": "Сытный перекус",
+    "icon": "takeout_dining",
+    "nutrients": {
+      "calories": 330,
+      "protein": 22,
+      "carbs": 32,
+      "fat": 12,
+      "sugar": 11.2,
+      "fiber": 3.8,
+      "saturated_fat": 4,
+      "polyunsaturated_fat": 2.6,
+      "monounsaturated_fat": 3.4,
+      "trans_fat": 0.2,
+      "cholesterol": 35,
+      "sodium": 258,
+      "potassium": 488,
+      "calcium": 113,
+      "iron": 1.7,
+      "vitamin_a": 61,
+      "vitamin_c": 8.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Хлеб",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Филе индейки",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Лист салата",
+        "quantity": 20,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Выложите начинку между ломтиками хлеба.",
+      "Разрежьте пополам."
+    ]
+  },
+  {
+    "id": "builtin_031",
+    "name": "Плов с курицей",
+    "description": "Популярное домашнее блюдо",
+    "icon": "rice_bowl",
+    "nutrients": {
+      "calories": 480,
+      "protein": 23,
+      "carbs": 62,
+      "fat": 16,
+      "sugar": 21.7,
+      "fiber": 7.4,
+      "saturated_fat": 5.3,
+      "polyunsaturated_fat": 3.5,
+      "monounsaturated_fat": 4.5,
+      "trans_fat": 0.3,
+      "cholesterol": 37,
+      "sodium": 348,
+      "potassium": 676,
+      "calcium": 117,
+      "iron": 1.8,
+      "vitamin_a": 73,
+      "vitamin_c": 14.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Рис",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Курица",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Морковь",
+        "quantity": 80,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 60,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Обжарьте мясо и овощи.",
+      "Добавьте рис и воду.",
+      "Томите до готовности."
+    ]
+  },
+  {
+    "id": "builtin_032",
+    "name": "Тефтели с рисом",
+    "description": "Домашний обед",
+    "icon": "flatware",
+    "nutrients": {
+      "calories": 410,
+      "protein": 24,
+      "carbs": 36,
+      "fat": 18,
+      "sugar": 12.6,
+      "fiber": 4.3,
+      "saturated_fat": 5.9,
+      "polyunsaturated_fat": 4,
+      "monounsaturated_fat": 5,
+      "trans_fat": 0.4,
+      "cholesterol": 38,
+      "sodium": 306,
+      "potassium": 528,
+      "calcium": 121,
+      "iron": 1.8,
+      "vitamin_a": 79,
+      "vitamin_c": 9.2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Фарш",
+        "quantity": 130,
+        "unit": "г"
+      },
+      {
+        "name": "Рис",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Томатный соус",
+        "quantity": 80,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сформируйте тефтели.",
+      "Тушите в соусе 20 минут.",
+      "Подавайте с гарниром."
+    ]
+  },
+  {
+    "id": "builtin_033",
+    "name": "Тушеная капуста",
+    "description": "Овощной гарнир",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 130,
+      "protein": 3,
+      "carbs": 14,
+      "fat": 7,
+      "sugar": 4.9,
+      "fiber": 1.7,
+      "saturated_fat": 2.3,
+      "polyunsaturated_fat": 1.5,
+      "monounsaturated_fat": 2,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 138,
+      "potassium": 228,
+      "calcium": 37,
+      "iron": 0.6,
+      "vitamin_a": 46,
+      "vitamin_c": 4.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Капуста",
+        "quantity": 250,
+        "unit": "г"
+      },
+      {
+        "name": "Морковь",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Масло",
+        "quantity": 7,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Нашинкуйте овощи.",
+      "Тушите на медленном огне 20-25 минут."
+    ]
+  },
+  {
+    "id": "builtin_034",
+    "name": "Кабачки запеченные",
+    "description": "Легкое овощное блюдо",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 95,
+      "protein": 2,
+      "carbs": 8,
+      "fat": 6,
+      "sugar": 2.8,
+      "fiber": 1,
+      "saturated_fat": 2,
+      "polyunsaturated_fat": 1.3,
+      "monounsaturated_fat": 1.7,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 117,
+      "potassium": 184,
+      "calcium": 33,
+      "iron": 0.5,
+      "vitamin_a": 43,
+      "vitamin_c": 3.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Кабачок",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Оливковое масло",
+        "quantity": 6,
+        "unit": "мл"
+      },
+      {
+        "name": "Соль",
+        "quantity": 1,
+        "unit": "щеп"
+      }
+    ],
+    "instructions": [
+      "Нарежьте кабачок кольцами.",
+      "Сбрызните маслом.",
+      "Запекайте 15-20 минут."
+    ]
+  },
+  {
+    "id": "builtin_035",
+    "name": "Рыбные котлеты",
+    "description": "Белковое блюдо",
+    "icon": "set_meal",
+    "nutrients": {
+      "calories": 300,
+      "protein": 26,
+      "carbs": 10,
+      "fat": 16,
+      "sugar": 3.5,
+      "fiber": 1.2,
+      "saturated_fat": 5.3,
+      "polyunsaturated_fat": 3.5,
+      "monounsaturated_fat": 4.5,
+      "trans_fat": 0.3,
+      "cholesterol": 42,
+      "sodium": 240,
+      "potassium": 388,
+      "calcium": 129,
+      "iron": 2,
+      "vitamin_a": 73,
+      "vitamin_c": 4,
+      "vitamin_d": 2.8
+    },
+    "ingredients": [
+      {
+        "name": "Филе белой рыбы",
+        "quantity": 180,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 40,
+        "unit": "г"
+      },
+      {
+        "name": "Яйцо",
+        "quantity": 1,
+        "unit": "шт"
+      }
+    ],
+    "instructions": [
+      "Сделайте фарш из рыбы.",
+      "Сформируйте котлеты.",
+      "Обжарьте или запеките."
+    ]
+  },
+  {
+    "id": "builtin_036",
+    "name": "Лосось запеченный",
+    "description": "Рыба с полезными жирами",
+    "icon": "set_meal",
+    "nutrients": {
+      "calories": 420,
+      "protein": 34,
+      "carbs": 1,
+      "fat": 31,
+      "sugar": 0.4,
+      "fiber": 0.1,
+      "saturated_fat": 10.2,
+      "polyunsaturated_fat": 6.8,
+      "monounsaturated_fat": 8.7,
+      "trans_fat": 0.6,
+      "cholesterol": 54,
+      "sodium": 312,
+      "potassium": 398,
+      "calcium": 161,
+      "iron": 2.4,
+      "vitamin_a": 118,
+      "vitamin_c": 2.2,
+      "vitamin_d": 2.8
+    },
+    "ingredients": [
+      {
+        "name": "Филе лосося",
+        "quantity": 180,
+        "unit": "г"
+      },
+      {
+        "name": "Лимон",
+        "quantity": 30,
+        "unit": "г"
+      },
+      {
+        "name": "Соль",
+        "quantity": 1,
+        "unit": "щеп"
+      }
+    ],
+    "instructions": [
+      "Приправьте рыбу.",
+      "Запекайте 15-18 минут при 190C."
+    ]
+  },
+  {
+    "id": "builtin_037",
+    "name": "Тунец с салатом",
+    "description": "Легкий белковый ужин",
+    "icon": "set_meal",
+    "nutrients": {
+      "calories": 260,
+      "protein": 28,
+      "carbs": 7,
+      "fat": 12,
+      "sugar": 2.4,
+      "fiber": 0.8,
+      "saturated_fat": 4,
+      "polyunsaturated_fat": 2.6,
+      "monounsaturated_fat": 3.4,
+      "trans_fat": 0.2,
+      "cholesterol": 45,
+      "sodium": 216,
+      "potassium": 386,
+      "calcium": 137,
+      "iron": 2.1,
+      "vitamin_a": 61,
+      "vitamin_c": 3.4,
+      "vitamin_d": 2.8
+    },
+    "ingredients": [
+      {
+        "name": "Тунец консервированный",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Листья салата",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Огурец",
+        "quantity": 80,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Слейте жидкость с тунца.",
+      "Смешайте с овощами."
+    ]
+  },
+  {
+    "id": "builtin_038",
+    "name": "Овсяное печенье домашнее",
+    "description": "Сладкий перекус",
+    "icon": "cookie",
+    "nutrients": {
+      "calories": 180,
+      "protein": 4,
+      "carbs": 26,
+      "fat": 7,
+      "sugar": 9.1,
+      "fiber": 3.1,
+      "saturated_fat": 2.3,
+      "polyunsaturated_fat": 1.5,
+      "monounsaturated_fat": 2,
+      "trans_fat": 0.1,
+      "cholesterol": 6,
+      "sodium": 168,
+      "potassium": 308,
+      "calcium": 41,
+      "iron": 0.6,
+      "vitamin_a": 46,
+      "vitamin_c": 7.2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Овсяные хлопья",
+        "quantity": 40,
+        "unit": "г"
+      },
+      {
+        "name": "Банан",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Мед",
+        "quantity": 8,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Смешайте ингредиенты.",
+      "Сформируйте печенье.",
+      "Запекайте 12-15 минут."
+    ]
+  },
+  {
+    "id": "builtin_039",
+    "name": "Кофе с молоком",
+    "description": "Популярный напиток",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 55,
+      "protein": 2.2,
+      "carbs": 4.5,
+      "fat": 3,
+      "sugar": 1.6,
+      "fiber": 0.5,
+      "saturated_fat": 1,
+      "polyunsaturated_fat": 0.7,
+      "monounsaturated_fat": 0.8,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 93,
+      "potassium": 165,
+      "calcium": 34,
+      "iron": 0.5,
+      "vitamin_a": 34,
+      "vitamin_c": 2.9,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Кофе",
+        "quantity": 150,
+        "unit": "мл"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 70,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Сварите кофе.",
+      "Добавьте теплое молоко."
+    ]
+  },
+  {
+    "id": "builtin_040",
+    "name": "Какао на молоке",
+    "description": "Теплый напиток",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 145,
+      "protein": 6,
+      "carbs": 18,
+      "fat": 5,
+      "sugar": 6.3,
+      "fiber": 2.2,
+      "saturated_fat": 1.7,
+      "polyunsaturated_fat": 1.1,
+      "monounsaturated_fat": 1.4,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 147,
+      "potassium": 276,
+      "calcium": 49,
+      "iron": 0.8,
+      "vitamin_a": 40,
+      "vitamin_c": 5.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Молоко",
+        "quantity": 250,
+        "unit": "мл"
+      },
+      {
+        "name": "Какао-порошок",
+        "quantity": 8,
+        "unit": "г"
+      },
+      {
+        "name": "Сахар",
+        "quantity": 8,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Подогрейте молоко.",
+      "Добавьте какао и сахар.",
+      "Перемешайте до однородности."
+    ]
+  },
+  {
+    "id": "builtin_041",
+    "name": "Эспрессо",
+    "description": "Крепкий черный кофе",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 2,
+      "protein": 0.1,
+      "carbs": 0.3,
+      "fat": 0,
+      "sugar": 0.1,
+      "fiber": 0,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 61,
+      "potassium": 123,
+      "calcium": 25,
+      "iron": 0.4,
+      "vitamin_a": 25,
+      "vitamin_c": 2.1,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Кофе эспрессо",
+        "quantity": 40,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Приготовьте в кофемашине или турке."
+    ]
+  },
+  {
+    "id": "builtin_042",
+    "name": "Американо",
+    "description": "Черный кофе с водой",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 3,
+      "protein": 0.2,
+      "carbs": 0.4,
+      "fat": 0,
+      "sugar": 0.1,
+      "fiber": 0,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 62,
+      "potassium": 124,
+      "calcium": 26,
+      "iron": 0.4,
+      "vitamin_a": 25,
+      "vitamin_c": 2.1,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Эспрессо",
+        "quantity": 40,
+        "unit": "мл"
+      },
+      {
+        "name": "Вода",
+        "quantity": 120,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Сделайте эспрессо.",
+      "Добавьте горячую воду."
+    ]
+  },
+  {
+    "id": "builtin_043",
+    "name": "Капучино",
+    "description": "Кофе с молочной пеной",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 80,
+      "protein": 4,
+      "carbs": 6,
+      "fat": 4,
+      "sugar": 2.1,
+      "fiber": 0.7,
+      "saturated_fat": 1.3,
+      "polyunsaturated_fat": 0.9,
+      "monounsaturated_fat": 1.1,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 108,
+      "potassium": 188,
+      "calcium": 41,
+      "iron": 0.6,
+      "vitamin_a": 37,
+      "vitamin_c": 3.2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Эспрессо",
+        "quantity": 40,
+        "unit": "мл"
+      },
+      {
+        "name": "Молоко 2.5%",
+        "quantity": 150,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Приготовьте эспрессо.",
+      "Взбейте и добавьте молоко."
+    ]
+  },
+  {
+    "id": "builtin_044",
+    "name": "Латте",
+    "description": "Мягкий кофе с молоком",
+    "icon": "local_cafe",
+    "nutrients": {
+      "calories": 115,
+      "protein": 5.5,
+      "carbs": 9,
+      "fat": 5.5,
+      "sugar": 3.2,
+      "fiber": 1.1,
+      "saturated_fat": 1.8,
+      "polyunsaturated_fat": 1.2,
+      "monounsaturated_fat": 1.5,
+      "trans_fat": 0.1,
+      "cholesterol": 0,
+      "sodium": 129,
+      "potassium": 218,
+      "calcium": 47,
+      "iron": 0.7,
+      "vitamin_a": 41.5,
+      "vitamin_c": 3.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Эспрессо",
+        "quantity": 40,
+        "unit": "мл"
+      },
+      {
+        "name": "Молоко 2.5%",
+        "quantity": 220,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Сварите эспрессо.",
+      "Добавьте подогретое молоко."
+    ]
+  },
+  {
+    "id": "builtin_045",
+    "name": "Черный чай",
+    "description": "Классический горячий чай",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 1,
+      "protein": 0,
+      "carbs": 0.2,
+      "fat": 0,
+      "sugar": 0.1,
+      "fiber": 0,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 61,
+      "potassium": 121,
+      "calcium": 25,
+      "iron": 0.4,
+      "vitamin_a": 25,
+      "vitamin_c": 2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Черный чай",
+        "quantity": 2,
+        "unit": "г"
+      },
+      {
+        "name": "Вода",
+        "quantity": 250,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Залейте чай горячей водой.",
+      "Настаивайте 3-5 минут."
+    ]
+  },
+  {
+    "id": "builtin_046",
+    "name": "Зеленый чай",
+    "description": "Легкий бодрящий чай",
+    "icon": "local_drink",
+    "nutrients": {
+      "calories": 1,
+      "protein": 0,
+      "carbs": 0.2,
+      "fat": 0,
+      "sugar": 0.1,
+      "fiber": 0,
+      "saturated_fat": 0,
+      "polyunsaturated_fat": 0,
+      "monounsaturated_fat": 0,
+      "trans_fat": 0,
+      "cholesterol": 0,
+      "sodium": 61,
+      "potassium": 121,
+      "calcium": 25,
+      "iron": 0.4,
+      "vitamin_a": 25,
+      "vitamin_c": 2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Зеленый чай",
+        "quantity": 2,
+        "unit": "г"
+      },
+      {
+        "name": "Вода",
+        "quantity": 250,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Заварите водой 80-85C.",
+      "Настаивайте 2-3 минуты."
+    ]
+  },
+  {
+    "id": "builtin_047",
+    "name": "Курица с рисом",
+    "description": "Повседневное второе блюдо",
     "icon": "lunch_dining",
     "nutrients": {
       "calories": 450,
-      "protein": 50,
-      "carbs": 30,
-      "fat": 15
+      "protein": 34,
+      "carbs": 48,
+      "fat": 13,
+      "sugar": 16.8,
+      "fiber": 5.8,
+      "saturated_fat": 4.3,
+      "polyunsaturated_fat": 2.9,
+      "monounsaturated_fat": 3.6,
+      "trans_fat": 0.3,
+      "cholesterol": 54,
+      "sodium": 330,
+      "potassium": 680,
+      "calcium": 161,
+      "iron": 2.4,
+      "vitamin_a": 64,
+      "vitamin_c": 11.6,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Куриная грудка", "quantity": 200, "unit": "г" },
-      { "name": "Киноа", "quantity": 100, "unit": "г" },
-      { "name": "Помидоры", "quantity": 100, "unit": "г" },
-      { "name": "Брокколи", "quantity": 150, "unit": "г" },
-      { "name": "Оливковое масло", "quantity": 1, "unit": "ст.л." }
+      {
+        "name": "Куриная грудка",
+        "quantity": 140,
+        "unit": "г"
+      },
+      {
+        "name": "Рис",
+        "quantity": 75,
+        "unit": "г"
+      },
+      {
+        "name": "Масло",
+        "quantity": 5,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите рис.",
+      "Курицу приготовьте на сковороде.",
+      "Подавайте вместе."
     ]
   },
   {
-    "name": "Салат Цезарь",
-    "description": "Классический рецепт с курицей",
-    "icon": "ramen_dining",
+    "id": "builtin_048",
+    "name": "Куриные тефтели с гречкой",
+    "description": "Домашний обед",
+    "icon": "flatware",
     "nutrients": {
-      "calories": 400,
-      "protein": 30,
-      "carbs": 15,
-      "fat": 25
+      "calories": 430,
+      "protein": 31,
+      "carbs": 44,
+      "fat": 14,
+      "sugar": 15.4,
+      "fiber": 5.3,
+      "saturated_fat": 4.6,
+      "polyunsaturated_fat": 3.1,
+      "monounsaturated_fat": 3.9,
+      "trans_fat": 0.3,
+      "cholesterol": 50,
+      "sodium": 318,
+      "potassium": 632,
+      "calcium": 149,
+      "iron": 2.3,
+      "vitamin_a": 67,
+      "vitamin_c": 10.8,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Салат Айсберг", "quantity": 150, "unit": "г" },
-      { "name": "Курица вареная", "quantity": 150, "unit": "г" },
-      { "name": "Сухарики", "quantity": 30, "unit": "г" },
-      { "name": "Сыр Пармезан", "quantity": 40, "unit": "г" },
-      { "name": "Соус Цезарь", "quantity": 3, "unit": "ст.л." }
+      {
+        "name": "Фарш куриный",
+        "quantity": 130,
+        "unit": "г"
+      },
+      {
+        "name": "Гречка",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 40,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сформируйте тефтели.",
+      "Потушите 20 минут.",
+      "Подавайте с гречкой."
     ]
   },
   {
-    "name": "Смузи 'Зеленый детокс'",
-    "description": "Шпинат, яблоко, банан, вода",
-    "icon": "local_bar",
+    "id": "builtin_049",
+    "name": "Говядина тушеная с овощами",
+    "description": "Сытное горячее блюдо",
+    "icon": "dinner_dining",
     "nutrients": {
-      "calories": 150,
+      "calories": 510,
+      "protein": 35,
+      "carbs": 22,
+      "fat": 30,
+      "sugar": 7.7,
+      "fiber": 2.6,
+      "saturated_fat": 9.9,
+      "polyunsaturated_fat": 6.6,
+      "monounsaturated_fat": 8.4,
+      "trans_fat": 0.6,
+      "cholesterol": 56,
+      "sodium": 366,
+      "potassium": 532,
+      "calcium": 165,
+      "iron": 2.5,
+      "vitamin_a": 115,
+      "vitamin_c": 6.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Говядина",
+        "quantity": 170,
+        "unit": "г"
+      },
+      {
+        "name": "Морковь",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 60,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Обжарьте мясо.",
+      "Добавьте овощи и немного воды.",
+      "Тушите до мягкости."
+    ]
+  },
+  {
+    "id": "builtin_050",
+    "name": "Индейка с булгуром",
+    "description": "Легкий белковый ужин",
+    "icon": "lunch_dining",
+    "nutrients": {
+      "calories": 420,
+      "protein": 33,
+      "carbs": 40,
+      "fat": 12,
+      "sugar": 14,
+      "fiber": 4.8,
+      "saturated_fat": 4,
+      "polyunsaturated_fat": 2.6,
+      "monounsaturated_fat": 3.4,
+      "trans_fat": 0.2,
+      "cholesterol": 53,
+      "sodium": 312,
+      "potassium": 624,
+      "calcium": 157,
+      "iron": 2.4,
+      "vitamin_a": 61,
+      "vitamin_c": 10,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Филе индейки",
+        "quantity": 140,
+        "unit": "г"
+      },
+      {
+        "name": "Булгур",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Оливковое масло",
+        "quantity": 5,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите булгур.",
+      "Индейку обжарьте до готовности.",
+      "Подавайте горячим."
+    ]
+  },
+  {
+    "id": "builtin_051",
+    "name": "Суп-пюре из тыквы",
+    "description": "Легкий овощной суп",
+    "icon": "soup_kitchen",
+    "nutrients": {
+      "calories": 180,
+      "protein": 4,
+      "carbs": 24,
+      "fat": 7,
+      "sugar": 8.4,
+      "fiber": 2.9,
+      "saturated_fat": 2.3,
+      "polyunsaturated_fat": 1.5,
+      "monounsaturated_fat": 2,
+      "trans_fat": 0.1,
+      "cholesterol": 6,
+      "sodium": 168,
+      "potassium": 296,
+      "calcium": 41,
+      "iron": 0.6,
+      "vitamin_a": 46,
+      "vitamin_c": 6.8,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Тыква",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 40,
+        "unit": "г"
+      },
+      {
+        "name": "Сливки",
+        "quantity": 40,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите тыкву с луком.",
+      "Пробейте блендером.",
+      "Добавьте сливки и прогрейте."
+    ]
+  },
+  {
+    "id": "builtin_052",
+    "name": "Фрикадельки в томатном соусе",
+    "description": "Универсальное второе блюдо",
+    "icon": "flatware",
+    "nutrients": {
+      "calories": 440,
+      "protein": 27,
+      "carbs": 18,
+      "fat": 28,
+      "sugar": 6.3,
+      "fiber": 2.2,
+      "saturated_fat": 9.2,
+      "polyunsaturated_fat": 6.2,
+      "monounsaturated_fat": 7.8,
+      "trans_fat": 0.6,
+      "cholesterol": 43,
+      "sodium": 324,
+      "potassium": 444,
+      "calcium": 133,
+      "iron": 2,
+      "vitamin_a": 109,
+      "vitamin_c": 5.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Фарш",
+        "quantity": 160,
+        "unit": "г"
+      },
+      {
+        "name": "Томатный соус",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 50,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сформируйте фрикадельки.",
+      "Обжарьте и тушите в соусе 20 минут."
+    ]
+  },
+  {
+    "id": "builtin_053",
+    "name": "Рагу овощное",
+    "description": "Овощное блюдо на каждый день",
+    "icon": "eco",
+    "nutrients": {
+      "calories": 210,
       "protein": 5,
-      "carbs": 35,
-      "fat": 1
+      "carbs": 24,
+      "fat": 10,
+      "sugar": 8.4,
+      "fiber": 2.9,
+      "saturated_fat": 3.3,
+      "polyunsaturated_fat": 2.2,
+      "monounsaturated_fat": 2.8,
+      "trans_fat": 0.2,
+      "cholesterol": 0,
+      "sodium": 186,
+      "potassium": 304,
+      "calcium": 45,
+      "iron": 0.7,
+      "vitamin_a": 55,
+      "vitamin_c": 6.8,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Шпинат свежий", "quantity": 100, "unit": "г" },
-      { "name": "Яблоко", "quantity": 1, "unit": "шт" },
-      { "name": "Банан", "quantity": 1, "unit": "шт" },
-      { "name": "Вода", "quantity": 250, "unit": "мл" },
-      { "name": "Лед", "quantity": 150, "unit": "г" }
+      {
+        "name": "Кабачок",
+        "quantity": 140,
+        "unit": "г"
+      },
+      {
+        "name": "Баклажан",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Помидор",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Масло",
+        "quantity": 7,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Нарежьте овощи.",
+      "Тушите под крышкой 20 минут."
     ]
   },
   {
-    "name": "Лосось запеченный",
-    "description": "С лимоном и травами",
-    "icon": "set_meal",
+    "id": "builtin_054",
+    "name": "Голубцы ленивые",
+    "description": "Домашняя классика",
+    "icon": "dinner_dining",
     "nutrients": {
-      "calories": 550,
-      "protein": 45,
-      "carbs": 5,
-      "fat": 40
+      "calories": 390,
+      "protein": 24,
+      "carbs": 28,
+      "fat": 20,
+      "sugar": 9.8,
+      "fiber": 3.4,
+      "saturated_fat": 6.6,
+      "polyunsaturated_fat": 4.4,
+      "monounsaturated_fat": 5.6,
+      "trans_fat": 0.4,
+      "cholesterol": 38,
+      "sodium": 294,
+      "potassium": 480,
+      "calcium": 121,
+      "iron": 1.8,
+      "vitamin_a": 85,
+      "vitamin_c": 7.6,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Филе лосося", "quantity": 200, "unit": "г" },
-      { "name": "Лимон", "quantity": 0.5, "unit": "шт" },
-      { "name": "Оливковое масло", "quantity": 2, "unit": "ст.л." },
-      { "name": "Чеснок", "quantity": 2, "unit": "шт" },
-      { "name": "Свежие травы (укроп, петрушка)", "quantity": 20, "unit": "г" }
+      {
+        "name": "Фарш",
+        "quantity": 140,
+        "unit": "г"
+      },
+      {
+        "name": "Капуста",
+        "quantity": 180,
+        "unit": "г"
+      },
+      {
+        "name": "Рис",
+        "quantity": 50,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Смешайте фарш, рис и капусту.",
+      "Тушите до готовности в соусе."
     ]
   },
   {
-    "name": "Греческий салат",
-    "description": "Свежие овощи и фета",
-    "icon": "restaurant",
+    "id": "builtin_055",
+    "name": "Запеканка картофельная с курицей",
+    "description": "Сытное блюдо из духовки",
+    "icon": "oven",
+    "nutrients": {
+      "calories": 470,
+      "protein": 29,
+      "carbs": 38,
+      "fat": 22,
+      "sugar": 13.3,
+      "fiber": 4.6,
+      "saturated_fat": 7.3,
+      "polyunsaturated_fat": 4.8,
+      "monounsaturated_fat": 6.2,
+      "trans_fat": 0.4,
+      "cholesterol": 46,
+      "sodium": 342,
+      "potassium": 580,
+      "calcium": 141,
+      "iron": 2.1,
+      "vitamin_a": 91,
+      "vitamin_c": 9.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Картофель",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Куриное филе",
+        "quantity": 130,
+        "unit": "г"
+      },
+      {
+        "name": "Сметана",
+        "quantity": 50,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Нарежьте ингредиенты слоями.",
+      "Запекайте 35-40 минут при 180C."
+    ]
+  },
+  {
+    "id": "builtin_056",
+    "name": "Пшенная каша с тыквой",
+    "description": "Теплый завтрак",
+    "icon": "breakfast_dining",
     "nutrients": {
       "calories": 300,
       "protein": 8,
-      "carbs": 10,
-      "fat": 25
+      "carbs": 50,
+      "fat": 8,
+      "sugar": 17.5,
+      "fiber": 6,
+      "saturated_fat": 2.6,
+      "polyunsaturated_fat": 1.8,
+      "monounsaturated_fat": 2.2,
+      "trans_fat": 0.2,
+      "cholesterol": 13,
+      "sodium": 240,
+      "potassium": 484,
+      "calcium": 57,
+      "iron": 0.9,
+      "vitamin_a": 49,
+      "vitamin_c": 12,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Помидоры", "quantity": 200, "unit": "г" },
-      { "name": "Огурец", "quantity": 1, "unit": "шт" },
-      { "name": "Маслины", "quantity": 50, "unit": "г" },
-      { "name": "Сыр Фета", "quantity": 100, "unit": "г" },
-      { "name": "Оливковое масло", "quantity": 3, "unit": "ст.л." }
+      {
+        "name": "Пшено",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Тыква",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 180,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите пшено.",
+      "Добавьте тыкву и молоко.",
+      "Томите до мягкости."
     ]
   },
   {
-    "name": "Паста Карбонара",
-    "description": "Сливочный соус и бекон",
+    "id": "builtin_057",
+    "name": "Рисовая каша",
+    "description": "Классическая молочная каша",
+    "icon": "breakfast_dining",
+    "nutrients": {
+      "calories": 285,
+      "protein": 7,
+      "carbs": 48,
+      "fat": 7,
+      "sugar": 16.8,
+      "fiber": 5.8,
+      "saturated_fat": 2.3,
+      "polyunsaturated_fat": 1.5,
+      "monounsaturated_fat": 2,
+      "trans_fat": 0.1,
+      "cholesterol": 11,
+      "sodium": 231,
+      "potassium": 464,
+      "calcium": 53,
+      "iron": 0.8,
+      "vitamin_a": 46,
+      "vitamin_c": 11.6,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Рис",
+        "quantity": 60,
+        "unit": "г"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 220,
+        "unit": "мл"
+      },
+      {
+        "name": "Вода",
+        "quantity": 80,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Сварите рис до мягкости.",
+      "Добавьте молоко и прогрейте."
+    ]
+  },
+  {
+    "id": "builtin_058",
+    "name": "Гречка с грибами",
+    "description": "Постное блюдо",
+    "icon": "rice_bowl",
+    "nutrients": {
+      "calories": 340,
+      "protein": 10,
+      "carbs": 52,
+      "fat": 10,
+      "sugar": 18.2,
+      "fiber": 6.2,
+      "saturated_fat": 3.3,
+      "polyunsaturated_fat": 2.2,
+      "monounsaturated_fat": 2.8,
+      "trans_fat": 0.2,
+      "cholesterol": 16,
+      "sodium": 264,
+      "potassium": 512,
+      "calcium": 65,
+      "iron": 1,
+      "vitamin_a": 55,
+      "vitamin_c": 12.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Гречка",
+        "quantity": 75,
+        "unit": "г"
+      },
+      {
+        "name": "Шампиньоны",
+        "quantity": 150,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 50,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Отварите гречку.",
+      "Обжарьте грибы с луком.",
+      "Смешайте перед подачей."
+    ]
+  },
+  {
+    "id": "builtin_059",
+    "name": "Паста с курицей и сливками",
+    "description": "Сливочная паста",
     "icon": "dinner_dining",
     "nutrients": {
-      "calories": 600,
-      "protein": 25,
-      "carbs": 70,
-      "fat": 28
-    },
-    "ingredients": [
-      { "name": "Спагетти", "quantity": 150, "unit": "г" },
-      { "name": "Бекон", "quantity": 100, "unit": "г" },
-      { "name": "Яйца", "quantity": 2, "unit": "шт" },
-      { "name": "Сливки", "quantity": 100, "unit": "мл" },
-      { "name": "Пармезан", "quantity": 50, "unit": "г" }
-    ]
-  },
-  {
-    "name": "Протеиновый коктейль",
-    "description": "После тренировки",
-    "icon": "blender",
-    "nutrients": {
-      "calories": 250,
+      "calories": 560,
       "protein": 30,
-      "carbs": 20,
-      "fat": 5
+      "carbs": 58,
+      "fat": 22,
+      "sugar": 20.3,
+      "fiber": 7,
+      "saturated_fat": 7.3,
+      "polyunsaturated_fat": 4.8,
+      "monounsaturated_fat": 6.2,
+      "trans_fat": 0.4,
+      "cholesterol": 48,
+      "sodium": 396,
+      "potassium": 708,
+      "calcium": 145,
+      "iron": 2.2,
+      "vitamin_a": 91,
+      "vitamin_c": 13.6,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Протеиновый порошок", "quantity": 30, "unit": "г" },
-      { "name": "Молоко", "quantity": 300, "unit": "мл" },
-      { "name": "Банан", "quantity": 1, "unit": "шт" },
-      { "name": "Арахисовое масло", "quantity": 1, "unit": "ст.л." },
-      { "name": "Льд", "quantity": 100, "unit": "г" }
+      {
+        "name": "Паста",
+        "quantity": 85,
+        "unit": "г"
+      },
+      {
+        "name": "Куриное филе",
+        "quantity": 120,
+        "unit": "г"
+      },
+      {
+        "name": "Сливки",
+        "quantity": 80,
+        "unit": "мл"
+      }
+    ],
+    "instructions": [
+      "Отварите пасту.",
+      "Курицу обжарьте.",
+      "Добавьте сливки и смешайте с пастой."
     ]
   },
   {
-    "name": "Чечевичный суп",
-    "description": "Насыщенный и ароматный",
+    "id": "builtin_060",
+    "name": "Пюре с рыбной котлетой",
+    "description": "Простой ужин",
+    "icon": "set_meal",
+    "nutrients": {
+      "calories": 460,
+      "protein": 24,
+      "carbs": 45,
+      "fat": 20,
+      "sugar": 15.7,
+      "fiber": 5.4,
+      "saturated_fat": 6.6,
+      "polyunsaturated_fat": 4.4,
+      "monounsaturated_fat": 5.6,
+      "trans_fat": 0.4,
+      "cholesterol": 38,
+      "sodium": 336,
+      "potassium": 582,
+      "calcium": 121,
+      "iron": 1.8,
+      "vitamin_a": 85,
+      "vitamin_c": 11,
+      "vitamin_d": 2.8
+    },
+    "ingredients": [
+      {
+        "name": "Картофель",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Молоко",
+        "quantity": 50,
+        "unit": "мл"
+      },
+      {
+        "name": "Рыбная котлета",
+        "quantity": 120,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сделайте картофельное пюре.",
+      "Приготовьте котлету.",
+      "Подавайте горячим."
+    ]
+  },
+  {
+    "id": "builtin_061",
+    "name": "Рассольник",
+    "description": "Суп с перловкой и огурцом",
     "icon": "soup_kitchen",
     "nutrients": {
-      "calories": 320,
-      "protein": 18,
-      "carbs": 55,
-      "fat": 4
+      "calories": 230,
+      "protein": 11,
+      "carbs": 21,
+      "fat": 10,
+      "sugar": 7.4,
+      "fiber": 2.5,
+      "saturated_fat": 3.3,
+      "polyunsaturated_fat": 2.2,
+      "monounsaturated_fat": 2.8,
+      "trans_fat": 0.2,
+      "cholesterol": 18,
+      "sodium": 198,
+      "potassium": 334,
+      "calcium": 69,
+      "iron": 1.1,
+      "vitamin_a": 55,
+      "vitamin_c": 6.2,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Чечевица красная", "quantity": 100, "unit": "г" },
-      { "name": "Морковь", "quantity": 100, "unit": "г" },
-      { "name": "Лук репчатый", "quantity": 50, "unit": "г" },
-      { "name": "Овощной бульон", "quantity": 500, "unit": "мл" },
-      { "name": "Оливковое масло", "quantity": 1, "unit": "ст.л." }
+      {
+        "name": "Перловка",
+        "quantity": 45,
+        "unit": "г"
+      },
+      {
+        "name": "Картофель",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Огурец соленый",
+        "quantity": 70,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Сварите бульон.",
+      "Добавьте перловку и овощи.",
+      "Томите до готовности."
     ]
   },
   {
-    "name": "Творожная запеканка",
-    "description": "С изюмом и сметаной",
-    "icon": "cake",
+    "id": "builtin_062",
+    "name": "Щи из свежей капусты",
+    "description": "Классический суп",
+    "icon": "soup_kitchen",
     "nutrients": {
-      "calories": 280,
-      "protein": 20,
-      "carbs": 25,
-      "fat": 12
+      "calories": 200,
+      "protein": 10,
+      "carbs": 16,
+      "fat": 9,
+      "sugar": 5.6,
+      "fiber": 1.9,
+      "saturated_fat": 3,
+      "polyunsaturated_fat": 2,
+      "monounsaturated_fat": 2.5,
+      "trans_fat": 0.2,
+      "cholesterol": 16,
+      "sodium": 180,
+      "potassium": 296,
+      "calcium": 65,
+      "iron": 1,
+      "vitamin_a": 52,
+      "vitamin_c": 5.2,
+      "vitamin_d": 0.6
     },
     "ingredients": [
-      { "name": "Творог", "quantity": 300, "unit": "г" },
-      { "name": "Яйца", "quantity": 3, "unit": "шт" },
-      { "name": "Изюм", "quantity": 50, "unit": "г" },
-      { "name": "Сметана", "quantity": 100, "unit": "г" },
-      { "name": "Сахар", "quantity": 3, "unit": "ст.л." }
+      {
+        "name": "Капуста",
+        "quantity": 150,
+        "unit": "г"
+      },
+      {
+        "name": "Картофель",
+        "quantity": 100,
+        "unit": "г"
+      },
+      {
+        "name": "Мясо",
+        "quantity": 70,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Подготовьте бульон.",
+      "Добавьте овощи.",
+      "Варите до готовности."
+    ]
+  },
+  {
+    "id": "builtin_063",
+    "name": "Курица запеченная с картофелем",
+    "description": "Ужин в духовке",
+    "icon": "outdoor_grill",
+    "nutrients": {
+      "calories": 520,
+      "protein": 32,
+      "carbs": 36,
+      "fat": 28,
+      "sugar": 12.6,
+      "fiber": 4.3,
+      "saturated_fat": 9.2,
+      "polyunsaturated_fat": 6.2,
+      "monounsaturated_fat": 7.8,
+      "trans_fat": 0.6,
+      "cholesterol": 51,
+      "sodium": 372,
+      "potassium": 592,
+      "calcium": 153,
+      "iron": 2.3,
+      "vitamin_a": 109,
+      "vitamin_c": 9.2,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Куриные бедра",
+        "quantity": 180,
+        "unit": "г"
+      },
+      {
+        "name": "Картофель",
+        "quantity": 220,
+        "unit": "г"
+      },
+      {
+        "name": "Специи",
+        "quantity": 3,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Замаринуйте курицу.",
+      "Выложите с картофелем на противень.",
+      "Запекайте 40 минут при 190C."
+    ]
+  },
+  {
+    "id": "builtin_064",
+    "name": "Печень куриная с гречкой",
+    "description": "Бюджетное горячее блюдо",
+    "icon": "lunch_dining",
+    "nutrients": {
+      "calories": 440,
+      "protein": 30,
+      "carbs": 42,
+      "fat": 16,
+      "sugar": 14.7,
+      "fiber": 5,
+      "saturated_fat": 5.3,
+      "polyunsaturated_fat": 3.5,
+      "monounsaturated_fat": 4.5,
+      "trans_fat": 0.3,
+      "cholesterol": 48,
+      "sodium": 324,
+      "potassium": 612,
+      "calcium": 145,
+      "iron": 2.2,
+      "vitamin_a": 73,
+      "vitamin_c": 10.4,
+      "vitamin_d": 0.6
+    },
+    "ingredients": [
+      {
+        "name": "Печень куриная",
+        "quantity": 150,
+        "unit": "г"
+      },
+      {
+        "name": "Гречка",
+        "quantity": 70,
+        "unit": "г"
+      },
+      {
+        "name": "Лук",
+        "quantity": 50,
+        "unit": "г"
+      }
+    ],
+    "instructions": [
+      "Отварите гречку.",
+      "Печень обжарьте с луком.",
+      "Подавайте вместе."
     ]
   }
 ]

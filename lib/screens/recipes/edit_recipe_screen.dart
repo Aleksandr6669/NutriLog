@@ -345,6 +345,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (confirmed != true) return;
     await _recipeService.deleteRecipe(widget.recipe!.id);
     if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Рецепт удалён!', style: TextStyle(fontSize: 18)),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+        ),
+      );
       Navigator.pop(context, true);
     }
   }

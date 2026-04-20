@@ -45,10 +45,20 @@ class RecipeLoader {
   };
 
   static Future<List<Recipe>> loadRecipesFromAssets() async {
-    final String response = await rootBundle.loadString('assets/data/recipes.json');
+    final String response =
+        await rootBundle.loadString('assets/data/recipes.json');
     // JSON верхнего уровня - это список, а не объект с ключом 'recipes'
     final List<dynamic> data = await json.decode(response);
-    return data.map((json) => Recipe.fromJson(json)).toList();
+    return data.asMap().entries.map((entry) {
+      final index = entry.key;
+      final source = entry.value as Map<String, dynamic>;
+      final normalized = Map<String, dynamic>.from(source);
+      final rawId = (normalized['id'] as String?)?.trim() ?? '';
+      if (rawId.isEmpty) {
+        normalized['id'] = 'builtin_$index';
+      }
+      return Recipe.fromJson(normalized);
+    }).toList();
   }
 
   static IconData getIcon(String iconName) {
