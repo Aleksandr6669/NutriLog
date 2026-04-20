@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg">
+
+    <TextView
+        android:id="@+id/widgetTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#801A1A1A"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:text="Дневные цели" />
+
+    <TextView
+        android:id="@+id/widgetMainValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="#1A1A1A"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:text="0 ккал" />
+
+    <TextView
+        android:id="@+id/widgetSubValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#881A1A1A"
+        android:textSize="12sp"
+        android:text="Осталось" />
+
+    <TextView
+        android:id="@+id/widgetMeta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#AA1A1A1A"
+        android:textSize="11sp"
+        android:text="Съедено: 0 / 0" />
+
+    <TextView
+        android:id="@+id/widgetMacros"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#AA1A1A1A"
+        android:textSize="12sp"
+        android:text="Белки: 0/0 г&#10;Жиры: 0/0 г&#10;Углеводы: 0/0 г" />
+
+    <TextView
+        android:id="@+id/widgetWater"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#2255C4"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:text="Вода: 0.0 / 0.0 л" />
+</LinearLayout>

@@ -9,6 +9,7 @@ import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
 import '../../models/recipe.dart';
 import '../../services/daily_log_service.dart';
+import '../../services/home_widget_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
@@ -29,6 +30,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
+  final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
 
   late Future<UserProfile> _userProfileFuture;
   DailyLog? _currentDailyLog;
@@ -63,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     try {
       final log = await _logService.getLogForDate(_selectedDay);
+      final profile = await _profileService.loadProfile();
+      await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
       if (mounted) {
         setState(() {
           _currentDailyLog = log;
@@ -71,9 +75,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       await _loadLoggedDates();
     } catch (e) {
+      final profile = await _profileService.loadProfile();
+      final emptyLog = DailyLog.empty(_selectedDay);
+      await _homeWidgetSyncService.syncDailyData(
+          log: emptyLog, profile: profile);
       if (mounted) {
         setState(() {
-          _currentDailyLog = DailyLog.empty(_selectedDay);
+          _currentDailyLog = emptyLog;
           _isLoadingLog = false;
         });
       }

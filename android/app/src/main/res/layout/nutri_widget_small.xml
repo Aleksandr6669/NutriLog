@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/widgetTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#801A1A1A"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:text="NutriLog" />
+
+    <TextView
+        android:id="@+id/widgetMainValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="#1A1A1A"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/widgetSubValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#881A1A1A"
+        android:textSize="12sp"
+        android:text="Осталось ккал" />
+
+    <TextView
+        android:id="@+id/widgetMeta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#AA1A1A1A"
+        android:textSize="11sp"
+        android:text="0 / 0 ккал" />
+</LinearLayout>
