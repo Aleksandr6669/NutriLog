@@ -248,77 +248,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildSettingsMenuCard(theme),
+           _buildSimpleSettingsMenuCard(theme),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsMenuCard(ThemeData theme) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withValues(alpha: 0.13),
-            AppColors.primary.withValues(alpha: 0.05),
-          ],
-        ),
-      ),
-      child: Card(
-        color: Colors.transparent,
-        elevation: 0,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Symbols.settings,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Настройки', style: theme.textTheme.titleLarge),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Symbols.tune,
-                      size: 20, color: AppColors.primary),
-                ),
-                title: const Text('Подключения и сообщения'),
-                subtitle: const Text('Здоровье, аккаунт и push-напоминания'),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: () =>
-                    _navigateTo(const ConnectionsNotificationsScreen()),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+   Widget _buildSimpleSettingsMenuCard(ThemeData theme) {
+     return Card(
+       child: ListTile(
+         leading: const Icon(Symbols.settings),
+         title: const Text('Настройки'),
+         subtitle: const Text('Подключения и сообщения'),
+         trailing: const Icon(Symbols.chevron_right),
+         onTap: () => _navigateTo(const ConnectionsNotificationsScreen()),
+       ),
+     );
   }
 
   void _startEditingName(UserProfile profile) {

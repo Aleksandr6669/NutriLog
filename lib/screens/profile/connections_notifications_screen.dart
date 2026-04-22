@@ -5,7 +5,6 @@ import 'package:nutri_log/services/app_notification_service.dart';
 import 'package:nutri_log/services/health_steps_service.dart';
 import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
-import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class ConnectionsNotificationsScreen extends StatefulWidget {
@@ -105,51 +104,11 @@ class _ConnectionsNotificationsScreenState
     return '$h:$m';
   }
 
-  Widget _buildSectionTitle(ThemeData theme, String title, IconData icon) {
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 20, color: AppColors.primary),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGlassSectionCard({required List<Widget> children}) {
-    return ClipRRect(
-      borderRadius: AppStyles.cardRadius,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surface
-              .withValues(alpha: kGlassSurfaceAlpha),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.18),
-          ),
-          borderRadius: AppStyles.cardRadius,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(children: children),
+  Widget _buildSectionTitle(ThemeData theme, String title) {
+    return Text(
+      title,
+      style: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.w700,
       ),
     );
   }
@@ -177,40 +136,13 @@ class _ConnectionsNotificationsScreenState
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 24),
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: AppStyles.cardRadius,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.18),
-                  AppColors.primary.withValues(alpha: 0.08),
-                ],
-              ),
-            ),
-            child: const Text(
-              'Настройте источники данных и персональные уведомления. Изменения применяются сразу.',
-              style: TextStyle(fontWeight: FontWeight.w600, height: 1.35),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionTitle(theme, 'Подключения', Symbols.hub),
+          _buildSectionTitle(theme, 'Подключения'),
           const SizedBox(height: 10),
-          _buildGlassSectionCard(
-            children: [
+          Card(
+            child: Column(
+              children: [
               ListTile(
-                leading: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Symbols.favorite,
-                      size: 20, color: AppColors.primary),
-                ),
+                leading: const Icon(Symbols.favorite),
                 title: const Text('Приложение здоровья'),
                 subtitle: Text(
                   _healthConnected ? 'Подключено' : 'Не подключено',
@@ -246,16 +178,7 @@ class _ConnectionsNotificationsScreenState
               ),
               const Divider(height: 1),
               ListTile(
-                leading: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child:
-                      const Icon(Symbols.person, size: 20, color: Colors.blue),
-                ),
+                leading: const Icon(Symbols.person),
                 title: const Text('Вход в аккаунт'),
                 subtitle: const Text('Скоро будет доступно'),
                 trailing: const Icon(Symbols.chevron_right),
@@ -268,13 +191,15 @@ class _ConnectionsNotificationsScreenState
                   );
                 },
               ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 18),
-          _buildSectionTitle(theme, 'Сообщения', Symbols.notifications),
+          _buildSectionTitle(theme, 'Сообщения'),
           const SizedBox(height: 10),
-          _buildGlassSectionCard(
-            children: [
+          Card(
+            child: Column(
+              children: [
               SwitchListTile.adaptive(
                 title: const Text('Напоминание о воде'),
                 subtitle: const Text(
@@ -292,21 +217,12 @@ class _ConnectionsNotificationsScreenState
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 child: _settings.waterReminderEnabled
-                    ? Padding(
-                        key: const ValueKey('water_enabled_hint'),
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                          ),
-                          child: const Text(
-                            'Автоплан воды активен: график и количество рассчитываются сами.',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
+                      ? const Padding(
+                          key: ValueKey('water_enabled_hint'),
+                          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: Text(
+                          'Автоплан воды активен: график и количество рассчитываются сами.',
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       )
                     : const SizedBox(key: ValueKey('water_disabled_hint')),
@@ -329,7 +245,6 @@ class _ConnectionsNotificationsScreenState
                     ? Column(
                         children: [
                           ListTile(
-                            leading: const Icon(Symbols.wb_twilight),
                             title: const Text('Завтрак'),
                             subtitle:
                                 Text(_formatTime(_settings.breakfastTime)),
@@ -342,7 +257,6 @@ class _ConnectionsNotificationsScreenState
                             ),
                           ),
                           ListTile(
-                            leading: const Icon(Symbols.sunny),
                             title: const Text('Обед'),
                             subtitle: Text(_formatTime(_settings.lunchTime)),
                             trailing: const Icon(Symbols.edit),
@@ -354,7 +268,6 @@ class _ConnectionsNotificationsScreenState
                             ),
                           ),
                           ListTile(
-                            leading: const Icon(Symbols.nights_stay),
                             title: const Text('Ужин'),
                             subtitle: Text(_formatTime(_settings.dinnerTime)),
                             trailing: const Icon(Symbols.edit),
@@ -369,7 +282,8 @@ class _ConnectionsNotificationsScreenState
                       )
                     : const SizedBox.shrink(),
               ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           Text(
