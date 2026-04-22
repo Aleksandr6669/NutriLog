@@ -50,16 +50,12 @@ class _ConnectionsNotificationsScreenState
     setState(() => _connectingHealth = true);
 
     try {
-      final connected = await _healthStepsService.connect();
+      final result = await _healthStepsService.connectWithStatus();
       if (!mounted) return;
-      setState(() => _healthConnected = connected);
+      setState(() => _healthConnected = result.isConnected);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            connected
-                ? 'Источник здоровья подключен.'
-                : 'Не удалось подключить Здоровье. Проверьте доступ в приложении Здоровье и разрешения iPhone.',
-          ),
+          content: Text(result.message),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -75,17 +71,33 @@ class _ConnectionsNotificationsScreenState
   }
 
   Future<void> _saveNotificationSettings(NotificationSettings settings) async {
+    final previous = _settings;
     _settings = settings;
     setState(() {});
+
     try {
-      await _settingsService.save(settings);
       await _notificationService.applySettings(settings);
+      await _settingsService.save(settings);
+    } on NotificationPermissionDeniedException catch (error) {
+      _settings = previous;
+      if (mounted) setState(() {});
+      await _settingsService.save(previous);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (_) {
+      _settings = previous;
+      if (mounted) setState(() {});
+      await _settingsService.save(previous);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках iPhone.',
+            'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках телефона.',
           ),
           behavior: SnackBarBehavior.floating,
         ),

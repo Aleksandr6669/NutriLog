@@ -71,11 +71,20 @@ void main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    _reportFatalAppError(
-      'Ошибка Flutter во время запуска интерфейса',
-      details.exception,
-      details.stack,
-    );
+
+    // Не переводим всё приложение в фатальный экран из-за локальных ошибок
+    // (например, жесты выделения текста в одном конкретном виджете).
+    // Фатальными считаем только uncaught zone/platform ошибки.
+    debugPrint('FLUTTER_ERROR: ${details.exceptionAsString()}');
+    if (details.stack != null) {
+      final lines = details.stack
+          .toString()
+          .split('\n')
+          .where((line) => line.trim().isNotEmpty)
+          .take(6)
+          .join('\n');
+      debugPrint(lines);
+    }
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -500,7 +509,7 @@ class _FatalErrorScreen extends StatelessWidget {
                         color: const Color(0xFFE8DDD5),
                       ),
                     ),
-                    child: SelectableText(
+                    child: Text(
                       message,
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontFamily: 'monospace',
