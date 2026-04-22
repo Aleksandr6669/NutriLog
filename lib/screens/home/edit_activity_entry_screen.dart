@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/daily_log.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class EditActivityEntryScreen extends StatefulWidget {
   final ActivityEntry? entry;
@@ -58,8 +59,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.grey.shade50,
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         title: Text(isEdit ? 'Редактировать активность' : 'Новая активность'),
         actions: [
           IconButton(
@@ -72,7 +73,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: glassBodyPadding(context, top: 16, bottom: 16),
           child: Column(
             children: [
               Card(

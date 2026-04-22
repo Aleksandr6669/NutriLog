@@ -5,8 +5,10 @@ import 'package:nutri_log/screens/profile/edit_general_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
+import 'package:nutri_log/services/health_steps_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,7 +20,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _profileService = ProfileService();
   final DailyLogService _dailyLogService = DailyLogService();
+  final HealthStepsService _healthStepsService = HealthStepsService();
   late Future<UserProfile> _profileFuture;
+  bool _isHealthConnected = false;
+  bool _isConnectingHealth = false;
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
@@ -42,11 +47,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+    _loadHealthConnectionState();
     _nameFocusNode.addListener(() {
       if (!_nameFocusNode.hasFocus && _isEditingName) {
         _saveNameFromController();
       }
     });
+  }
+
+  Future<void> _loadHealthConnectionState() async {
+    final connected = await _healthStepsService.isConnected();
+    if (!mounted) return;
+    setState(() {
+      _isHealthConnected = connected;
+    });
+  }
+
+  Future<void> _connectHealth() async {
+    if (_isConnectingHealth) return;
+    setState(() => _isConnectingHealth = true);
+
+    try {
+      final connected = await _healthStepsService.connect();
+      if (!mounted) return;
+
+      setState(() {
+        _isHealthConnected = connected;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            connected
+                ? 'Источник здоровья подключен. Шаги будут синхронизироваться автоматически.'
+                : 'Не удалось подключить источник здоровья.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isConnectingHealth = false);
+      }
+    }
   }
 
   @override
@@ -154,7 +197,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
+        flexibleSpace: const GlassAppBarBackground(),
         title: const Text('Профиль'),
         centerTitle: true,
       ),
@@ -185,7 +235,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : profile.weightGoal.toStringAsFixed(1);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      padding: glassBodyPadding(
+        context,
+        top: 16,
+        bottom: 120,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -237,9 +291,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Symbols.login),
-              label: const Text('Авторизация'),
+              onPressed: _isConnectingHealth ? null : _connectHealth,
+              icon: _isConnectingHealth
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      _isHealthConnected ? Symbols.check_circle : Symbols.link,
+                    ),
+              label: Text(
+                _isHealthConnected
+                    ? 'Источник здоровья подключен'
+                    : 'Подключить источник здоровья',
+              ),
               style: ElevatedButton.styleFrom(
                 foregroundColor: theme.colorScheme.primary,
                 backgroundColor: Colors.transparent,

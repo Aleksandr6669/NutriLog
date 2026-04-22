@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   final Recipe recipe;
@@ -29,9 +30,8 @@ class RecipeDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.grey.shade50,
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -56,7 +56,13 @@ class RecipeDetailScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: glassBodyPadding(
+          context,
+          left: 16,
+          top: 8,
+          right: 16,
+          bottom: 8,
+        ),
         child: Column(
           children: [
             _buildHeader(context),

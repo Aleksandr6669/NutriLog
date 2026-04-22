@@ -6,6 +6,7 @@ import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class EditGoalsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -143,7 +144,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         title: const Text('Дневные цели'),
         actions: [
           IconButton(
@@ -156,7 +158,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: glassBodyPadding(context, top: 16, bottom: 16),
           child: Column(
             children: [
               Card(

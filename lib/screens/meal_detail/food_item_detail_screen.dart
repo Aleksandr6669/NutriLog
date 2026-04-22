@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/food_item.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 
 class FoodItemDetailScreen extends StatelessWidget {
   final FoodItem item;
@@ -11,11 +12,10 @@ class FoodItemDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(item.name),
-      ),
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(title: Text(item.name)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: glassBodyPadding(context, top: 16, bottom: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

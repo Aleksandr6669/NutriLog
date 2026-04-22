@@ -5,6 +5,7 @@ import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class EditGeneralGoalsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -64,7 +65,8 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         title: const Text('Общие цели'),
         actions: [
           IconButton(
@@ -77,7 +79,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: glassBodyPadding(context, top: 16, bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

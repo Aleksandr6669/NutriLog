@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../models/user_profile.dart';
 import '../../services/daily_log_service.dart';
 import '../../styles/app_colors.dart';
+import '../../widgets/glass_app_bar_background.dart';
 
 class WeightEntryScreen extends StatefulWidget {
   final DateTime date;
@@ -61,7 +62,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
         : 'Сохранено за $dateText: ${widget.currentWeight!.toStringAsFixed(1)} кг';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Вес')),
+      appBar: buildGlassAppBar(title: const Text('Вес')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

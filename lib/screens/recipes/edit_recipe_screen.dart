@@ -6,6 +6,7 @@ import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class EditRecipeScreen extends StatefulWidget {
   final Recipe? recipe;
@@ -439,9 +440,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context)),
@@ -459,7 +459,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: glassBodyPadding(
+            context,
+            left: 16,
+            top: 8,
+            right: 16,
+            bottom: 8,
+          ),
           child: Column(
             children: [
               _buildMainInfoCard(),

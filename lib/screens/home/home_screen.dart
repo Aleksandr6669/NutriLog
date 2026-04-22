@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -9,10 +10,12 @@ import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
 import '../../models/recipe.dart';
 import '../../services/daily_log_service.dart';
+import '../../services/health_steps_service.dart';
 import '../../services/home_widget_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 import '../meal_detail/meal_detail_screen.dart';
 import '../../models/food_item.dart';
 import '../recipes/recipes_screen.dart';
@@ -31,10 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
   final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
+  final HealthStepsService _healthStepsService = HealthStepsService();
 
   late Future<UserProfile> _userProfileFuture;
   DailyLog? _currentDailyLog;
   bool _isLoadingLog = true;
+  bool _isSyncingSteps = false;
+  bool _isHealthConnected = false;
 
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
@@ -46,8 +52,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _userProfileFuture = _profileService.loadProfile();
+    _refreshHealthConnectionState();
     _loadLogForSelectedDate();
     _loadLoggedDates();
+  }
+
+  Future<void> _refreshHealthConnectionState() async {
+    final connected = await _healthStepsService.isConnected();
+    if (!mounted) return;
+    setState(() {
+      _isHealthConnected = connected;
+    });
   }
 
   Future<void> _loadLoggedDates() async {
@@ -71,6 +86,23 @@ class _HomeScreenState extends State<HomeScreen> {
       log = await _logService.getLogForDate(_selectedDay);
     } catch (_) {
       log = DailyLog.empty(_selectedDay);
+    }
+
+    try {
+      final connected = await _healthStepsService.isConnected();
+      if (mounted) {
+        setState(() {
+          _isHealthConnected = connected;
+        });
+      }
+    } catch (_) {
+      // Проверка статуса подключения вторична.
+    }
+
+    try {
+      log = await _syncStepsIfConnected(log);
+    } catch (_) {
+      // Автосинк шагов не должен ломать загрузку дневника.
     }
 
     try {
@@ -100,6 +132,150 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       // На web/desktop или при недоступном плагине синк может падать.
     }
+  }
+
+  Future<DailyLog> _syncStepsIfConnected(DailyLog currentLog) async {
+    if (_isSyncingSteps) return currentLog;
+    _isSyncingSteps = true;
+
+    try {
+      final steps = await _healthStepsService.fetchStepsForDate(_selectedDay);
+      if (steps == null || steps == currentLog.steps) return currentLog;
+
+      await _logService.setSteps(_selectedDay, steps: steps);
+      return currentLog.copyWith(steps: steps);
+    } finally {
+      _isSyncingSteps = false;
+    }
+  }
+
+  Future<void> _setStepsManually() async {
+    final theme = Theme.of(context);
+    final controller = TextEditingController(
+      text: (_currentDailyLog?.steps ?? 0).toString(),
+    );
+
+    final manualSteps = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        String? errorText;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 12,
+                right: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+              ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'Ручной ввод шагов',
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Количество шагов',
+                          hintText: 'Например, 8500',
+                          errorText: errorText,
+                          filled: true,
+                          fillColor: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.45),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onSubmitted: (_) {
+                          final parsed = int.tryParse(controller.text.trim());
+                          if (parsed == null || parsed < 0) {
+                            setSheetState(() {
+                              errorText =
+                                  'Введите корректное число (0 или больше)';
+                            });
+                            return;
+                          }
+                          Navigator.of(context).pop(parsed);
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Отмена'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () {
+                                final parsed =
+                                    int.tryParse(controller.text.trim());
+                                if (parsed == null || parsed < 0) {
+                                  setSheetState(() {
+                                    errorText =
+                                        'Введите корректное число (0 или больше)';
+                                  });
+                                  return;
+                                }
+                                Navigator.of(context).pop(parsed);
+                              },
+                              child: const Text('Сохранить'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (manualSteps == null) return;
+
+    await _logService.setSteps(_selectedDay, steps: manualSteps);
+    await _loadLogForSelectedDate();
   }
 
   bool _isLoggedDay(DateTime day) {
@@ -188,7 +364,14 @@ class _HomeScreenState extends State<HomeScreen> {
         final userProfile = userSnapshot.data!;
 
         return Scaffold(
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            forceMaterialTransparency: true,
+            flexibleSpace: const GlassAppBarBackground(),
             titleSpacing: 16,
             title: InkWell(
               onTap: _toggleCalendarVisibility,
@@ -234,7 +417,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   : _currentDailyLog == null
                       ? const Center(child: Text('Нет данных для этой даты.'))
                       : SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                          padding: glassBodyPadding(
+                            context,
+                            top: 16,
+                            bottom: 120,
+                          ),
                           child: Column(
                             children: [
                               _CaloriesCard(
@@ -250,6 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 profile: userProfile,
                                 onDataChanged: _loadLogForSelectedDate,
                                 selectedDate: _selectedDay,
+                                showManualStepsInput: !_isHealthConnected,
+                                onManualStepsInput: _setStepsManually,
                               ),
                             ],
                           ),
@@ -274,18 +463,15 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: _toggleCalendarVisibility,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                  child: Container(
-                    color: Colors.black.withAlpha(38),
-                  ),
-                ),
+                child: const ColoredBox(color: Colors.transparent),
               ),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOut,
-              top: _isCalendarVisible ? 0 : -400,
+              top: _isCalendarVisible
+                  ? glassAppBarTotalHeight(context) - 12
+                  : -400,
               left: 16,
               right: 16,
               child: _buildCalendarWidget(),
@@ -297,122 +483,106 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCalendarWidget() {
-    return Card(
-      elevation: 10,
-      shadowColor: Colors.black.withAlpha(76),
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
-      child: TableCalendar(
-        locale: 'ru_RU',
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: _focusedDay,
-        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-        onDaySelected: _onDaySelected,
-        calendarFormat: CalendarFormat.month,
-        startingDayOfWeek: StartingDayOfWeek.monday,
-        eventLoader: (day) => _isLoggedDay(day) ? ['logged'] : [],
-        headerStyle: const HeaderStyle(
-          titleCentered: true,
-          formatButtonVisible: false,
-          leftChevronIcon: Icon(Symbols.chevron_left, color: AppColors.primary),
-          rightChevronIcon:
-              Icon(Symbols.chevron_right, color: AppColors.primary),
-        ),
-        calendarStyle: const CalendarStyle(
-          todayDecoration: BoxDecoration(
-            color: Color.fromARGB(76, 51, 102, 255),
-            shape: BoxShape.circle,
-          ),
-          selectedDecoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-        ),
-        calendarBuilders: CalendarBuilders(
-          markerBuilder: (context, date, events) {
-            return const SizedBox.shrink();
-          },
-          defaultBuilder: (context, day, focusedDay) {
-            if (!_isLoggedDay(day)) return null;
+    final theme = Theme.of(context);
 
-            return Center(
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withAlpha(90),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppStyles.largeBorderRadius,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.14),
+            blurRadius: 28,
+            spreadRadius: -8,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: AppStyles.largeBorderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14.0, sigmaY: 14.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.9),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            child: TableCalendar(
+              locale: 'ru_RU',
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: _onDaySelected,
+              calendarFormat: CalendarFormat.month,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              eventLoader: (day) => _isLoggedDay(day) ? ['logged'] : [],
+              headerStyle: const HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
+                leftChevronIcon:
+                    Icon(Symbols.chevron_left, color: AppColors.primary),
+                rightChevronIcon:
+                    Icon(Symbols.chevron_right, color: AppColors.primary),
+              ),
+              calendarStyle: const CalendarStyle(
+                todayDecoration: BoxDecoration(
+                  color: Color.fromARGB(76, 51, 102, 255),
                   shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Text(
-                    '${day.day}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          selectedBuilder: (context, day, focusedDay) {
-            return Center(
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
+                selectedDecoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Text(
-                    '${day.day}',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
               ),
-            );
-          },
-          todayBuilder: (context, day, focusedDay) {
-            if (_isLoggedDay(day)) {
-              return Center(
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withAlpha(90),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  return const SizedBox.shrink();
+                },
+                defaultBuilder: (context, day, focusedDay) {
+                  if (!_isLoggedDay(day)) return null;
+
+                  return Center(
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withAlpha(90),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            }
-
-            return Center(
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withAlpha(40),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${day.day}',
-                    style: const TextStyle().copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                  );
+                },
+                selectedBuilder: (context, day, focusedDay) {
+                  return Center(
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -577,12 +747,16 @@ class _MealsSection extends StatelessWidget {
   final UserProfile profile;
   final Future<void> Function() onDataChanged;
   final DateTime selectedDate;
+  final bool showManualStepsInput;
+  final Future<void> Function() onManualStepsInput;
 
   const _MealsSection({
     required this.dailyLog,
     required this.profile,
     required this.onDataChanged,
     required this.selectedDate,
+    required this.showManualStepsInput,
+    required this.onManualStepsInput,
   });
 
   @override
@@ -651,6 +825,8 @@ class _MealsSection extends StatelessWidget {
           profile: profile,
           selectedDate: selectedDate,
           onDataChanged: onDataChanged,
+          showManualStepsInput: showManualStepsInput,
+          onManualStepsInput: onManualStepsInput,
         ),
       ],
     );
@@ -811,65 +987,137 @@ class _ActivityWeightRow extends StatelessWidget {
   final UserProfile profile;
   final DateTime selectedDate;
   final Future<void> Function() onDataChanged;
+  final bool showManualStepsInput;
+  final Future<void> Function() onManualStepsInput;
 
   const _ActivityWeightRow({
     required this.dailyLog,
     required this.profile,
     required this.selectedDate,
     required this.onDataChanged,
+    required this.showManualStepsInput,
+    required this.onManualStepsInput,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _ActionInfoCard(
-            title: 'Активность',
-            value: '${dailyLog.activityCalories} ккал',
-            icon: Symbols.fitness_center,
-            iconColor: Colors.orange,
-            onTap: () async {
-              final result = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => ActivityLogScreen(
-                    date: selectedDate,
-                    initialActivities: dailyLog.activities,
-                  ),
-                ),
-              );
-              if (result == true) {
-                await onDataChanged();
-              }
-            },
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _ActionInfoCard(
+                title: 'Активность',
+                value: '${dailyLog.activityCalories} ккал',
+                icon: Symbols.fitness_center,
+                iconColor: Colors.orange,
+                onTap: () async {
+                  final result = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => ActivityLogScreen(
+                        date: selectedDate,
+                        initialActivities: dailyLog.activities,
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    await onDataChanged();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ActionInfoCard(
+                title: 'Вес',
+                value: dailyLog.weight == null
+                    ? 'Не указан'
+                    : '${dailyLog.weight!.toStringAsFixed(1)} кг',
+                icon: Symbols.monitor_weight,
+                iconColor: Colors.indigo,
+                onTap: () async {
+                  final result = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => WeightEntryScreen(
+                        date: selectedDate,
+                        currentWeight: dailyLog.weight,
+                        profile: profile,
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    await onDataChanged();
+                  }
+                },
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _ActionInfoCard(
-            title: 'Вес',
-            value: dailyLog.weight == null
-                ? 'Не указан'
-                : '${dailyLog.weight!.toStringAsFixed(1)} кг',
-            icon: Symbols.monitor_weight,
-            iconColor: Colors.indigo,
-            onTap: () async {
-              final result = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => WeightEntryScreen(
-                    date: selectedDate,
-                    currentWeight: dailyLog.weight,
-                    profile: profile,
-                  ),
-                ),
-              );
-              if (result == true) {
-                await onDataChanged();
-              }
-            },
-          ),
+        const SizedBox(height: 12),
+        _StepsInfoCard(
+          steps: dailyLog.steps,
+          showManualInput: showManualStepsInput,
+          onManualInput: onManualStepsInput,
         ),
       ],
+    );
+  }
+}
+
+class _StepsInfoCard extends StatelessWidget {
+  final int steps;
+  final bool showManualInput;
+  final Future<void> Function() onManualInput;
+
+  const _StepsInfoCard({
+    required this.steps,
+    required this.showManualInput,
+    required this.onManualInput,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(25),
+                borderRadius: AppStyles.mediumBorderRadius,
+              ),
+              child: const Icon(Symbols.footprint, color: AppColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Шагомер',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 2),
+                  Text('$steps шагов', style: theme.textTheme.titleMedium),
+                ],
+              ),
+            ),
+            if (showManualInput)
+              TextButton.icon(
+                onPressed: onManualInput,
+                icon: const Icon(Symbols.edit, size: 18),
+                label: const Text('Ввести'),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

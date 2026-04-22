@@ -7,6 +7,7 @@ import 'package:nutri_log/services/daily_log_service.dart';
 import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealName;
@@ -140,7 +141,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
+        extendBodyBehindAppBar: true,
+        appBar: buildGlassAppBar(
           title: Text(widget.mealName),
           centerTitle: true,
           leading: IconButton(
@@ -157,7 +159,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: glassBodyPadding(context, top: 16, bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

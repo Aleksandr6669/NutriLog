@@ -273,6 +273,12 @@ class DailyLogService {
     await _saveLog(currentLog.copyWith(waterIntake: nextValue));
   }
 
+  Future<void> setSteps(DateTime date, {required int steps}) async {
+    final currentLog = await getLogForDate(date);
+    final nextSteps = steps < 0 ? 0 : steps;
+    await _saveLog(currentLog.copyWith(steps: nextSteps));
+  }
+
   Future<void> addActivity(
     DateTime date, {
     required String name,
