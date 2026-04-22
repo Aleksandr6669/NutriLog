@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
@@ -292,8 +294,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _toggleDeleteSelectionMode() {
     setState(() {
       _isDeleteSelectionMode = !_isDeleteSelectionMode;
-      if (!_isDeleteSelectionMode) {
+
+      // Когда входим в режим удаления, очищаем поиск и показываем все рецепты
+      if (_isDeleteSelectionMode) {
+        _searchController.clear();
+        _filteredRecipes = _allRecipes;
+      } else {
         _selectedRecipeIdsForDelete.clear();
+        // Восстанавливаем фильтрацию по текущему поисковому запросу
+        _filterRecipes();
       }
     });
   }
@@ -370,107 +379,148 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _showCreateRecipeMenu() async {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showGeneralDialog<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
+      barrierLabel: 'Закрыть',
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.10),
+      pageBuilder: (context, animation, secondaryAnimation) {
         final theme = Theme.of(context);
         final optionBg = theme.brightness == Brightness.dark
             ? AppColors.cardDark
             : Colors.white;
+
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: optionBg,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(8, 4, 8, 10),
-                          child: Text(
-                            'Как создать рецепт?',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(8, 0, 8, 12),
-                          child: Text(
-                            'Выберите удобный способ и продолжайте в редакторе.',
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
-                          ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.orange.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: const Text(
-                            'Нейросеть может ошибаться примерно на 10%. Проверьте результат перед сохранением.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        _CreateRecipeOptionTile(
-                          icon: Symbols.photo_camera,
-                          title: 'По фото блюда',
-                          subtitle: 'Распознать ингредиенты с фото',
-                          onTap: () => Navigator.of(context).pop('photo'),
-                        ),
-                        const SizedBox(height: 8),
-                        _CreateRecipeOptionTile(
-                          icon: Symbols.edit_note,
-                          title: 'По описанию',
-                          subtitle: 'Сгенерировать по текстовому описанию',
-                          onTap: () => Navigator.of(context).pop('description'),
-                        ),
-                        const SizedBox(height: 8),
-                        _CreateRecipeOptionTile(
-                          icon: Symbols.draw,
-                          title: 'Вручную',
-                          subtitle: 'Открыть форму создания рецепта',
-                          onTap: () => Navigator.of(context).pop('manual'),
-                        ),
-                      ],
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.08),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: GestureDetector(
+                  onTap: () {},
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                    child: Material(
+                      color: optionBg,
+                      borderRadius: BorderRadius.circular(24),
+                      elevation: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.fromLTRB(8, 4, 8, 10),
+                                child: Text(
+                                  'Как создать рецепт?',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.fromLTRB(8, 0, 8, 12),
+                                child: Text(
+                                  'Выберите удобный способ и продолжайте в редакторе.',
+                                  style: TextStyle(
+                                      fontSize: 13, color: Colors.grey),
+                                ),
+                              ),
+                              Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.orange.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Нейросеть может ошибаться примерно на 10%. Проверьте результат перед сохранением.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              _CreateRecipeOptionTile(
+                                icon: Symbols.photo_camera,
+                                title: 'По фото блюда',
+                                subtitle: 'Распознать ингредиенты с фото',
+                                onTap: () => Navigator.of(context).pop('photo'),
+                              ),
+                              const SizedBox(height: 8),
+                              _CreateRecipeOptionTile(
+                                icon: Symbols.edit_note,
+                                title: 'По описанию',
+                                subtitle:
+                                    'Сгенерировать по текстовому описанию',
+                                onTap: () =>
+                                    Navigator.of(context).pop('description'),
+                              ),
+                              const SizedBox(height: 8),
+                              _CreateRecipeOptionTile(
+                                icon: Symbols.draw,
+                                title: 'Вручную',
+                                subtitle: 'Открыть форму создания рецепта',
+                                onTap: () =>
+                                    Navigator.of(context).pop('manual'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 220),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
           ),
         );
       },
@@ -631,8 +681,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Align(
-                  alignment: Alignment.center,
+                child: SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _selectedRecipeIdsForDelete.isEmpty
                         ? null
