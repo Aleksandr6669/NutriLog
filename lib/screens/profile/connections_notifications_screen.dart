@@ -25,6 +25,7 @@ class _ConnectionsNotificationsScreenState
   bool _healthConnected = false;
   bool _connectingHealth = false;
   bool _sendingTestNotification = false;
+  bool _runningDiagnostics = false;
   late NotificationSettings _settings;
 
   @override
@@ -143,6 +144,44 @@ class _ConnectionsNotificationsScreenState
         backgroundColor: backgroundColor,
       ),
     );
+  }
+
+  Future<void> _runDiagnostics() async {
+    if (_runningDiagnostics) return;
+    setState(() => _runningDiagnostics = true);
+
+    try {
+      final health = await _healthStepsService.diagnosticsForToday();
+      final pending = await _notificationService.getPendingReminderCount();
+      final timezone = _notificationService.getCurrentTimezoneName();
+
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Диагностика'),
+          content: Text(
+            'Здоровье: ${health.message}\n\n'
+            'Уведомления: запланировано $pending\n'
+            'Часовой пояс: $timezone',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Закрыть'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(
+        'Не удалось выполнить диагностику. Попробуйте еще раз.',
+        backgroundColor: Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) setState(() => _runningDiagnostics = false);
+    }
   }
 
   Future<void> _pickTime(
@@ -361,6 +400,27 @@ class _ConnectionsNotificationsScreenState
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text('Отправить'),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.stethoscope),
+                  title: const Text('Диагностика'),
+                  subtitle:
+                      const Text('Показать статус здоровья и уведомлений'),
+                  trailing: FilledButton(
+                    onPressed: _runningDiagnostics ? null : _runDiagnostics,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _runningDiagnostics
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Проверить'),
                   ),
                 ),
               ],

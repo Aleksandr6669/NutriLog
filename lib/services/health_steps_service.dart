@@ -138,4 +138,39 @@ class HealthStepsService {
       return null;
     }
   }
+
+  Future<HealthConnectResult> diagnosticsForToday() async {
+    try {
+      await _ensureConfigured();
+
+      final connected = await isConnected();
+      if (!connected) {
+        return const HealthConnectResult(
+          status: HealthConnectStatus.permissionDenied,
+          message: 'Источник здоровья не подключен в приложении NutriLog.',
+        );
+      }
+
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final steps = await _health.getTotalStepsInInterval(startOfDay, now);
+      if (steps == null) {
+        return const HealthConnectResult(
+          status: HealthConnectStatus.connected,
+          message:
+              'Источник подключен, но шаги за сегодня пока не получены (null). Проверьте наличие шагов в приложении Здоровье/Health Connect.',
+        );
+      }
+
+      return HealthConnectResult(
+        status: HealthConnectStatus.connected,
+        message: 'Источник подключен. Шаги за сегодня: $steps.',
+      );
+    } catch (error) {
+      return HealthConnectResult(
+        status: HealthConnectStatus.failed,
+        message: 'Диагностика здоровья завершилась ошибкой: $error',
+      );
+    }
+  }
 }
