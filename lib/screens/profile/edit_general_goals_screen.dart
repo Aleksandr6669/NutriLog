@@ -21,7 +21,10 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
   final _profileService = ProfileService();
 
   late TextEditingController _weightGoalController;
+  late TextEditingController _activityTypesController;
+  late TextEditingController _aiContextController;
   late GoalType _goalType;
+  late ActivityFrequency _activityFrequency;
 
   @override
   void initState() {
@@ -29,12 +32,21 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
     _weightGoalController = TextEditingController(
       text: widget.profile.weightGoal.toString(),
     );
+    _activityTypesController = TextEditingController(
+      text: widget.profile.activityTypes,
+    );
+    _aiContextController = TextEditingController(
+      text: widget.profile.aiContext,
+    );
     _goalType = widget.profile.goalType;
+    _activityFrequency = widget.profile.activityFrequency;
   }
 
   @override
   void dispose() {
     _weightGoalController.dispose();
+    _activityTypesController.dispose();
+    _aiContextController.dispose();
     super.dispose();
   }
 
@@ -43,6 +55,9 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
       final updatedProfile = widget.profile.copyWith(
         weightGoal: double.parse(_weightGoalController.text),
         goalType: _goalType,
+        activityFrequency: _activityFrequency,
+        activityTypes: _activityTypesController.text.trim(),
+        aiContext: _aiContextController.text.trim(),
       );
 
       await _profileService.saveProfile(updatedProfile);
@@ -135,6 +150,32 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
               ),
               const SizedBox(height: 16),
               _buildGoalTypeSelector(context),
+              const SizedBox(height: 16),
+              _buildActivityFrequencySelector(context),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _activityTypesController,
+                decoration: AppStyles.inputDecoration(
+                  'Каким спортом/активностью занимаетесь',
+                  Symbols.fitness_center,
+                ).copyWith(
+                  hintText: 'Можно оставить пустым',
+                ),
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _aiContextController,
+                maxLines: 3,
+                decoration: AppStyles.inputDecoration(
+                  'Дополнительно для нейросети',
+                  Symbols.psychology,
+                ).copyWith(
+                  hintText:
+                      'Например: сидячая работа, вечерние тренировки, ограничения в питании. Можно оставить пустым.',
+                ),
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ],
           ),
         ),
@@ -165,6 +206,36 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
               .map((goal) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _buildGoalTypeCard(theme, goal),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityFrequencySelector(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Symbols.fitness_center, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Частота активности',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Column(
+          children: ActivityFrequency.values
+              .map((activity) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildActivityCard(theme, activity),
                   ))
               .toList(),
         ),
@@ -243,6 +314,77 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
     );
   }
 
+  Widget _buildActivityCard(ThemeData theme, ActivityFrequency activity) {
+    final isSelected = _activityFrequency == activity;
+    final backgroundColor = isSelected
+        ? AppColors.primary.withValues(alpha: 0.14)
+        : (theme.brightness == Brightness.dark
+            ? Colors.grey.shade900
+            : Colors.grey.shade50);
+    final borderColor = isSelected
+        ? AppColors.primary
+        : (theme.brightness == Brightness.dark
+            ? Colors.grey.shade700
+            : Colors.grey.shade300);
+    final titleColor =
+        isSelected ? AppColors.primary : theme.colorScheme.onSurface;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => setState(() => _activityFrequency = activity),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.18),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(_activityIcon(activity), color: titleColor, size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    activity.ruLabel,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              activity.ruHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _goalTypeIcon(GoalType goal) {
     switch (goal) {
       case GoalType.loseWeight:
@@ -255,6 +397,21 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
         return Symbols.eco;
       case GoalType.energetic:
         return Symbols.bolt;
+    }
+  }
+
+  IconData _activityIcon(ActivityFrequency activity) {
+    switch (activity) {
+      case ActivityFrequency.sedentary:
+        return Symbols.airline_seat_recline_normal;
+      case ActivityFrequency.light:
+        return Symbols.directions_walk;
+      case ActivityFrequency.moderate:
+        return Symbols.directions_run;
+      case ActivityFrequency.active:
+        return Symbols.fitness_center;
+      case ActivityFrequency.veryActive:
+        return Symbols.military_tech;
     }
   }
 }

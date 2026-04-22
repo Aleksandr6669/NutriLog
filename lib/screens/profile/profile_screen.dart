@@ -4,8 +4,8 @@ import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/screens/profile/edit_general_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
 import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
+import 'package:nutri_log/screens/profile/connections_notifications_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
-import 'package:nutri_log/services/health_steps_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
@@ -20,10 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _profileService = ProfileService();
   final DailyLogService _dailyLogService = DailyLogService();
-  final HealthStepsService _healthStepsService = HealthStepsService();
   late Future<UserProfile> _profileFuture;
-  bool _isHealthConnected = false;
-  bool _isConnectingHealth = false;
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
@@ -47,49 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
-    _loadHealthConnectionState();
     _nameFocusNode.addListener(() {
       if (!_nameFocusNode.hasFocus && _isEditingName) {
         _saveNameFromController();
       }
     });
-  }
-
-  Future<void> _loadHealthConnectionState() async {
-    final connected = await _healthStepsService.isConnected();
-    if (!mounted) return;
-    setState(() {
-      _isHealthConnected = connected;
-    });
-  }
-
-  Future<void> _connectHealth() async {
-    if (_isConnectingHealth) return;
-    setState(() => _isConnectingHealth = true);
-
-    try {
-      final connected = await _healthStepsService.connect();
-      if (!mounted) return;
-
-      setState(() {
-        _isHealthConnected = connected;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            connected
-                ? 'Источник здоровья подключен. Шаги будут синхронизироваться автоматически.'
-                : 'Не удалось подключить источник здоровья.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isConnectingHealth = false);
-      }
-    }
   }
 
   @override
@@ -289,32 +248,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: _isConnectingHealth ? null : _connectHealth,
-              icon: _isConnectingHealth
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      _isHealthConnected ? Symbols.check_circle : Symbols.link,
-                    ),
-              label: Text(
-                _isHealthConnected
-                    ? 'Источник здоровья подключен'
-                    : 'Подключить источник здоровья',
-              ),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: theme.colorScheme.primary,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-              ),
-            ),
-          ),
+          _buildSettingsMenuCard(theme),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsMenuCard(ThemeData theme) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.13),
+            AppColors.primary.withValues(alpha: 0.05),
+          ],
+        ),
+      ),
+      child: Card(
+        color: Colors.transparent,
+        elevation: 0,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Symbols.settings,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text('Настройки', style: theme.textTheme.titleLarge),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Symbols.tune,
+                      size: 20, color: AppColors.primary),
+                ),
+                title: const Text('Подключения и сообщения'),
+                subtitle: const Text('Здоровье, аккаунт и push-напоминания'),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () =>
+                    _navigateTo(const ConnectionsNotificationsScreen()),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
