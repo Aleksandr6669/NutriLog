@@ -20,6 +20,13 @@ import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
 
+final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
+
+void _reportStartupWarning(String message) {
+  if (_startupWarningMessage.value == message) return;
+  _startupWarningMessage.value = message;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -34,12 +41,14 @@ Future<void> _bootstrapServices() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {
     // .env может отсутствовать в локальной среде.
+    _reportStartupWarning('Не удалось загрузить .env. AI-функции могут быть недоступны.');
   }
 
   try {
     await initializeDateFormatting('ru_RU', null);
   } catch (_) {
     // Не блокируем запуск приложения из-за локализации дат.
+    _reportStartupWarning('Локализация дат не инициализировалась. Форматы дат могут быть упрощены.');
   }
 
   if (!kIsWeb) {
@@ -51,6 +60,7 @@ Future<void> _bootstrapServices() async {
       await notificationService.applySettings(settings);
     } catch (_) {
       // Плагины уведомлений не должны ломать старт UI.
+      _reportStartupWarning('Не удалось поднять уведомления. Приложение запущено в безопасном режиме.');
     }
   }
 }
@@ -74,6 +84,24 @@ class MyApp extends StatelessWidget {
         Locale('ru', 'RU'),
         Locale('en', 'US'),
       ],
+      builder: (context, child) {
+        final content = child ?? const SizedBox.shrink();
+        return ValueListenableBuilder<String?>(
+          valueListenable: _startupWarningMessage,
+          builder: (context, warningMessage, _) {
+            return Stack(
+              children: [
+                content,
+                if (warningMessage != null)
+                  _StartupWarningBanner(
+                    message: warningMessage,
+                    onClose: () => _startupWarningMessage.value = null,
+                  ),
+              ],
+            );
+          },
+        );
+      },
       home: const AppBootstrapScreen(),
     );
   }
@@ -103,6 +131,9 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
       state = await _startupService.loadState();
     } catch (_) {
       // Защита от зависания стартового экрана при сбое plugin/prefs.
+      _reportStartupWarning(
+        'Стартовые данные не загрузились. Приложение открылось без онбординга и уведомлений о новой версии.',
+      );
       state = const StartupState(
         needsOnboarding: false,
         whatsNewText: null,
@@ -196,6 +227,105 @@ class _MainScreenState extends State<MainScreen> {
           onTap: _onItemTapped,
         ),
         extendBody: true,
+      ),
+    );
+  }
+}
+
+class _StartupWarningBanner extends StatelessWidget {
+  final String message;
+  final VoidCallback onClose;
+
+  const _StartupWarningBanner({
+    required this.message,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final topPadding = MediaQuery.paddingOf(context).top + 12;
+
+    return Positioned(
+      top: topPadding,
+      left: 16,
+      right: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: kGlassBlurSigma,
+              sigmaY: kGlassBlurSigma,
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.9),
+                border: Border.all(
+                  color: const Color(0xFFFF8A65).withValues(alpha: 0.35),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3EE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.warning_rounded,
+                      color: Color(0xFFD96B45),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Безопасный запуск',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF3D2A22),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          message,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFF6B554D),
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onClose,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Symbols.close_rounded),
+                    color: const Color(0xFF7A6258),
+                    tooltip: 'Закрыть',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
