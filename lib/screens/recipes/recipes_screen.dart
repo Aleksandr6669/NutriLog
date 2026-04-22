@@ -199,6 +199,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       _selectedRecipesCollapsed = !_selectedRecipesCollapsed;
                     });
                   },
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,12 +227,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         ),
                       ),
                     ],
-                  ),
-                  style: TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ),

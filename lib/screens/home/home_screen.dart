@@ -60,32 +60,45 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadLogForSelectedDate() async {
-    setState(() {
-      _isLoadingLog = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingLog = true;
+      });
+    }
+
+    DailyLog log;
     try {
-      final log = await _logService.getLogForDate(_selectedDay);
+      log = await _logService.getLogForDate(_selectedDay);
+    } catch (_) {
+      log = DailyLog.empty(_selectedDay);
+    }
+
+    try {
       final profile = await _profileService.loadProfile();
+      await _syncHomeWidgetSafely(log, profile);
+    } catch (_) {
+      // Ошибка профиля/синка не должна блокировать загрузку дневника.
+    }
+
+    if (mounted) {
+      setState(() {
+        _currentDailyLog = log;
+        _isLoadingLog = false;
+      });
+    }
+
+    try {
+      await _loadLoggedDates();
+    } catch (_) {
+      // Маркеры в календаре вторичны, не ломаем экран.
+    }
+  }
+
+  Future<void> _syncHomeWidgetSafely(DailyLog log, UserProfile profile) async {
+    try {
       await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
-      if (mounted) {
-        setState(() {
-          _currentDailyLog = log;
-          _isLoadingLog = false;
-        });
-      }
-      await _loadLoggedDates();
-    } catch (e) {
-      final profile = await _profileService.loadProfile();
-      final emptyLog = DailyLog.empty(_selectedDay);
-      await _homeWidgetSyncService.syncDailyData(
-          log: emptyLog, profile: profile);
-      if (mounted) {
-        setState(() {
-          _currentDailyLog = emptyLog;
-          _isLoadingLog = false;
-        });
-      }
-      await _loadLoggedDates();
+    } catch (_) {
+      // На web/desktop или при недоступном плагине синк может падать.
     }
   }
 
@@ -1142,6 +1155,8 @@ class _MacronutrientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final progressValue =
+        percentage.isFinite ? percentage.clamp(0.0, 1.0) : 0.0;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.mediumBorderRadius,
@@ -1168,7 +1183,7 @@ class _MacronutrientCard extends StatelessWidget {
             ClipRRect(
               borderRadius: AppStyles.smallBorderRadius,
               child: LinearProgressIndicator(
-                value: percentage,
+                value: progressValue,
                 minHeight: 6,
                 backgroundColor: color.withAlpha(38),
                 color: color,

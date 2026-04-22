@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
+import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
@@ -32,6 +33,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _recipeService = RecipeService();
+  final _geminiRecipeService = GeminiRecipeService();
 
   // Main info
   late TextEditingController _nameController;
@@ -43,6 +45,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   final List<_IngredientFormItem> _ingredientItems = [];
   bool _autoCalculateCalories = true;
   bool _isSyncingCalories = false;
+  bool _isAiCalculating = false;
+  String? _aiStatus;
+  int _aiRequestId = 0;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -155,6 +160,70 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final item = _ingredientItems.removeAt(index);
     item.dispose();
     setState(() {});
+  }
+
+  Future<void> _recalculateNutrientsWithAi() async {
+    final ingredients = _ingredientItems
+        .map(
+          (item) => RecipeIngredient(
+            name: item.nameController.text.trim(),
+            quantity: _parseAmount(item.quantityController.text),
+            unit: item.unit.trim(),
+          ),
+        )
+        .where((ingredient) => ingredient.name.isNotEmpty)
+        .toList();
+
+    if (ingredients.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _aiStatus = 'Добавьте ингредиенты для AI-подсчета';
+          _isAiCalculating = false;
+        });
+      }
+      return;
+    }
+
+    final requestId = ++_aiRequestId;
+    if (mounted) {
+      setState(() {
+        _isAiCalculating = true;
+        _aiStatus = 'Идет расчет пищевой ценности...';
+      });
+    }
+
+    try {
+      final nutrients = await _geminiRecipeService.estimateNutrients(
+        recipeName: _nameController.text,
+        recipeDescription: _descriptionController.text,
+        ingredients: ingredients,
+      );
+
+      if (!mounted || requestId != _aiRequestId) return;
+
+      _isSyncingCalories = true;
+      for (final key in _nutrientKeys) {
+        _nutrientControllers[key]?.text = _formatNumber(nutrients[key] ?? 0);
+      }
+      _isSyncingCalories = false;
+
+      setState(() {
+        _isAiCalculating = false;
+        _aiStatus = 'Поля обновлены';
+      });
+    } on GeminiRecipeException catch (e) {
+      if (!mounted || requestId != _aiRequestId) return;
+      setState(() {
+        _isAiCalculating = false;
+        _aiStatus = e.message;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _aiRequestId) return;
+      setState(() {
+        _isAiCalculating = false;
+        _aiStatus = 'Не удалось получить расчет';
+      });
+    }
   }
 
   @override
@@ -469,66 +538,96 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             const Text('Пищевая ценность (на порцию)',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Автоподсчёт калорий по БЖУ'),
-              subtitle: const Text('Формула: белки×4 + углеводы×4 + жиры×9'),
-              value: _autoCalculateCalories,
-              onChanged: (value) {
-                setState(() => _autoCalculateCalories = value);
-                if (value) _applyAutoCalories();
-              },
+            if (_aiStatus != null) ...[
+              Text(
+                _aiStatus!,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed:
+                    _isAiCalculating ? null : _recalculateNutrientsWithAi,
+                icon: const Icon(Symbols.calculate),
+                label: const Text('Рассчитать пищевую ценность'),
+              ),
             ),
             const SizedBox(height: 8),
-            _nutrientRow([('calories', 'Калории', 'ккал')],
-                isReadOnly: _autoCalculateCalories),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: _nutrientRow([('calories', 'Калории', 'ккал')],
+                      isReadOnly: _autoCalculateCalories),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Авто БЖУ', style: TextStyle(fontSize: 12)),
+                    Switch.adaptive(
+                      value: _autoCalculateCalories,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onChanged: (value) {
+                        setState(() => _autoCalculateCalories = value);
+                        if (value) _applyAutoCalories();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text('БЖУ',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
               ('protein', 'Белки', 'г'),
               ('carbs', 'Углеводы', 'г'),
               ('fat', 'Жиры', 'г')
             ]),
+            const SizedBox(height: 14),
+            const Text('Детализация',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            ExpansionTile(
-              title: const Text('Дополнительно',
-                  style: TextStyle(fontWeight: FontWeight.w500)),
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(top: 8),
-              children: [
-                _nutrientRow(
-                    [('fiber', 'Клетчатка', 'г'), ('sugar', 'Сахар', 'г')]),
-                const SizedBox(height: 8),
-                _nutrientRow([('saturated_fat', 'Насыщенные жиры', 'г')]),
-                const SizedBox(height: 8),
-                _nutrientRow(
-                    [('polyunsaturated_fat', 'Полиненасыщенные жиры', 'г')]),
-                const SizedBox(height: 8),
-                _nutrientRow(
-                    [('monounsaturated_fat', 'Мононенасыщенные жиры', 'г')]),
-                const SizedBox(height: 8),
-                _nutrientRow([('trans_fat', 'Трансжиры', 'г')]),
-                const SizedBox(height: 8),
-                _nutrientRow([
-                  ('cholesterol', 'Холестерин', 'мг'),
-                  ('sodium', 'Натрий', 'мг')
-                ]),
-                const SizedBox(height: 8),
-                _nutrientRow([('potassium', 'Калий', 'мг')]),
-                const SizedBox(height: 24),
-                const Text('Витамины и минералы',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                _nutrientRow([
-                  ('vitamin_a', 'Витамин A', 'мкг'),
-                  ('vitamin_c', 'Витамин C', 'мг'),
-                  ('vitamin_d', 'Витамин D', 'мкг')
-                ]),
-                const SizedBox(height: 8),
-                _nutrientRow(
-                    [('calcium', 'Кальций', 'мг'), ('iron', 'Железо', 'мг')]),
-              ],
-            ),
+            _nutrientRow([
+              ('sugar', 'в т.ч. Сахар', 'г'),
+              ('fiber', 'в т.ч. Клетчатка', 'г')
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('saturated_fat', 'Насыщенные', 'г'),
+              ('polyunsaturated_fat', 'Полиненасыщенные', 'г')
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('monounsaturated_fat', 'Мононенасыщенные', 'г'),
+              ('trans_fat', 'Трансжиры', 'г')
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([('cholesterol', 'Холестерин', 'мг')]),
+            const SizedBox(height: 14),
+            const Text('Минералы',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _nutrientRow(
+                [('sodium', 'Натрий', 'мг'), ('potassium', 'Калий', 'мг')]),
+            const SizedBox(height: 8),
+            _nutrientRow(
+                [('calcium', 'Кальций', 'мг'), ('iron', 'Железо', 'мг')]),
+            const SizedBox(height: 14),
+            const Text('Витамины',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_a', 'Витамин A', 'мкг'),
+              ('vitamin_c', 'Витамин C', 'мг'),
+              ('vitamin_d', 'Витамин D', 'мкг')
+            ]),
           ],
         ),
       ),
