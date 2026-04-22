@@ -547,6 +547,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 8),
             ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Авто БЖУ: калории рассчитываются по соотношению белков, углеводов и жиров',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
