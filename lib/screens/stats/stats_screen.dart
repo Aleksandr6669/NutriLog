@@ -424,6 +424,20 @@ class _StatsScreenState extends State<StatsScreen> {
     _reloadStats();
   }
 
+  List<double> _trimProgressSeriesToCurrentDate(List<double> source) {
+    if (source.isEmpty) return source;
+
+    final now = DateTime.now();
+    final maxPoints = switch (_period) {
+      _StatsPeriod.week => now.weekday,
+      _StatsPeriod.month => now.day,
+      _StatsPeriod.year => now.month,
+    };
+
+    final safeCount = max(1, min(maxPoints, source.length));
+    return source.take(safeCount).toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -460,6 +474,18 @@ class _StatsScreenState extends State<StatsScreen> {
             _loadAiReport(data['aiInput'] as Map<String, dynamic>, requestId);
           }
           final UserProfile profile = data['profile'];
+          final stepsTrend = _trimProgressSeriesToCurrentDate(
+            List<double>.from(data['stepsSeries'] as List),
+          );
+          final weightTrend = _trimProgressSeriesToCurrentDate(
+            List<double>.from(data['weightSeries'] as List),
+          );
+          final activityTrend = _trimProgressSeriesToCurrentDate(
+            List<double>.from(data['activitySeries'] as List),
+          );
+          final waterTrend = _trimProgressSeriesToCurrentDate(
+            List<double>.from(data['waterSeries'] as List),
+          );
 
           return SingleChildScrollView(
             padding: glassBodyPadding(
@@ -533,10 +559,10 @@ class _StatsScreenState extends State<StatsScreen> {
                   data['workouts'],
                   data['avgWater'],
                   data['latestWater'],
-                  List<double>.from(data['stepsSeries'] as List),
-                  List<double>.from(data['weightSeries'] as List),
-                  List<double>.from(data['activitySeries'] as List),
-                  List<double>.from(data['waterSeries'] as List),
+                  stepsTrend,
+                  weightTrend,
+                  activityTrend,
+                  waterTrend,
                   profile,
                 ),
                 const SizedBox(height: 24),

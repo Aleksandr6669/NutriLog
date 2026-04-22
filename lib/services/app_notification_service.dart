@@ -343,4 +343,17 @@ class AppNotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
+
+  Future<int> getPendingReminderCount() async {
+    if (kIsWeb) return 0;
+    await initialize();
+    final pending = await _plugin.pendingNotificationRequests();
+    return pending
+        .where((request) => request.id >= _waterBaseId && request.id < _testId)
+        .length;
+  }
+
+  String getCurrentTimezoneName() {
+    return tz.local.name;
+  }
 }
