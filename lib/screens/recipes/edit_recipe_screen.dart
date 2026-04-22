@@ -666,19 +666,23 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      flex: 5,
+                      flex: 6,
                       child: TextFormField(
                         controller: item.nameController,
+                        style: const TextStyle(fontSize: 13),
                         decoration: AppStyles.underlineInputDecoration(
                             label: 'Ингредиент'),
+                        minLines: 1,
+                        maxLines: 2,
                         textInputAction: TextInputAction.next,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      flex: 3,
+                      flex: 2,
                       child: TextFormField(
                         controller: item.quantityController,
+                        style: const TextStyle(fontSize: 13),
                         decoration:
                             AppStyles.underlineInputDecoration(label: 'Кол-во'),
                         keyboardType: const TextInputType.numberWithOptions(
