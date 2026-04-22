@@ -1,20 +1,30 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'profile_service.dart';
 import 'notification_settings_service.dart';
 
 class AppNotificationService {
-  static const int _waterId = 1001;
+  static const int _waterBaseId = 1000;
+  static const int _maxWaterReminders = 20;
   static const int _breakfastId = 1101;
   static const int _lunchId = 1102;
   static const int _dinnerId = 1103;
+  static const int _waterStartHour = 8;
+  static const int _waterEndHour = 22;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+  final ProfileService _profileService = ProfileService();
 
   Future<void> initialize() async {
+    if (kIsWeb) return;
+
     await _configureTimezone();
 
     const androidSettings =
@@ -46,19 +56,17 @@ class AppNotificationService {
   }
 
   Future<void> applySettings(NotificationSettings settings) async {
-    await _plugin.cancel(_waterId);
+    if (kIsWeb) return;
+
+    for (var i = 0; i < _maxWaterReminders; i++) {
+      await _plugin.cancel(_waterBaseId + i);
+    }
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
 
     if (settings.waterReminderEnabled) {
-      await _scheduleDaily(
-        id: _waterId,
-        title: 'Пора попить воды',
-        body: 'Сделайте пару глотков, чтобы поддерживать водный баланс.',
-        hour: settings.waterReminderTime.hour,
-        minute: settings.waterReminderTime.minute,
-      );
+      await _scheduleWaterReminders();
     }
 
     if (settings.mealRemindersEnabled) {
@@ -82,6 +90,37 @@ class AppNotificationService {
         body: 'Пора проверить дневник и добавить ужин.',
         hour: settings.dinnerTime.hour,
         minute: settings.dinnerTime.minute,
+      );
+    }
+  }
+
+  Future<void> _scheduleWaterReminders() async {
+    final profile = await _profileService.loadProfile();
+    final dailyWaterGoalMl = profile.waterGoal;
+
+    // Планируем равномерные напоминания в активное дневное окно.
+    final reminderCount =
+        (dailyWaterGoalMl / 250).ceil().clamp(3, _maxWaterReminders);
+    const totalMinutes = (_waterEndHour - _waterStartHour) * 60;
+    final intervalMinutes =
+        math.max(45, (totalMinutes / reminderCount).floor());
+    final amountPerReminderMl =
+        ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
+    final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
+
+    for (var i = 0; i < reminderCount; i++) {
+      final minutesFromStart = i * intervalMinutes;
+      final hour = _waterStartHour + (minutesFromStart ~/ 60);
+      final minute = minutesFromStart % 60;
+      if (hour >= _waterEndHour) break;
+
+      await _scheduleDaily(
+        id: _waterBaseId + i,
+        title: 'Пора выпить воду',
+        body:
+            'Выпейте около $safeAmountPerReminderMl мл. План на день: $dailyWaterGoalMl мл, $reminderCount напоминаний.',
+        hour: hour,
+        minute: minute,
       );
     }
   }

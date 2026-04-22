@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,7 +8,10 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui';
 import 'services/app_notification_service.dart';
+import 'services/app_startup_service.dart';
 import 'services/notification_settings_service.dart';
+import 'screens/onboarding/onboarding_screen.dart';
+import 'screens/onboarding/whats_new_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
@@ -24,11 +28,13 @@ void main() async {
     // .env может отсутствовать в локальной среде.
   }
   await initializeDateFormatting('ru_RU', null);
-  final notificationService = AppNotificationService();
-  final notificationSettingsService = NotificationSettingsService();
-  await notificationService.initialize();
-  final settings = await notificationSettingsService.load();
-  await notificationService.applySettings(settings);
+  if (!kIsWeb) {
+    final notificationService = AppNotificationService();
+    final notificationSettingsService = NotificationSettingsService();
+    await notificationService.initialize();
+    final settings = await notificationSettingsService.load();
+    await notificationService.applySettings(settings);
+  }
   GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const MyApp());
 }
@@ -52,8 +58,75 @@ class MyApp extends StatelessWidget {
         Locale('ru', 'RU'),
         Locale('en', 'US'),
       ],
-      home: const MainScreen(),
+      home: const AppBootstrapScreen(),
     );
+  }
+}
+
+class AppBootstrapScreen extends StatefulWidget {
+  const AppBootstrapScreen({super.key});
+
+  @override
+  State<AppBootstrapScreen> createState() => _AppBootstrapScreenState();
+}
+
+class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
+  final AppStartupService _startupService = AppStartupService();
+  bool _loading = true;
+  StartupState? _state;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final state = await _startupService.loadState();
+    if (!mounted) return;
+    setState(() {
+      _state = state;
+      _loading = false;
+    });
+  }
+
+  Future<void> _completeOnboarding() async {
+    await _startupService.completeOnboarding();
+    await _init();
+  }
+
+  Future<void> _ackWhatsNew() async {
+    final state = _state;
+    if (state == null) return;
+    await _startupService.markWhatsNewSeen(state.currentVersion);
+    await _init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading || _state == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final state = _state!;
+
+    if (state.needsOnboarding) {
+      return OnboardingScreen(
+        key: const ValueKey('onboarding'),
+        onCompleted: _completeOnboarding,
+      );
+    }
+
+    if (state.whatsNewText != null) {
+      return WhatsNewScreen(
+        key: const ValueKey('whats_new'),
+        version: state.currentVersion,
+        text: state.whatsNewText!,
+        onAcknowledged: _ackWhatsNew,
+      );
+    }
+
+    return const MainScreen();
   }
 }
 

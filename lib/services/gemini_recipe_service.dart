@@ -444,6 +444,10 @@ ${nutrientKeys.join(', ')}
 - Целевой вес: ${profile.weightGoal.toStringAsFixed(1)} кг
 - Тип цели: ${profile.goalType.ruLabel}
 - Смысл цели: ${profile.goalType.ruHint}
+- Частота физической активности: ${profile.activityFrequency.ruLabel}
+- Комментарий по активности: ${profile.activityFrequency.ruHint}
+- Виды активности/спорт: ${profile.activityTypes.isEmpty ? 'не указано' : profile.activityTypes}
+- Дополнительно для расчета: ${profile.aiContext.isEmpty ? 'не указано' : profile.aiContext}
 
 Верни ТОЛЬКО JSON-объект в формате:
 {
@@ -460,7 +464,7 @@ ${nutrientKeys.join(', ')}
 - waterGoal укажи в миллилитрах.
 - stepsGoal укажи в шагах.
 - Цели должны быть реалистичными для ежедневного выполнения.
-- Учитывай тип цели пользователя и базовые физические параметры.
+- Учитывай тип цели пользователя, уровень активности, виды спорта и дополнительные условия.
 - Не добавляй пояснения вне JSON.
 ''';
 

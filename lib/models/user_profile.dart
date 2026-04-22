@@ -13,6 +13,14 @@ enum GoalType {
   energetic,
 }
 
+enum ActivityFrequency {
+  sedentary,
+  light,
+  moderate,
+  active,
+  veryActive,
+}
+
 @immutable
 class UserProfile {
   final String name;
@@ -23,6 +31,9 @@ class UserProfile {
   final double weight;
   final double weightGoal;
   final GoalType goalType;
+  final ActivityFrequency activityFrequency;
+  final String activityTypes;
+  final String aiContext;
   final int calorieGoal;
   final int proteinGoal;
   final int fatGoal;
@@ -50,6 +61,9 @@ class UserProfile {
     required this.weight,
     required this.weightGoal,
     required this.goalType,
+    required this.activityFrequency,
+    required this.activityTypes,
+    required this.aiContext,
     required this.calorieGoal,
     required this.proteinGoal,
     required this.fatGoal,
@@ -68,6 +82,9 @@ class UserProfile {
     double? weight,
     double? weightGoal,
     GoalType? goalType,
+    ActivityFrequency? activityFrequency,
+    String? activityTypes,
+    String? aiContext,
     int? calorieGoal,
     int? proteinGoal,
     int? fatGoal,
@@ -85,6 +102,9 @@ class UserProfile {
       weight: weight ?? this.weight,
       weightGoal: weightGoal ?? this.weightGoal,
       goalType: goalType ?? this.goalType,
+      activityFrequency: activityFrequency ?? this.activityFrequency,
+      activityTypes: activityTypes ?? this.activityTypes,
+      aiContext: aiContext ?? this.aiContext,
       calorieGoal: calorieGoal ?? this.calorieGoal,
       proteinGoal: proteinGoal ?? this.proteinGoal,
       fatGoal: fatGoal ?? this.fatGoal,
@@ -109,6 +129,10 @@ class UserProfile {
       weightGoal: (json['weightGoal'] as num).toDouble(),
       goalType: GoalType
           .values[(json['goalType'] as int?) ?? GoalType.healthyEating.index],
+      activityFrequency: ActivityFrequency.values[
+          (json['activityFrequency'] as int?) ?? ActivityFrequency.light.index],
+      activityTypes: (json['activityTypes'] as String? ?? '').trim(),
+      aiContext: (json['aiContext'] as String? ?? '').trim(),
       calorieGoal: json['calorieGoal'] as int,
       proteinGoal: json['proteinGoal'] as int,
       fatGoal: json['fatGoal'] as int,
@@ -131,6 +155,9 @@ class UserProfile {
       'weight': weight,
       'weightGoal': weightGoal,
       'goalType': goalType.index,
+      'activityFrequency': activityFrequency.index,
+      'activityTypes': activityTypes,
+      'aiContext': aiContext,
       'calorieGoal': calorieGoal,
       'proteinGoal': proteinGoal,
       'fatGoal': fatGoal,
@@ -139,6 +166,38 @@ class UserProfile {
       'stepsGoal': stepsGoal,
       'weightHistory': weightHistory,
     };
+  }
+}
+
+extension ActivityFrequencyX on ActivityFrequency {
+  String get ruLabel {
+    switch (this) {
+      case ActivityFrequency.sedentary:
+        return 'Почти нет активности';
+      case ActivityFrequency.light:
+        return 'Легкая активность 1-2 раза в неделю';
+      case ActivityFrequency.moderate:
+        return 'Умеренная активность 3-4 раза в неделю';
+      case ActivityFrequency.active:
+        return 'Активный режим 5-6 раз в неделю';
+      case ActivityFrequency.veryActive:
+        return 'Очень высокий уровень, почти каждый день';
+    }
+  }
+
+  String get ruHint {
+    switch (this) {
+      case ActivityFrequency.sedentary:
+        return 'Сидячая работа, редкие тренировки и мало шагов.';
+      case ActivityFrequency.light:
+        return 'Иногда спорт или прогулки, но без стабильного графика.';
+      case ActivityFrequency.moderate:
+        return 'Регулярная активность несколько раз в неделю.';
+      case ActivityFrequency.active:
+        return 'Частые тренировки и высокий средний уровень движения.';
+      case ActivityFrequency.veryActive:
+        return 'Интенсивные нагрузки и спорт почти ежедневно.';
+    }
   }
 }
 
