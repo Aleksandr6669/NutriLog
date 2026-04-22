@@ -217,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Нейросеть рассчитала дневные цели.'),
+          content: Text('Нейросеть заполнила дневные цели.'),
           behavior: SnackBarBehavior.floating,
         ),
       );

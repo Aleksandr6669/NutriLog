@@ -71,12 +71,14 @@ class HealthStepsService {
         final startOfDay = DateTime(now.year, now.month, now.day);
         final probe = await _health.getTotalStepsInInterval(startOfDay, now);
         if (probe == null) {
+          // На iOS null может означать не только запрет, но и отсутствие шагов за день.
+          // Если авторизация уже выдана — считаем источник подключенным.
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool(_connectedKey, false);
+          await prefs.setBool(_connectedKey, true);
           return const HealthConnectResult(
-            status: HealthConnectStatus.permissionDenied,
+            status: HealthConnectStatus.connected,
             message:
-                'Не удалось получить доступ к шагам. Откройте iPhone: Настройки -> Здоровье -> Доступ к данным и устройствам -> NutriLog, и разрешите чтение шагов.',
+                'Источник здоровья подключен. Шаги за сегодня пока недоступны — проверьте, что в приложении Здоровье есть данные по шагам.',
           );
         }
       }
@@ -94,14 +96,15 @@ class HealthStepsService {
       return const HealthConnectResult(
         status: HealthConnectStatus.permissionDenied,
         message:
-        'Доступ к шагам не выдан. Разрешите доступ к шагам в Health Connect или в приложении Здоровье.',
+            'Доступ к шагам не выдан. Разрешите доступ к шагам в Health Connect или в приложении Здоровье.',
       );
-    } catch (_) {
+    } catch (error) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_connectedKey, false);
-      return const HealthConnectResult(
+      return HealthConnectResult(
         status: HealthConnectStatus.failed,
-        message: 'Не удалось подключить источник здоровья. Попробуйте снова.',
+        message:
+            'Не удалось подключить источник здоровья. Попробуйте снова. Детали: $error',
       );
     }
   }

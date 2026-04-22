@@ -19,12 +19,22 @@ class NotificationPermissionDeniedException implements Exception {
   String toString() => message;
 }
 
+class NotificationScheduleException implements Exception {
+  final String message;
+
+  const NotificationScheduleException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class AppNotificationService {
   static const int _waterBaseId = 1000;
   static const int _maxWaterReminders = 20;
   static const int _breakfastId = 1101;
   static const int _lunchId = 1102;
   static const int _dinnerId = 1103;
+  static const int _testId = 1900;
   static const int _waterStartHour = 8;
   static const int _waterEndHour = 22;
 
@@ -42,7 +52,11 @@ class AppNotificationService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
-    const iosSettings = DarwinInitializationSettings();
+    const iosSettings = DarwinInitializationSettings(
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
+    );
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -114,7 +128,10 @@ class AppNotificationService {
     return _permissionsGranted;
   }
 
-  Future<void> applySettings(NotificationSettings settings) async {
+  Future<void> applySettings(
+    NotificationSettings settings, {
+    bool scheduleTestNotification = false,
+  }) async {
     if (kIsWeb) return;
 
     await initialize();
@@ -122,6 +139,7 @@ class AppNotificationService {
     for (var i = 0; i < _maxWaterReminders; i++) {
       await _plugin.cancel(_waterBaseId + i);
     }
+    await _plugin.cancel(_testId);
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
@@ -137,8 +155,10 @@ class AppNotificationService {
       );
     }
 
+    var scheduledCount = 0;
+
     if (settings.waterReminderEnabled) {
-      await _scheduleWaterReminders();
+      scheduledCount += await _scheduleWaterReminders();
     }
 
     if (settings.mealRemindersEnabled) {
@@ -149,6 +169,7 @@ class AppNotificationService {
         hour: settings.breakfastTime.hour,
         minute: settings.breakfastTime.minute,
       );
+      scheduledCount++;
       await _scheduleDaily(
         id: _lunchId,
         title: 'Время обеда',
@@ -156,6 +177,7 @@ class AppNotificationService {
         hour: settings.lunchTime.hour,
         minute: settings.lunchTime.minute,
       );
+      scheduledCount++;
       await _scheduleDaily(
         id: _dinnerId,
         title: 'Время ужина',
@@ -163,10 +185,61 @@ class AppNotificationService {
         hour: settings.dinnerTime.hour,
         minute: settings.dinnerTime.minute,
       );
+      scheduledCount++;
+    }
+
+    final pending = await _plugin.pendingNotificationRequests();
+    final hasScheduled = pending.any(
+      (request) => request.id >= _waterBaseId && request.id < _testId,
+    );
+
+    if (scheduledCount > 0 && !hasScheduled) {
+      throw const NotificationScheduleException(
+        'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
+      );
+    }
+
+    if (scheduleTestNotification && scheduledCount > 0) {
+      await _scheduleQuickTestNotification();
     }
   }
 
-  Future<void> _scheduleWaterReminders() async {
+  Future<void> sendTestNotification() async {
+    if (kIsWeb) return;
+
+    await initialize();
+    final granted = await _requestPermissions();
+    if (!granted) {
+      throw const NotificationPermissionDeniedException(
+        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog.',
+      );
+    }
+
+    await _plugin.cancel(_testId);
+
+    const androidDetails = AndroidNotificationDetails(
+      'nutrilog_reminders',
+      'NutriLog напоминания',
+      channelDescription: 'Напоминания о воде и приемах пищи',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    // Мгновенный тест показывает факт доставки без влияния таймзоны/планировщика.
+    await _plugin.show(
+      _testId,
+      'NutriLog: тест уведомлений',
+      'Уведомления включены и работают.',
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+    );
+  }
+
+  Future<int> _scheduleWaterReminders() async {
     final profile = await _profileService.loadProfile();
     final dailyWaterGoalMl = profile.waterGoal;
 
@@ -180,6 +253,7 @@ class AppNotificationService {
         ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
     final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
 
+    var scheduledCount = 0;
     for (var i = 0; i < reminderCount; i++) {
       final minutesFromStart = i * intervalMinutes;
       final hour = _waterStartHour + (minutesFromStart ~/ 60);
@@ -194,7 +268,38 @@ class AppNotificationService {
         hour: hour,
         minute: minute,
       );
+      scheduledCount++;
     }
+
+    return scheduledCount;
+  }
+
+  Future<void> _scheduleQuickTestNotification() async {
+    final scheduled =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 12));
+    const androidDetails = AndroidNotificationDetails(
+      'nutrilog_reminders',
+      'NutriLog напоминания',
+      channelDescription: 'Напоминания о воде и приемах пищи',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    await _plugin.zonedSchedule(
+      _testId,
+      'NutriLog: тест уведомлений',
+      'Уведомления включены и работают.',
+      scheduled,
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
   }
 
   Future<void> _scheduleDaily({
