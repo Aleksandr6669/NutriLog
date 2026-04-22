@@ -6,7 +6,17 @@ import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 
 class GeminiRecipeService {
-  static const String _model = 'gemini-3.1-flash-lite-preview';
+  static const List<String> _models = [
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite-preview',
+    'gemini-2.0-flash-lite',
+    'gemini-2.0-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.1-flash',
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3.1-pro',
+  ];
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -47,10 +57,6 @@ class GeminiRecipeService {
       );
     }
 
-    final uri = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent?key=$apiKey',
-    );
-
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\n');
@@ -76,39 +82,92 @@ ${nutrientKeys.join(', ')}
 Если точных данных нет, дай реалистичную оценку. Отрицательные значения недопустимы.
 ''';
 
-    final response = await http.post(
-      uri,
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'contents': [
-          {
-            'parts': [
-              {'text': prompt}
-            ]
-          }
-        ],
-        'generationConfig': {
-          'temperature': 0.2,
-          'responseMimeType': 'application/json',
-        },
-      }),
-    );
+    http.Response? lastErrorResponse;
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw GeminiRecipeException(
-        'Gemini вернул ошибку (${response.statusCode}).',
+    for (final model in _models) {
+      final uri = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
       );
+
+      final response = await http.post(
+        uri,
+        headers: const {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contents': [
+            {
+              'parts': [
+                {'text': prompt}
+              ]
+            }
+          ],
+          'generationConfig': {
+            'temperature': 0.2,
+            'responseMimeType': 'application/json',
+          },
+        }),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final text = _extractText(payload);
+        final decoded = _decodeJsonObject(text);
+
+        final normalized = <String, double>{};
+        for (final key in nutrientKeys) {
+          normalized[key] = _toNonNegativeDouble(decoded[key]);
+        }
+        return normalized;
+      }
+
+      lastErrorResponse = response;
+
+      if ((response.statusCode == 403 || response.statusCode == 404) &&
+          model != _models.last) {
+        continue;
+      }
+
+      throw GeminiRecipeException(_buildHttpErrorMessage(response));
     }
 
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload);
-    final decoded = _decodeJsonObject(text);
-
-    final normalized = <String, double>{};
-    for (final key in nutrientKeys) {
-      normalized[key] = _toNonNegativeDouble(decoded[key]);
+    if (lastErrorResponse != null) {
+      throw GeminiRecipeException(_buildHttpErrorMessage(lastErrorResponse));
     }
-    return normalized;
+
+    throw const GeminiRecipeException('Не удалось получить ответ от Gemini.');
+  }
+
+  String _buildHttpErrorMessage(http.Response response) {
+    final code = response.statusCode;
+    final apiMessage = _extractApiErrorMessage(response.body);
+
+    if (code == 403) {
+      return 'Gemini вернул 403 (доступ запрещен). Проверьте GEMINI_API_KEY, подключение Generative Language API и ограничения ключа в Google Cloud.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}';
+    }
+    if (code == 401) {
+      return 'Gemini вернул 401 (неавторизован). Проверьте корректность GEMINI_API_KEY.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}';
+    }
+    if (code == 429) {
+      return 'Gemini вернул 429 (лимит запросов). Попробуйте чуть позже.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}';
+    }
+
+    return 'Gemini вернул ошибку ($code).${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}';
+  }
+
+  String _extractApiErrorMessage(String body) {
+    try {
+      final payload = jsonDecode(body);
+      if (payload is Map<String, dynamic>) {
+        final error = payload['error'];
+        if (error is Map<String, dynamic>) {
+          final message = error['message'];
+          if (message is String) return message.trim();
+        }
+      }
+    } catch (_) {
+      // Ignore non-JSON error body.
+    }
+
+    return '';
   }
 
   String _extractText(Map<String, dynamic> payload) {
