@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -13,6 +14,11 @@ import 'styles/app_styles.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // .env может отсутствовать в локальной среде.
+  }
   await initializeDateFormatting('ru_RU', null);
   GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const MyApp());
