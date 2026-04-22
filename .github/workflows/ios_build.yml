@@ -15,6 +15,9 @@ jobs:
           architecture: x64
       
       - run: flutter pub get
+      - name: Create .env from secret
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
       - run: pod install --project-directory=ios
       - run: pod repo update
         working-directory: ios

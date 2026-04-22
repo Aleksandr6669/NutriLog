@@ -85,9 +85,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
 
     final loadedIngredients = widget.recipe?.ingredients ?? const [];
-    if (loadedIngredients.isEmpty) {
-      _ingredientItems.add(_IngredientFormItem());
-    } else {
+    if (loadedIngredients.isNotEmpty) {
       for (final ingredient in loadedIngredients) {
         _ingredientItems.add(
           _IngredientFormItem(
@@ -547,20 +545,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 8),
             ],
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Авто БЖУ: калории рассчитываются по соотношению белков, углеводов и жиров',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -579,10 +563,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       isReadOnly: _autoCalculateCalories),
                 ),
                 const SizedBox(width: 8),
-                Column(
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text('Авто БЖУ', style: TextStyle(fontSize: 12)),
+                    const SizedBox(width: 4),
                     Switch.adaptive(
                       value: _autoCalculateCalories,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
