@@ -43,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _profileFuture = _loadProfile();
     _nameFocusNode.addListener(() {
       if (!_nameFocusNode.hasFocus && _isEditingName) {
         _saveNameFromController();
@@ -58,11 +58,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _loadProfile() async {
+  Future<UserProfile> _loadProfile() async {
     await _dailyLogService.syncProfileWeightFromLogs();
+    return _profileService.loadProfile();
+  }
+
+  void _refreshProfile() {
     if (!mounted) return;
     setState(() {
-      _profileFuture = _profileService.loadProfile();
+      _profileFuture = _loadProfile();
     });
   }
 
@@ -73,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result == true) {
-      await _loadProfile();
+      _refreshProfile();
     }
   }
 
@@ -150,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final updatedProfile =
         profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');
     await _profileService.saveProfile(updatedProfile);
-    _loadProfile();
+    _refreshProfile();
   }
 
   @override
@@ -248,22 +252,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-           _buildSimpleSettingsMenuCard(theme),
+          _buildSimpleSettingsMenuCard(theme),
         ],
       ),
     );
   }
 
-   Widget _buildSimpleSettingsMenuCard(ThemeData theme) {
-     return Card(
-       child: ListTile(
-         leading: const Icon(Symbols.settings),
-         title: const Text('Настройки'),
-         subtitle: const Text('Подключения и сообщения'),
-         trailing: const Icon(Symbols.chevron_right),
-         onTap: () => _navigateTo(const ConnectionsNotificationsScreen()),
-       ),
-     );
+  Widget _buildSimpleSettingsMenuCard(ThemeData theme) {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Symbols.settings),
+        title: const Text('Настройки'),
+        subtitle: const Text('Подключения и сообщения'),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () => _navigateTo(const ConnectionsNotificationsScreen()),
+      ),
+    );
   }
 
   void _startEditingName(UserProfile profile) {
@@ -280,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (newName == profile.name) return;
     final updated = profile.copyWith(name: newName);
     await _profileService.saveProfile(updated);
-    _loadProfile();
+    _refreshProfile();
   }
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
