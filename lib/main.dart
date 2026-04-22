@@ -22,21 +22,37 @@ import 'widgets/glass_app_bar_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Критично быстро показать UI: тяжелые сервисы инициализируем в фоне.
+  _bootstrapServices();
+  GoogleFonts.config.allowRuntimeFetching = false;
+  runApp(const MyApp());
+}
+
+Future<void> _bootstrapServices() async {
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {
     // .env может отсутствовать в локальной среде.
   }
-  await initializeDateFormatting('ru_RU', null);
-  if (!kIsWeb) {
-    final notificationService = AppNotificationService();
-    final notificationSettingsService = NotificationSettingsService();
-    await notificationService.initialize();
-    final settings = await notificationSettingsService.load();
-    await notificationService.applySettings(settings);
+
+  try {
+    await initializeDateFormatting('ru_RU', null);
+  } catch (_) {
+    // Не блокируем запуск приложения из-за локализации дат.
   }
-  GoogleFonts.config.allowRuntimeFetching = false;
-  runApp(const MyApp());
+
+  if (!kIsWeb) {
+    try {
+      final notificationService = AppNotificationService();
+      final notificationSettingsService = NotificationSettingsService();
+      await notificationService.initialize();
+      final settings = await notificationSettingsService.load();
+      await notificationService.applySettings(settings);
+    } catch (_) {
+      // Плагины уведомлений не должны ломать старт UI.
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -82,7 +98,17 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
   }
 
   Future<void> _init() async {
-    final state = await _startupService.loadState();
+    StartupState state;
+    try {
+      state = await _startupService.loadState();
+    } catch (_) {
+      // Защита от зависания стартового экрана при сбое plugin/prefs.
+      state = const StartupState(
+        needsOnboarding: false,
+        whatsNewText: null,
+        currentVersion: '0.0.0+0',
+      );
+    }
     if (!mounted) return;
     setState(() {
       _state = state;
