@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -21,19 +22,97 @@ import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
+final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
+
+class _FatalAppError {
+  final String title;
+  final String details;
+
+  const _FatalAppError({
+    required this.title,
+    required this.details,
+  });
+}
 
 void _reportStartupWarning(String message) {
   if (_startupWarningMessage.value == message) return;
   _startupWarningMessage.value = message;
 }
 
+void _reportFatalAppError(String title, Object error, [StackTrace? stackTrace]) {
+  final detailsBuffer = StringBuffer()
+    ..writeln(error.toString());
+
+  if (stackTrace != null) {
+    final lines = stackTrace
+        .toString()
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .take(6);
+    if (lines.isNotEmpty) {
+      detailsBuffer
+        ..writeln()
+        ..writeAll(lines, '\n');
+    }
+  }
+
+  final fatalError = _FatalAppError(
+    title: title,
+    details: detailsBuffer.toString().trim(),
+  );
+
+  _fatalAppError.value = fatalError;
+  debugPrint('FATAL_APP_ERROR: $title');
+  debugPrint(fatalError.details);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    _reportFatalAppError(
+      'Ошибка Flutter во время запуска интерфейса',
+      details.exception,
+      details.stack,
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _reportFatalAppError(
+      'Необработанная ошибка платформы',
+      error,
+      stack,
+    );
+    return true;
+  };
+
+  ErrorWidget.builder = (details) {
+    _reportFatalAppError(
+      'Виджет не смог построиться',
+      details.exception,
+      details.stack,
+    );
+    return _FatalErrorScreen(
+      title: 'Интерфейс не загрузился',
+      message: details.exception.toString(),
+    );
+  };
 
   // Критично быстро показать UI: тяжелые сервисы инициализируем в фоне.
   _bootstrapServices();
   GoogleFonts.config.allowRuntimeFetching = false;
-  runApp(const MyApp());
+
+  runZonedGuarded(
+    () => runApp(const MyApp()),
+    (error, stackTrace) {
+      _reportFatalAppError(
+        'Необработанная ошибка приложения',
+        error,
+        stackTrace,
+      );
+    },
+  );
 }
 
 Future<void> _bootstrapServices() async {
@@ -86,18 +165,30 @@ class MyApp extends StatelessWidget {
       ],
       builder: (context, child) {
         final content = child ?? const SizedBox.shrink();
-        return ValueListenableBuilder<String?>(
-          valueListenable: _startupWarningMessage,
-          builder: (context, warningMessage, _) {
-            return Stack(
-              children: [
-                content,
-                if (warningMessage != null)
-                  _StartupWarningBanner(
-                    message: warningMessage,
-                    onClose: () => _startupWarningMessage.value = null,
-                  ),
-              ],
+        return ValueListenableBuilder<_FatalAppError?>(
+          valueListenable: _fatalAppError,
+          builder: (context, fatalError, _) {
+            if (fatalError != null) {
+              return _FatalErrorScreen(
+                title: fatalError.title,
+                message: fatalError.details,
+              );
+            }
+
+            return ValueListenableBuilder<String?>(
+              valueListenable: _startupWarningMessage,
+              builder: (context, warningMessage, _) {
+                return Stack(
+                  children: [
+                    content,
+                    if (warningMessage != null)
+                      _StartupWarningBanner(
+                        message: warningMessage,
+                        onClose: () => _startupWarningMessage.value = null,
+                      ),
+                  ],
+                );
+              },
             );
           },
         );
@@ -320,6 +411,103 @@ class _StartupWarningBanner extends StatelessWidget {
                     icon: const Icon(Symbols.close_rounded),
                     color: const Color(0xFF7A6258),
                     tooltip: 'Закрыть',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FatalErrorScreen extends StatelessWidget {
+  final String title;
+  final String message;
+
+  const _FatalErrorScreen({
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F3EF),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 520),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 26,
+                    offset: const Offset(0, 14),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF1EC),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.error_rounded,
+                      color: Color(0xFFD46546),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF2F221D),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Приложение перехватило ошибку вместо белого экрана. Ниже причина, которую можно сразу прислать для фикса.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF69554D),
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF7F4),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFFE8DDD5),
+                      ),
+                    ),
+                    child: SelectableText(
+                      message,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: const Color(0xFF4C3B33),
+                        height: 1.4,
+                      ),
+                    ),
                   ),
                 ],
               ),
