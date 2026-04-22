@@ -58,7 +58,7 @@ class _ConnectionsNotificationsScreenState
           content: Text(
             connected
                 ? 'Источник здоровья подключен.'
-                : 'Не удалось подключить источник здоровья.',
+                : 'Не удалось подключить Здоровье. Проверьте доступ в приложении Здоровье и разрешения iPhone.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -77,8 +77,20 @@ class _ConnectionsNotificationsScreenState
   Future<void> _saveNotificationSettings(NotificationSettings settings) async {
     _settings = settings;
     setState(() {});
-    await _settingsService.save(settings);
-    await _notificationService.applySettings(settings);
+    try {
+      await _settingsService.save(settings);
+      await _notificationService.applySettings(settings);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках iPhone.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _pickTime(

@@ -21,9 +21,11 @@ class AppNotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   final ProfileService _profileService = ProfileService();
+  static bool _initialized = false;
 
   Future<void> initialize() async {
     if (kIsWeb) return;
+    if (_initialized) return;
 
     await _configureTimezone();
 
@@ -37,12 +39,17 @@ class AppNotificationService {
 
     await _plugin.initialize(initSettings);
     await _requestPermissions();
+    _initialized = true;
   }
 
   Future<void> _configureTimezone() async {
     tz.initializeTimeZones();
-    final localTimezone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(localTimezone));
+    try {
+      final localTimezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(localTimezone));
+    } catch (_) {
+      tz.setLocalLocation(tz.UTC);
+    }
   }
 
   Future<void> _requestPermissions() async {
@@ -57,6 +64,8 @@ class AppNotificationService {
 
   Future<void> applySettings(NotificationSettings settings) async {
     if (kIsWeb) return;
+
+    await initialize();
 
     for (var i = 0; i < _maxWaterReminders; i++) {
       await _plugin.cancel(_waterBaseId + i);
