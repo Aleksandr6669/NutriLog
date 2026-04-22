@@ -132,8 +132,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         gender: _gender,
         birthDate: _birthDate,
         height: int.parse(_heightController.text.trim()),
-        weight: double.parse(_weightController.text.trim()),
-        weightGoal: double.parse(_weightGoalController.text.trim()),
+        weight: _parseDouble(_weightController.text.trim()),
+        weightGoal: _parseDouble(_weightGoalController.text.trim()),
         goalType: _goalType,
         activityFrequency: _activityFrequency,
         activityTypes: _activityTypesController.text.trim(),
@@ -163,14 +163,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _fillDailyGoalsWithAi() async {
     if (_isAiFillingDailyGoals) return;
 
-    // Для корректного AI-расчета убеждаемся, что базовые параметры валидны.
-    final isPhysicalValid = _physicalFormKey.currentState?.validate() ?? false;
-    final isGeneralValid = _generalFormKey.currentState?.validate() ?? false;
-    if (!isPhysicalValid || !isGeneralValid) {
+    // Не опираемся на состояние off-screen Form: проверяем обязательные поля напрямую.
+    final hasValidBaseProfileData = _hasValidBaseProfileData();
+    if (!hasValidBaseProfileData) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Сначала заполните корректно шаги 1 и 2, затем можно рассчитать дневные цели.',
+            'Проверьте шаги 1 и 2: имя, рост, текущий вес и цель по весу должны быть заполнены корректно.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -187,8 +186,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         gender: _gender,
         birthDate: _birthDate,
         height: int.parse(_heightController.text.trim()),
-        weight: double.parse(_weightController.text.trim()),
-        weightGoal: double.parse(_weightGoalController.text.trim()),
+        weight: _parseDouble(_weightController.text.trim()),
+        weightGoal: _parseDouble(_weightGoalController.text.trim()),
         goalType: _goalType,
         activityFrequency: _activityFrequency,
         activityTypes: _activityTypesController.text.trim(),
@@ -261,9 +260,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   String? _positiveDoubleValidator(String? value, String emptyMessage) {
     if (value == null || value.trim().isEmpty) return emptyMessage;
-    final parsed = double.tryParse(value.trim());
+    final parsed = _tryParseDouble(value.trim());
     if (parsed == null || parsed <= 0) return 'Введите число больше 0';
     return null;
+  }
+
+  double _parseDouble(String value) => double.parse(value.replaceAll(',', '.'));
+
+  double? _tryParseDouble(String value) =>
+      double.tryParse(value.replaceAll(',', '.'));
+
+  bool _hasValidBaseProfileData() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return false;
+
+    final height = int.tryParse(_heightController.text.trim());
+    final weight = _tryParseDouble(_weightController.text.trim());
+    final weightGoal = _tryParseDouble(_weightGoalController.text.trim());
+    if (height == null || height <= 0) return false;
+    if (weight == null || weight <= 0) return false;
+    if (weightGoal == null || weightGoal <= 0) return false;
+
+    return true;
   }
 
   @override
@@ -434,7 +452,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _weightController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}')),
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d{0,1}')),
             ],
             validator: (v) => _positiveDoubleValidator(v, 'Введите ваш вес'),
             decoration:
@@ -462,7 +480,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _weightGoalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}')),
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d{0,1}')),
             ],
             validator: (v) =>
                 _positiveDoubleValidator(v, 'Введите цель по весу'),
