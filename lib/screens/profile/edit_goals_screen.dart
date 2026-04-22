@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
+import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
@@ -18,6 +19,7 @@ class EditGoalsScreen extends StatefulWidget {
 class _EditGoalsScreenState extends State<EditGoalsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _profileService = ProfileService();
+  final _geminiRecipeService = GeminiRecipeService();
 
   late TextEditingController _calorieGoalController;
   late TextEditingController _waterGoalController;
@@ -25,6 +27,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   late TextEditingController _proteinGoalController;
   late TextEditingController _carbsGoalController;
   late TextEditingController _fatGoalController;
+  bool _isAiFilling = false;
 
   @override
   void initState() {
@@ -82,6 +85,61 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
     }
   }
 
+  Future<void> _fillGoalsWithAi() async {
+    setState(() => _isAiFilling = true);
+
+    try {
+      final draft = await _geminiRecipeService.generateDailyGoals(
+        profile: widget.profile,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _calorieGoalController.text = draft.calorieGoal.toString();
+        _waterGoalController.text = draft.waterGoal.toString();
+        _stepsGoalController.text = draft.stepsGoal.toString();
+        _proteinGoalController.text = draft.proteinGoal.toString();
+        _carbsGoalController.text = draft.carbsGoal.toString();
+        _fatGoalController.text = draft.fatGoal.toString();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Нейросеть заполнила дневные цели.',
+              style: TextStyle(fontSize: 16)),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+        ),
+      );
+    } on GeminiRecipeException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Не удалось заполнить цели через нейросеть.'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isAiFilling = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,6 +189,42 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isAiFilling ? null : _fillGoalsWithAi,
+                  icon: _isAiFilling
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Symbols.auto_awesome),
+                  label: Text(
+                    _isAiFilling
+                        ? 'Нейросеть подбирает цели...'
+                        : 'Заполнить через нейросеть',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.28),
+                  ),
+                ),
+                child: const Text(
+                  'Нейросеть заполняет цели на основе ваших параметров и типа цели, но может ошибаться примерно на 10%. Проверьте значения перед сохранением.',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(height: 16),

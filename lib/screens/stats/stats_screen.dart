@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
 import '../../services/daily_log_service.dart';
+import '../../services/gemini_recipe_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
@@ -26,10 +27,25 @@ class _StatsScreenState extends State<StatsScreen> {
   _StatsPeriod _period = _StatsPeriod.week;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
+  final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
+  late Future<Map<String, dynamic>> _statsFuture;
+  String _aiReport = 'Загрузка отчета от нейросети...';
+  int _dataRequestId = 0;
+  int _aiStartedForRequestId = -1;
 
   @override
   void initState() {
     super.initState();
+    _reloadStats();
+  }
+
+  void _reloadStats() {
+    _dataRequestId++;
+    _aiStartedForRequestId = -1;
+    setState(() {
+      _aiReport = 'Загрузка отчета от нейросети...';
+      _statsFuture = _loadData();
+    });
   }
 
   Future<Map<String, dynamic>> _loadData() async {
@@ -84,6 +100,36 @@ class _StatsScreenState extends State<StatsScreen> {
         logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.protein);
     final totalFat =
         logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
+    final totalCalories =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.calories);
+    final totalFiber =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fiber);
+    final totalSugar =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.sugar);
+    final totalSaturatedFat = logs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.saturatedFat);
+    final totalPolyunsaturatedFat = logs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.polyunsaturatedFat);
+    final totalMonounsaturatedFat = logs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.monounsaturatedFat);
+    final totalTransFat =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.transFat);
+    final totalCholesterol = logs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.cholesterol);
+    final totalSodium =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.sodium);
+    final totalPotassium =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.potassium);
+    final totalVitaminA =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminA);
+    final totalVitaminC =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminC);
+    final totalVitaminD =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminD);
+    final totalCalcium =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.calcium);
+    final totalIron =
+        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.iron);
     final totalMacros = totalCarbs + totalProtein + totalFat;
 
     final avgCarbs = totalMacros > 0 ? (totalCarbs / totalMacros) * 100 : 0;
@@ -126,7 +172,26 @@ class _StatsScreenState extends State<StatsScreen> {
         orElse: () => DailyLog.empty(now));
     final latestWater = latestWaterLog.waterIntake;
 
-    const aiReport = 'Отчет от AI временно отключен.';
+    final avgCalories = caloriesData.isEmpty
+        ? 0.0
+        : caloriesData.reduce((a, b) => a + b) / caloriesData.length;
+    final avgProteinGrams = totalProtein / logCount;
+    final avgFatGrams = totalFat / logCount;
+    final avgCarbsGrams = totalCarbs / logCount;
+    final avgFiberGrams = totalFiber / logCount;
+    final avgSugarGrams = totalSugar / logCount;
+    final avgSaturatedFatGrams = totalSaturatedFat / logCount;
+    final avgPolyunsaturatedFatGrams = totalPolyunsaturatedFat / logCount;
+    final avgMonounsaturatedFatGrams = totalMonounsaturatedFat / logCount;
+    final avgTransFatGrams = totalTransFat / logCount;
+    final avgCholesterolMg = totalCholesterol / logCount;
+    final avgSodiumMg = totalSodium / logCount;
+    final avgPotassiumMg = totalPotassium / logCount;
+    final avgVitaminAMcg = totalVitaminA / logCount;
+    final avgVitaminCMg = totalVitaminC / logCount;
+    final avgVitaminDMcg = totalVitaminD / logCount;
+    final avgCalciumMg = totalCalcium / logCount;
+    final avgIronMg = totalIron / logCount;
 
     return {
       'calories': caloriesData,
@@ -143,9 +208,141 @@ class _StatsScreenState extends State<StatsScreen> {
       'avgWater': avgWater,
       'latestWater': latestWater,
       'profile': profile,
-      'aiReport': aiReport,
       'periodLabel': _periodLabel(),
+      'aiInput': {
+        'periodLabel': _periodLabel(),
+        'calorieGoal': profile.calorieGoal,
+        'proteinGoal': profile.proteinGoal,
+        'fatGoal': profile.fatGoal,
+        'carbsGoal': profile.carbsGoal,
+        'avgCalories': avgCalories,
+        'avgProteinGrams': avgProteinGrams,
+        'avgFatGrams': avgFatGrams,
+        'avgCarbsGrams': avgCarbsGrams,
+        'avgFiberGrams': avgFiberGrams,
+        'avgSugarGrams': avgSugarGrams,
+        'avgSaturatedFatGrams': avgSaturatedFatGrams,
+        'avgPolyunsaturatedFatGrams': avgPolyunsaturatedFatGrams,
+        'avgMonounsaturatedFatGrams': avgMonounsaturatedFatGrams,
+        'avgTransFatGrams': avgTransFatGrams,
+        'avgCholesterolMg': avgCholesterolMg,
+        'avgSodiumMg': avgSodiumMg,
+        'avgPotassiumMg': avgPotassiumMg,
+        'avgVitaminAMcg': avgVitaminAMcg,
+        'avgVitaminCMg': avgVitaminCMg,
+        'avgVitaminDMcg': avgVitaminDMcg,
+        'avgCalciumMg': avgCalciumMg,
+        'avgIronMg': avgIronMg,
+        'totalCalories': totalCalories,
+        'totalProteinGrams': totalProtein,
+        'totalFatGrams': totalFat,
+        'totalCarbsGrams': totalCarbs,
+        'totalFiberGrams': totalFiber,
+        'totalSugarGrams': totalSugar,
+        'totalSaturatedFatGrams': totalSaturatedFat,
+        'totalPolyunsaturatedFatGrams': totalPolyunsaturatedFat,
+        'totalMonounsaturatedFatGrams': totalMonounsaturatedFat,
+        'totalTransFatGrams': totalTransFat,
+        'totalCholesterolMg': totalCholesterol,
+        'totalSodiumMg': totalSodium,
+        'totalPotassiumMg': totalPotassium,
+        'totalVitaminAMcg': totalVitaminA,
+        'totalVitaminCMg': totalVitaminC,
+        'totalVitaminDMcg': totalVitaminD,
+        'totalCalciumMg': totalCalcium,
+        'totalIronMg': totalIron,
+        'stepsGoal': profile.stepsGoal,
+        'avgSteps': avgSteps,
+        'weightGoal': profile.weightGoal,
+        'latestWeight': latestWeight,
+        'avgWaterLiters': avgWater / 1000,
+        'waterGoalLiters': profile.waterGoal / 1000,
+        'workouts': workouts,
+        'avgActivityCalories': avgActivityCalories,
+      },
     };
+  }
+
+  Future<void> _loadAiReport(
+      Map<String, dynamic> aiInput, int requestId) async {
+    try {
+      final aiReport = await _geminiRecipeService.generateStatsReport(
+        periodLabel: aiInput['periodLabel'] as String,
+        calorieGoal: aiInput['calorieGoal'] as int,
+        proteinGoal: aiInput['proteinGoal'] as int,
+        fatGoal: aiInput['fatGoal'] as int,
+        carbsGoal: aiInput['carbsGoal'] as int,
+        avgCalories: (aiInput['avgCalories'] as num).toDouble(),
+        avgProteinGrams: (aiInput['avgProteinGrams'] as num).toDouble(),
+        avgFatGrams: (aiInput['avgFatGrams'] as num).toDouble(),
+        avgCarbsGrams: (aiInput['avgCarbsGrams'] as num).toDouble(),
+        avgFiberGrams: (aiInput['avgFiberGrams'] as num).toDouble(),
+        avgSugarGrams: (aiInput['avgSugarGrams'] as num).toDouble(),
+        avgSaturatedFatGrams:
+            (aiInput['avgSaturatedFatGrams'] as num).toDouble(),
+        avgPolyunsaturatedFatGrams:
+            (aiInput['avgPolyunsaturatedFatGrams'] as num).toDouble(),
+        avgMonounsaturatedFatGrams:
+            (aiInput['avgMonounsaturatedFatGrams'] as num).toDouble(),
+        avgTransFatGrams: (aiInput['avgTransFatGrams'] as num).toDouble(),
+        avgCholesterolMg: (aiInput['avgCholesterolMg'] as num).toDouble(),
+        avgSodiumMg: (aiInput['avgSodiumMg'] as num).toDouble(),
+        avgPotassiumMg: (aiInput['avgPotassiumMg'] as num).toDouble(),
+        avgVitaminAMcg: (aiInput['avgVitaminAMcg'] as num).toDouble(),
+        avgVitaminCMg: (aiInput['avgVitaminCMg'] as num).toDouble(),
+        avgVitaminDMcg: (aiInput['avgVitaminDMcg'] as num).toDouble(),
+        avgCalciumMg: (aiInput['avgCalciumMg'] as num).toDouble(),
+        avgIronMg: (aiInput['avgIronMg'] as num).toDouble(),
+        totalCalories: (aiInput['totalCalories'] as num).toDouble(),
+        totalProteinGrams: (aiInput['totalProteinGrams'] as num).toDouble(),
+        totalFatGrams: (aiInput['totalFatGrams'] as num).toDouble(),
+        totalCarbsGrams: (aiInput['totalCarbsGrams'] as num).toDouble(),
+        totalFiberGrams: (aiInput['totalFiberGrams'] as num).toDouble(),
+        totalSugarGrams: (aiInput['totalSugarGrams'] as num).toDouble(),
+        totalSaturatedFatGrams:
+            (aiInput['totalSaturatedFatGrams'] as num).toDouble(),
+        totalPolyunsaturatedFatGrams:
+            (aiInput['totalPolyunsaturatedFatGrams'] as num).toDouble(),
+        totalMonounsaturatedFatGrams:
+            (aiInput['totalMonounsaturatedFatGrams'] as num).toDouble(),
+        totalTransFatGrams: (aiInput['totalTransFatGrams'] as num).toDouble(),
+        totalCholesterolMg: (aiInput['totalCholesterolMg'] as num).toDouble(),
+        totalSodiumMg: (aiInput['totalSodiumMg'] as num).toDouble(),
+        totalPotassiumMg: (aiInput['totalPotassiumMg'] as num).toDouble(),
+        totalVitaminAMcg: (aiInput['totalVitaminAMcg'] as num).toDouble(),
+        totalVitaminCMg: (aiInput['totalVitaminCMg'] as num).toDouble(),
+        totalVitaminDMcg: (aiInput['totalVitaminDMcg'] as num).toDouble(),
+        totalCalciumMg: (aiInput['totalCalciumMg'] as num).toDouble(),
+        totalIronMg: (aiInput['totalIronMg'] as num).toDouble(),
+        stepsGoal: aiInput['stepsGoal'] as int,
+        avgSteps: aiInput['avgSteps'] as int,
+        weightGoal: (aiInput['weightGoal'] as num).toDouble(),
+        latestWeight: (aiInput['latestWeight'] as num).toDouble(),
+        avgWaterLiters: (aiInput['avgWaterLiters'] as num).toDouble(),
+        waterGoalLiters: (aiInput['waterGoalLiters'] as num).toDouble(),
+        workouts: aiInput['workouts'] as int,
+        avgActivityCalories: aiInput['avgActivityCalories'] as int,
+      );
+
+      if (!mounted || requestId != _dataRequestId) return;
+      setState(() {
+        _aiReport = aiReport;
+      });
+    } on GeminiRecipeException catch (e) {
+      developer.log('AI report error: ${e.message}', name: 'StatsScreen');
+      if (!mounted || requestId != _dataRequestId) return;
+      setState(() {
+        _aiReport =
+            'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+      });
+    } catch (e) {
+      developer.log('AI report error: $e', name: 'StatsScreen');
+      if (!mounted || requestId != _dataRequestId) return;
+      setState(() {
+        _aiReport =
+            'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+      });
+    }
   }
 
   String _periodLabel() {
@@ -184,9 +381,8 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   void _onPeriodChanged(_StatsPeriod period) {
-    setState(() {
-      _period = period;
-    });
+    setState(() => _period = period);
+    _reloadStats();
   }
 
   @override
@@ -198,7 +394,7 @@ class _StatsScreenState extends State<StatsScreen> {
         title: const Text('Аналитика'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _loadData(),
+        future: _statsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -212,6 +408,11 @@ class _StatsScreenState extends State<StatsScreen> {
           }
 
           final data = snapshot.data!;
+          final requestId = _dataRequestId;
+          if (_aiStartedForRequestId != requestId) {
+            _aiStartedForRequestId = requestId;
+            _loadAiReport(data['aiInput'] as Map<String, dynamic>, requestId);
+          }
           final UserProfile profile = data['profile'];
 
           return SingleChildScrollView(
@@ -285,8 +486,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   profile,
                 ),
                 Text('Отчет от AI', style: theme.textTheme.headlineSmall),
-                _buildAiReportCard(
-                    theme, data['aiReport'], data['periodLabel']),
+                _buildAiReportCard(theme, _aiReport, data['periodLabel']),
               ],
             ),
           );
@@ -511,6 +711,25 @@ class _StatsScreenState extends State<StatsScreen> {
                     style: theme.textTheme.bodyMedium?.copyWith(
                         fontSize: 13,
                         color: theme.colorScheme.onSurface.withAlpha(204)),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

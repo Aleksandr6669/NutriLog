@@ -32,7 +32,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _filteredRecipes = [];
   bool _isLoading = true;
   bool _selectedRecipesCollapsed = true;
+  bool _isDeleteSelectionMode = false;
   late Map<String, int> _selectedRecipeCounts;
+  final Set<String> _selectedRecipeIdsForDelete = <String>{};
 
   @override
   void initState() {
@@ -287,43 +289,185 @@ class _RecipesScreenState extends State<RecipesScreen> {
     await _navigateAndRefresh(EditRecipeScreen(recipe: recipe));
   }
 
+  void _toggleDeleteSelectionMode() {
+    setState(() {
+      _isDeleteSelectionMode = !_isDeleteSelectionMode;
+      if (!_isDeleteSelectionMode) {
+        _selectedRecipeIdsForDelete.clear();
+      }
+    });
+  }
+
+  void _toggleRecipeForDelete(Recipe recipe) {
+    if (!recipe.isUserRecipe) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Встроенные рецепты удалять нельзя.'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      if (_selectedRecipeIdsForDelete.contains(recipe.id)) {
+        _selectedRecipeIdsForDelete.remove(recipe.id);
+      } else {
+        _selectedRecipeIdsForDelete.add(recipe.id);
+      }
+    });
+  }
+
+  Future<void> _deleteSelectedRecipes() async {
+    if (_selectedRecipeIdsForDelete.isEmpty) return;
+
+    final count = _selectedRecipeIdsForDelete.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить выбранные рецепты?'),
+        content: Text('Будет удалено: $count'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final ids = _selectedRecipeIdsForDelete.toList(growable: false);
+    for (final id in ids) {
+      await _recipeService.deleteRecipe(id);
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isDeleteSelectionMode = false;
+      _selectedRecipeIdsForDelete.clear();
+    });
+
+    await _loadAllRecipes();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Удалено рецептов: $count',
+            style: const TextStyle(fontSize: 18)),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
+      ),
+    );
+  }
+
   Future<void> _showCreateRecipeMenu() async {
     final selected = await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: Colors.transparent,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        final theme = Theme.of(context);
+        final optionBg = theme.brightness == Brightness.dark
+            ? AppColors.cardDark
+            : Colors.white;
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const ListTile(
-                  title: Text(
-                    'Как создать рецепт?',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                Container(
+                  decoration: BoxDecoration(
+                    color: optionBg,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Symbols.photo_camera),
-                  title: const Text('По фото блюда'),
-                  subtitle: const Text('Распознать ингредиенты с фото'),
-                  onTap: () => Navigator.of(context).pop('photo'),
-                ),
-                ListTile(
-                  leading: const Icon(Symbols.edit_note),
-                  title: const Text('По описанию'),
-                  subtitle: const Text('Сгенерировать по текстовому описанию'),
-                  onTap: () => Navigator.of(context).pop('description'),
-                ),
-                ListTile(
-                  leading: const Icon(Symbols.draw),
-                  title: const Text('Вручную'),
-                  subtitle: const Text('Открыть форму создания рецепта'),
-                  onTap: () => Navigator.of(context).pop('manual'),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(8, 4, 8, 10),
+                          child: Text(
+                            'Как создать рецепт?',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(8, 0, 8, 12),
+                          child: Text(
+                            'Выберите удобный способ и продолжайте в редакторе.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                          ),
+                        ),
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: const Text(
+                            'Нейросеть может ошибаться примерно на 10%. Проверьте результат перед сохранением.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        _CreateRecipeOptionTile(
+                          icon: Symbols.photo_camera,
+                          title: 'По фото блюда',
+                          subtitle: 'Распознать ингредиенты с фото',
+                          onTap: () => Navigator.of(context).pop('photo'),
+                        ),
+                        const SizedBox(height: 8),
+                        _CreateRecipeOptionTile(
+                          icon: Symbols.edit_note,
+                          title: 'По описанию',
+                          subtitle: 'Сгенерировать по текстовому описанию',
+                          onTap: () => Navigator.of(context).pop('description'),
+                        ),
+                        const SizedBox(height: 8),
+                        _CreateRecipeOptionTile(
+                          icon: Symbols.draw,
+                          title: 'Вручную',
+                          subtitle: 'Открыть форму создания рецепта',
+                          onTap: () => Navigator.of(context).pop('manual'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -387,6 +531,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fabBottomInset = MediaQuery.of(context).padding.bottom + 8;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -406,9 +551,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
             )
           else
             IconButton(
-              icon: const Icon(Symbols.add_circle_outline, size: 28),
-              onPressed: _showCreateRecipeMenu,
-              tooltip: 'Добавить рецепт',
+              onPressed: _toggleDeleteSelectionMode,
+              icon: Icon(
+                _isDeleteSelectionMode
+                    ? Icons.close_rounded
+                    : Icons.check_box_outlined,
+                size: 28,
+              ),
+              tooltip: _isDeleteSelectionMode ? 'Отмена выбора' : 'Выбрать',
             ),
         ],
       ),
@@ -416,6 +566,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
         children: [
           _buildSearchField(),
           _buildSelectedRecipesBar(theme),
+          if (_isDeleteSelectionMode && !widget.selectionMode)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Выбрано: ${_selectedRecipeIdsForDelete.length}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -425,6 +589,69 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ],
       ),
+      floatingActionButton: widget.selectionMode
+          ? null
+          : _isDeleteSelectionMode
+              ? null
+              : Padding(
+                  padding: EdgeInsets.only(bottom: fabBottomInset),
+                  child: Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(100),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(29),
+                        onTap: _showCreateRecipeMenu,
+                        child: const Center(
+                          child: Icon(
+                            Symbols.add,
+                            color: Colors.white,
+                            size: 30,
+                            weight: 700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+      bottomNavigationBar: (_isDeleteSelectionMode && !widget.selectionMode)
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedRecipeIdsForDelete.isEmpty
+                        ? null
+                        : _deleteSelectedRecipes,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 14,
+                      ),
+                    ),
+                    icon: const Icon(Symbols.delete),
+                    label: const Text('Удалить'),
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -467,11 +694,28 @@ class _RecipesScreenState extends State<RecipesScreen> {
         final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
         final item = _RecipeListItem(
           recipe: recipe,
-          isSelectionMode: widget.selectionMode,
+          isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
+          isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
+          canSelectInDeleteMode: recipe.isUserRecipe,
           isSelected: isSelected,
-          onTap: () => _openRecipeDetail(recipe),
-          onActionTap:
-              widget.selectionMode ? () => _addRecipeSelection(recipe) : null,
+          onTap: () {
+            if (widget.selectionMode) {
+              _addRecipeSelection(recipe);
+              return;
+            }
+            if (_isDeleteSelectionMode) {
+              if (!recipe.isUserRecipe) return;
+              _toggleRecipeForDelete(recipe);
+              return;
+            }
+            _openRecipeDetail(recipe);
+          },
+          onActionTap: widget.selectionMode
+              ? () => _addRecipeSelection(recipe)
+              : (_isDeleteSelectionMode
+                  ? () => _toggleRecipeForDelete(recipe)
+                  : null),
+          isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
         );
 
         if (widget.selectionMode) {
@@ -598,14 +842,20 @@ class _RecipeListItem extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
   final bool isSelectionMode;
+  final bool isDeleteMode;
+  final bool canSelectInDeleteMode;
   final bool isSelected;
+  final bool isDeleteSelected;
   final VoidCallback? onActionTap;
 
   const _RecipeListItem({
     required this.recipe,
     required this.onTap,
     this.isSelectionMode = false,
+    this.isDeleteMode = false,
+    this.canSelectInDeleteMode = true,
     this.isSelected = false,
+    this.isDeleteSelected = false,
     this.onActionTap,
   });
 
@@ -656,15 +906,94 @@ class _RecipeListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isSelectionMode)
+              if (isSelectionMode && (!isDeleteMode || canSelectInDeleteMode))
                 IconButton(
                   icon: Icon(
-                    Symbols.add_circle,
-                    color: theme.colorScheme.primary,
+                    isDeleteMode
+                        ? (isDeleteSelected
+                            ? Symbols.check_circle
+                            : Symbols.radio_button_unchecked)
+                        : Symbols.add_circle,
+                    color: isDeleteMode
+                        ? (isDeleteSelected
+                            ? Colors.red
+                            : theme.colorScheme.primary)
+                        : theme.colorScheme.primary,
                   ),
                   onPressed: onActionTap,
-                  tooltip: isSelected ? 'Добавить еще' : 'Добавить',
+                  tooltip: isDeleteMode
+                      ? (isDeleteSelected ? 'Снять выбор' : 'Выбрать')
+                      : (isSelected ? 'Добавить еще' : 'Добавить'),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateRecipeOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _CreateRecipeOptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                child: Icon(icon, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Symbols.chevron_right,
+                color: Colors.grey.shade500,
+              ),
             ],
           ),
         ),
