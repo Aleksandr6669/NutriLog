@@ -162,6 +162,7 @@ class MyApp extends StatelessWidget {
       title: 'NutriLog',
       theme: _buildTheme(Brightness.light),
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [_UnfocusOnRouteChangeObserver()],
       locale: const Locale('ru', 'RU'),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -204,6 +205,32 @@ class MyApp extends StatelessWidget {
       },
       home: const AppBootstrapScreen(),
     );
+  }
+}
+
+class _UnfocusOnRouteChangeObserver extends NavigatorObserver {
+  _UnfocusOnRouteChangeObserver();
+
+  void _clearFocus() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _clearFocus();
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _clearFocus();
+    super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _clearFocus();
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
   }
 }
 
@@ -311,6 +338,10 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   void _onItemTapped(int index) {
+    // На iOS предотвращаем кейс, когда при смене вкладки остается активный
+    // EditableText и система пытается показать toolbar без корректного Overlay.
+    FocusManager.instance.primaryFocus?.unfocus();
+
     setState(() {
       _selectedIndex = index;
     });
