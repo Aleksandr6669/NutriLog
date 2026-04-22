@@ -200,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SingleChildScrollView(
       padding: glassBodyPadding(
         context,
-        top: 16,
+        top: 0,
         bottom: 120,
       ),
       child: Column(

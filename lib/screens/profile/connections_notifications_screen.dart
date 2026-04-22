@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
 import 'package:nutri_log/services/health_steps_service.dart';
@@ -25,6 +24,7 @@ class _ConnectionsNotificationsScreenState
   bool _loading = true;
   bool _healthConnected = false;
   bool _connectingHealth = false;
+  bool _sendingTestNotification = false;
   late NotificationSettings _settings;
 
   @override
@@ -53,12 +53,13 @@ class _ConnectionsNotificationsScreenState
       final result = await _healthStepsService.connectWithStatus();
       if (!mounted) return;
       setState(() => _healthConnected = result.isConnected);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      final color = switch (result.status) {
+        HealthConnectStatus.connected => Colors.green.shade700,
+        HealthConnectStatus.needsHealthConnectInstall => Colors.orange.shade700,
+        HealthConnectStatus.permissionDenied => Colors.red.shade700,
+        HealthConnectStatus.failed => Colors.red.shade700,
+      };
+      _showSnack(result.message, backgroundColor: color);
     } finally {
       if (mounted) setState(() => _connectingHealth = false);
     }
@@ -76,33 +77,72 @@ class _ConnectionsNotificationsScreenState
     setState(() {});
 
     try {
-      await _notificationService.applySettings(settings);
+      await _notificationService.applySettings(
+        settings,
+      );
       await _settingsService.save(settings);
+      if (!mounted) return;
+      _showSnack(
+        'Настройки уведомлений сохранены.',
+        backgroundColor: Colors.green.shade700,
+      );
     } on NotificationPermissionDeniedException catch (error) {
       _settings = previous;
       if (mounted) setState(() {});
       await _settingsService.save(previous);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showSnack(error.message, backgroundColor: Colors.red.shade700);
+    } on NotificationScheduleException catch (error) {
+      _settings = previous;
+      if (mounted) setState(() {});
+      await _settingsService.save(previous);
+      if (!mounted) return;
+      _showSnack(error.message, backgroundColor: Colors.red.shade700);
     } catch (_) {
       _settings = previous;
       if (mounted) setState(() {});
       await _settingsService.save(previous);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках телефона.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showSnack(
+        'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках телефона.',
+        backgroundColor: Colors.red.shade700,
       );
     }
+  }
+
+  Future<void> _sendTestNotification() async {
+    if (_sendingTestNotification) return;
+    setState(() => _sendingTestNotification = true);
+
+    try {
+      await _notificationService.sendTestNotification();
+      if (!mounted) return;
+      _showSnack(
+        'Тестовое уведомление отправлено. Оно придет через несколько секунд.',
+        backgroundColor: Colors.green.shade700,
+      );
+    } on NotificationPermissionDeniedException catch (error) {
+      if (!mounted) return;
+      _showSnack(error.message, backgroundColor: Colors.red.shade700);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(
+        'Не удалось отправить тестовое уведомление. Проверьте разрешения и настройки системы.',
+        backgroundColor: Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) setState(() => _sendingTestNotification = false);
+    }
+  }
+
+  void _showSnack(String message, {Color? backgroundColor}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: backgroundColor,
+      ),
+    );
   }
 
   Future<void> _pickTime(
@@ -146,15 +186,9 @@ class _ConnectionsNotificationsScreenState
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        flexibleSpace: const GlassAppBarBackground(),
+      appBar: buildGlassAppBar(
         title: const Text('Подключения и сообщения'),
       ),
       body: ListView(
@@ -165,56 +199,57 @@ class _ConnectionsNotificationsScreenState
           Card(
             child: Column(
               children: [
-              ListTile(
-                leading: const Icon(Symbols.favorite),
-                title: const Text('Приложение здоровья'),
-                subtitle: Text(
-                  _healthConnected ? 'Подключено' : 'Не подключено',
-                ),
-                trailing: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 240),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: _healthConnected
-                      ? TextButton(
-                          key: const ValueKey('disconnect_health'),
-                          onPressed: _disconnectHealth,
-                          child: const Text('Отключить'),
-                        )
-                      : FilledButton(
-                          key: const ValueKey('connect_health'),
-                          onPressed: _connectingHealth ? null : _connectHealth,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                ListTile(
+                  leading: const Icon(Symbols.favorite),
+                  title: const Text('Приложение здоровья'),
+                  subtitle: Text(
+                    _healthConnected ? 'Подключено' : 'Не подключено',
+                  ),
+                  trailing: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 240),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    child: _healthConnected
+                        ? TextButton(
+                            key: const ValueKey('disconnect_health'),
+                            onPressed: _disconnectHealth,
+                            child: const Text('Отключить'),
+                          )
+                        : FilledButton(
+                            key: const ValueKey('connect_health'),
+                            onPressed:
+                                _connectingHealth ? null : _connectHealth,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: _connectingHealth
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Подключить'),
                           ),
-                          child: _connectingHealth
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Подключить'),
-                        ),
+                  ),
                 ),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Symbols.person),
-                title: const Text('Вход в аккаунт'),
-                subtitle: const Text('Скоро будет доступно'),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Вход в аккаунт скоро будет доступен.'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-              ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.person),
+                  title: const Text('Вход в аккаунт'),
+                  subtitle: const Text('Скоро будет доступно'),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Вход в аккаунт скоро будет доступен.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -224,88 +259,110 @@ class _ConnectionsNotificationsScreenState
           Card(
             child: Column(
               children: [
-              SwitchListTile.adaptive(
-                title: const Text('Напоминание о воде'),
-                subtitle: const Text(
-                  'Время и количество рассчитываются автоматически по вашей дневной цели воды',
+                SwitchListTile.adaptive(
+                  title: const Text('Напоминание о воде'),
+                  subtitle: const Text(
+                    'Время и количество рассчитываются автоматически по вашей дневной цели воды',
+                  ),
+                  value: _settings.waterReminderEnabled,
+                  onChanged: (enabled) {
+                    _saveNotificationSettings(
+                      _settings.copyWith(waterReminderEnabled: enabled),
+                    );
+                  },
                 ),
-                value: _settings.waterReminderEnabled,
-                onChanged: (enabled) {
-                  _saveNotificationSettings(
-                    _settings.copyWith(waterReminderEnabled: enabled),
-                  );
-                },
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                child: _settings.waterReminderEnabled
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: _settings.waterReminderEnabled
                       ? const Padding(
                           key: ValueKey('water_enabled_hint'),
                           padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
                           child: Text(
-                          'Автоплан воды активен: график и количество рассчитываются сами.',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      )
-                    : const SizedBox(key: ValueKey('water_disabled_hint')),
-              ),
-              const Divider(height: 1),
-              SwitchListTile.adaptive(
-                title: const Text('Напоминания о приемах пищи'),
-                subtitle: const Text('Завтрак, обед и ужин в выбранное время'),
-                value: _settings.mealRemindersEnabled,
-                onChanged: (enabled) {
-                  _saveNotificationSettings(
-                    _settings.copyWith(mealRemindersEnabled: enabled),
-                  );
-                },
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
-                child: _settings.mealRemindersEnabled
-                    ? Column(
-                        children: [
-                          ListTile(
-                            title: const Text('Завтрак'),
-                            subtitle:
-                                Text(_formatTime(_settings.breakfastTime)),
-                            trailing: const Icon(Symbols.edit),
-                            onTap: () => _pickTime(
-                              _settings.breakfastTime,
-                              (time) => _saveNotificationSettings(
-                                _settings.copyWith(breakfastTime: time),
+                            'Автоплан воды активен: график и количество рассчитываются сами.',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        )
+                      : const SizedBox(key: ValueKey('water_disabled_hint')),
+                ),
+                const Divider(height: 1),
+                SwitchListTile.adaptive(
+                  title: const Text('Напоминания о приемах пищи'),
+                  subtitle:
+                      const Text('Завтрак, обед и ужин в выбранное время'),
+                  value: _settings.mealRemindersEnabled,
+                  onChanged: (enabled) {
+                    _saveNotificationSettings(
+                      _settings.copyWith(mealRemindersEnabled: enabled),
+                    );
+                  },
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  child: _settings.mealRemindersEnabled
+                      ? Column(
+                          children: [
+                            ListTile(
+                              title: const Text('Завтрак'),
+                              subtitle:
+                                  Text(_formatTime(_settings.breakfastTime)),
+                              trailing: const Icon(Symbols.edit),
+                              onTap: () => _pickTime(
+                                _settings.breakfastTime,
+                                (time) => _saveNotificationSettings(
+                                  _settings.copyWith(breakfastTime: time),
+                                ),
                               ),
                             ),
-                          ),
-                          ListTile(
-                            title: const Text('Обед'),
-                            subtitle: Text(_formatTime(_settings.lunchTime)),
-                            trailing: const Icon(Symbols.edit),
-                            onTap: () => _pickTime(
-                              _settings.lunchTime,
-                              (time) => _saveNotificationSettings(
-                                _settings.copyWith(lunchTime: time),
+                            ListTile(
+                              title: const Text('Обед'),
+                              subtitle: Text(_formatTime(_settings.lunchTime)),
+                              trailing: const Icon(Symbols.edit),
+                              onTap: () => _pickTime(
+                                _settings.lunchTime,
+                                (time) => _saveNotificationSettings(
+                                  _settings.copyWith(lunchTime: time),
+                                ),
                               ),
                             ),
-                          ),
-                          ListTile(
-                            title: const Text('Ужин'),
-                            subtitle: Text(_formatTime(_settings.dinnerTime)),
-                            trailing: const Icon(Symbols.edit),
-                            onTap: () => _pickTime(
-                              _settings.dinnerTime,
-                              (time) => _saveNotificationSettings(
-                                _settings.copyWith(dinnerTime: time),
+                            ListTile(
+                              title: const Text('Ужин'),
+                              subtitle: Text(_formatTime(_settings.dinnerTime)),
+                              trailing: const Icon(Symbols.edit),
+                              onTap: () => _pickTime(
+                                _settings.dinnerTime,
+                                (time) => _saveNotificationSettings(
+                                  _settings.copyWith(dinnerTime: time),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-              ),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.notifications_active),
+                  title: const Text('Тест уведомления'),
+                  subtitle: const Text('Проверить, что уведомления работают'),
+                  trailing: FilledButton(
+                    onPressed:
+                        _sendingTestNotification ? null : _sendTestNotification,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _sendingTestNotification
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Отправить'),
+                  ),
+                ),
               ],
             ),
           ),
