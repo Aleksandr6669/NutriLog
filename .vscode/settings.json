@@ -8,5 +8,6 @@
     }
   },
   "remote.autoForwardPortsFallback": 0,
-  "cmake.sourceDirectory": "/workspaces/NutriLog/linux/flutter"
+  "cmake.sourceDirectory": "/workspaces/NutriLog/linux/flutter",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
