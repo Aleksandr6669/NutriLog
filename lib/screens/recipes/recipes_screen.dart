@@ -7,6 +7,7 @@ import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 import 'create_recipe_from_description_screen.dart';
 import 'create_recipe_from_photo_screen.dart';
 import 'edit_recipe_screen.dart';
@@ -167,10 +168,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
     ).toList();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
           color: panelColor,
           borderRadius: AppStyles.mediumBorderRadius,
@@ -185,7 +186,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: panelListMaxHeight),
               child: Scrollbar(
@@ -383,7 +384,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       context: context,
       barrierLabel: 'Закрыть',
       barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.10),
+      barrierColor: Colors.transparent,
       pageBuilder: (context, animation, secondaryAnimation) {
         final theme = Theme.of(context);
         final optionBg = theme.brightness == Brightness.dark
@@ -396,12 +397,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.08),
-                    ),
-                  ),
+                  child: const ColoredBox(color: Colors.transparent),
                 ),
               ),
               Align(
@@ -582,12 +578,42 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final fabBottomInset = MediaQuery.of(context).padding.bottom + 8;
+    final fixedTopInset = glassAppBarTotalHeight(context) + 8;
+
+    final fixedSearch = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: ClipRRect(
+        borderRadius: AppStyles.defaultBorderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: kGlassBlurSigma,
+            sigmaY: kGlassBlurSigma,
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface
+                  .withValues(alpha: kGlassSurfaceAlpha),
+              borderRadius: AppStyles.defaultBorderRadius,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.18),
+              ),
+            ),
+            child: _buildSearchField(isFloatingGlass: true),
+          ),
+        ),
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
+        flexibleSpace: const GlassAppBarBackground(),
         title: Text(
           widget.selectionMode ? 'Добавить в прием пищи' : 'Мои рецепты',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
@@ -614,28 +640,42 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       body: Column(
         children: [
-          _buildSearchField(),
+          SizedBox(height: fixedTopInset),
+          fixedSearch,
           _buildSelectedRecipesBar(theme),
-          if (_isDeleteSelectionMode && !widget.selectionMode)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Выбрано: ${_selectedRecipeIdsForDelete.length}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredRecipes.isEmpty
-                    ? _buildEmptyState()
-                    : _buildRecipesList(),
+            child: CustomScrollView(
+              slivers: [
+                if (_isDeleteSelectionMode && !widget.selectionMode)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Выбрано: ${_selectedRecipeIdsForDelete.length}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_isLoading)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_filteredRecipes.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(),
+                  )
+                else
+                  _buildRecipesList(),
+              ],
+            ),
           ),
         ],
       ),
@@ -705,9 +745,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
     );
   }
 
-  Widget _buildSearchField() {
+  Widget _buildSearchField({bool isFloatingGlass = false}) {
+    final inputBorder = OutlineInputBorder(
+      borderRadius: AppStyles.defaultBorderRadius,
+      borderSide: BorderSide.none,
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: isFloatingGlass
+          ? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0)
+          : const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
@@ -724,99 +771,104 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 )
               : null,
           filled: true,
-          fillColor: Colors.white,
+          fillColor: isFloatingGlass
+              ? Colors.white.withValues(alpha: 0.28)
+              : Colors.white,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
-          border: OutlineInputBorder(
-            borderRadius: AppStyles.defaultBorderRadius,
-            borderSide: BorderSide.none,
-          ),
+          border: inputBorder,
+          enabledBorder: inputBorder,
+          focusedBorder: inputBorder,
         ),
       ),
     );
   }
 
   Widget _buildRecipesList() {
-    return ListView.builder(
+    return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-      itemCount: _filteredRecipes.length,
-      itemBuilder: (context, index) {
-        final recipe = _filteredRecipes[index];
-        final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
-        final item = _RecipeListItem(
-          recipe: recipe,
-          isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
-          isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
-          canSelectInDeleteMode: recipe.isUserRecipe,
-          isSelected: isSelected,
-          onTap: () {
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final recipe = _filteredRecipes[index];
+            final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
+            final item = _RecipeListItem(
+              recipe: recipe,
+              isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
+              isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
+              canSelectInDeleteMode: recipe.isUserRecipe,
+              isSelected: isSelected,
+              isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
+              onTap: () {
+                if (widget.selectionMode) {
+                  _addRecipeSelection(recipe);
+                  return;
+                }
+                if (_isDeleteSelectionMode) {
+                  if (!recipe.isUserRecipe) return;
+                  _toggleRecipeForDelete(recipe);
+                  return;
+                }
+                _openRecipeDetail(recipe);
+              },
+              onActionTap: widget.selectionMode
+                  ? () => _addRecipeSelection(recipe)
+                  : (_isDeleteSelectionMode
+                      ? () => _toggleRecipeForDelete(recipe)
+                      : null),
+            );
+
             if (widget.selectionMode) {
-              _addRecipeSelection(recipe);
-              return;
+              return Dismissible(
+                key: ValueKey('recipe-select-${recipe.id}-$isSelected'),
+                direction: DismissDirection.endToStart,
+                background: _buildSwipeBackground(
+                  alignment: Alignment.centerRight,
+                  color: AppColors.primary,
+                  icon: Symbols.add_circle,
+                  label: 'Добавить',
+                ),
+                confirmDismiss: (_) async {
+                  _addRecipeSelection(recipe);
+                  return false;
+                },
+                child: item,
+              );
             }
-            if (_isDeleteSelectionMode) {
-              if (!recipe.isUserRecipe) return;
-              _toggleRecipeForDelete(recipe);
-              return;
-            }
-            _openRecipeDetail(recipe);
+
+            if (!recipe.isUserRecipe) return item;
+
+            return Dismissible(
+              key: ValueKey('recipe-swipe-${recipe.id}'),
+              direction: DismissDirection.horizontal,
+              background: _buildSwipeBackground(
+                alignment: Alignment.centerLeft,
+                color: Colors.blue.shade600,
+                icon: Symbols.edit,
+                label: 'Редактировать',
+              ),
+              secondaryBackground: _buildSwipeBackground(
+                alignment: Alignment.centerRight,
+                color: Colors.red.shade600,
+                icon: Symbols.delete,
+                label: 'Удалить',
+              ),
+              confirmDismiss: (direction) async {
+                if (direction == DismissDirection.startToEnd) {
+                  await _editRecipe(recipe);
+                  return false;
+                }
+                if (direction == DismissDirection.endToStart) {
+                  await _deleteRecipe(recipe);
+                  return false;
+                }
+                return false;
+              },
+              child: item,
+            );
           },
-          onActionTap: widget.selectionMode
-              ? () => _addRecipeSelection(recipe)
-              : (_isDeleteSelectionMode
-                  ? () => _toggleRecipeForDelete(recipe)
-                  : null),
-          isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
-        );
-
-        if (widget.selectionMode) {
-          return Dismissible(
-            key: ValueKey('recipe-add-swipe-${recipe.id}'),
-            direction: DismissDirection.startToEnd,
-            background: _buildSwipeBackground(
-              alignment: Alignment.centerLeft,
-              color: Colors.green.shade600,
-              icon: Symbols.add_circle,
-              label: 'Добавить',
-            ),
-            confirmDismiss: (_) async {
-              _addRecipeSelection(recipe);
-              return false;
-            },
-            child: item,
-          );
-        }
-
-        if (!recipe.isUserRecipe) return item;
-
-        return Dismissible(
-          key: ValueKey('recipe-swipe-${recipe.id}'),
-          direction: DismissDirection.horizontal,
-          background: _buildSwipeBackground(
-            alignment: Alignment.centerLeft,
-            color: Colors.blue.shade600,
-            icon: Symbols.edit,
-            label: 'Редактировать',
-          ),
-          secondaryBackground: _buildSwipeBackground(
-            alignment: Alignment.centerRight,
-            color: Colors.red.shade600,
-            icon: Symbols.delete,
-            label: 'Удалить',
-          ),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
-              await _editRecipe(recipe);
-              return false;
-            }
-            if (direction == DismissDirection.endToStart) {
-              await _deleteRecipe(recipe);
-              return false;
-            }
-            return false;
-          },
-          child: item,
-        );
-      },
+          childCount: _filteredRecipes.length,
+        ),
+      ),
     );
   }
 
@@ -916,21 +968,22 @@ class _RecipeListItem extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 0.5,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
         borderRadius: AppStyles.cardRadius,
-        splashColor: theme.colorScheme.primary.withOpacity(0.1),
-        highlightColor: theme.colorScheme.primary.withOpacity(0.05),
+        splashColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+        highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                backgroundColor:
+                    theme.colorScheme.primary.withValues(alpha: 0.1),
                 child: Icon(recipe.icon,
                     color: theme.colorScheme.primary, size: 28),
               ),

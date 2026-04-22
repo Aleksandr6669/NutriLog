@@ -6,12 +6,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui';
+import 'services/app_notification_service.dart';
+import 'services/notification_settings_service.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
 import 'screens/stats/stats_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
+import 'widgets/glass_app_bar_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +24,11 @@ void main() async {
     // .env может отсутствовать в локальной среде.
   }
   await initializeDateFormatting('ru_RU', null);
+  final notificationService = AppNotificationService();
+  final notificationSettingsService = NotificationSettingsService();
+  await notificationService.initialize();
+  final settings = await notificationSettingsService.load();
+  await notificationService.applySettings(settings);
   GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const MyApp());
 }
@@ -122,12 +130,18 @@ class _BottomNavBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+          filter: ImageFilter.blur(
+            sigmaX: kGlassBlurSigma,
+            sigmaY: kGlassBlurSigma,
+          ),
           child: Container(
             decoration: BoxDecoration(
-              color: theme.bottomNavigationBarTheme.backgroundColor
-                  ?.withAlpha(180),
-              border: Border.all(color: AppColors.primary.withAlpha(30)),
+              color: theme.colorScheme.surface.withValues(
+                alpha: kGlassSurfaceAlpha,
+              ),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -4,6 +4,7 @@ import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class CreateRecipeFromDescriptionScreen extends StatefulWidget {
   const CreateRecipeFromDescriptionScreen({super.key});
@@ -94,16 +95,21 @@ class _CreateRecipeFromDescriptionScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: buildGlassAppBar(
         title: const Text(
           'Рецепт по описанию',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: glassBodyPadding(
+          context,
+          left: 16,
+          top: 8,
+          right: 16,
+          bottom: 24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

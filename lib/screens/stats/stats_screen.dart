@@ -11,6 +11,7 @@ import '../../services/gemini_recipe_service.dart';
 import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 import 'widgets/chart_legend_item.dart';
 import 'widgets/progress_card.dart';
 
@@ -69,9 +70,15 @@ class _StatsScreenState extends State<StatsScreen> {
 
     List<double> caloriesData;
     List<double> weightData;
+    List<double> stepsSeries;
+    List<double> activitySeries;
+    List<double> waterSeries;
     if (_period == _StatsPeriod.year) {
       caloriesData = List<double>.filled(12, 0);
       weightData = List<double>.filled(12, 0);
+      stepsSeries = List<double>.filled(12, 0);
+      activitySeries = List<double>.filled(12, 0);
+      waterSeries = List<double>.filled(12, 0);
 
       for (int month = 1; month <= 12; month++) {
         final monthLogs = logs.where((log) => log.date.month == month).toList();
@@ -79,6 +86,24 @@ class _StatsScreenState extends State<StatsScreen> {
           0,
           (sum, log) => sum + log.totalNutrients.calories,
         );
+
+        if (monthLogs.isNotEmpty) {
+          final stepSum = monthLogs.fold<int>(0, (sum, log) => sum + log.steps);
+          stepsSeries[month - 1] = stepSum / monthLogs.length;
+
+          final waterSum =
+              monthLogs.fold<int>(0, (sum, log) => sum + log.waterIntake);
+          waterSeries[month - 1] = (waterSum / monthLogs.length) / 1000;
+
+          final activitySum = monthLogs.fold<double>(0, (sum, log) {
+            if (log.activities.isNotEmpty) {
+              return sum +
+                  log.activities.fold<int>(0, (s, item) => s + item.calories);
+            }
+            return sum + log.activityCalories;
+          });
+          activitySeries[month - 1] = activitySum / monthLogs.length;
+        }
 
         final monthWeightLogs =
             monthLogs.where((log) => log.weight != null).toList();
@@ -89,6 +114,16 @@ class _StatsScreenState extends State<StatsScreen> {
     } else {
       caloriesData = logs.map((log) => log.totalNutrients.calories).toList();
       weightData = logs.map((log) => log.weight ?? 0.0).toList();
+      stepsSeries = logs.map((log) => log.steps.toDouble()).toList();
+      waterSeries = logs.map((log) => log.waterIntake / 1000).toList();
+      activitySeries = logs.map((log) {
+        if (log.activities.isNotEmpty) {
+          return log.activities
+              .fold<int>(0, (sum, item) => sum + item.calories)
+              .toDouble();
+        }
+        return log.activityCalories.toDouble();
+      }).toList();
     }
 
     int logCount = logs.where((log) => !log.isEmpty).length;
@@ -207,6 +242,10 @@ class _StatsScreenState extends State<StatsScreen> {
       'workouts': workouts,
       'avgWater': avgWater,
       'latestWater': latestWater,
+      'stepsSeries': stepsSeries,
+      'weightSeries': weightData,
+      'activitySeries': activitySeries,
+      'waterSeries': waterSeries,
       'profile': profile,
       'periodLabel': _periodLabel(),
       'aiInput': {
@@ -390,7 +429,14 @@ class _StatsScreenState extends State<StatsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
+        flexibleSpace: const GlassAppBarBackground(),
         title: const Text('Аналитика'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
@@ -416,7 +462,11 @@ class _StatsScreenState extends State<StatsScreen> {
           final UserProfile profile = data['profile'];
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+            padding: glassBodyPadding(
+              context,
+              top: 0,
+              bottom: 120,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -472,7 +522,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     (data['avgFat'] as num).toDouble()),
                 const SizedBox(height: 24),
                 Text('Прогресс', style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 _buildProgressCards(
                   theme,
                   data['avgSteps'],
@@ -483,9 +533,25 @@ class _StatsScreenState extends State<StatsScreen> {
                   data['workouts'],
                   data['avgWater'],
                   data['latestWater'],
+                  List<double>.from(data['stepsSeries'] as List),
+                  List<double>.from(data['weightSeries'] as List),
+                  List<double>.from(data['activitySeries'] as List),
+                  List<double>.from(data['waterSeries'] as List),
                   profile,
                 ),
-                Text('Отчет от AI', style: theme.textTheme.headlineSmall),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.smart_toy,
+                      size: 22,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Отчет от AI', style: theme.textTheme.headlineSmall),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 _buildAiReportCard(theme, _aiReport, data['periodLabel']),
               ],
             ),
@@ -636,16 +702,14 @@ class _StatsScreenState extends State<StatsScreen> {
     int workouts,
     int avgWater,
     int latestWater,
+    List<double> stepsSeries,
+    List<double> weightSeries,
+    List<double> activitySeries,
+    List<double> waterSeries,
     UserProfile profile,
   ) {
     final waterGoalLiters = profile.waterGoal / 1000.0;
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.25,
+    return Column(
       children: [
         ProgressCard(
             icon: Symbols.footprint,
@@ -653,7 +717,10 @@ class _StatsScreenState extends State<StatsScreen> {
             primaryLine: 'Среднее: $avgSteps шагов',
             secondaryLine: 'Последнее: $latestSteps шагов',
             color: AppColors.primary,
-            goal: profile.stepsGoal),
+            goal: profile.stepsGoal,
+            metricValue: latestSteps,
+            trendData: stepsSeries),
+        const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.weight,
             title: 'Вес',
@@ -661,13 +728,21 @@ class _StatsScreenState extends State<StatsScreen> {
             secondaryLine: 'Последнее: ${latestWeight.toStringAsFixed(1)} кг',
             color: Colors.orange,
             goal: profile.weightGoal,
-            isWeight: true),
+            isWeight: true,
+            metricValue: latestWeight,
+            trendData: weightSeries),
+        const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.fitness_center,
             title: 'Активность',
             primaryLine: 'Среднее: $avgActivityCalories ккал',
             secondaryLine: 'Тренировок: $workouts',
-            color: Colors.blue),
+            color: Colors.blue,
+            goal: 1,
+            metricValue: workouts,
+            useStrictGoalComparison: true,
+            trendData: activitySeries),
+        const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.water_drop,
             title: 'Вода',
@@ -676,7 +751,9 @@ class _StatsScreenState extends State<StatsScreen> {
                 'Последнее: ${(latestWater / 1000).toStringAsFixed(1)} л',
             color: Colors.lightBlue,
             goal: waterGoalLiters,
-            isWater: true),
+            isWater: true,
+            metricValue: latestWater / 1000,
+            trendData: waterSeries),
       ],
     );
   }
@@ -692,46 +769,36 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Symbols.smart_toy,
-                color: AppColors.primary, size: 32, fill: 1),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Анализ $periodLabel',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withAlpha(255),
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  Text(
-                    aiReport,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 13,
-                        color: theme.colorScheme.onSurface.withAlpha(204)),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+            Text('Анализ $periodLabel',
+                style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withAlpha(255),
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text(
+              aiReport,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurface.withAlpha(204)),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.orange.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Text(
+                'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

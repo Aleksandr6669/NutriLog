@@ -17,6 +17,7 @@
 
     <!-- Для датчиков (акселерометр, гироскоп и т.д.) -->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     
 
     <application
@@ -97,6 +98,7 @@
     </application>
 
     <queries>
+        <package android:name="com.google.android.apps.healthdata" />
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

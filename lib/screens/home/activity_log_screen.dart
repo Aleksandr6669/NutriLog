@@ -4,6 +4,7 @@ import '../../models/daily_log.dart';
 import '../../services/daily_log_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import '../../widgets/glass_app_bar_background.dart';
 import 'edit_activity_entry_screen.dart';
 
 class ActivityLogScreen extends StatefulWidget {
@@ -133,10 +134,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
-        appBar: AppBar(
-          backgroundColor: Colors.grey.shade50,
-          title: const Text('Активность'),
-        ),
+        appBar: buildGlassAppBar(title: const Text('Активность')),
         body: Stack(
           children: [
             Column(
