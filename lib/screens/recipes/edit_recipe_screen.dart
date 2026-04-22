@@ -48,6 +48,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isSyncingCalories = false;
   bool _isAiCalculating = false;
   String? _aiStatus;
+  bool _isAiError = false;
   int _aiRequestId = 0;
 
   final List<String> _nutrientKeys = [
@@ -180,6 +181,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       if (mounted) {
         setState(() {
           _aiStatus = 'Добавьте ингредиенты для AI-подсчета';
+          _isAiError = true;
           _isAiCalculating = false;
         });
       }
@@ -191,6 +193,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       setState(() {
         _isAiCalculating = true;
         _aiStatus = 'Идет расчет пищевой ценности...';
+        _isAiError = false;
       });
     }
 
@@ -212,18 +215,21 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       setState(() {
         _isAiCalculating = false;
         _aiStatus = 'Поля обновлены';
+        _isAiError = false;
       });
     } on GeminiRecipeException catch (e) {
       if (!mounted || requestId != _aiRequestId) return;
       setState(() {
         _isAiCalculating = false;
         _aiStatus = e.message;
+        _isAiError = true;
       });
     } catch (_) {
       if (!mounted || requestId != _aiRequestId) return;
       setState(() {
         _isAiCalculating = false;
         _aiStatus = 'Не удалось получить расчет';
+        _isAiError = true;
       });
     }
   }
@@ -542,10 +548,40 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             if (_aiStatus != null) ...[
-              Text(
-                _aiStatus!,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: (_isAiError ? Colors.red : AppColors.primary)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: (_isAiError ? Colors.red : AppColors.primary)
+                        .withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _isAiError ? Symbols.error : Symbols.info,
+                      size: 18,
+                      color:
+                          _isAiError ? Colors.red.shade700 : AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _aiStatus!,
+                        style: TextStyle(
+                          color: _isAiError
+                              ? Colors.red.shade700
+                              : Theme.of(context).textTheme.bodySmall?.color,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -557,6 +593,22 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     _isAiCalculating ? null : _recalculateNutrientsWithAi,
                 icon: const Icon(Symbols.calculate),
                 label: const Text('Рассчитать пищевую ценность'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.orange.withValues(alpha: 0.3),
+                ),
+              ),
+              child: const Text(
+                'Нейросеть может ошибаться примерно на 10%. Проверьте значения перед сохранением.',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),

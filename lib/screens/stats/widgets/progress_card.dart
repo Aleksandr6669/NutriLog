@@ -38,46 +38,33 @@ class ProgressCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Icon(icon, color: color, size: 28),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Row(
-                    children: [
-                      Icon(icon, color: color, size: 28),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (goalText != null)
-                  Flexible(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          goalText,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
+                ),
               ],
             ),
+            if (goalText != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                goalText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Text(
               primaryLine,
