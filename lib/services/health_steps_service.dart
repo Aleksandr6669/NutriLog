@@ -1,9 +1,37 @@
+import 'dart:io' show Platform;
+
 import 'package:health/health.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+enum HealthConnectStatus {
+  connected,
+  needsHealthConnectInstall,
+  permissionDenied,
+  failed,
+}
+
+class HealthConnectResult {
+  final HealthConnectStatus status;
+  final String message;
+
+  const HealthConnectResult({
+    required this.status,
+    required this.message,
+  });
+
+  bool get isConnected => status == HealthConnectStatus.connected;
+}
 
 class HealthStepsService {
   static const String _connectedKey = 'health_steps_connected';
   final Health _health = Health();
+  bool _configured = false;
+
+  Future<void> _ensureConfigured() async {
+    if (_configured) return;
+    await _health.configure();
+    _configured = true;
+  }
 
   Future<bool> isConnected() async {
     final prefs = await SharedPreferences.getInstance();
@@ -11,18 +39,70 @@ class HealthStepsService {
   }
 
   Future<bool> connect() async {
+    final result = await connectWithStatus();
+    return result.isConnected;
+  }
+
+  Future<HealthConnectResult> connectWithStatus() async {
     try {
+      await _ensureConfigured();
+
+      if (Platform.isAndroid) {
+        final sdkStatus = await _health.getHealthConnectSdkStatus();
+        if (sdkStatus != HealthConnectSdkStatus.sdkAvailable) {
+          await _health.installHealthConnect();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_connectedKey, false);
+          return const HealthConnectResult(
+            status: HealthConnectStatus.needsHealthConnectInstall,
+            message:
+                'Для шагов нужен Health Connect. Установите/обновите его и повторите подключение.',
+          );
+        }
+      }
+
       final granted = await _health.requestAuthorization(
         [HealthDataType.STEPS],
         permissions: [HealthDataAccess.READ],
       );
+
+      if (Platform.isIOS && granted == true) {
+        final now = DateTime.now();
+        final startOfDay = DateTime(now.year, now.month, now.day);
+        final probe = await _health.getTotalStepsInInterval(startOfDay, now);
+        if (probe == null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_connectedKey, false);
+          return const HealthConnectResult(
+            status: HealthConnectStatus.permissionDenied,
+            message:
+                'Не удалось получить доступ к шагам. Откройте iPhone: Настройки -> Здоровье -> Доступ к данным и устройствам -> NutriLog, и разрешите чтение шагов.',
+          );
+        }
+      }
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_connectedKey, granted == true);
-      return granted == true;
+
+      if (granted == true) {
+        return const HealthConnectResult(
+          status: HealthConnectStatus.connected,
+          message: 'Источник здоровья подключен.',
+        );
+      }
+
+      return const HealthConnectResult(
+        status: HealthConnectStatus.permissionDenied,
+        message:
+        'Доступ к шагам не выдан. Разрешите доступ к шагам в Health Connect или в приложении Здоровье.',
+      );
     } catch (_) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_connectedKey, false);
-      return false;
+      return const HealthConnectResult(
+        status: HealthConnectStatus.failed,
+        message: 'Не удалось подключить источник здоровья. Попробуйте снова.',
+      );
     }
   }
 
@@ -39,6 +119,8 @@ class HealthStepsService {
     final end = start.add(const Duration(days: 1));
 
     try {
+      await _ensureConfigured();
+
       if (requestAuthorizationIfNeeded) {
         final granted = await connect();
         if (!granted) return null;

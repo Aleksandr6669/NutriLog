@@ -74,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadLogForSelectedDate() async {
-    if (mounted) {
+  Future<void> _loadLogForSelectedDate({bool showLoader = true}) async {
+    if (mounted && showLoader) {
       setState(() {
         _isLoadingLog = true;
       });
@@ -435,7 +435,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               _MealsSection(
                                 dailyLog: _currentDailyLog!,
                                 profile: userProfile,
-                                onDataChanged: _loadLogForSelectedDate,
+                                onDataChanged: () =>
+                                    _loadLogForSelectedDate(showLoader: false),
                                 selectedDate: _selectedDay,
                                 showManualStepsInput: !_isHealthConnected,
                                 onManualStepsInput: _setStepsManually,

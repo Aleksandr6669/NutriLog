@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -8,6 +9,15 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'profile_service.dart';
 import 'notification_settings_service.dart';
+
+class NotificationPermissionDeniedException implements Exception {
+  final String message;
+
+  const NotificationPermissionDeniedException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 class AppNotificationService {
   static const int _waterBaseId = 1000;
@@ -22,6 +32,7 @@ class AppNotificationService {
       FlutterLocalNotificationsPlugin();
   final ProfileService _profileService = ProfileService();
   static bool _initialized = false;
+  bool _permissionsGranted = true;
 
   Future<void> initialize() async {
     if (kIsWeb) return;
@@ -38,7 +49,6 @@ class AppNotificationService {
     );
 
     await _plugin.initialize(initSettings);
-    await _requestPermissions();
     _initialized = true;
   }
 
@@ -52,14 +62,26 @@ class AppNotificationService {
     }
   }
 
-  Future<void> _requestPermissions() async {
+  Future<bool> _requestPermissions() async {
+    var androidGranted = true;
+    var iosGranted = true;
+
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
+    if (Platform.isAndroid) {
+      androidGranted = await android?.requestNotificationsPermission() ?? true;
+    }
 
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
-    await ios?.requestPermissions(alert: true, badge: true, sound: true);
+    if (Platform.isIOS) {
+      iosGranted =
+          await ios?.requestPermissions(alert: true, badge: true, sound: true) ??
+              false;
+    }
+
+    _permissionsGranted = androidGranted && iosGranted;
+    return _permissionsGranted;
   }
 
   Future<void> applySettings(NotificationSettings settings) async {
@@ -73,6 +95,17 @@ class AppNotificationService {
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
+
+    final hasEnabledReminders =
+        settings.waterReminderEnabled || settings.mealRemindersEnabled;
+    if (!hasEnabledReminders) return;
+
+    final granted = await _requestPermissions();
+    if (!granted) {
+      throw const NotificationPermissionDeniedException(
+        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog.',
+      );
+    }
 
     if (settings.waterReminderEnabled) {
       await _scheduleWaterReminders();
@@ -169,7 +202,7 @@ class AppNotificationService {
       body,
       scheduled,
       const NotificationDetails(android: androidDetails, iOS: iosDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
