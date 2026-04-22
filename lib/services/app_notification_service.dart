@@ -56,9 +56,39 @@ class AppNotificationService {
     tz.initializeTimeZones();
     try {
       final localTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localTimezone));
+      tz.setLocalLocation(_resolveTimezoneLocation(localTimezone));
     } catch (_) {
-      tz.setLocalLocation(tz.UTC);
+      // Не форсируем UTC: это сдвигает локальные напоминания по времени.
+      // Оставляем стандартную локаль timezone пакета как есть.
+    }
+  }
+
+  tz.Location _resolveTimezoneLocation(String rawTimezone) {
+    final timezone = rawTimezone.trim();
+    if (timezone.isEmpty) return tz.local;
+
+    try {
+      return tz.getLocation(timezone);
+    } catch (_) {
+      // iOS иногда возвращает смещение в формате GMT+3 / UTC+03:00.
+      final match = RegExp(r'^(?:GMT|UTC)\s*([+-])(\d{1,2})(?::?(\d{2}))?$')
+          .firstMatch(timezone.toUpperCase());
+      if (match != null) {
+        final sign = match.group(1)!;
+        final hour = int.tryParse(match.group(2) ?? '0') ?? 0;
+        final minute = int.tryParse(match.group(3) ?? '0') ?? 0;
+        if (minute == 0 && hour <= 14) {
+          // В базе Etc/GMT знак инвертирован.
+          final etcSign = sign == '+' ? '-' : '+';
+          final etcName = hour == 0 ? 'Etc/GMT' : 'Etc/GMT$etcSign$hour';
+          try {
+            return tz.getLocation(etcName);
+          } catch (_) {
+            return tz.local;
+          }
+        }
+      }
+      return tz.local;
     }
   }
 
@@ -75,9 +105,9 @@ class AppNotificationService {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      iosGranted =
-          await ios?.requestPermissions(alert: true, badge: true, sound: true) ??
-              false;
+      iosGranted = await ios?.requestPermissions(
+              alert: true, badge: true, sound: true) ??
+          false;
     }
 
     _permissionsGranted = androidGranted && iosGranted;

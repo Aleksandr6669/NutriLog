@@ -135,10 +135,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       (sum, item) => sum + item.nutrients,
     );
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         Navigator.of(context).pop(_hasChanges);
-        return false;
       },
       child: Scaffold(
         extendBodyBehindAppBar: true,
@@ -420,7 +421,7 @@ class _FoodListItem extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 0.5,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: InkWell(
         borderRadius: AppStyles.cardRadius,
@@ -431,7 +432,8 @@ class _FoodListItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                backgroundColor:
+                    theme.colorScheme.primary.withValues(alpha: 0.1),
                 child:
                     Icon(item.icon, color: theme.colorScheme.primary, size: 28),
               ),

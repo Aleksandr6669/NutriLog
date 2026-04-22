@@ -265,7 +265,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withOpacity(0.1)
+                ? AppColors.primary.withValues(alpha: 0.1)
                 : (theme.brightness == Brightness.dark
                     ? Colors.grey.shade800
                     : Colors.grey.shade200),
