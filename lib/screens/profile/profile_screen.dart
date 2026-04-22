@@ -305,6 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: TextField(
                     controller: _nameController,
                     focusNode: _nameFocusNode,
+                    enableInteractiveSelection: false,
                     textAlign: TextAlign.center,
                     textAlignVertical: TextAlignVertical.center,
                     textCapitalization: TextCapitalization.words,
