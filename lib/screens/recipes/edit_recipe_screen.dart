@@ -9,8 +9,9 @@ import 'package:nutri_log/styles/app_styles.dart';
 
 class EditRecipeScreen extends StatefulWidget {
   final Recipe? recipe;
+  final Recipe? initialDraft;
 
-  const EditRecipeScreen({super.key, this.recipe});
+  const EditRecipeScreen({super.key, this.recipe, this.initialDraft});
 
   @override
   State<EditRecipeScreen> createState() => _EditRecipeScreenState();
@@ -73,18 +74,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.recipe?.name ?? '');
+    final sourceRecipe = widget.recipe ?? widget.initialDraft;
+
+    _nameController = TextEditingController(text: sourceRecipe?.name ?? '');
     _descriptionController =
-        TextEditingController(text: widget.recipe?.description ?? '');
-    _selectedIcon = widget.recipe?.icon ?? Symbols.restaurant;
+        TextEditingController(text: sourceRecipe?.description ?? '');
+    _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
 
     // Initialize all nutrient controllers
     for (var key in _nutrientKeys) {
       _nutrientControllers[key] = TextEditingController(
-          text: widget.recipe?.nutrients[key]?.toString() ?? '0.0');
+          text: sourceRecipe?.nutrients[key]?.toString() ?? '0.0');
     }
 
-    final loadedIngredients = widget.recipe?.ingredients ?? const [];
+    final loadedIngredients = sourceRecipe?.ingredients ?? const [];
     if (loadedIngredients.isNotEmpty) {
       for (final ingredient in loadedIngredients) {
         _ingredientItems.add(
@@ -109,9 +112,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   bool _shouldEnableAutoCalories() {
-    if (widget.recipe == null) return true;
+    final sourceRecipe = widget.recipe ?? widget.initialDraft;
+    if (sourceRecipe == null) return true;
 
-    final recipeNutrients = widget.recipe?.nutrients ?? const {};
+    final recipeNutrients = sourceRecipe.nutrients;
     final protein = recipeNutrients['protein'] ?? 0;
     final carbs = recipeNutrients['carbs'] ?? 0;
     final fat = recipeNutrients['fat'] ?? 0;
@@ -365,7 +369,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         icon: _selectedIcon,
         isUserRecipe: true,
         ingredients: ingredients,
-        instructions: widget.recipe?.instructions ?? [],
+        instructions:
+            (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
       );
 
       if (widget.recipe == null) {

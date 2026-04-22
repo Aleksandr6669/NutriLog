@@ -5,6 +5,8 @@ import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
+import 'create_recipe_from_description_screen.dart';
+import 'create_recipe_from_photo_screen.dart';
 import 'edit_recipe_screen.dart';
 import 'recipe_detail_screen.dart';
 
@@ -285,6 +287,68 @@ class _RecipesScreenState extends State<RecipesScreen> {
     await _navigateAndRefresh(EditRecipeScreen(recipe: recipe));
   }
 
+  Future<void> _showCreateRecipeMenu() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const ListTile(
+                  title: Text(
+                    'Как создать рецепт?',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.photo_camera),
+                  title: const Text('По фото блюда'),
+                  subtitle: const Text('Распознать ингредиенты с фото'),
+                  onTap: () => Navigator.of(context).pop('photo'),
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.edit_note),
+                  title: const Text('По описанию'),
+                  subtitle: const Text('Сгенерировать по текстовому описанию'),
+                  onTap: () => Navigator.of(context).pop('description'),
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.draw),
+                  title: const Text('Вручную'),
+                  subtitle: const Text('Открыть форму создания рецепта'),
+                  onTap: () => Navigator.of(context).pop('manual'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!mounted || selected == null) return;
+
+    if (selected == 'manual') {
+      await _navigateAndRefresh(const EditRecipeScreen());
+      return;
+    }
+
+    if (selected == 'photo') {
+      await _navigateAndRefresh(const CreateRecipeFromPhotoScreen());
+      return;
+    }
+
+    if (selected == 'description') {
+      await _navigateAndRefresh(const CreateRecipeFromDescriptionScreen());
+    }
+  }
+
   Future<void> _deleteRecipe(Recipe recipe) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -343,7 +407,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           else
             IconButton(
               icon: const Icon(Symbols.add_circle_outline, size: 28),
-              onPressed: () => _navigateAndRefresh(const EditRecipeScreen()),
+              onPressed: _showCreateRecipeMenu,
               tooltip: 'Добавить рецепт',
             ),
         ],

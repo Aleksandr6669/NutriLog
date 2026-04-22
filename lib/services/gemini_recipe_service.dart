@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -38,6 +39,162 @@ class GeminiRecipeService {
     'calcium',
     'iron',
   ];
+
+  Future<GeminiRecipeDraft> generateRecipeFromDescription({
+    required String description,
+  }) async {
+    final normalizedDescription = description.trim();
+    if (normalizedDescription.isEmpty) {
+      throw const GeminiRecipeException('Введите описание блюда.');
+    }
+
+    final prompt = '''
+Ты кулинарный ассистент.
+Сгенерируй черновик рецепта на основе пользовательского описания.
+
+Описание блюда:
+$normalizedDescription
+
+Верни ТОЛЬКО JSON-объект в формате:
+{
+  "name": "...",
+  "description": "...",
+  "ingredients": [
+    {"name": "...", "quantity": 100, "unit": "г"}
+  ],
+  "nutrients": {
+    "calories": 0,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "saturated_fat": 0,
+    "polyunsaturated_fat": 0,
+    "monounsaturated_fat": 0,
+    "trans_fat": 0,
+    "cholesterol": 0,
+    "sodium": 0,
+    "potassium": 0,
+    "vitamin_a": 0,
+    "vitamin_c": 0,
+    "vitamin_d": 0,
+    "calcium": 0,
+    "iron": 0
+  }
+}
+
+Правила:
+- ingredients должен содержать минимум 1 ингредиент.
+- quantity числом >= 0.
+- unit короткая строка типа: г, мл, шт, ст.л., ч.л.
+- nutrients только числа >= 0.
+- Если точных данных нет, дай реалистичную оценку.
+''';
+
+    final response = await _requestWithFallback(
+      body: {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt}
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.3,
+          'responseMimeType': 'application/json',
+        },
+      },
+    );
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload);
+    final decoded = _decodeJsonObject(text);
+    return _draftFromDecodedJson(decoded,
+        fallbackDescription: normalizedDescription);
+  }
+
+  Future<GeminiRecipeDraft> generateRecipeFromPhoto({
+    required Uint8List imageBytes,
+    required String imageMimeType,
+    String description = '',
+  }) async {
+    if (imageBytes.isEmpty) {
+      throw const GeminiRecipeException('Добавьте фото блюда.');
+    }
+
+    final normalizedDescription = description.trim();
+    final textPrompt = '''
+Ты кулинарный ассистент.
+Определи блюдо по фото и создай черновик рецепта.
+${normalizedDescription.isEmpty ? '' : 'Дополнительное описание от пользователя: $normalizedDescription'}
+
+Верни ТОЛЬКО JSON-объект в формате:
+{
+  "name": "...",
+  "description": "...",
+  "ingredients": [
+    {"name": "...", "quantity": 100, "unit": "г"}
+  ],
+  "nutrients": {
+    "calories": 0,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "saturated_fat": 0,
+    "polyunsaturated_fat": 0,
+    "monounsaturated_fat": 0,
+    "trans_fat": 0,
+    "cholesterol": 0,
+    "sodium": 0,
+    "potassium": 0,
+    "vitamin_a": 0,
+    "vitamin_c": 0,
+    "vitamin_d": 0,
+    "calcium": 0,
+    "iron": 0
+  }
+}
+
+Правила:
+- ingredients должен содержать минимум 1 ингредиент.
+- quantity числом >= 0.
+- unit короткая строка типа: г, мл, шт, ст.л., ч.л.
+- nutrients только числа >= 0.
+- Если точных данных нет, дай реалистичную оценку.
+''';
+
+    final response = await _requestWithFallback(
+      body: {
+        'contents': [
+          {
+            'parts': [
+              {'text': textPrompt},
+              {
+                'inline_data': {
+                  'mime_type': imageMimeType,
+                  'data': base64Encode(imageBytes),
+                }
+              }
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.3,
+          'responseMimeType': 'application/json',
+        },
+      },
+    );
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload);
+    final decoded = _decodeJsonObject(text);
+    return _draftFromDecodedJson(decoded,
+        fallbackDescription: normalizedDescription);
+  }
 
   Future<Map<String, double>> estimateNutrients({
     required String recipeName,
@@ -82,8 +239,49 @@ ${nutrientKeys.join(', ')}
 Если точных данных нет, дай реалистичную оценку. Отрицательные значения недопустимы.
 ''';
 
-    http.Response? lastErrorResponse;
+    final response = await _requestWithFallback(
+      body: {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt}
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.2,
+          'responseMimeType': 'application/json',
+        },
+      },
+      apiKeyOverride: apiKey,
+    );
 
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload);
+    final decoded = _decodeJsonObject(text);
+
+    final normalized = <String, double>{};
+    for (final key in nutrientKeys) {
+      normalized[key] = _toNonNegativeDouble(decoded[key]);
+    }
+    return normalized;
+  }
+
+  Future<http.Response> _requestWithFallback({
+    required Map<String, dynamic> body,
+    String? apiKeyOverride,
+  }) async {
+    final apiKey = (apiKeyOverride ??
+            dotenv.env['GEMINI_API_KEY'] ??
+            const String.fromEnvironment('GEMINI_API_KEY'))
+        .trim();
+    if (apiKey.isEmpty) {
+      throw const GeminiRecipeException(
+        'Не найден ключ Gemini. Добавьте GEMINI_API_KEY в .env или передайте --dart-define=GEMINI_API_KEY=... при запуске.',
+      );
+    }
+
+    http.Response? lastErrorResponse;
     for (final model in _models) {
       final uri = Uri.parse(
         'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
@@ -92,48 +290,75 @@ ${nutrientKeys.join(', ')}
       final response = await http.post(
         uri,
         headers: const {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt}
-              ]
-            }
-          ],
-          'generationConfig': {
-            'temperature': 0.2,
-            'responseMimeType': 'application/json',
-          },
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final text = _extractText(payload);
-        final decoded = _decodeJsonObject(text);
-
-        final normalized = <String, double>{};
-        for (final key in nutrientKeys) {
-          normalized[key] = _toNonNegativeDouble(decoded[key]);
-        }
-        return normalized;
+        return response;
       }
 
       lastErrorResponse = response;
-
       if ((response.statusCode == 403 || response.statusCode == 404) &&
           model != _models.last) {
         continue;
       }
-
       throw GeminiRecipeException(_buildHttpErrorMessage(response));
     }
 
     if (lastErrorResponse != null) {
       throw GeminiRecipeException(_buildHttpErrorMessage(lastErrorResponse));
     }
-
     throw const GeminiRecipeException('Не удалось получить ответ от Gemini.');
+  }
+
+  GeminiRecipeDraft _draftFromDecodedJson(
+    Map<String, dynamic> decoded, {
+    required String fallbackDescription,
+  }) {
+    final rawName = (decoded['name'] as String? ?? '').trim();
+    final rawDescription = (decoded['description'] as String? ?? '').trim();
+
+    final ingredients = <RecipeIngredient>[];
+    final rawIngredients = decoded['ingredients'];
+    if (rawIngredients is List) {
+      for (final rawIngredient in rawIngredients) {
+        if (rawIngredient is! Map<String, dynamic>) continue;
+        final name = (rawIngredient['name'] as String? ?? '').trim();
+        if (name.isEmpty) continue;
+        final quantity = _toNonNegativeDouble(rawIngredient['quantity']);
+        final unit = (rawIngredient['unit'] as String? ?? '').trim();
+        ingredients.add(
+          RecipeIngredient(
+            name: name,
+            quantity: quantity,
+            unit: unit,
+          ),
+        );
+      }
+    }
+
+    if (ingredients.isEmpty) {
+      throw const GeminiRecipeException(
+        'Не удалось получить ингредиенты из ответа Gemini. Уточните описание и попробуйте снова.',
+      );
+    }
+
+    final nutrients = <String, double>{};
+    final rawNutrients = decoded['nutrients'];
+    final nutrientsMap = rawNutrients is Map<String, dynamic>
+        ? rawNutrients
+        : <String, dynamic>{};
+    for (final key in nutrientKeys) {
+      nutrients[key] = _toNonNegativeDouble(nutrientsMap[key]);
+    }
+
+    return GeminiRecipeDraft(
+      name: rawName.isEmpty ? 'Новое блюдо' : rawName,
+      description:
+          rawDescription.isEmpty ? fallbackDescription : rawDescription,
+      ingredients: ingredients,
+      nutrients: nutrients,
+    );
   }
 
   String _buildHttpErrorMessage(http.Response response) {
@@ -234,6 +459,20 @@ ${nutrientKeys.join(', ')}
     if (!parsed.isFinite || parsed.isNaN) return 0.0;
     return parsed < 0 ? 0.0 : parsed;
   }
+}
+
+class GeminiRecipeDraft {
+  final String name;
+  final String description;
+  final List<RecipeIngredient> ingredients;
+  final Map<String, double> nutrients;
+
+  const GeminiRecipeDraft({
+    required this.name,
+    required this.description,
+    required this.ingredients,
+    required this.nutrients,
+  });
 }
 
 class GeminiRecipeException implements Exception {
