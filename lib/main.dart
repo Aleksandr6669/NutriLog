@@ -10,7 +10,6 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui';
 import 'services/app_notification_service.dart';
 import 'services/app_startup_service.dart';
-import 'services/notification_settings_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -39,9 +38,9 @@ void _reportStartupWarning(String message) {
   _startupWarningMessage.value = message;
 }
 
-void _reportFatalAppError(String title, Object error, [StackTrace? stackTrace]) {
-  final detailsBuffer = StringBuffer()
-    ..writeln(error.toString());
+void _reportFatalAppError(String title, Object error,
+    [StackTrace? stackTrace]) {
+  final detailsBuffer = StringBuffer()..writeln(error.toString());
 
   if (stackTrace != null) {
     final lines = stackTrace
@@ -129,26 +128,25 @@ Future<void> _bootstrapServices() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {
     // .env может отсутствовать в локальной среде.
-    _reportStartupWarning('Не удалось загрузить .env. AI-функции могут быть недоступны.');
+    _reportStartupWarning(
+        'Не удалось загрузить .env. AI-функции могут быть недоступны.');
   }
 
   try {
     await initializeDateFormatting('ru_RU', null);
   } catch (_) {
     // Не блокируем запуск приложения из-за локализации дат.
-    _reportStartupWarning('Локализация дат не инициализировалась. Форматы дат могут быть упрощены.');
+    _reportStartupWarning(
+        'Локализация дат не инициализировалась. Форматы дат могут быть упрощены.');
   }
 
   if (!kIsWeb) {
     try {
       final notificationService = AppNotificationService();
-      final notificationSettingsService = NotificationSettingsService();
       await notificationService.initialize();
-      final settings = await notificationSettingsService.load();
-      await notificationService.applySettings(settings);
     } catch (_) {
-      // Плагины уведомлений не должны ломать старт UI.
-      _reportStartupWarning('Не удалось поднять уведомления. Приложение запущено в безопасном режиме.');
+      // Не показываем предупреждение на старте. Доступ и настройка уведомлений
+      // выполняются только при взаимодействии пользователя с переключателями.
     }
   }
 }
@@ -428,7 +426,7 @@ class _StartupWarningBanner extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Безопасный запуск',
+                          'Системное предупреждение',
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF3D2A22),
