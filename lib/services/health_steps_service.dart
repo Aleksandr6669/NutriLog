@@ -43,6 +43,14 @@ class HealthStepsService {
     return result.isConnected;
   }
 
+  Future<bool> _hasStepsReadAccess() async {
+    final has = await _health.hasPermissions(
+      [HealthDataType.STEPS],
+      permissions: [HealthDataAccess.READ],
+    );
+    return has == true;
+  }
+
   Future<HealthConnectResult> connectWithStatus() async {
     try {
       await _ensureConfigured();
@@ -56,15 +64,25 @@ class HealthStepsService {
           return const HealthConnectResult(
             status: HealthConnectStatus.needsHealthConnectInstall,
             message:
-                'Для шагов нужен Health Connect. Установите/обновите его и повторите подключение.',
+                'Для синхронизации нужен Health Connect с доступом к данным Шаги (Steps). Установите/обновите его и повторите подключение.',
           );
         }
       }
 
-      final granted = await _health.requestAuthorization(
-        [HealthDataType.STEPS],
-        permissions: [HealthDataAccess.READ],
-      );
+      var granted = await _hasStepsReadAccess();
+      if (!granted) {
+        granted = await _health.requestAuthorization(
+              [HealthDataType.STEPS],
+              permissions: [HealthDataAccess.READ],
+            ) ==
+            true;
+
+        // На части Android-девайсов requestAuthorization может вернуть false,
+        // даже если доступ уже выдан в Health Connect. Проверяем повторно.
+        if (!granted) {
+          granted = await _hasStepsReadAccess();
+        }
+      }
 
       if (Platform.isIOS && granted == true) {
         final now = DateTime.now();
@@ -78,7 +96,7 @@ class HealthStepsService {
           return const HealthConnectResult(
             status: HealthConnectStatus.connected,
             message:
-                'Источник здоровья подключен. Шаги за сегодня пока недоступны — проверьте, что в приложении Здоровье есть данные по шагам.',
+                'Источник здоровья подключен. Нужны только данные Шаги (Steps). За сегодня шаги пока недоступны — проверьте, что в приложении Здоровье есть записи шагов.',
           );
         }
       }
@@ -96,7 +114,7 @@ class HealthStepsService {
       return const HealthConnectResult(
         status: HealthConnectStatus.permissionDenied,
         message:
-            'Доступ к шагам не выдан. Разрешите доступ к шагам в Health Connect или в приложении Здоровье.',
+        'Доступ не выдан. Разрешите только данные Шаги (Steps). На Android: Health Connect -> NutriLog -> Разрешения -> Шаги.',
       );
     } catch (error) {
       final prefs = await SharedPreferences.getInstance();
@@ -129,7 +147,15 @@ class HealthStepsService {
         if (!granted) return null;
       } else {
         final connected = await isConnected();
-        if (!connected) return null;
+        if (!connected) {
+          // Самовосстановление: если флаг stale, но доступ фактически есть,
+          // не блокируем чтение шагов.
+          final hasAccess = await _hasStepsReadAccess();
+          if (!hasAccess) return null;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_connectedKey, true);
+        }
       }
 
       final steps = await _health.getTotalStepsInInterval(start, end);
@@ -147,7 +173,8 @@ class HealthStepsService {
       if (!connected) {
         return const HealthConnectResult(
           status: HealthConnectStatus.permissionDenied,
-          message: 'Источник здоровья не подключен в приложении NutriLog.',
+          message:
+              'Источник здоровья не подключен. Для работы нужен доступ только к данным Шаги (Steps).',
         );
       }
 
@@ -158,7 +185,7 @@ class HealthStepsService {
         return const HealthConnectResult(
           status: HealthConnectStatus.connected,
           message:
-              'Источник подключен, но шаги за сегодня пока не получены (null). Проверьте наличие шагов в приложении Здоровье/Health Connect.',
+              'Источник подключен, доступ к Шагам выдан, но шаги за сегодня пока не получены (null). Проверьте наличие шагов в приложении Здоровье/Health Connect.',
         );
       }
 

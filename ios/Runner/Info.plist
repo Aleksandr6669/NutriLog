@@ -11,9 +11,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to your location to provide location-based services.</string>
     <key>NSHealthShareUsageDescription</key>
-    <string>Приложению нужен доступ к шагам из Здоровья, чтобы вести дневник активности.</string>
+	<string>NutriLog запрашивает доступ только к данным Шаги (Steps), чтобы показывать прогресс активности.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Приложение может сохранять шаги в дневник, чтобы синхронизировать ваш прогресс.</string>
+	<string>NutriLog не изменяет данные Здоровья и использует их только для отображения активности в приложении.</string>
     <key>NSUserNotificationsUsageDescription</key>
     <string>This app needs to send you notifications to keep you updated.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
