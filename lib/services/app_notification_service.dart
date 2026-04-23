@@ -125,7 +125,10 @@ class AppNotificationService {
           try {
             return tz.getLocation(etcName);
           } catch (_) {
-            return _locationFromOffset(DateTime.now().timeZoneOffset);
+            // Логируем ошибку для отладки
+            debugPrint(
+                'Ошибка: временная зона $etcName не найдена. Используется UTC.');
+            return tz.UTC;
           }
         }
       }
