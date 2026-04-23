@@ -34,8 +34,6 @@ class AppNotificationService {
   static const int _breakfastId = 1101;
   static const int _lunchId = 1102;
   static const int _dinnerId = 1103;
-  static const int _testId = 1900;
-  static const int _waterTestId = 1901;
   static const int _waterStartHour = 8;
   static const int _waterEndHour = 22;
 
@@ -170,10 +168,7 @@ class AppNotificationService {
     return _permissionsGranted;
   }
 
-  Future<void> applySettings(
-    NotificationSettings settings, {
-    bool scheduleTestNotification = false,
-  }) async {
+  Future<void> applySettings(NotificationSettings settings) async {
     if (kIsWeb) return;
 
     await initialize();
@@ -181,8 +176,6 @@ class AppNotificationService {
     for (var i = 0; i < _maxWaterReminders; i++) {
       await _plugin.cancel(_waterBaseId + i);
     }
-    await _plugin.cancel(_testId);
-    await _plugin.cancel(_waterTestId);
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
@@ -233,7 +226,7 @@ class AppNotificationService {
 
     final pending = await _plugin.pendingNotificationRequests();
     final hasScheduled = pending.any(
-      (request) => request.id >= _waterBaseId && request.id < _testId,
+      (request) => request.id >= _waterBaseId && request.id <= _dinnerId,
     );
 
     if (scheduledCount > 0 && !hasScheduled && Platform.isAndroid) {
@@ -241,109 +234,41 @@ class AppNotificationService {
         'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
       );
     }
-
-    if (scheduleTestNotification && scheduledCount > 0) {
-      await _scheduleQuickTestNotification();
-    }
-  }
-
-  Future<void> sendTestNotification() async {
-    if (kIsWeb) return;
-
-    await initialize();
-    final granted = await _requestPermissions();
-    if (!granted) {
-      throw const NotificationPermissionDeniedException(
-        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
-      );
-    }
-
-    await _plugin.cancel(_testId);
-
-    const androidDetails = AndroidNotificationDetails(
-      'nutrilog_reminders',
-      'NutriLog напоминания',
-      channelDescription: 'Напоминания о воде и приемах пищи',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    // Мгновенный тест показывает факт доставки без влияния таймзоны/планировщика.
-    await _plugin.show(
-      _testId,
-      'NutriLog: тест уведомлений',
-      'Уведомления включены и работают.',
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
-    );
-  }
-
-  Future<void> sendWaterTestNotification() async {
-    if (kIsWeb) return;
-
-    await initialize();
-    final granted = await _requestPermissions();
-    if (!granted) {
-      throw const NotificationPermissionDeniedException(
-        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
-      );
-    }
-
-    final profile = await _profileService.loadProfile();
-    final dailyWaterGoalMl = profile.waterGoal;
-    final reminderCount =
-        (dailyWaterGoalMl / 250).ceil().clamp(3, _maxWaterReminders);
-    final amountPerReminderMl =
-        ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
-    final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
-
-    await _plugin.cancel(_waterTestId);
-
-    const androidDetails = AndroidNotificationDetails(
-      'nutrilog_reminders',
-      'NutriLog напоминания',
-      channelDescription: 'Напоминания о воде и приемах пищи',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    await _plugin.show(
-      _waterTestId,
-      'Пора выпить воду',
-      'Тест: выпейте около $safeAmountPerReminderMl мл.',
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
-    );
   }
 
   Future<int> _scheduleWaterReminders() async {
     final profile = await _profileService.loadProfile();
     final dailyWaterGoalMl = profile.waterGoal;
 
-    // Планируем равномерные напоминания в активное дневное окно.
-    final reminderCount =
-        (dailyWaterGoalMl / 250).ceil().clamp(3, _maxWaterReminders);
+    // Количество напоминаний напрямую зависит от цели воды (1 уведомление на ~250 мл).
+    final reminderCount = math
+        .max(1, (dailyWaterGoalMl / 250).ceil())
+        .clamp(1, _maxWaterReminders);
     const totalMinutes = (_waterEndHour - _waterStartHour) * 60;
-    final intervalMinutes =
-        math.max(45, (totalMinutes / reminderCount).floor());
+    final stepMinutes = totalMinutes / reminderCount;
     final amountPerReminderMl =
         ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
     final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
 
     var scheduledCount = 0;
+    var previousMinuteOfDay = -1;
     for (var i = 0; i < reminderCount; i++) {
-      final minutesFromStart = i * intervalMinutes;
-      final hour = _waterStartHour + (minutesFromStart ~/ 60);
-      final minute = minutesFromStart % 60;
-      if (hour >= _waterEndHour) break;
+      var minutesFromStart = (i * stepMinutes).round();
+      var minuteOfDay = _waterStartHour * 60 + minutesFromStart;
+
+      // Гарантируем строго возрастающее время, чтобы не терять уведомления из-за дублей.
+      if (minuteOfDay <= previousMinuteOfDay) {
+        minuteOfDay = previousMinuteOfDay + 1;
+      }
+
+      const maxMinuteOfDay = (_waterEndHour * 60) - 1;
+      if (minuteOfDay > maxMinuteOfDay) {
+        minuteOfDay = maxMinuteOfDay;
+      }
+
+      previousMinuteOfDay = minuteOfDay;
+      final hour = minuteOfDay ~/ 60;
+      final minute = minuteOfDay % 60;
 
       await _scheduleDaily(
         id: _waterBaseId + i,
@@ -359,34 +284,6 @@ class AppNotificationService {
     return scheduledCount;
   }
 
-  Future<void> _scheduleQuickTestNotification() async {
-    final scheduled =
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 12));
-    const androidDetails = AndroidNotificationDetails(
-      'nutrilog_reminders',
-      'NutriLog напоминания',
-      channelDescription: 'Напоминания о воде и приемах пищи',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    await _plugin.zonedSchedule(
-      _testId,
-      'NutriLog: тест уведомлений',
-      'Уведомления включены и работают.',
-      scheduled,
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-  }
-
   Future<void> _scheduleDaily({
     required int id,
     required String title,
@@ -394,18 +291,18 @@ class AppNotificationService {
     required int hour,
     required int minute,
   }) async {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
+    final nowLocal = DateTime.now();
+    var localTarget = DateTime(
+      nowLocal.year,
+      nowLocal.month,
+      nowLocal.day,
       hour,
       minute,
     );
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
+    if (localTarget.isBefore(nowLocal)) {
+      localTarget = localTarget.add(const Duration(days: 1));
     }
+    final scheduled = tz.TZDateTime.from(localTarget, tz.local);
 
     const androidDetails = AndroidNotificationDetails(
       'nutrilog_reminders',
@@ -434,7 +331,8 @@ class AppNotificationService {
     await initialize();
     final pending = await _plugin.pendingNotificationRequests();
     return pending
-        .where((request) => request.id >= _waterBaseId && request.id < _testId)
+        .where(
+            (request) => request.id >= _waterBaseId && request.id <= _dinnerId)
         .length;
   }
 
