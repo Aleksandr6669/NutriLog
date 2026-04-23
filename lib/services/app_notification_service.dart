@@ -57,11 +57,11 @@ class AppNotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
     const iosSettings = DarwinInitializationSettings(
-      // На iOS системный prompt должен появиться хотя бы один раз,
-      // иначе в настройках может не появиться переключатель уведомлений.
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      // Запрашиваем разрешение только по явному действию пользователя,
+      // когда экран уже активен (кнопка/тумблер в UI).
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
       defaultPresentAlert: true,
       defaultPresentBadge: true,
       defaultPresentSound: true,
