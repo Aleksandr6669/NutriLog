@@ -155,9 +155,15 @@ class AppNotificationService {
       if (android == null) {
         androidGranted = false;
       } else {
-        androidGranted = await android.requestNotificationsPermission() ?? true;
-        final enabledAfterRequest = await android.areNotificationsEnabled();
-        androidGranted = androidGranted && (enabledAfterRequest ?? true);
+        final alreadyEnabled = await android.areNotificationsEnabled();
+        if (alreadyEnabled == true) {
+          androidGranted = true;
+        } else {
+          androidGranted =
+              await android.requestNotificationsPermission() ?? false;
+          final enabledAfterRequest = await android.areNotificationsEnabled();
+          androidGranted = androidGranted && (enabledAfterRequest ?? false);
+        }
       }
       // Для Android 14+ exact alarm может требовать отдельного разрешения.
       // Если не получится получить, ниже в планировании сработает fallback на inexact.
@@ -174,20 +180,29 @@ class AppNotificationService {
       if (ios == null) {
         iosGranted = false;
       } else {
-        final requested = await ios.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
-            false;
+        final current = await ios.checkPermissions();
+        final alreadyEnabled = (current?.isEnabled ?? false) &&
+            ((current?.isAlertEnabled ?? false) ||
+                (current?.isProvisionalEnabled ?? false));
 
-        if (requested) {
+        if (alreadyEnabled) {
           iosGranted = true;
         } else {
-          final afterRequest = await ios.checkPermissions();
-          iosGranted = (afterRequest?.isEnabled ?? false) &&
-              ((afterRequest?.isAlertEnabled ?? false) ||
-                  (afterRequest?.isProvisionalEnabled ?? false));
+          final requested = await ios.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+              false;
+
+          if (requested) {
+            iosGranted = true;
+          } else {
+            final afterRequest = await ios.checkPermissions();
+            iosGranted = (afterRequest?.isEnabled ?? false) &&
+                ((afterRequest?.isAlertEnabled ?? false) ||
+                    (afterRequest?.isProvisionalEnabled ?? false));
+          }
         }
       }
     }
