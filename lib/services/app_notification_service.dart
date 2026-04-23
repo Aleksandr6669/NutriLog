@@ -72,8 +72,8 @@ class AppNotificationService {
       final localTimezone = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(_resolveTimezoneLocation(localTimezone));
     } catch (_) {
-      // Не форсируем UTC: это сдвигает локальные напоминания по времени.
-      // Оставляем стандартную локаль timezone пакета как есть.
+      // Fallback на оффсет устройства, чтобы избежать сдвига напоминаний (например, +3 часа).
+      tz.setLocalLocation(_locationFromOffset(DateTime.now().timeZoneOffset));
     }
   }
 
@@ -98,12 +98,32 @@ class AppNotificationService {
           try {
             return tz.getLocation(etcName);
           } catch (_) {
-            return tz.local;
+            return _locationFromOffset(DateTime.now().timeZoneOffset);
           }
         }
       }
-      return tz.local;
+      return _locationFromOffset(DateTime.now().timeZoneOffset);
     }
+  }
+
+  tz.Location _locationFromOffset(Duration offset) {
+    final totalMinutes = offset.inMinutes;
+    final absMinutes = totalMinutes.abs();
+    final hour = absMinutes ~/ 60;
+    final minute = absMinutes % 60;
+
+    // Для нестандартных зон с минутами (например, +05:30) используем UTC,
+    // чтобы не выставить неверную зону из базы Etc/GMT.
+    if (minute != 0 || hour > 14) return tz.UTC;
+
+    if (hour == 0) {
+      return tz.getLocation('Etc/GMT');
+    }
+
+    // В базе Etc/GMT знак инвертирован:
+    // UTC+3 -> Etc/GMT-3, UTC-4 -> Etc/GMT+4.
+    final sign = totalMinutes >= 0 ? '-' : '+';
+    return tz.getLocation('Etc/GMT$sign$hour');
   }
 
   Future<bool> _requestPermissions() async {
