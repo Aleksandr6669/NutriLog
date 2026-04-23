@@ -57,13 +57,11 @@ class AppNotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
     const iosSettings = DarwinInitializationSettings(
-      // Показываем системный попап сразу при первом запуске приложения.
-      // iOS показывает его только один раз — при инициализации плагина.
-      // Если здесь false, попап не появится никогда и приложение не попадёт
-      // в Настройки → Уведомления.
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      // Как в официальном примере плагина: запрашиваем права явно,
+      // когда пользователь включает уведомления в интерфейсе.
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
       defaultPresentAlert: true,
       defaultPresentBadge: true,
       defaultPresentSound: true,
@@ -173,31 +171,24 @@ class AppNotificationService {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      // Если iOS implementation недоступен, считаем доступ невыданным,
-      // чтобы не пропускать реальный запрос разрешений.
       if (ios == null) {
         iosGranted = false;
       } else {
-        final current = await ios.checkPermissions();
-        final alreadyEnabled = (current?.isEnabled ?? false) &&
-            ((current?.isAlertEnabled ?? false) ||
-                (current?.isProvisionalEnabled ?? false));
+        // Запрашиваем разрешение напрямую как в примере плагина.
+        final requested = await ios.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
+            false;
 
-        if (alreadyEnabled) {
+        if (requested) {
           iosGranted = true;
         } else {
-          final requested = await ios.requestPermissions(
-                  alert: true, badge: true, sound: true) ??
-              false;
-
-          if (requested) {
-            iosGranted = true;
-          } else {
-            final afterRequest = await ios.checkPermissions();
-            iosGranted = (afterRequest?.isEnabled ?? false) &&
-                ((afterRequest?.isAlertEnabled ?? false) ||
-                    (afterRequest?.isProvisionalEnabled ?? false));
-          }
+          final afterRequest = await ios.checkPermissions();
+          iosGranted = (afterRequest?.isEnabled ?? false) &&
+              ((afterRequest?.isAlertEnabled ?? false) ||
+                  (afterRequest?.isProvisionalEnabled ?? false));
         }
       }
     }
@@ -227,7 +218,7 @@ class AppNotificationService {
     final granted = await _requestPermissions();
     if (!granted) {
       throw const NotificationPermissionDeniedException(
-        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
+        'Разрешение на уведомления не выдано. Если пункта NutriLog нет в Настройках iPhone, удалите и установите приложение заново, затем снова включите уведомления. Также проверьте Фокус и Сводку уведомлений.',
       );
     }
 
