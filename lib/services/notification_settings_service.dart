@@ -8,6 +8,7 @@ class NotificationSettings {
   final TimeOfDay breakfastTime;
   final TimeOfDay lunchTime;
   final TimeOfDay dinnerTime;
+  final bool messagesEnabled; // Новое поле для сообщений
 
   const NotificationSettings({
     required this.waterReminderEnabled,
@@ -16,6 +17,7 @@ class NotificationSettings {
     required this.breakfastTime,
     required this.lunchTime,
     required this.dinnerTime,
+    required this.messagesEnabled,
   });
 
   NotificationSettings copyWith({
@@ -25,6 +27,7 @@ class NotificationSettings {
     TimeOfDay? breakfastTime,
     TimeOfDay? lunchTime,
     TimeOfDay? dinnerTime,
+    bool? messagesEnabled,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -33,6 +36,7 @@ class NotificationSettings {
       breakfastTime: breakfastTime ?? this.breakfastTime,
       lunchTime: lunchTime ?? this.lunchTime,
       dinnerTime: dinnerTime ?? this.dinnerTime,
+      messagesEnabled: messagesEnabled ?? this.messagesEnabled,
     );
   }
 }
@@ -44,6 +48,7 @@ class NotificationSettingsService {
   static const _breakfastMinutesKey = 'notif_breakfast_minutes';
   static const _lunchMinutesKey = 'notif_lunch_minutes';
   static const _dinnerMinutesKey = 'notif_dinner_minutes';
+  static const _messagesEnabledKey = 'notif_messages_enabled'; // Новый ключ
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: false,
@@ -52,6 +57,7 @@ class NotificationSettingsService {
     breakfastTime: TimeOfDay(hour: 8, minute: 30),
     lunchTime: TimeOfDay(hour: 13, minute: 0),
     dinnerTime: TimeOfDay(hour: 19, minute: 0),
+    messagesEnabled: false, // Значение по умолчанию
   );
 
   Future<NotificationSettings> load() async {
@@ -75,6 +81,8 @@ class NotificationSettingsService {
       dinnerTime: _fromMinutes(
         prefs.getInt(_dinnerMinutesKey) ?? _toMinutes(defaults.dinnerTime),
       ),
+      messagesEnabled:
+          prefs.getBool(_messagesEnabledKey) ?? defaults.messagesEnabled,
     );
   }
 
@@ -88,6 +96,11 @@ class NotificationSettingsService {
         _breakfastMinutesKey, _toMinutes(settings.breakfastTime));
     await prefs.setInt(_lunchMinutesKey, _toMinutes(settings.lunchTime));
     await prefs.setInt(_dinnerMinutesKey, _toMinutes(settings.dinnerTime));
+  }
+
+  Future<void> updateMessagesEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_messagesEnabledKey, enabled);
   }
 
   static int _toMinutes(TimeOfDay value) => value.hour * 60 + value.minute;
