@@ -187,6 +187,8 @@ class AppNotificationService {
     if (kIsWeb) return;
 
     await initialize();
+    // На случай смены часового пояса после запуска приложения.
+    await _configureTimezone();
 
     for (var i = 0; i < _maxWaterReminders; i++) {
       await _plugin.cancel(_waterBaseId + i);
@@ -244,10 +246,11 @@ class AppNotificationService {
       (request) => request.id >= _waterBaseId && request.id <= _dinnerId,
     );
 
-    if (scheduledCount > 0 && !hasScheduled && Platform.isAndroid) {
-      throw const NotificationScheduleException(
-        'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
-      );
+    if (scheduledCount > 0 && !hasScheduled) {
+      final message = Platform.isIOS
+          ? 'Не удалось запланировать уведомления на iPhone. Проверьте: Настройки -> Уведомления -> NutriLog (Разрешить, Баннеры, Звуки), а также Фокус и Сводку уведомлений.'
+          : 'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.';
+      throw NotificationScheduleException(message);
     }
   }
 
@@ -343,21 +346,42 @@ class AppNotificationService {
       importance: Importance.high,
       priority: Priority.high,
     );
-    const iosDetails = DarwinNotificationDetails();
-
-    // zonedSchedule с wallClockTime гарантирует точное локальное время.
-    // matchDateTimeComponents.time делает это ежедневным повторением.
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduled,
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      presentBanner: true,
+      presentList: true,
+      interruptionLevel: InterruptionLevel.active,
     );
+
+    // Сначала пытаемся поставить более надежный exact режим на Android,
+    // при ошибке (например, нет exact-alarm разрешения) откатываемся на inexact.
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduled,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.wallClockTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } catch (_) {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduled,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.wallClockTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
   }
 
   Future<int> getPendingReminderCount() async {
