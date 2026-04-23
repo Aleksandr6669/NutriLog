@@ -235,32 +235,56 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox.shrink(),
                 ),
-                if (Theme.of(context).platform == TargetPlatform.iOS) ...[
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Symbols.notifications_active),
-                    title: const Text('Выдать доступ к уведомлениям'),
-                    subtitle: const Text(
-                      'Нажмите, чтобы вызвать системный запрос разрешения iOS',
-                    ),
-                    trailing: FilledButton(
-                      onPressed: _requestingPermission
-                          ? null
-                          : _requestNotificationPermission,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: _requestingPermission
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Выдать'),
-                    ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.notifications_active),
+                  title: const Text('Выдать доступ к уведомлениям'),
+                  subtitle: const Text(
+                    'Нажмите, чтобы вызвать системный запрос разрешения iOS',
                   ),
-                ],
+                  trailing: FilledButton(
+                    onPressed: _requestingPermission
+                        ? null
+                        : _requestNotificationPermission,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _requestingPermission
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Выдать'),
+                  ),
+                ),
+                // Добавлено сообщение о разработке для аккаунтов и подключения к приложению "Здоровье"
+                const ListTile(
+                  leading: Icon(Symbols.account_circle),
+                  title: Text('Аккаунты'),
+                  subtitle: Text('В разработке'),
+                  onTap: null,
+                ),
+                const ListTile(
+                  leading: Icon(Symbols.health_and_safety),
+                  title: Text('Подключение к приложению "Здоровье"'),
+                  subtitle: Text('В разработке'),
+                  onTap: null,
+                ),
+                // Включение и настройка сообщений
+                SwitchListTile(
+                  title: const Text('Включить сообщения'),
+                  value: _settings.messagesEnabled,
+                  onChanged: (bool value) async {
+                    setState(() => _loading = true);
+                    await _settingsService.updateMessagesEnabled(value);
+                    setState(() {
+                      _settings = _settings.copyWith(messagesEnabled: value);
+                      _loading = false;
+                    });
+                  },
+                ),
               ],
             ),
           ),
