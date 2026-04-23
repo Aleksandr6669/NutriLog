@@ -415,6 +415,50 @@ class AppNotificationService {
     return tz.local.name;
   }
 
+  /// Возвращает детальный статус разрешений уведомлений по платформе.
+  /// Нужен для быстрой диагностики на реальном устройстве.
+  Future<String> getPermissionDiagnostics() async {
+    if (kIsWeb) return 'Платформа: web (системные права не применяются).';
+
+    await initialize();
+
+    if (Platform.isIOS) {
+      final ios = _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      if (ios == null) {
+        return 'iOS implementation: недоступен (ios == null).';
+      }
+
+      final perms = await ios.checkPermissions();
+      if (perms == null) {
+        return 'iOS permissions: checkPermissions() вернул null.';
+      }
+
+      return 'iOS permissions:\n'
+          'isEnabled=${perms.isEnabled}\n'
+          'isAlertEnabled=${perms.isAlertEnabled}\n'
+          'isBadgeEnabled=${perms.isBadgeEnabled}\n'
+          'isSoundEnabled=${perms.isSoundEnabled}\n'
+          'isProvisionalEnabled=${perms.isProvisionalEnabled}\n'
+          'isCriticalEnabled=${perms.isCriticalEnabled}';
+    }
+
+    if (Platform.isAndroid) {
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (android == null) {
+        return 'Android implementation: недоступен (android == null).';
+      }
+
+      final enabled = await android.areNotificationsEnabled();
+      return 'Android permissions:\n'
+          'notificationsEnabled=${enabled ?? false}\n'
+          'exactAlarmPermission=см. системные настройки (может требоваться на Android 14+)';
+    }
+
+    return 'Платформа ${Platform.operatingSystem}: отдельная диагностика не реализована.';
+  }
+
   /// Диагностирует статус уведомлений: таймзона, количество запланированных.
   /// Используйте для отладки проблем с доставкой.
   Future<String> diagnosticsForToday() async {

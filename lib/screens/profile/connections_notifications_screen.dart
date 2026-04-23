@@ -146,6 +146,7 @@ class _ConnectionsNotificationsScreenState
       final health = await _healthStepsService.diagnosticsForToday();
       final pending = await _notificationService.getPendingReminderCount();
       final timezone = _notificationService.getCurrentTimezoneName();
+      final permissions = await _notificationService.getPermissionDiagnostics();
 
       if (!mounted) return;
       await showDialog<void>(
@@ -155,7 +156,8 @@ class _ConnectionsNotificationsScreenState
           content: Text(
             'Здоровье: ${health.message}\n\n'
             'Уведомления: запланировано $pending\n'
-            'Часовой пояс: $timezone',
+            'Часовой пояс: $timezone\n\n'
+            '$permissions',
           ),
           actions: [
             TextButton(
