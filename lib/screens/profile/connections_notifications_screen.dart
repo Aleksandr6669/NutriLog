@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
@@ -86,10 +87,10 @@ class _ConnectionsNotificationsScreenState
         'Настройки уведомлений сохранены.',
         backgroundColor: Colors.green.shade700,
       );
-    } on NotificationPermissionDeniedException catch (error) {
+    } on NotificationPermissionDeniedException catch (_) {
       await _settingsService.save(previous);
       if (!mounted) return;
-      _showSnack(error.message, backgroundColor: Colors.red.shade700);
+      _showPermissionDeniedDialog();
     } on NotificationScheduleException catch (error) {
       await _settingsService.save(previous);
       if (!mounted) return;
@@ -97,10 +98,7 @@ class _ConnectionsNotificationsScreenState
     } catch (_) {
       await _settingsService.save(previous);
       if (!mounted) return;
-      _showSnack(
-        'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках телефона.',
-        backgroundColor: Colors.red.shade700,
-      );
+      _showPermissionDeniedDialog();
     }
   }
 
@@ -110,6 +108,32 @@ class _ConnectionsNotificationsScreenState
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         backgroundColor: backgroundColor,
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Нет доступа к уведомлениям'),
+        content: const Text(
+          'NutriLog не может отправлять уведомления.\n\n'
+          'Откройте настройки устройства и включите уведомления для NutriLog вручную.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              AppSettings.openAppSettings(type: AppSettingsType.notification);
+            },
+            child: const Text('Открыть настройки'),
+          ),
+        ],
       ),
     );
   }
