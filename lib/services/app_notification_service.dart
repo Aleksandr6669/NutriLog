@@ -43,6 +43,11 @@ class AppNotificationService {
   static bool _initialized = false;
   bool _permissionsGranted = true;
 
+  /// Инициализирует сервис уведомлений один раз в жизни приложения.
+  /// Настраивает таймзону локально и Android/iOS детали.
+  ///
+  /// Таймзона инициализируется один раз и сохраняется в tz.local для всех
+  /// последующих планирований. Это критично для точности времени уведомлений.
   Future<void> initialize() async {
     if (kIsWeb) return;
     if (_initialized) return;
@@ -65,13 +70,23 @@ class AppNotificationService {
     _initialized = true;
   }
 
+  /// Настраивает таймзону для всего приложения.
+  ///
+  /// Сначала пытается получить IANA timezone ID от системы. Если ошибка
+  /// (особенно на iOS, который иногда возвращает GMT+3 вместо IANA),
+  /// конвертирует GMT-смещение в Etc/GMT форму.
+  ///
+  /// Fallback: если и это не сработает, использует локальный UTC-offset
+  /// (например, UTC+3). Это гарантирует, что уведомления придут хоть в какую-то
+  /// корректную временную зону, а не с произвольным сдвигом.
   Future<void> _configureTimezone() async {
     tz.initializeTimeZones();
     try {
       final localTimezone = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(_resolveTimezoneLocation(localTimezone));
     } catch (_) {
-      // Fallback на оффсет устройства, чтобы избежать сдвига напоминаний (например, +3 часа).
+      // Fallback: используем оффсет устройства, чтобы избежать сдвига напоминаний
+      // (например, вместо 8:00 не приходило 10:00 из-за неправильной таймзоны).
       tz.setLocalLocation(_locationFromOffset(DateTime.now().timeZoneOffset));
     }
   }
@@ -284,6 +299,23 @@ class AppNotificationService {
     return scheduledCount;
   }
 
+  /// Планирует ежедневное уведомление в конкретное локальное время.
+  ///
+  /// Параметры:
+  /// - hour, minute: локальное время устройства (например, 08:00).
+  ///
+  /// Критичные параметры zonedSchedule:
+  /// 1. **wallClockTime**: Гарантирует, что уведомление придёт в точно
+  ///    указанное время устройства. Без этого приходит в random time.
+  /// 2. **matchDateTimeComponents: DateTimeComponents.time**: Делает уведомление
+  ///    ежедневным повторяющимся. Система сама пересчитает next day,
+  ///    не нужно ручное планирование.
+  /// 3. **TZDateTime.from(localTarget, tz.local)**: Конвертирует локальное
+  ///    время в TZDateTime в правильной таймзоне.
+  ///
+  /// Если текущее время уже позже целевого часа в сегодня,
+  /// планируем на завтра (система с matchDateTimeComponents всё равно
+  /// пересчитает, но явно указываем next day для безопасности).
   Future<void> _scheduleDaily({
     required int id,
     required String title,
@@ -313,6 +345,8 @@ class AppNotificationService {
     );
     const iosDetails = DarwinNotificationDetails();
 
+    // zonedSchedule с wallClockTime гарантирует точное локальное время.
+    // matchDateTimeComponents.time делает это ежедневным повторением.
     await _plugin.zonedSchedule(
       id,
       title,
@@ -336,7 +370,24 @@ class AppNotificationService {
         .length;
   }
 
+  /// Возвращает имя текущей таймзоны (например, 'Europe/Moscow', 'Etc/GMT-3').
+  /// Полезно для диагностики и логирования.
   String getCurrentTimezoneName() {
     return tz.local.name;
+  }
+
+  /// Диагностирует статус уведомлений: таймзона, количество запланированных.
+  /// Используйте для отладки проблем с доставкой.
+  Future<String> diagnosticsForToday() async {
+    if (kIsWeb) return 'Web platform: zonedSchedule не поддерживается.';
+
+    final timezoneName = getCurrentTimezoneName();
+    final pendingCount = await getPendingReminderCount();
+    final now = DateTime.now();
+
+    return 'Таймзона: $timezoneName\n'
+        'Локальное время: ${now.hour}:${now.minute.toString().padLeft(2, '0')}\n'
+        'Запланировано уведомлений: $pendingCount\n'
+        '(waterReminders: 0-19, breakfast: 1101, lunch: 1102, dinner: 1103)';
   }
 }
