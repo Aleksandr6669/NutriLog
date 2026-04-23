@@ -35,7 +35,19 @@ class HealthStepsService {
 
   Future<bool> isConnected() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_connectedKey) ?? false;
+    final stored = prefs.getBool(_connectedKey) ?? false;
+
+    // Самовосстановление состояния: если флаг stale, сверяем с реальным доступом.
+    try {
+      await _ensureConfigured();
+      final hasAccess = await _hasStepsReadAccess();
+      if (hasAccess != stored) {
+        await prefs.setBool(_connectedKey, hasAccess);
+      }
+      return hasAccess;
+    } catch (_) {
+      return stored;
+    }
   }
 
   Future<bool> connect() async {
@@ -114,7 +126,7 @@ class HealthStepsService {
       return const HealthConnectResult(
         status: HealthConnectStatus.permissionDenied,
         message:
-        'Доступ не выдан. Разрешите только данные Шаги (Steps). На Android: Health Connect -> NutriLog -> Разрешения -> Шаги.',
+            'Доступ не выдан. Разрешите только данные Шаги (Steps). На Android: Health Connect -> NutriLog -> Разрешения -> Шаги.',
       );
     } catch (error) {
       final prefs = await SharedPreferences.getInstance();
