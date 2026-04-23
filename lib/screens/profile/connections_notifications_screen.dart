@@ -26,6 +26,7 @@ class _ConnectionsNotificationsScreenState
   bool _healthConnected = false;
   bool _connectingHealth = false;
   bool _runningDiagnostics = false;
+  bool _requestingNotificationAccess = false;
   late NotificationSettings _settings;
 
   @override
@@ -215,6 +216,34 @@ class _ConnectionsNotificationsScreenState
       );
     } finally {
       if (mounted) setState(() => _runningDiagnostics = false);
+    }
+  }
+
+  Future<void> _requestNotificationAccessNow() async {
+    if (_requestingNotificationAccess) return;
+    setState(() => _requestingNotificationAccess = true);
+
+    try {
+      final granted = await _notificationService.requestPermissionNow();
+      if (!mounted) return;
+
+      if (granted) {
+        _showSnack(
+          'Доступ к уведомлениям выдан. Проверьте тумблеры выше и сохраните настройки.',
+          backgroundColor: Colors.green.shade700,
+        );
+      } else {
+        _showPermissionDeniedDialog(
+          'iOS не выдал доступ к уведомлениям. Если в настройках приложения нет пункта "Уведомления", удалите приложение и установите заново, затем нажмите "Выдать доступ" сразу после запуска.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      _showPermissionDeniedDialog(
+        'Не удалось запросить доступ к уведомлениям. Откройте настройки вручную и проверьте разрешения.',
+      );
+    } finally {
+      if (mounted) setState(() => _requestingNotificationAccess = false);
     }
   }
 
@@ -414,6 +443,30 @@ class _ConnectionsNotificationsScreenState
                           ],
                         )
                       : const SizedBox.shrink(),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.notifications_active),
+                  title: const Text('Выдать доступ к уведомлениям'),
+                  subtitle: const Text(
+                    'Нажмите, чтобы вызвать системный запрос разрешения iPhone/Android',
+                  ),
+                  trailing: FilledButton(
+                    onPressed: _requestingNotificationAccess
+                        ? null
+                        : _requestNotificationAccessNow,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _requestingNotificationAccess
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Выдать'),
+                  ),
                 ),
                 const Divider(height: 1),
                 ListTile(

@@ -459,6 +459,15 @@ class AppNotificationService {
     return 'Платформа ${Platform.operatingSystem}: отдельная диагностика не реализована.';
   }
 
+  /// Явный ручной запрос разрешений уведомлений.
+  /// Используется на экране настроек, когда нужно принудительно вызвать
+  /// системный диалог и проверить итоговый статус.
+  Future<bool> requestPermissionNow() async {
+    if (kIsWeb) return false;
+    await initialize();
+    return _requestPermissions();
+  }
+
   /// Диагностирует статус уведомлений: таймзона, количество запланированных.
   /// Используйте для отладки проблем с доставкой.
   Future<String> diagnosticsForToday() async {
