@@ -61,6 +61,11 @@ class _ConnectionsNotificationsScreenState
         HealthConnectStatus.failed => Colors.red.shade700,
       };
       _showSnack(result.message, backgroundColor: color);
+
+      if (result.status == HealthConnectStatus.needsHealthConnectInstall ||
+          result.status == HealthConnectStatus.permissionDenied) {
+        _showHealthConnectHelpDialog(result.message);
+      }
     } finally {
       if (mounted) setState(() => _connectingHealth = false);
     }
@@ -87,10 +92,10 @@ class _ConnectionsNotificationsScreenState
         'Настройки уведомлений сохранены.',
         backgroundColor: Colors.green.shade700,
       );
-    } on NotificationPermissionDeniedException catch (_) {
+    } on NotificationPermissionDeniedException catch (error) {
       await _settingsService.save(previous);
       if (!mounted) return;
-      _showPermissionDeniedDialog();
+      _showPermissionDeniedDialog(error.message);
     } on NotificationScheduleException catch (error) {
       await _settingsService.save(previous);
       if (!mounted) return;
@@ -98,7 +103,7 @@ class _ConnectionsNotificationsScreenState
     } catch (_) {
       await _settingsService.save(previous);
       if (!mounted) return;
-      _showPermissionDeniedDialog();
+      _showPermissionDeniedDialog(null);
     }
   }
 
@@ -112,14 +117,26 @@ class _ConnectionsNotificationsScreenState
     );
   }
 
-  void _showPermissionDeniedDialog() {
+  Future<void> _openNotificationSettingsWithFallback() async {
+    try {
+      await AppSettings.openAppSettings(type: AppSettingsType.notification);
+      return;
+    } catch (_) {
+      // На части iOS-устройств прямой переход в раздел уведомлений недоступен.
+    }
+    await AppSettings.openAppSettings(type: AppSettingsType.settings);
+  }
+
+  void _showPermissionDeniedDialog(String? details) {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Нет доступа к уведомлениям'),
-        content: const Text(
-          'NutriLog не может отправлять уведомления.\n\n'
-          'Откройте настройки устройства и включите уведомления для NutriLog вручную.',
+        content: Text(
+          details ??
+              'NutriLog не может отправлять уведомления.\n\n'
+                  'Откройте настройки устройства и включите уведомления вручную. '
+                  'Если раздела NutriLog нет, удалите приложение и установите заново.',
         ),
         actions: [
           TextButton(
@@ -127,9 +144,32 @@ class _ConnectionsNotificationsScreenState
             child: const Text('Отмена'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              AppSettings.openAppSettings(type: AppSettingsType.notification);
+              await _openNotificationSettingsWithFallback();
+            },
+            child: const Text('Открыть настройки'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHealthConnectHelpDialog(String details) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Подключение шагов не завершено'),
+        content: Text(details),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Закрыть'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await AppSettings.openAppSettings(type: AppSettingsType.settings);
             },
             child: const Text('Открыть настройки'),
           ),
