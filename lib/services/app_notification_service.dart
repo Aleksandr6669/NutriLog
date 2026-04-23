@@ -168,24 +168,31 @@ class AppNotificationService {
       }
     }
 
+    final darwin = _plugin.resolvePlatformSpecificImplementation<
+        DarwinFlutterLocalNotificationsPlugin>();
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      if (ios == null) {
+      final requested = await (darwin?.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+              ios?.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              )) ??
+          false;
+
+      if (darwin == null && ios == null) {
         iosGranted = false;
       } else {
-        // Запрашиваем разрешение напрямую как в примере плагина.
-        final requested = await ios.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
-            false;
-
         if (requested) {
           iosGranted = true;
         } else {
-          final afterRequest = await ios.checkPermissions();
+          final afterRequest =
+              await (darwin?.checkPermissions() ?? ios?.checkPermissions());
           iosGranted = (afterRequest?.isEnabled ?? false) &&
               ((afterRequest?.isAlertEnabled ?? false) ||
                   (afterRequest?.isProvisionalEnabled ?? false));
@@ -423,13 +430,16 @@ class AppNotificationService {
     await initialize();
 
     if (Platform.isIOS) {
+      final darwin = _plugin.resolvePlatformSpecificImplementation<
+          DarwinFlutterLocalNotificationsPlugin>();
       final ios = _plugin.resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin>();
-      if (ios == null) {
-        return 'iOS implementation: недоступен (ios == null).';
+      if (darwin == null && ios == null) {
+        return 'iOS implementation: недоступен (darwin/ios == null).';
       }
 
-      final perms = await ios.checkPermissions();
+      final perms =
+          await (darwin?.checkPermissions() ?? ios?.checkPermissions());
       if (perms == null) {
         return 'iOS permissions: checkPermissions() вернул null.';
       }
