@@ -25,6 +25,7 @@ class _ConnectionsNotificationsScreenState
   bool _healthConnected = false;
   bool _connectingHealth = false;
   bool _sendingTestNotification = false;
+  bool _sendingWaterTestNotification = false;
   bool _runningDiagnostics = false;
   late NotificationSettings _settings;
 
@@ -133,6 +134,31 @@ class _ConnectionsNotificationsScreenState
       );
     } finally {
       if (mounted) setState(() => _sendingTestNotification = false);
+    }
+  }
+
+  Future<void> _sendWaterTestNotification() async {
+    if (_sendingWaterTestNotification) return;
+    setState(() => _sendingWaterTestNotification = true);
+
+    try {
+      await _notificationService.sendWaterTestNotification();
+      if (!mounted) return;
+      _showSnack(
+        'Тест воды отправлен мгновенно.',
+        backgroundColor: Colors.green.shade700,
+      );
+    } on NotificationPermissionDeniedException catch (error) {
+      if (!mounted) return;
+      _showSnack(error.message, backgroundColor: Colors.red.shade700);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(
+        'Не удалось отправить тест воды. Проверьте разрешения уведомлений.',
+        backgroundColor: Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) setState(() => _sendingWaterTestNotification = false);
     }
   }
 
@@ -325,6 +351,29 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox(key: ValueKey('water_disabled_hint')),
                 ),
+                if (_settings.waterReminderEnabled)
+                  ListTile(
+                    leading: const Icon(Symbols.water_drop),
+                    title: const Text('Тест воды (мгновенно)'),
+                    subtitle:
+                        const Text('Проверить мгновенное уведомление о воде'),
+                    trailing: FilledButton(
+                      onPressed: _sendingWaterTestNotification
+                          ? null
+                          : _sendWaterTestNotification,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: _sendingWaterTestNotification
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Отправить'),
+                    ),
+                  ),
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
                   title: const Text('Напоминания о приемах пищи'),

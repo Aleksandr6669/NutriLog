@@ -35,6 +35,7 @@ class AppNotificationService {
   static const int _lunchId = 1102;
   static const int _dinnerId = 1103;
   static const int _testId = 1900;
+  static const int _waterTestId = 1901;
   static const int _waterStartHour = 8;
   static const int _waterEndHour = 22;
 
@@ -139,9 +140,30 @@ class AppNotificationService {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      iosGranted = await ios?.requestPermissions(
-              alert: true, badge: true, sound: true) ??
-          false;
+      final current = await ios?.checkPermissions();
+      final alreadyEnabled = (current?.isEnabled ?? false) &&
+          ((current?.isAlertEnabled ?? false) ||
+              (current?.isProvisionalEnabled ?? false));
+
+      if (alreadyEnabled) {
+        iosGranted = true;
+      } else {
+        final requested = await ios?.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
+            false;
+
+        if (requested) {
+          iosGranted = true;
+        } else {
+          final afterRequest = await ios?.checkPermissions();
+          iosGranted = (afterRequest?.isEnabled ?? false) &&
+              ((afterRequest?.isAlertEnabled ?? false) ||
+                  (afterRequest?.isProvisionalEnabled ?? false));
+        }
+      }
     }
 
     _permissionsGranted = androidGranted && iosGranted;
@@ -160,6 +182,7 @@ class AppNotificationService {
       await _plugin.cancel(_waterBaseId + i);
     }
     await _plugin.cancel(_testId);
+    await _plugin.cancel(_waterTestId);
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
@@ -171,7 +194,7 @@ class AppNotificationService {
     final granted = await _requestPermissions();
     if (!granted) {
       throw const NotificationPermissionDeniedException(
-        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog.',
+        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
       );
     }
 
@@ -213,7 +236,7 @@ class AppNotificationService {
       (request) => request.id >= _waterBaseId && request.id < _testId,
     );
 
-    if (scheduledCount > 0 && !hasScheduled) {
+    if (scheduledCount > 0 && !hasScheduled && Platform.isAndroid) {
       throw const NotificationScheduleException(
         'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
       );
@@ -231,7 +254,7 @@ class AppNotificationService {
     final granted = await _requestPermissions();
     if (!granted) {
       throw const NotificationPermissionDeniedException(
-        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog.',
+        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
       );
     }
 
@@ -255,6 +278,48 @@ class AppNotificationService {
       _testId,
       'NutriLog: тест уведомлений',
       'Уведомления включены и работают.',
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+    );
+  }
+
+  Future<void> sendWaterTestNotification() async {
+    if (kIsWeb) return;
+
+    await initialize();
+    final granted = await _requestPermissions();
+    if (!granted) {
+      throw const NotificationPermissionDeniedException(
+        'Разрешение на уведомления не выдано. Откройте настройки iPhone и включите уведомления для NutriLog. Также проверьте Фокус и Сводку уведомлений.',
+      );
+    }
+
+    final profile = await _profileService.loadProfile();
+    final dailyWaterGoalMl = profile.waterGoal;
+    final reminderCount =
+        (dailyWaterGoalMl / 250).ceil().clamp(3, _maxWaterReminders);
+    final amountPerReminderMl =
+        ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
+    final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
+
+    await _plugin.cancel(_waterTestId);
+
+    const androidDetails = AndroidNotificationDetails(
+      'nutrilog_reminders',
+      'NutriLog напоминания',
+      channelDescription: 'Напоминания о воде и приемах пищи',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    await _plugin.show(
+      _waterTestId,
+      'Пора выпить воду',
+      'Тест: выпейте около $safeAmountPerReminderMl мл.',
       const NotificationDetails(android: androidDetails, iOS: iosDetails),
     );
   }
