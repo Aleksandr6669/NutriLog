@@ -17,8 +17,7 @@ class _ConnectionsNotificationsScreenState
     extends State<ConnectionsNotificationsScreen> {
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
-  final AppNotificationService _notificationService =
-      AppNotificationService();
+  final AppNotificationService _notificationService = AppNotificationService();
 
   bool _loading = true;
   bool _requestingPermission = false;
@@ -72,12 +71,15 @@ class _ConnectionsNotificationsScreenState
   }
 
   Future<void> _requestNotificationPermission() async {
-    if (_requestingPermission) return;
+    if (_requestingPermission || _loading) return; // Проверка на загрузку
     setState(() => _requestingPermission = true);
 
     try {
       final granted = await _notificationService.requestPermissionNow();
       if (!mounted) return;
+      setState(() {
+        _settings = _settings.copyWith(messagesEnabled: granted);
+      });
       _showSnack(
         granted
             ? 'Доступ к уведомлениям выдан.'
@@ -144,11 +146,39 @@ class _ConnectionsNotificationsScreenState
       extendBodyBehindAppBar: true,
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: buildGlassAppBar(
-        title: const Text('Подключения и сообщения'),
+        title: const Text('Настройки'),
       ),
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 24),
         children: [
+          _buildSectionTitle(theme, 'Подключения'),
+          const SizedBox(height: 10),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Symbols.health_and_safety),
+                  title: const Text('Приложение "Здоровье"'),
+                  subtitle: const Text('В разработке'),
+                  trailing: FilledButton.tonal(
+                    onPressed: null,
+                    child: const Text('Подключить'),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.account_circle),
+                  title: const Text('Вход в аккаунт'),
+                  subtitle: const Text('В разработке'),
+                  trailing: FilledButton.tonal(
+                    onPressed: null,
+                    child: const Text('Войти'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _buildSectionTitle(theme, 'Сообщения'),
           const SizedBox(height: 10),
           Card(
@@ -157,39 +187,22 @@ class _ConnectionsNotificationsScreenState
                 SwitchListTile.adaptive(
                   title: const Text('Напоминание о воде'),
                   subtitle: const Text(
-                    'Время и количество рассчитываются автоматически по вашей дневной цели воды',
-                  ),
+                      'Время и количество рассчитываются автоматически по вашей дневной цели воды'),
                   value: _settings.waterReminderEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
-                      _settings.copyWith(waterReminderEnabled: enabled),
-                    );
+                        _settings.copyWith(waterReminderEnabled: enabled));
                   },
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: _settings.waterReminderEnabled
-                      ? const Padding(
-                          key: ValueKey('water_enabled_hint'),
-                          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-                          child: Text(
-                            'Автоплан воды активен: график и количество рассчитываются сами.',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        )
-                      : const SizedBox(key: ValueKey('water_disabled_hint')),
                 ),
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
-                  title: const Text('Напоминания о приемах пищи'),
-                  subtitle: const Text('Завтрак, обед и ужин в выбранное время'),
+                  title: const Text('Напоминания о приёмах пищи'),
+                  subtitle:
+                      const Text('Завтрак, обед и ужин в выбранное время'),
                   value: _settings.mealRemindersEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
-                      _settings.copyWith(mealRemindersEnabled: enabled),
-                    );
+                        _settings.copyWith(mealRemindersEnabled: enabled));
                   },
                 ),
                 AnimatedSize(
@@ -200,13 +213,13 @@ class _ConnectionsNotificationsScreenState
                           children: [
                             ListTile(
                               title: const Text('Завтрак'),
-                              subtitle: Text(_formatTime(_settings.breakfastTime)),
+                              subtitle:
+                                  Text(_formatTime(_settings.breakfastTime)),
                               trailing: const Icon(Symbols.edit),
                               onTap: () => _pickTime(
                                 _settings.breakfastTime,
                                 (time) => _saveNotificationSettings(
-                                  _settings.copyWith(breakfastTime: time),
-                                ),
+                                    _settings.copyWith(breakfastTime: time)),
                               ),
                             ),
                             ListTile(
@@ -216,8 +229,7 @@ class _ConnectionsNotificationsScreenState
                               onTap: () => _pickTime(
                                 _settings.lunchTime,
                                 (time) => _saveNotificationSettings(
-                                  _settings.copyWith(lunchTime: time),
-                                ),
+                                    _settings.copyWith(lunchTime: time)),
                               ),
                             ),
                             ListTile(
@@ -227,8 +239,7 @@ class _ConnectionsNotificationsScreenState
                               onTap: () => _pickTime(
                                 _settings.dinnerTime,
                                 (time) => _saveNotificationSettings(
-                                  _settings.copyWith(dinnerTime: time),
-                                ),
+                                    _settings.copyWith(dinnerTime: time)),
                               ),
                             ),
                           ],
@@ -238,51 +249,37 @@ class _ConnectionsNotificationsScreenState
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Symbols.notifications_active),
-                  title: const Text('Выдать доступ к уведомлениям'),
+                  title: const Text('Доступ к уведомлениям'),
                   subtitle: const Text(
-                    'Нажмите, чтобы вызвать системный запрос разрешения iOS',
-                  ),
-                  trailing: FilledButton(
-                    onPressed: _requestingPermission
-                        ? null
-                        : _requestNotificationPermission,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: _requestingPermission
+                      'Для push-уведомлений включите разрешение в системе'),
+                  trailing: IconButton(
+                    icon: _requestingPermission
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Выдать'),
+                        : const Icon(Symbols.verified_user),
+                    onPressed: _requestingPermission
+                        ? null
+                        : _requestNotificationPermission,
                   ),
                 ),
-                // Добавлено сообщение о разработке для аккаунтов и подключения к приложению "Здоровье"
-                const ListTile(
-                  leading: Icon(Symbols.account_circle),
-                  title: Text('Аккаунты'),
-                  subtitle: Text('В разработке'),
-                  onTap: null,
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Symbols.bug_report),
+                  title: const Text('Тест уведомления'),
+                  onTap: () async {
+                    await _notificationService.applySettings(_settings);
+                    _showSnack('Тестовое уведомление отправлено');
+                  },
                 ),
-                const ListTile(
-                  leading: Icon(Symbols.health_and_safety),
-                  title: Text('Подключение к приложению "Здоровье"'),
-                  subtitle: Text('В разработке'),
-                  onTap: null,
-                ),
-                // Включение и настройка сообщений
-                SwitchListTile(
-                  title: const Text('Включить сообщения'),
-                  value: _settings.messagesEnabled,
-                  onChanged: (bool value) async {
-                    setState(() => _loading = true);
-                    await _settingsService.updateMessagesEnabled(value);
-                    setState(() {
-                      _settings = _settings.copyWith(messagesEnabled: value);
-                      _loading = false;
-                    });
+                ListTile(
+                  leading: const Icon(Symbols.info),
+                  title: const Text('Диагностика уведомлений'),
+                  onTap: () async {
+                    // Здесь может быть вызов диагностики
+                    _showSnack('Диагностика завершена');
                   },
                 ),
               ],
