@@ -119,12 +119,6 @@ class _ConnectionsNotificationsScreenState
   }
 
   Future<void> _openNotificationSettingsWithFallback() async {
-    try {
-      await AppSettings.openAppSettings(type: AppSettingsType.notification);
-      return;
-    } catch (_) {
-      // На части iOS-устройств прямой переход в раздел уведомлений недоступен.
-    }
     await AppSettings.openAppSettings(type: AppSettingsType.settings);
   }
 
@@ -234,7 +228,7 @@ class _ConnectionsNotificationsScreenState
         );
       } else {
         _showPermissionDeniedDialog(
-          'iOS не выдал доступ к уведомлениям. Если в настройках приложения нет пункта "Уведомления", удалите приложение и установите заново, затем нажмите "Выдать доступ" сразу после запуска.',
+          'iOS не выдал доступ к уведомлениям. Откройте карточку приложения NutriLog в настройках. Если пункта "Уведомления" там нет, удалите приложение и установите заново, затем сразу нажмите "Выдать доступ".',
         );
       }
     } catch (_) {
