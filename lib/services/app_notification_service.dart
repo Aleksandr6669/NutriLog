@@ -57,6 +57,11 @@ class AppNotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
     const iosSettings = DarwinInitializationSettings(
+      // Права запрашиваем явно в _requestPermissions(), чтобы попап
+      // показывался в ожидаемый для пользователя момент.
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
       defaultPresentAlert: true,
       defaultPresentBadge: true,
       defaultPresentSound: true,
@@ -160,25 +165,31 @@ class AppNotificationService {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      final current = await ios?.checkPermissions();
-      final alreadyEnabled = (current?.isEnabled ?? false) &&
-          ((current?.isAlertEnabled ?? false) ||
-              (current?.isProvisionalEnabled ?? false));
-
-      if (alreadyEnabled) {
+      // На некоторых сборках/устройствах iOS-implementation может временно
+      // вернуться null. Не блокируем планирование ложным "нет доступа".
+      if (ios == null) {
         iosGranted = true;
       } else {
-        final requested = await ios?.requestPermissions(
-                alert: true, badge: true, sound: true) ??
-            false;
+        final current = await ios.checkPermissions();
+        final alreadyEnabled = (current?.isEnabled ?? false) &&
+            ((current?.isAlertEnabled ?? false) ||
+                (current?.isProvisionalEnabled ?? false));
 
-        if (requested) {
+        if (alreadyEnabled) {
           iosGranted = true;
         } else {
-          final afterRequest = await ios?.checkPermissions();
-          iosGranted = (afterRequest?.isEnabled ?? false) &&
-              ((afterRequest?.isAlertEnabled ?? false) ||
-                  (afterRequest?.isProvisionalEnabled ?? false));
+          final requested = await ios.requestPermissions(
+                  alert: true, badge: true, sound: true) ??
+              false;
+
+          if (requested) {
+            iosGranted = true;
+          } else {
+            final afterRequest = await ios.checkPermissions();
+            iosGranted = (afterRequest?.isEnabled ?? false) &&
+                ((afterRequest?.isAlertEnabled ?? false) ||
+                    (afterRequest?.isProvisionalEnabled ?? false));
+          }
         }
       }
     }
@@ -358,7 +369,6 @@ class AppNotificationService {
       presentSound: true,
       presentBanner: true,
       presentList: true,
-      interruptionLevel: InterruptionLevel.active,
     );
 
     // Сначала пытаемся поставить более надежный exact режим на Android,

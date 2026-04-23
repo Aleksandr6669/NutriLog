@@ -73,13 +73,13 @@ class _ConnectionsNotificationsScreenState
 
   Future<void> _saveNotificationSettings(NotificationSettings settings) async {
     final previous = _settings;
-    _settings = settings;
-    setState(() {});
 
     try {
       await _notificationService.applySettings(
         settings,
       );
+      _settings = settings;
+      if (mounted) setState(() {});
       await _settingsService.save(settings);
       if (!mounted) return;
       _showSnack(
@@ -87,20 +87,14 @@ class _ConnectionsNotificationsScreenState
         backgroundColor: Colors.green.shade700,
       );
     } on NotificationPermissionDeniedException catch (error) {
-      _settings = previous;
-      if (mounted) setState(() {});
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(error.message, backgroundColor: Colors.red.shade700);
     } on NotificationScheduleException catch (error) {
-      _settings = previous;
-      if (mounted) setState(() {});
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(error.message, backgroundColor: Colors.red.shade700);
     } catch (_) {
-      _settings = previous;
-      if (mounted) setState(() {});
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(
