@@ -57,11 +57,13 @@ class AppNotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
     const iosSettings = DarwinInitializationSettings(
-      // Права запрашиваем явно в _requestPermissions(), чтобы попап
-      // показывался в ожидаемый для пользователя момент.
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
+      // Показываем системный попап сразу при первом запуске приложения.
+      // iOS показывает его только один раз — при инициализации плагина.
+      // Если здесь false, попап не появится никогда и приложение не попадёт
+      // в Настройки → Уведомления.
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
       defaultPresentAlert: true,
       defaultPresentBadge: true,
       defaultPresentSound: true,
