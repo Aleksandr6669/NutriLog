@@ -148,6 +148,13 @@ class AppNotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     if (Platform.isAndroid) {
       androidGranted = await android?.requestNotificationsPermission() ?? true;
+      // Для Android 14+ exact alarm может требовать отдельного разрешения.
+      // Если не получится получить, ниже в планировании сработает fallback на inexact.
+      try {
+        await android?.requestExactAlarmsPermission();
+      } catch (_) {
+        // Игнорируем, чтобы не блокировать уведомления полностью.
+      }
     }
 
     final ios = _plugin.resolvePlatformSpecificImplementation<
@@ -162,10 +169,7 @@ class AppNotificationService {
         iosGranted = true;
       } else {
         final requested = await ios?.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
+                alert: true, badge: true, sound: true) ??
             false;
 
         if (requested) {
@@ -246,11 +250,13 @@ class AppNotificationService {
       (request) => request.id >= _waterBaseId && request.id <= _dinnerId,
     );
 
-    if (scheduledCount > 0 && !hasScheduled) {
-      final message = Platform.isIOS
-          ? 'Не удалось запланировать уведомления на iPhone. Проверьте: Настройки -> Уведомления -> NutriLog (Разрешить, Баннеры, Звуки), а также Фокус и Сводку уведомлений.'
-          : 'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.';
-      throw NotificationScheduleException(message);
+    // На Android отсутствие pending сразу после планирования чаще означает реальную
+    // проблему (разрешения/энергосбережение). На iOS список pending может обновляться
+    // не мгновенно, поэтому не делаем жёсткий fail и не откатываем настройки.
+    if (scheduledCount > 0 && !hasScheduled && Platform.isAndroid) {
+      throw const NotificationScheduleException(
+        'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
+      );
     }
   }
 
