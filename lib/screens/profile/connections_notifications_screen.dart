@@ -1,8 +1,6 @@
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
-import 'package:nutri_log/services/health_steps_service.dart';
 import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
@@ -17,73 +15,36 @@ class ConnectionsNotificationsScreen extends StatefulWidget {
 
 class _ConnectionsNotificationsScreenState
     extends State<ConnectionsNotificationsScreen> {
-  final HealthStepsService _healthStepsService = HealthStepsService();
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
-  final AppNotificationService _notificationService = AppNotificationService();
+  final AppNotificationService _notificationService =
+      AppNotificationService();
 
   bool _loading = true;
-  bool _healthConnected = false;
-  bool _connectingHealth = false;
-  bool _runningDiagnostics = false;
+  bool _requestingPermission = false;
   late NotificationSettings _settings;
 
   @override
   void initState() {
     super.initState();
-    _loadState();
+    _loadSettings();
   }
 
-  Future<void> _loadState() async {
-    final connected = await _healthStepsService.isConnected();
+  Future<void> _loadSettings() async {
     final settings = await _settingsService.load();
     if (!mounted) return;
 
     setState(() {
-      _healthConnected = connected;
       _settings = settings;
       _loading = false;
     });
-  }
-
-  Future<void> _connectHealth() async {
-    if (_connectingHealth) return;
-    setState(() => _connectingHealth = true);
-
-    try {
-      final result = await _healthStepsService.connectWithStatus();
-      if (!mounted) return;
-      setState(() => _healthConnected = result.isConnected);
-      final color = switch (result.status) {
-        HealthConnectStatus.connected => Colors.green.shade700,
-        HealthConnectStatus.needsHealthConnectInstall => Colors.orange.shade700,
-        HealthConnectStatus.permissionDenied => Colors.red.shade700,
-        HealthConnectStatus.failed => Colors.red.shade700,
-      };
-      _showSnack(result.message, backgroundColor: color);
-
-      if (result.status == HealthConnectStatus.needsHealthConnectInstall ||
-          result.status == HealthConnectStatus.permissionDenied) {
-        _showHealthConnectHelpDialog(result.message);
-      }
-    } finally {
-      if (mounted) setState(() => _connectingHealth = false);
-    }
-  }
-
-  Future<void> _disconnectHealth() async {
-    await _healthStepsService.disconnect();
-    if (!mounted) return;
-    setState(() => _healthConnected = false);
   }
 
   Future<void> _saveNotificationSettings(NotificationSettings settings) async {
     final previous = _settings;
 
     try {
-      await _notificationService.applySettings(
-        settings,
-      );
+      await _notificationService.applySettings(settings);
       _settings = settings;
       if (mounted) setState(() {});
       await _settingsService.save(settings);
@@ -110,6 +71,24 @@ class _ConnectionsNotificationsScreenState
     }
   }
 
+  Future<void> _requestNotificationPermission() async {
+    if (_requestingPermission) return;
+    setState(() => _requestingPermission = true);
+
+    try {
+      final granted = await _notificationService.requestPermissionNow();
+      if (!mounted) return;
+      _showSnack(
+        granted
+            ? 'Доступ к уведомлениям выдан.'
+            : 'Не удалось получить разрешение на уведомления. Проверьте настройки iOS.',
+        backgroundColor: granted ? Colors.green.shade700 : Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) setState(() => _requestingPermission = false);
+    }
+  }
+
   void _showSnack(String message, {Color? backgroundColor}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -118,69 +97,6 @@ class _ConnectionsNotificationsScreenState
         backgroundColor: backgroundColor,
       ),
     );
-  }
-
-  void _showHealthConnectHelpDialog(String details) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Подключение шагов не завершено'),
-        content: Text(details),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Закрыть'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await AppSettings.openAppSettings(type: AppSettingsType.settings);
-            },
-            child: const Text('Открыть настройки'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _runDiagnostics() async {
-    if (_runningDiagnostics) return;
-    setState(() => _runningDiagnostics = true);
-
-    try {
-      final health = await _healthStepsService.diagnosticsForToday();
-      final pending = await _notificationService.getPendingReminderCount();
-      final timezone = _notificationService.getCurrentTimezoneName();
-      final permissions = await _notificationService.getPermissionDiagnostics();
-
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Диагностика'),
-          content: Text(
-            'Здоровье: ${health.message}\n\n'
-            'Уведомления: запланировано $pending\n'
-            'Часовой пояс: $timezone\n\n'
-            '$permissions',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Закрыть'),
-            ),
-          ],
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      _showSnack(
-        'Не удалось выполнить диагностику. Попробуйте еще раз.',
-        backgroundColor: Colors.red.shade700,
-      );
-    } finally {
-      if (mounted) setState(() => _runningDiagnostics = false);
-    }
   }
 
   Future<void> _pickTime(
@@ -195,6 +111,7 @@ class _ConnectionsNotificationsScreenState
         child: child ?? const SizedBox.shrink(),
       ),
     );
+
     if (picked != null) {
       onPicked(picked);
     }
@@ -225,73 +142,13 @@ class _ConnectionsNotificationsScreenState
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: buildGlassAppBar(
         title: const Text('Подключения и сообщения'),
       ),
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 24),
         children: [
-          _buildSectionTitle(theme, 'Подключения'),
-          const SizedBox(height: 10),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Symbols.favorite),
-                  title: const Text('Приложение здоровья'),
-                  subtitle: Text(
-                    _healthConnected ? 'Подключено' : 'Не подключено',
-                  ),
-                  trailing: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 240),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: _healthConnected
-                        ? TextButton(
-                            key: const ValueKey('disconnect_health'),
-                            onPressed: _disconnectHealth,
-                            child: const Text('Отключить'),
-                          )
-                        : FilledButton(
-                            key: const ValueKey('connect_health'),
-                            onPressed:
-                                _connectingHealth ? null : _connectHealth,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: _connectingHealth
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Подключить'),
-                          ),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Symbols.person),
-                  title: const Text('Вход в аккаунт'),
-                  subtitle: const Text('Скоро будет доступно'),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Вход в аккаунт скоро будет доступен.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
           _buildSectionTitle(theme, 'Сообщения'),
           const SizedBox(height: 10),
           Card(
@@ -327,8 +184,7 @@ class _ConnectionsNotificationsScreenState
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
                   title: const Text('Напоминания о приемах пищи'),
-                  subtitle:
-                      const Text('Завтрак, обед и ужин в выбранное время'),
+                  subtitle: const Text('Завтрак, обед и ужин в выбранное время'),
                   value: _settings.mealRemindersEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
@@ -344,8 +200,7 @@ class _ConnectionsNotificationsScreenState
                           children: [
                             ListTile(
                               title: const Text('Завтрак'),
-                              subtitle:
-                                  Text(_formatTime(_settings.breakfastTime)),
+                              subtitle: Text(_formatTime(_settings.breakfastTime)),
                               trailing: const Icon(Symbols.edit),
                               onTap: () => _pickTime(
                                 _settings.breakfastTime,
@@ -380,27 +235,32 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox.shrink(),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Symbols.stethoscope),
-                  title: const Text('Диагностика'),
-                  subtitle:
-                      const Text('Показать статус здоровья и уведомлений'),
-                  trailing: FilledButton(
-                    onPressed: _runningDiagnostics ? null : _runDiagnostics,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                if (Theme.of(context).platform == TargetPlatform.iOS) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Symbols.notifications_active),
+                    title: const Text('Выдать доступ к уведомлениям'),
+                    subtitle: const Text(
+                      'Нажмите, чтобы вызвать системный запрос разрешения iOS',
                     ),
-                    child: _runningDiagnostics
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Проверить'),
+                    trailing: FilledButton(
+                      onPressed: _requestingPermission
+                          ? null
+                          : _requestNotificationPermission,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: _requestingPermission
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Выдать'),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
