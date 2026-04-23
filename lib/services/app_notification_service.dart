@@ -181,9 +181,10 @@ class AppNotificationService {
         iosGranted = false;
       } else {
         final current = await ios.checkPermissions();
-        final alreadyEnabled = (current?.isEnabled ?? false) &&
-            ((current?.isAlertEnabled ?? false) ||
-                (current?.isProvisionalEnabled ?? false));
+        // Для iOS достаточно общего флага isEnabled.
+        // Проверка только alert/provisional может давать ложный deny,
+        // если пользователь оставил звук/бейдж, но изменил стиль баннеров.
+        final alreadyEnabled = current?.isEnabled ?? false;
 
         if (alreadyEnabled) {
           iosGranted = true;
@@ -199,9 +200,7 @@ class AppNotificationService {
             iosGranted = true;
           } else {
             final afterRequest = await ios.checkPermissions();
-            iosGranted = (afterRequest?.isEnabled ?? false) &&
-                ((afterRequest?.isAlertEnabled ?? false) ||
-                    (afterRequest?.isProvisionalEnabled ?? false));
+            iosGranted = afterRequest?.isEnabled ?? false;
           }
         }
       }
