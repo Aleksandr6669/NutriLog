@@ -152,7 +152,13 @@ class AppNotificationService {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (Platform.isAndroid) {
-      androidGranted = await android?.requestNotificationsPermission() ?? true;
+      if (android == null) {
+        androidGranted = false;
+      } else {
+        androidGranted = await android.requestNotificationsPermission() ?? true;
+        final enabledAfterRequest = await android.areNotificationsEnabled();
+        androidGranted = androidGranted && (enabledAfterRequest ?? true);
+      }
       // Для Android 14+ exact alarm может требовать отдельного разрешения.
       // Если не получится получить, ниже в планировании сработает fallback на inexact.
       try {
@@ -165,10 +171,10 @@ class AppNotificationService {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (Platform.isIOS) {
-      // На некоторых сборках/устройствах iOS-implementation может временно
-      // вернуться null. Не блокируем планирование ложным "нет доступа".
+      // Если iOS implementation недоступен, считаем доступ невыданным,
+      // чтобы не пропускать реальный запрос разрешений.
       if (ios == null) {
-        iosGranted = true;
+        iosGranted = false;
       } else {
         final current = await ios.checkPermissions();
         final alreadyEnabled = (current?.isEnabled ?? false) &&
