@@ -73,6 +73,14 @@ class AppNotificationService {
 
     await _plugin.initialize(initSettings);
     _initialized = true;
+
+    // Авто-запрос разрешений на Android при первом запуске
+    if (Platform.isAndroid) {
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
   }
 
   /// Настраивает таймзону для всего приложения.
