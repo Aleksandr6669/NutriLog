@@ -24,8 +24,6 @@ class _ConnectionsNotificationsScreenState
   bool _loading = true;
   bool _healthConnected = false;
   bool _connectingHealth = false;
-  bool _sendingTestNotification = false;
-  bool _sendingWaterTestNotification = false;
   bool _runningDiagnostics = false;
   late NotificationSettings _settings;
 
@@ -109,56 +107,6 @@ class _ConnectionsNotificationsScreenState
         'Не удалось подключить уведомления. Проверьте разрешения уведомлений в настройках телефона.',
         backgroundColor: Colors.red.shade700,
       );
-    }
-  }
-
-  Future<void> _sendTestNotification() async {
-    if (_sendingTestNotification) return;
-    setState(() => _sendingTestNotification = true);
-
-    try {
-      await _notificationService.sendTestNotification();
-      if (!mounted) return;
-      _showSnack(
-        'Тестовое уведомление отправлено. Оно придет через несколько секунд.',
-        backgroundColor: Colors.green.shade700,
-      );
-    } on NotificationPermissionDeniedException catch (error) {
-      if (!mounted) return;
-      _showSnack(error.message, backgroundColor: Colors.red.shade700);
-    } catch (_) {
-      if (!mounted) return;
-      _showSnack(
-        'Не удалось отправить тестовое уведомление. Проверьте разрешения и настройки системы.',
-        backgroundColor: Colors.red.shade700,
-      );
-    } finally {
-      if (mounted) setState(() => _sendingTestNotification = false);
-    }
-  }
-
-  Future<void> _sendWaterTestNotification() async {
-    if (_sendingWaterTestNotification) return;
-    setState(() => _sendingWaterTestNotification = true);
-
-    try {
-      await _notificationService.sendWaterTestNotification();
-      if (!mounted) return;
-      _showSnack(
-        'Тест воды отправлен мгновенно.',
-        backgroundColor: Colors.green.shade700,
-      );
-    } on NotificationPermissionDeniedException catch (error) {
-      if (!mounted) return;
-      _showSnack(error.message, backgroundColor: Colors.red.shade700);
-    } catch (_) {
-      if (!mounted) return;
-      _showSnack(
-        'Не удалось отправить тест воды. Проверьте разрешения уведомлений.',
-        backgroundColor: Colors.red.shade700,
-      );
-    } finally {
-      if (mounted) setState(() => _sendingWaterTestNotification = false);
     }
   }
 
@@ -351,29 +299,6 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox(key: ValueKey('water_disabled_hint')),
                 ),
-                if (_settings.waterReminderEnabled)
-                  ListTile(
-                    leading: const Icon(Symbols.water_drop),
-                    title: const Text('Тест воды (мгновенно)'),
-                    subtitle:
-                        const Text('Проверить мгновенное уведомление о воде'),
-                    trailing: FilledButton(
-                      onPressed: _sendingWaterTestNotification
-                          ? null
-                          : _sendWaterTestNotification,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: _sendingWaterTestNotification
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Отправить'),
-                    ),
-                  ),
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
                   title: const Text('Напоминания о приемах пищи'),
@@ -429,27 +354,6 @@ class _ConnectionsNotificationsScreenState
                           ],
                         )
                       : const SizedBox.shrink(),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Symbols.notifications_active),
-                  title: const Text('Тест уведомления'),
-                  subtitle: const Text('Проверить, что уведомления работают'),
-                  trailing: FilledButton(
-                    onPressed:
-                        _sendingTestNotification ? null : _sendTestNotification,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: _sendingTestNotification
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Отправить'),
-                  ),
                 ),
                 const Divider(height: 1),
                 ListTile(
