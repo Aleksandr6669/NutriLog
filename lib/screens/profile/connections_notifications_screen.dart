@@ -136,6 +136,15 @@ class _ConnectionsNotificationsScreenState
 
   @override
   Widget build(BuildContext context) {
+    // ...existing code...
+    // Добавляем тумблер "Включить сообщения" перед остальными настройками
+    final messageSwitch = SwitchListTile.adaptive(
+      title: const Text('Включить сообщения'),
+      value: _settings.messagesEnabled,
+      onChanged: (enabled) {
+        _saveNotificationSettings(_settings.copyWith(messagesEnabled: enabled));
+      },
+    );
     final theme = Theme.of(context);
 
     if (_loading) {
@@ -181,6 +190,7 @@ class _ConnectionsNotificationsScreenState
           const SizedBox(height: 24),
           _buildSectionTitle(theme, 'Сообщения'),
           const SizedBox(height: 10),
+          messageSwitch,
           Card(
             child: Column(
               children: [
@@ -278,8 +288,9 @@ class _ConnectionsNotificationsScreenState
                   leading: const Icon(Symbols.info),
                   title: const Text('Диагностика уведомлений'),
                   onTap: () async {
-                    // Здесь может быть вызов диагностики
-                    _showSnack('Диагностика завершена');
+                    final diagnostics =
+                        await _notificationService.diagnosticsForToday();
+                    _showSnack(diagnostics);
                   },
                 ),
               ],
