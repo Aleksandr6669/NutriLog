@@ -28,6 +28,7 @@ class HealthStepsService {
     final permissions = [HealthDataAccess.READ];
     try {
       _authorized = await _health!.requestAuthorization(types, permissions: permissions);
+      import 'package:health/health.dart';
       return _authorized;
     } catch (_) {
       return false;
