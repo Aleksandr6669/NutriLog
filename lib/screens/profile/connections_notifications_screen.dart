@@ -13,6 +13,25 @@ class ConnectionsNotificationsScreen extends StatefulWidget {
 }
 
 class _ConnectionsNotificationsScreenState
+      bool _healthConnecting = false;
+      bool _healthConnected = false;
+
+      Future<void> _connectHealth() async {
+        setState(() {
+          _healthConnecting = true;
+        });
+        final service = HealthStepsService();
+        final connected = await service.isConnected();
+        setState(() {
+          _healthConnected = connected;
+          _healthConnecting = false;
+        });
+        if (connected) {
+          _showSnack('Подключено к приложению Здоровье!', backgroundColor: Colors.green.shade700);
+        } else {
+          _showSnack('Не удалось подключиться к приложению Здоровье.', backgroundColor: Colors.red.shade700);
+        }
+      }
     extends State<ConnectionsNotificationsScreen> {
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
@@ -160,10 +179,18 @@ class _ConnectionsNotificationsScreenState
                 ListTile(
                   leading: const Icon(Symbols.health_and_safety),
                   title: const Text('Приложение "Здоровье"'),
-                  subtitle: const Text('В разработке'),
+                  subtitle: Text(_healthConnected
+                      ? 'Подключено'
+                      : 'Не подключено'),
                   trailing: FilledButton.tonal(
-                    onPressed: null,
-                    child: const Text('Подключить'),
+                    onPressed: _healthConnecting ? null : _connectHealth,
+                    child: _healthConnecting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Подключить'),
                   ),
                 ),
                 const Divider(height: 1),
