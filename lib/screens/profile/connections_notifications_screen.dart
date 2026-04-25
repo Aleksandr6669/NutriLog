@@ -8,33 +8,11 @@ class ConnectionsNotificationsScreen extends StatefulWidget {
   const ConnectionsNotificationsScreen({super.key});
 
   @override
-  State<ConnectionsNotificationsScreen> createState() =>
-      _ConnectionsNotificationsScreenState();
+  State<ConnectionsNotificationsScreen> createState() => _ConnectionsNotificationsScreenState();
 }
 
-class _ConnectionsNotificationsScreenState
-      bool _healthConnecting = false;
-      bool _healthConnected = false;
-
-      Future<void> _connectHealth() async {
-        setState(() {
-          _healthConnecting = true;
-        });
-        final service = HealthStepsService();
-        final connected = await service.isConnected();
-        setState(() {
-          _healthConnected = connected;
-          _healthConnecting = false;
-        });
-        if (connected) {
-          _showSnack('Подключено к приложению Здоровье!', backgroundColor: Colors.green.shade700);
-        } else {
-          _showSnack('Не удалось подключиться к приложению Здоровье.', backgroundColor: Colors.red.shade700);
-        }
-      }
-    extends State<ConnectionsNotificationsScreen> {
-  final NotificationSettingsService _settingsService =
-      NotificationSettingsService();
+class _ConnectionsNotificationsScreenState extends State<ConnectionsNotificationsScreen> {
+  final NotificationSettingsService _settingsService = NotificationSettingsService();
   final AppNotificationService _notificationService = AppNotificationService();
 
   bool _loading = true;
