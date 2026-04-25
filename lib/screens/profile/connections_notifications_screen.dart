@@ -8,11 +8,14 @@ class ConnectionsNotificationsScreen extends StatefulWidget {
   const ConnectionsNotificationsScreen({super.key});
 
   @override
-  State<ConnectionsNotificationsScreen> createState() => _ConnectionsNotificationsScreenState();
+  State<ConnectionsNotificationsScreen> createState() =>
+      _ConnectionsNotificationsScreenState();
 }
 
-class _ConnectionsNotificationsScreenState extends State<ConnectionsNotificationsScreen> {
-  final NotificationSettingsService _settingsService = NotificationSettingsService();
+class _ConnectionsNotificationsScreenState
+    extends State<ConnectionsNotificationsScreen> {
+  final NotificationSettingsService _settingsService =
+      NotificationSettingsService();
   final AppNotificationService _notificationService = AppNotificationService();
 
   bool _loading = true;
@@ -157,18 +160,10 @@ class _ConnectionsNotificationsScreenState extends State<ConnectionsNotification
                 ListTile(
                   leading: const Icon(Symbols.health_and_safety),
                   title: const Text('Приложение "Здоровье"'),
-                  subtitle: Text(_healthConnected
-                      ? 'Подключено'
-                      : 'Не подключено'),
+                  subtitle: const Text('В разработке'),
                   trailing: FilledButton.tonal(
-                    onPressed: _healthConnecting ? null : _connectHealth,
-                    child: _healthConnecting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Подключить'),
+                    onPressed: null,
+                    child: const Text('Подключить'),
                   ),
                 ),
                 const Divider(height: 1),
