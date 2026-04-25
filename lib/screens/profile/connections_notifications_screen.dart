@@ -42,7 +42,7 @@ class _ConnectionsNotificationsScreenState
     final previous = _settings;
 
     try {
-      // await _notificationService.applySettings(settings);
+      await _notificationService.applySettings(settings);
       _settings = settings;
       if (mounted) setState(() {});
       await _settingsService.save(settings);
@@ -59,11 +59,11 @@ class _ConnectionsNotificationsScreenState
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(error.message, backgroundColor: Colors.red.shade700);
-    } catch (_) {
+    } catch (e, stack) {
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(
-        'Не удалось применить настройки уведомлений.',
+        'Не удалось применить настройки уведомлений. Подробнее: $e',
         backgroundColor: Colors.red.shade700,
       );
     }
