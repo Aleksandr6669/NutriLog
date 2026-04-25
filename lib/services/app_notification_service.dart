@@ -83,25 +83,15 @@ class AppNotificationService {
     }
   }
 
-  /// Настраивает таймзону для всего приложения.
-  ///
-  /// Сначала пытается получить IANA timezone ID от системы. Если ошибка
-  /// (особенно на iOS, который иногда возвращает GMT+3 вместо IANA),
-  /// конвертирует GMT-смещение в Etc/GMT форму.
-  ///
-  /// Fallback: если и это не сработает, использует локальный UTC-offset
-  /// (например, UTC+3). Это гарантирует, что уведомления придут хоть в какую-то
-  /// корректную временную зону, а не с произвольным сдвигом.
+  
   Future<void> _configureTimezone() async {
     tz.initializeTimeZones();
+    tz.Location? location;
     try {
       final localTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(_resolveTimezoneLocation(localTimezone));
-    } catch (_) {
-      // Fallback: используем оффсет устройства, чтобы избежать сдвига напоминаний
-      // (например, вместо 8:00 не приходило 10:00 из-за неправильной таймзоны).
-      tz.setLocalLocation(_locationFromOffset(DateTime.now().timeZoneOffset));
-    }
+      location = _resolveTimezoneLocation(localTimezone);
+    } catch (_) {}
+    tz.setLocalLocation(location ?? tz.UTC);
   }
 
   tz.Location _resolveTimezoneLocation(String rawTimezone) {
@@ -121,18 +111,16 @@ class AppNotificationService {
         if (minute == 0 && hour <= 14) {
           // В базе Etc/GMT знак инвертирован.
           final etcSign = sign == '+' ? '-' : '+';
-          final etcName = hour == 0 ? 'Etc/GMT' : 'Etc/GMT$etcSign$hour';
+          final etcName = hour == 0 ? 'Etc/GMT' : 'Etc/GMT' + etcSign + hour.toString();
           try {
             return tz.getLocation(etcName);
           } catch (_) {
-            // Логируем ошибку для отладки
-            debugPrint(
-                'Ошибка: временная зона $etcName не найдена. Используется UTC.');
             return tz.UTC;
           }
         }
       }
-      return _locationFromOffset(DateTime.now().timeZoneOffset);
+      // Если не удалось — fallback только на UTC
+      return tz.UTC;
     }
   }
 
@@ -178,12 +166,11 @@ class AppNotificationService {
           androidGranted = androidGranted && (enabledAfterRequest ?? false);
         }
       }
-      // Для Android 14+ exact alarm может требовать отдельного разрешения.
-      // Если не получится получить, ниже в планировании сработает fallback на inexact.
+     
       try {
         await android?.requestExactAlarmsPermission();
       } catch (_) {
-        // Игнорируем, чтобы не блокировать уведомления полностью.
+  
       }
     }
 
@@ -194,9 +181,6 @@ class AppNotificationService {
         iosGranted = false;
       } else {
         final current = await ios.checkPermissions();
-        // Для iOS достаточно общего флага isEnabled.
-        // Проверка только alert/provisional может давать ложный deny,
-        // если пользователь оставил звук/бейдж, но изменил стиль баннеров.
         final alreadyEnabled = current?.isEnabled ?? false;
 
         if (alreadyEnabled) {
