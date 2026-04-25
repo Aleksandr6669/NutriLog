@@ -141,14 +141,7 @@ class _ConnectionsNotificationsScreenState
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Теперь _settings гарантированно инициализирован!
-    final messageSwitch = SwitchListTile.adaptive(
-      title: const Text('Включить сообщения'),
-      value: _settings.messagesEnabled,
-      onChanged: (enabled) {
-        _saveNotificationSettings(_settings.copyWith(messagesEnabled: enabled));
-      },
-    );
+    // messageSwitch и связанные кнопки удалены по запросу
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -189,7 +182,6 @@ class _ConnectionsNotificationsScreenState
           const SizedBox(height: 24),
           _buildSectionTitle(theme, 'Сообщения'),
           const SizedBox(height: 10),
-          messageSwitch,
           Card(
             child: Column(
               children: [
@@ -255,52 +247,7 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox.shrink(),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Symbols.notifications_active),
-                  title: const Text('Доступ к уведомлениям'),
-                  subtitle: const Text(
-                      'Для push-уведомлений включите разрешение в системе'),
-                  trailing: IconButton(
-                    icon: _requestingPermission
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Symbols.verified_user),
-                    onPressed: _requestingPermission
-                        ? null
-                        : _requestNotificationPermission,
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Symbols.bug_report),
-                  title: const Text('Тест уведомления'),
-                  onTap: () async {
-                    await _notificationService.applySettings(_settings);
-                    _showSnack('Тестовое уведомление отправлено');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Symbols.info),
-                  title: const Text('Диагностика уведомлений'),
-                  onTap: () async {
-                    final diagnostics =
-                        await _notificationService.diagnosticsForToday();
-                    _showSnack(diagnostics);
-                  },
-                ),
               ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Push-уведомления приходят и при закрытом приложении.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.hintColor,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],
