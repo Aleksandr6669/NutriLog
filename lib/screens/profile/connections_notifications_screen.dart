@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
 import 'package:nutri_log/services/notification_settings_service.dart';
-import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class ConnectionsNotificationsScreen extends StatefulWidget {
@@ -136,8 +135,13 @@ class _ConnectionsNotificationsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // ...existing code...
-    // Добавляем тумблер "Включить сообщения" перед остальными настройками
+    final theme = Theme.of(context);
+
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Теперь _settings гарантированно инициализирован!
     final messageSwitch = SwitchListTile.adaptive(
       title: const Text('Включить сообщения'),
       value: _settings.messagesEnabled,
@@ -145,11 +149,6 @@ class _ConnectionsNotificationsScreenState
         _saveNotificationSettings(_settings.copyWith(messagesEnabled: enabled));
       },
     );
-    final theme = Theme.of(context);
-
-    if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,

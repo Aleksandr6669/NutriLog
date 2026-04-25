@@ -156,16 +156,6 @@ class AppNotificationService {
     // UTC+3 -> Etc/GMT-3, UTC-4 -> Etc/GMT+4.
     final sign = totalMinutes >= 0 ? '-' : '+';
     return tz.getLocation('Etc/GMT$sign$hour');
-    // Если смещение +3, пробуем Europe/Kyiv
-    if (totalMinutes == 180) {
-      try {
-        return tz.getLocation('Europe/Kyiv');
-      } catch (_) {
-        debugPrint(
-            'Ошибка: временная зона Europe/Kyiv не найдена. Используется UTC.');
-        return tz.UTC;
-      }
-    }
   }
 
   Future<bool> _requestPermissions() async {
