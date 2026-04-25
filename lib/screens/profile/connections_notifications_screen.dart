@@ -42,7 +42,7 @@ class _ConnectionsNotificationsScreenState
     final previous = _settings;
 
     try {
-      await _notificationService.applySettings(settings);
+      // await _notificationService.applySettings(settings);
       _settings = settings;
       if (mounted) setState(() {});
       await _settingsService.save(settings);
