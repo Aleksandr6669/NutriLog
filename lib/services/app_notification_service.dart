@@ -95,33 +95,8 @@ class AppNotificationService {
   }
 
   tz.Location _resolveTimezoneLocation(String rawTimezone) {
-    final timezone = rawTimezone.trim();
-    if (timezone.isEmpty) return tz.local;
-
-    try {
-      return tz.getLocation(timezone);
-    } catch (_) {
-      // iOS иногда возвращает смещение в формате GMT+3 / UTC+03:00.
-      final match = RegExp(r'^(?:GMT|UTC)\s*([+-])(\d{1,2})(?::?(\d{2}))?$')
-          .firstMatch(timezone.toUpperCase());
-      if (match != null) {
-        final sign = match.group(1)!;
-        final hour = int.tryParse(match.group(2) ?? '0') ?? 0;
-        final minute = int.tryParse(match.group(3) ?? '0') ?? 0;
-        if (minute == 0 && hour <= 14) {
-          // В базе Etc/GMT знак инвертирован.
-          final etcSign = sign == '+' ? '-' : '+';
-          final etcName = hour == 0 ? 'Etc/GMT' : 'Etc/GMT' + etcSign + hour.toString();
-          try {
-            return tz.getLocation(etcName);
-          } catch (_) {
-            return tz.UTC;
-          }
-        }
-      }
-      // Если не удалось — fallback только на UTC
-      return tz.UTC;
-    }
+    // Всегда используем смещение устройства, игнорируя имя таймзоны
+    return _locationFromOffset(DateTime.now().timeZoneOffset);
   }
 
   tz.Location _locationFromOffset(Duration offset) {
@@ -140,8 +115,6 @@ class AppNotificationService {
       return tz.getLocation('Etc/GMT');
     }
 
-    // В базе Etc/GMT знак инвертирован:
-    // UTC+3 -> Etc/GMT-3, UTC-4 -> Etc/GMT+4.
     final sign = totalMinutes >= 0 ? '-' : '+';
     return tz.getLocation('Etc/GMT$sign$hour');
   }
