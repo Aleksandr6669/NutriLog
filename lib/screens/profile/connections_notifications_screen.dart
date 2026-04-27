@@ -59,7 +59,7 @@ class _ConnectionsNotificationsScreenState
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(error.message, backgroundColor: Colors.red.shade700);
-    } catch (e, stack) {
+    } catch (e) {
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(
@@ -154,26 +154,26 @@ class _ConnectionsNotificationsScreenState
         children: [
           _buildSectionTitle(theme, 'Подключения'),
           const SizedBox(height: 10),
-          Card(
+          const Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Symbols.health_and_safety),
-                  title: const Text('Приложение "Здоровье"'),
-                  subtitle: const Text('В разработке'),
+                  leading: Icon(Symbols.health_and_safety),
+                  title: Text('Приложение "Здоровье"'),
+                  subtitle: Text('В разработке'),
                   trailing: FilledButton.tonal(
                     onPressed: null,
-                    child: const Text('Подключить'),
+                    child: Text('Подключить'),
                   ),
                 ),
-                const Divider(height: 1),
+                Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Symbols.account_circle),
-                  title: const Text('Вход в аккаунт'),
-                  subtitle: const Text('В разработке'),
+                  leading: Icon(Symbols.account_circle),
+                  title: Text('Вход в аккаунт'),
+                  subtitle: Text('В разработке'),
                   trailing: FilledButton.tonal(
                     onPressed: null,
-                    child: const Text('Войти'),
+                    child: Text('Войти'),
                   ),
                 ),
               ],
