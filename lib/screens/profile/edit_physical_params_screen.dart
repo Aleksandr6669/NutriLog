@@ -53,24 +53,12 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         name: _nameController.text,
         gender: _gender,
         birthDate: _birthDate,
-        height: int.parse(_heightController.text),
-        weight: double.parse(_weightController.text),
+        height: int.tryParse(_heightController.text) ?? 0,
+        weight: double.tryParse(_weightController.text) ?? 0,
       );
-
       await _profileService.saveProfile(updatedProfile);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Физические параметры обновлены!',
-                style: TextStyle(fontSize: 18)),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-          ),
-        );
-        Navigator.pop(context, true);
-      }
+      // SnackBar при сохранении убран по требованию
+      if (mounted) Navigator.pop(context, true);
     }
   }
 

@@ -47,10 +47,7 @@ class _ConnectionsNotificationsScreenState
       if (mounted) setState(() {});
       await _settingsService.save(settings);
       if (!mounted) return;
-      _showSnack(
-        'Настройки уведомлений сохранены.',
-        backgroundColor: Colors.green.shade700,
-      );
+      // Уведомление об успешном сохранении больше не показываем
     } on NotificationPermissionDeniedException catch (error) {
       await _settingsService.save(previous);
       if (!mounted) return;
@@ -79,12 +76,7 @@ class _ConnectionsNotificationsScreenState
       setState(() {
         _settings = _settings.copyWith(messagesEnabled: granted);
       });
-      _showSnack(
-        granted
-            ? 'Доступ к уведомлениям выдан.'
-            : 'Не удалось получить разрешение на уведомления. Проверьте настройки iOS.',
-        backgroundColor: granted ? Colors.green.shade700 : Colors.red.shade700,
-      );
+      // Сообщение о результате больше не показываем
     } finally {
       if (mounted) setState(() => _requestingPermission = false);
     }

@@ -387,14 +387,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Рецепт сохранён!', style: TextStyle(fontSize: 18)),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-          ),
-        );
         Navigator.pop(context, true);
       }
     }
@@ -402,36 +394,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<void> _deleteRecipe() async {
     if (widget.recipe == null) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Удалить рецепт?'),
-        content: Text(
-            'Вы уверены, что хотите удалить рецепт "${widget.recipe!.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
     await _recipeService.deleteRecipe(widget.recipe!.id);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Рецепт удалён!', style: TextStyle(fontSize: 18)),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-        ),
-      );
       Navigator.pop(context, true);
     }
   }

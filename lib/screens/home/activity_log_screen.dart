@@ -87,40 +87,9 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
   }
 
   Future<void> _confirmAndRemoveActivity(ActivityEntry entry) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Удалить активность?'),
-          content: Text('Запись "${entry.name}" будет удалена из этого дня.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Отмена'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: FilledButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Удалить'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldDelete != true || !mounted) return;
-
     await _removeActivity(entry);
     if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Активность удалена!', style: TextStyle(fontSize: 18)),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-      ),
-    );
+    // SnackBar при удалении активности убран по требованию
   }
 
   @override
