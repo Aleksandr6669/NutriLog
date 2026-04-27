@@ -319,6 +319,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       );
       return;
     }
+    // SnackBar при успешных действиях убран по требованию
 
     setState(() {
       if (_selectedRecipeIdsForDelete.contains(recipe.id)) {
@@ -333,26 +334,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
     if (_selectedRecipeIdsForDelete.isEmpty) return;
 
     final count = _selectedRecipeIdsForDelete.length;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить выбранные рецепты?'),
-        content: Text('Будет удалено: $count'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
     final ids = _selectedRecipeIdsForDelete.toList(growable: false);
     for (final id in ids) {
       await _recipeService.deleteRecipe(id);
@@ -366,17 +347,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
 
     await _loadAllRecipes();
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Удалено рецептов: $count',
-            style: const TextStyle(fontSize: 18)),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
-      ),
-    );
+    // SnackBar больше не показываем
   }
 
   Future<void> _showCreateRecipeMenu() async {
@@ -540,38 +511,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _deleteRecipe(Recipe recipe) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить рецепт?'),
-        content: Text('Вы уверены, что хотите удалить "${recipe.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await _recipeService.deleteRecipe(recipe.id);
-      _loadAllRecipes();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Рецепт удалён!', style: TextStyle(fontSize: 18)),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-          ),
-        );
-      }
-    }
+    await _recipeService.deleteRecipe(recipe.id);
+    _loadAllRecipes();
+    // SnackBar больше не показываем
   }
 
   @override
@@ -859,7 +801,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 }
                 if (direction == DismissDirection.endToStart) {
                   await _deleteRecipe(recipe);
-                  return false;
+                  return true;
                 }
                 return false;
               },

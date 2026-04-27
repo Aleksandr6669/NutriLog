@@ -71,18 +71,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
 
       await _profileService.saveProfile(updatedProfile);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Дневные цели обновлены!', style: TextStyle(fontSize: 18)),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-          ),
-        );
-        Navigator.pop(context, true);
-      }
+      // SnackBar при сохранении убран по требованию
+      Navigator.pop(context, true);
     }
   }
 
@@ -105,15 +95,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
         _fatGoalController.text = draft.fatGoal.toString();
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Нейросеть заполнила дневные цели.',
-              style: TextStyle(fontSize: 16)),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-        ),
-      );
+      // SnackBar при автозаполнении убран по требованию
     } on GeminiRecipeException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

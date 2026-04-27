@@ -53,27 +53,15 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final updatedProfile = widget.profile.copyWith(
-        weightGoal: double.parse(_weightGoalController.text),
+        weightGoal: double.tryParse(_weightGoalController.text) ?? 0,
         goalType: _goalType,
         activityFrequency: _activityFrequency,
         activityTypes: _activityTypesController.text.trim(),
         aiContext: _aiContextController.text.trim(),
       );
-
       await _profileService.saveProfile(updatedProfile);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Общие цели обновлены!', style: TextStyle(fontSize: 18)),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-          ),
-        );
-        Navigator.pop(context, true);
-      }
+      // SnackBar при сохранении убран по требованию
+      if (mounted) Navigator.pop(context, true);
     }
   }
 

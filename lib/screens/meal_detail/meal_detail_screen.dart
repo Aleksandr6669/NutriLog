@@ -74,15 +74,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       _hasChanges = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Блюдо удалено из приема пищи',
-            style: TextStyle(fontSize: 18)),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(top: 0, left: 16, right: 16),
-      ),
-    );
+    // SnackBar при успешном удалении блюда убран по требованию
   }
 
   Future<void> _openFoodItemAsRecipeDetail(FoodItem item) async {
@@ -309,25 +301,7 @@ class _FoodItemsList extends StatelessWidget {
     required this.onItemTap,
   });
 
-  Future<bool?> _confirmDelete(BuildContext context, String itemName) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить блюдо?'),
-        content: Text('"$itemName" будет удалено из этого приема пищи.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
-    );
-  }
+  // confirmDelete больше не нужен
 
   @override
   Widget build(BuildContext context) {
@@ -361,18 +335,12 @@ class _FoodItemsList extends StatelessWidget {
                         size: 28,
                       ),
                     ),
-                    confirmDismiss: (_) => _confirmDelete(context, item.name),
+                    confirmDismiss: (_) async => true,
                     onDismissed: (_) => onRemove(index),
                     child: _FoodListItem(
                       item: item,
                       onTap: () => onItemTap(item),
-                      onDeleteTap: () async {
-                        final confirmed =
-                            await _confirmDelete(context, item.name);
-                        if (confirmed == true) {
-                          onRemove(index);
-                        }
-                      },
+                      onDeleteTap: () => onRemove(index),
                     ),
                   );
                 },

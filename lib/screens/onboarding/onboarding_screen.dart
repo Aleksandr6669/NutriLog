@@ -166,14 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Не опираемся на состояние off-screen Form: проверяем обязательные поля напрямую.
     final hasValidBaseProfileData = _hasValidBaseProfileData();
     if (!hasValidBaseProfileData) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Проверьте шаги 1 и 2: имя, рост, текущий вес и цель по весу должны быть заполнены корректно.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      // SnackBar убран по требованию
       return;
     }
 
@@ -215,31 +208,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _stepsGoalController.text = draft.stepsGoal.toString();
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Нейросеть заполнила дневные цели.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } on GeminiRecipeException catch (e) {
+      // SnackBar убран по требованию
+    } on GeminiRecipeException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
+      // SnackBar убран по требованию
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              const Text('Не удалось рассчитать дневные цели через нейросеть.'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
+      // SnackBar убран по требованию
     } finally {
       if (mounted) setState(() => _isAiFillingDailyGoals = false);
     }
