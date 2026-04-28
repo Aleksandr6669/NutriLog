@@ -239,6 +239,34 @@ class _ConnectionsNotificationsScreenState
                         )
                       : const SizedBox.shrink(),
                 ),
+                const Divider(height: 1),
+                SwitchListTile.adaptive(
+                  title: const Text('Напоминание о взвешивании'),
+                  subtitle:
+                      const Text('Включить ежедневное напоминание внести вес'),
+                  value: _settings.weightReminderEnabled,
+                  onChanged: (enabled) {
+                    _saveNotificationSettings(
+                        _settings.copyWith(weightReminderEnabled: enabled));
+                  },
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  child: _settings.weightReminderEnabled
+                      ? ListTile(
+                          title: const Text('Время напоминания о взвешивании'),
+                          subtitle:
+                              Text(_formatTime(_settings.weightReminderTime)),
+                          trailing: const Icon(Symbols.edit),
+                          onTap: () => _pickTime(
+                            _settings.weightReminderTime,
+                            (time) => _saveNotificationSettings(
+                                _settings.copyWith(weightReminderTime: time)),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
               ],
             ),
           ),

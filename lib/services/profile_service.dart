@@ -31,7 +31,7 @@ class ProfileService {
 
   Future<UserProfile> _createAndSaveDefaultProfile() async {
     final defaultProfile = UserProfile(
-      name: 'Алиса',
+      name: 'Пользователь',
       gender: Gender.female,
       birthDate: DateTime(1997, 6, 15),
       height: 168,
