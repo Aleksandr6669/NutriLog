@@ -54,16 +54,11 @@ class _StatsScreenState extends State<StatsScreen> {
         name: 'StatsScreen');
     final now = DateTime.now();
     final startDate = switch (_period) {
-      _StatsPeriod.week => DateTime.utc(now.year, now.month, now.day)
-          .subtract(Duration(days: now.weekday - 1)),
-      _StatsPeriod.month => DateTime.utc(now.year, now.month, 1),
-      _StatsPeriod.year => DateTime.utc(now.year, 1, 1),
+      _StatsPeriod.week => now.subtract(const Duration(days: 6)),
+      _StatsPeriod.month => now.subtract(const Duration(days: 29)),
+      _StatsPeriod.year => now.subtract(const Duration(days: 364)),
     };
-    final endDate = switch (_period) {
-      _StatsPeriod.week => startDate.add(const Duration(days: 6)),
-      _StatsPeriod.month => DateTime.utc(now.year, now.month + 1, 0),
-      _StatsPeriod.year => DateTime.utc(now.year, 12, 31),
-    };
+    final endDate = now;
 
     final logs = await _logService.getLogsForPeriod(startDate, endDate);
     final profile = await _profileService.loadProfile();
@@ -126,53 +121,56 @@ class _StatsScreenState extends State<StatsScreen> {
       }).toList();
     }
 
-    int logCount = logs.where((log) => !log.isEmpty).length;
+    // Считаем только по заполненным дням (log.isEmpty == false)
+    final filledLogs = logs.where((log) => !log.isEmpty).toList();
+    int logCount = filledLogs.length;
     if (logCount == 0) logCount = 1;
 
-    final totalCarbs =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.carbs);
-    final totalProtein =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.protein);
+    final totalCarbs = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.carbs);
+    final totalProtein = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.protein);
     final totalFat =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
-    final totalCalories =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.calories);
-    final totalFiber =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fiber);
-    final totalSugar =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.sugar);
-    final totalSaturatedFat = logs.fold<double>(
+        filledLogs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
+    final totalCalories = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.calories);
+    final totalFiber = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.fiber);
+    final totalSugar = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.sugar);
+    final totalSaturatedFat = filledLogs.fold<double>(
         0, (sum, log) => sum + log.totalNutrients.saturatedFat);
-    final totalPolyunsaturatedFat = logs.fold<double>(
+    final totalPolyunsaturatedFat = filledLogs.fold<double>(
         0, (sum, log) => sum + log.totalNutrients.polyunsaturatedFat);
-    final totalMonounsaturatedFat = logs.fold<double>(
+    final totalMonounsaturatedFat = filledLogs.fold<double>(
         0, (sum, log) => sum + log.totalNutrients.monounsaturatedFat);
-    final totalTransFat =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.transFat);
-    final totalCholesterol = logs.fold<double>(
+    final totalTransFat = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.transFat);
+    final totalCholesterol = filledLogs.fold<double>(
         0, (sum, log) => sum + log.totalNutrients.cholesterol);
-    final totalSodium =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.sodium);
-    final totalPotassium =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.potassium);
-    final totalVitaminA =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminA);
-    final totalVitaminC =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminC);
-    final totalVitaminD =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.vitaminD);
-    final totalCalcium =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.calcium);
+    final totalSodium = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.sodium);
+    final totalPotassium = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.potassium);
+    final totalVitaminA = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.vitaminA);
+    final totalVitaminC = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.vitaminC);
+    final totalVitaminD = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.vitaminD);
+    final totalCalcium = filledLogs.fold<double>(
+        0, (sum, log) => sum + log.totalNutrients.calcium);
     final totalIron =
-        logs.fold<double>(0, (sum, log) => sum + log.totalNutrients.iron);
+        filledLogs.fold<double>(0, (sum, log) => sum + log.totalNutrients.iron);
     final totalMacros = totalCarbs + totalProtein + totalFat;
 
     final avgCarbs = totalMacros > 0 ? (totalCarbs / totalMacros) * 100 : 0;
     final avgProtein = totalMacros > 0 ? (totalProtein / totalMacros) * 100 : 0;
     final avgFat = totalMacros > 0 ? (totalFat / totalMacros) * 100 : 0;
 
-    final avgSteps =
-        logs.fold<int>(0, (sum, log) => sum + log.steps) ~/ logCount;
+    final avgSteps = logCount > 0
+        ? filledLogs.fold<int>(0, (sum, log) => sum + log.steps) ~/ logCount
+        : 0;
     final latestStepsLog = logs.lastWhere((log) => log.steps > 0,
         orElse: () => DailyLog.empty(now));
     final latestSteps = latestStepsLog.steps;
@@ -180,7 +178,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final latestWeightLog = logs.lastWhere((log) => log.weight != null,
         orElse: () => DailyLog.empty(now));
     final latestWeight = latestWeightLog.weight ?? profile.weight;
-    final weightLogs = logs.where((log) => log.weight != null).toList();
+    final weightLogs = filledLogs.where((log) => log.weight != null).toList();
     final avgWeight = weightLogs.isEmpty
         ? latestWeight
         : weightLogs.fold<double>(0, (sum, log) => sum + (log.weight ?? 0)) /
@@ -188,7 +186,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
     int workouts = 0;
     int totalActivityCalories = 0;
-    for (final log in logs) {
+    for (final log in filledLogs) {
       if (log.activities.isNotEmpty) {
         workouts += log.activities.length;
         totalActivityCalories +=
@@ -201,8 +199,10 @@ class _StatsScreenState extends State<StatsScreen> {
     }
     final avgActivityCalories =
         workouts > 0 ? (totalActivityCalories / workouts).round() : 0;
-    final avgWater =
-        logs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/ logCount;
+    final avgWater = logCount > 0
+        ? filledLogs.fold<int>(0, (sum, log) => sum + log.waterIntake) ~/
+            logCount
+        : 0;
     final latestWaterLog = logs.lastWhere((log) => log.waterIntake > 0,
         orElse: () => DailyLog.empty(now));
     final latestWater = latestWaterLog.waterIntake;
@@ -398,11 +398,16 @@ class _StatsScreenState extends State<StatsScreen> {
   List<String>? _chartLabels() {
     switch (_period) {
       case _StatsPeriod.week:
-        return const ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        final days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        final today = DateTime.now().weekday;
+        return List.generate(7, (i) => days[(today - 7 + i) % 7]);
       case _StatsPeriod.month:
-        return null;
+        // Последний день — сегодня, подписи: последние 30 дней
+        final now = DateTime.now();
+        return List.generate(now.day, (i) => (i + 1).toString());
       case _StatsPeriod.year:
-        return const [
+        // Последний месяц — текущий, подписи: последние 12 месяцев
+        final months = [
           'Янв',
           'Фев',
           'Мар',
@@ -416,6 +421,9 @@ class _StatsScreenState extends State<StatsScreen> {
           'Ноя',
           'Дек'
         ];
+        final now = DateTime.now();
+        return List.generate(
+            now.month, (i) => months[(now.month - now.month + i) % 12]);
     }
   }
 
@@ -435,7 +443,16 @@ class _StatsScreenState extends State<StatsScreen> {
     };
 
     final safeCount = max(1, min(maxPoints, source.length));
-    return source.take(safeCount).toList(growable: false);
+    var trimmed = source.take(safeCount).toList(growable: false);
+    // Если последний элемент пустой (0 или null), не включаем его
+    if (trimmed.isNotEmpty && (trimmed.last == 0 || trimmed.last.isNaN)) {
+      trimmed = trimmed.sublist(0, trimmed.length - 1);
+    }
+    // Для всех периодов: убираем ведущие пустые значения (если пользователь начал недавно)
+    while (trimmed.isNotEmpty && (trimmed.first == 0 || trimmed.first.isNaN)) {
+      trimmed = trimmed.sublist(1);
+    }
+    return trimmed;
   }
 
   @override
