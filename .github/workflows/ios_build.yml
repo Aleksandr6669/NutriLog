@@ -18,10 +18,11 @@ jobs:
       - name: Create .env from secret
         run: |
           echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" > .env
+          echo "USDA_API_KEY=${{ secrets.USDA_API_KEY }}" >> .env
       - run: pod install --project-directory=ios
       - run: pod repo update
         working-directory: ios
-      - run: flutter build ios --release --no-codesign --no-tree-shake-icons --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+      - run: flutter build ios --release --no-codesign --no-tree-shake-icons --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} --dart-define=USDA_API_KEY=${{ secrets.USDA_API_KEY }}
       - run: mkdir build/ios/iphoneos/Payload
       - run: mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/Runner.app
       

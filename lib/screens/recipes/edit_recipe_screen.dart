@@ -83,10 +83,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         TextEditingController(text: sourceRecipe?.description ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
 
-    // Initialize all nutrient controllers
+    // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
+    final isFromDraft = widget.initialDraft != null;
+
+    // Инициализация контроллеров нутриентов
     for (var key in _nutrientKeys) {
       _nutrientControllers[key] = TextEditingController(
-          text: sourceRecipe?.nutrients[key]?.toString() ?? '0.0');
+        text: isFromDraft
+            ? '0.0'
+            : (sourceRecipe?.nutrients[key]?.toString() ?? '0.0'),
+      );
     }
 
     final loadedIngredients = sourceRecipe?.ingredients ?? const [];
@@ -108,7 +114,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['carbs']?.addListener(_onMacroChanged);
     _nutrientControllers['fat']?.addListener(_onMacroChanged);
 
-    if (_autoCalculateCalories) {
+    // Если initialDraft (создание по фото/описанию) — сразу запускаем расчет пищевой ценности
+    if (isFromDraft && _ingredientItems.isNotEmpty) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
+    } else if (_autoCalculateCalories) {
       _applyAutoCalories();
     }
   }
@@ -195,6 +205,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isAiCalculating = true;
         _aiStatus = 'Идет расчет пищевой ценности...';
         _isAiError = false;
+        _autoCalculateCalories = false; // Отключаем авто БЖУ при расчёте AI
       });
     }
 
