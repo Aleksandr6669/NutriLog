@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -74,13 +75,6 @@ class AppNotificationService {
     await _plugin.initialize(initSettings);
     _initialized = true;
 
-    // Авто-запрос разрешений на Android при первом запуске
-    if (Platform.isAndroid) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
-    }
   }
 
   Future<void> _configureTimezone() async {
