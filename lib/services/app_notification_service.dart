@@ -191,7 +191,6 @@ class AppNotificationService {
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
-    // Отдельно отменяем напоминание о взвешивании (id 1200)
     await _plugin.cancel(1200);
 
     final hasEnabledReminders =
