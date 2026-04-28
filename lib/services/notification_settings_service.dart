@@ -9,6 +9,8 @@ class NotificationSettings {
   final TimeOfDay lunchTime;
   final TimeOfDay dinnerTime;
   final bool messagesEnabled; // Новое поле для сообщений
+  final bool weightReminderEnabled; // Включено ли напоминание о взвешивании
+  final TimeOfDay weightReminderTime; // Время напоминания о взвешивании
 
   const NotificationSettings({
     required this.waterReminderEnabled,
@@ -18,6 +20,8 @@ class NotificationSettings {
     required this.lunchTime,
     required this.dinnerTime,
     required this.messagesEnabled,
+    required this.weightReminderEnabled,
+    required this.weightReminderTime,
   });
 
   NotificationSettings copyWith({
@@ -28,6 +32,8 @@ class NotificationSettings {
     TimeOfDay? lunchTime,
     TimeOfDay? dinnerTime,
     bool? messagesEnabled,
+    bool? weightReminderEnabled,
+    TimeOfDay? weightReminderTime,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -37,6 +43,9 @@ class NotificationSettings {
       lunchTime: lunchTime ?? this.lunchTime,
       dinnerTime: dinnerTime ?? this.dinnerTime,
       messagesEnabled: messagesEnabled ?? this.messagesEnabled,
+      weightReminderEnabled:
+          weightReminderEnabled ?? this.weightReminderEnabled,
+      weightReminderTime: weightReminderTime ?? this.weightReminderTime,
     );
   }
 }
@@ -49,6 +58,8 @@ class NotificationSettingsService {
   static const _lunchMinutesKey = 'notif_lunch_minutes';
   static const _dinnerMinutesKey = 'notif_dinner_minutes';
   static const _messagesEnabledKey = 'notif_messages_enabled'; // Новый ключ
+  static const _weightReminderEnabledKey = 'notif_weight_enabled';
+  static const _weightReminderMinutesKey = 'notif_weight_minutes';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: false,
@@ -58,6 +69,8 @@ class NotificationSettingsService {
     lunchTime: TimeOfDay(hour: 13, minute: 0),
     dinnerTime: TimeOfDay(hour: 19, minute: 0),
     messagesEnabled: false, // Значение по умолчанию
+    weightReminderEnabled: false,
+    weightReminderTime: TimeOfDay(hour: 21, minute: 30),
   );
 
   Future<NotificationSettings> load() async {
@@ -83,6 +96,12 @@ class NotificationSettingsService {
       ),
       messagesEnabled:
           prefs.getBool(_messagesEnabledKey) ?? defaults.messagesEnabled,
+      weightReminderEnabled: prefs.getBool(_weightReminderEnabledKey) ??
+          defaults.weightReminderEnabled,
+      weightReminderTime: _fromMinutes(
+        prefs.getInt(_weightReminderMinutesKey) ??
+            _toMinutes(defaults.weightReminderTime),
+      ),
     );
   }
 
@@ -96,6 +115,10 @@ class NotificationSettingsService {
         _breakfastMinutesKey, _toMinutes(settings.breakfastTime));
     await prefs.setInt(_lunchMinutesKey, _toMinutes(settings.lunchTime));
     await prefs.setInt(_dinnerMinutesKey, _toMinutes(settings.dinnerTime));
+    await prefs.setBool(
+        _weightReminderEnabledKey, settings.weightReminderEnabled);
+    await prefs.setInt(
+        _weightReminderMinutesKey, _toMinutes(settings.weightReminderTime));
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {

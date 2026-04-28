@@ -74,17 +74,17 @@ class _FabMenuItemState extends State<FabMenuItem>
               builder: (context, child) {
                 // Оценка ширины текста
                 final text = widget.label;
-                final textStyle =
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600);
+                const textStyle =
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.w600);
                 final textPainter = TextPainter(
                   text: TextSpan(text: text, style: textStyle),
                   maxLines: 1,
                   textDirection: TextDirection.ltr,
                 )..layout();
                 final textWidth = textPainter.size.width;
-                final iconWidth = 32.0;
-                final spacing = 10.0;
-                final minWidth = iconWidth; // только иконка
+                const iconWidth = 32.0;
+                const spacing = 10.0;
+                const minWidth = iconWidth; // только иконка
                 final maxWidth = textWidth + spacing + iconWidth;
                 final width =
                     (minWidth + (maxWidth - minWidth)+30) * _textWidth.value;
