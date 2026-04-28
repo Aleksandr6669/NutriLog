@@ -17,6 +17,7 @@ jobs:
         with:
           channel: 'stable'
       - run: flutter clean
+      - run: rm pubspec.lock
       - run: flutter pub get
       - name: Create .env from secret
         run: |
