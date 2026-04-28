@@ -184,12 +184,15 @@ class AppNotificationService {
     // На случай смены часового пояса после запуска приложения.
     await _configureTimezone();
 
+    // При изменении цели воды пересоздаём все water-уведомления
     for (var i = 0; i < _maxWaterReminders; i++) {
       await _plugin.cancel(_waterBaseId + i);
     }
     await _plugin.cancel(_breakfastId);
     await _plugin.cancel(_lunchId);
     await _plugin.cancel(_dinnerId);
+    // Отдельно отменяем напоминание о взвешивании (id 1200)
+    await _plugin.cancel(1200);
 
     final hasEnabledReminders =
         settings.waterReminderEnabled || settings.mealRemindersEnabled;
@@ -206,6 +209,22 @@ class AppNotificationService {
 
     if (settings.waterReminderEnabled) {
       scheduledCount += await _scheduleWaterReminders();
+    }
+
+    // Добавляем напоминание о взвешивании, если включено
+    if (settings.weightReminderEnabled) {
+      final hour = settings.weightReminderTime.hour;
+      final minute = settings.weightReminderTime.minute;
+      final timeStr =
+          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      await _scheduleDaily(
+        id: 1200,
+        title: 'Взвешивание',
+        body:
+            'Не забудьте внести свой вес в дневник NutriLog! Время напоминания: $timeStr',
+        hour: hour,
+        minute: minute,
+      );
     }
 
     if (settings.mealRemindersEnabled) {
