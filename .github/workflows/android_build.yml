@@ -16,7 +16,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      
+      - run: flutter clean
       - run: flutter pub get
       - name: Create .env from secret
         run: |
