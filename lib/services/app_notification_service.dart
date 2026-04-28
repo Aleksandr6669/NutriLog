@@ -83,7 +83,6 @@ class AppNotificationService {
     }
   }
 
-  
   Future<void> _configureTimezone() async {
     tz.initializeTimeZones();
     tz.Location? location;
@@ -139,12 +138,10 @@ class AppNotificationService {
           androidGranted = androidGranted && (enabledAfterRequest ?? false);
         }
       }
-     
+
       try {
         await android?.requestExactAlarmsPermission();
-      } catch (_) {
-  
-      }
+      } catch (_) {}
     }
 
     final ios = _plugin.resolvePlatformSpecificImplementation<
