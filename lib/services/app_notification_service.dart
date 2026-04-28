@@ -185,11 +185,11 @@ class AppNotificationService {
     await _configureTimezone();
 
     for (var i = 0; i < _maxWaterReminders; i++) {
-      await _plugin.cancel<int>(_waterBaseId + i);
+      await _plugin.cancel(_waterBaseId + i);
     }
-    await _plugin.cancel<int>(_breakfastId);
-    await _plugin.cancel<int>(_lunchId);
-    await _plugin.cancel<int>(_dinnerId);
+    await _plugin.cancel(_breakfastId);
+    await _plugin.cancel(_lunchId);
+    await _plugin.cancel(_dinnerId);
 
     final hasEnabledReminders =
         settings.waterReminderEnabled || settings.mealRemindersEnabled;
@@ -382,7 +382,7 @@ class AppNotificationService {
   Future<int> getPendingReminderCount() async {
     if (kIsWeb) return 0;
     await initialize();
-    final pending = await _plugin.pendingNotificationRequests<int>();
+    final pending = await _plugin.pendingNotificationRequests();
     return pending
         .where(
             (request) => request.id >= _waterBaseId && request.id <= _dinnerId)
