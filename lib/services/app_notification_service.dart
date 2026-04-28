@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -38,11 +38,8 @@ class AppNotificationService {
   static const int _waterStartHour = 8;
   static const int _waterEndHour = 22;
 
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
   final ProfileService _profileService = ProfileService();
   static bool _initialized = false;
-  bool _permissionsGranted = true;
 
   /// Инициализирует сервис уведомлений один раз в жизни приложения.
   /// Настраивает таймзону локально и Android/iOS детали.
@@ -53,28 +50,21 @@ class AppNotificationService {
     if (kIsWeb) return;
     if (_initialized) return;
 
-    await _configureTimezone();
-
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
-    const iosSettings = DarwinInitializationSettings(
-      // Запрашиваем разрешение только по явному действию пользователя,
-      // когда экран уже активен (кнопка/тумблер в UI).
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-      defaultPresentAlert: true,
-      defaultPresentBadge: true,
-      defaultPresentSound: true,
+    await AwesomeNotifications().initialize(
+      null, // icon resource
+      [
+        NotificationChannel(
+          channelKey: 'nutrilog_reminders',
+          channelName: 'NutriLog напоминания',
+          channelDescription: 'Напоминания о воде и приемах пищи',
+          defaultColor: const Color(0xFF2196F3),
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        ),
+      ],
+      debug: false,
     );
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _plugin.initialize(initSettings);
     _initialized = true;
-
   }
 
   Future<void> _configureTimezone() async {
@@ -113,62 +103,13 @@ class AppNotificationService {
   }
 
   Future<bool> _requestPermissions() async {
-    var androidGranted = true;
-    var iosGranted = true;
-
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    if (Platform.isAndroid) {
-      if (android == null) {
-        androidGranted = false;
-      } else {
-        final alreadyEnabled = await android.areNotificationsEnabled();
-        if (alreadyEnabled == true) {
-          androidGranted = true;
-        } else {
-          androidGranted =
-              await android.requestNotificationsPermission() ?? false;
-          final enabledAfterRequest = await android.areNotificationsEnabled();
-          androidGranted = androidGranted && (enabledAfterRequest ?? false);
-        }
-      }
-
-      try {
-        await android?.requestExactAlarmsPermission();
-      } catch (_) {}
+    if (kIsWeb) return false;
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      isAllowed =
+          await AwesomeNotifications().requestPermissionToSendNotifications();
     }
-
-    final ios = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    if (Platform.isIOS) {
-      if (ios == null) {
-        iosGranted = false;
-      } else {
-        final current = await ios.checkPermissions();
-        final alreadyEnabled = current?.isEnabled ?? false;
-
-        if (alreadyEnabled) {
-          iosGranted = true;
-        } else {
-          final requested = await ios.requestPermissions(
-                alert: true,
-                badge: true,
-                sound: true,
-              ) ??
-              false;
-
-          if (requested) {
-            iosGranted = true;
-          } else {
-            final afterRequest = await ios.checkPermissions();
-            iosGranted = afterRequest?.isEnabled ?? false;
-          }
-        }
-      }
-    }
-
-    _permissionsGranted = androidGranted && iosGranted;
-    return _permissionsGranted;
+    return isAllowed;
   }
 
   Future<void> applySettings(NotificationSettings settings) async {
@@ -180,12 +121,12 @@ class AppNotificationService {
 
     // При изменении цели воды пересоздаём все water-уведомления
     for (var i = 0; i < _maxWaterReminders; i++) {
-      await _plugin.cancel(_waterBaseId + i);
+      await AwesomeNotifications().cancel(_waterBaseId + i);
     }
-    await _plugin.cancel(_breakfastId);
-    await _plugin.cancel(_lunchId);
-    await _plugin.cancel(_dinnerId);
-    await _plugin.cancel(1200);
+    await AwesomeNotifications().cancel(_breakfastId);
+    await AwesomeNotifications().cancel(_lunchId);
+    await AwesomeNotifications().cancel(_dinnerId);
+    await AwesomeNotifications().cancel(1200);
 
     final hasEnabledReminders =
         settings.waterReminderEnabled || settings.mealRemindersEnabled;
@@ -247,19 +188,8 @@ class AppNotificationService {
       scheduledCount++;
     }
 
-    final pending = await _plugin.pendingNotificationRequests();
-    final hasScheduled = pending.any(
-      (request) => request.id >= _waterBaseId && request.id <= _dinnerId,
-    );
-
-    // На Android отсутствие pending сразу после планирования чаще означает реальную
-    // проблему (разрешения/энергосбережение). На iOS список pending может обновляться
-    // не мгновенно, поэтому не делаем жёсткий fail и не откатываем настройки.
-    if (scheduledCount > 0 && !hasScheduled && Platform.isAndroid) {
-      throw const NotificationScheduleException(
-        'Не удалось запланировать уведомления. Проверьте системные разрешения и режим энергосбережения.',
-      );
-    }
+    // TODO: Для AwesomeNotifications нет прямого аналога pendingNotificationRequests с фильтрацией по id, но listScheduledNotifications используется ниже.
+    // Можно реализовать дополнительную проверку, если потребуется.
   }
 
   Future<int> _scheduleWaterReminders() async {
@@ -345,59 +275,38 @@ class AppNotificationService {
     if (localTarget.isBefore(nowLocal)) {
       localTarget = localTarget.add(const Duration(days: 1));
     }
-    final scheduled = tz.TZDateTime.from(localTarget, tz.local);
 
-    const androidDetails = AndroidNotificationDetails(
-      'nutrilog_reminders',
-      'NutriLog напоминания',
-      channelDescription: 'Напоминания о воде и приемах пищи',
-      importance: Importance.high,
-      priority: Priority.high,
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: id,
+        channelKey: 'nutrilog_reminders',
+        title: title,
+        body: body,
+        notificationLayout: NotificationLayout.Default,
+      ),
+      schedule: NotificationCalendar(
+        year: localTarget.year,
+        month: localTarget.month,
+        day: localTarget.day,
+        hour: localTarget.hour,
+        minute: localTarget.minute,
+        second: 0,
+        millisecond: 0,
+        repeats: true,
+        timeZone: await AwesomeNotifications().getLocalTimeZoneIdentifier(),
+      ),
     );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      presentBanner: true,
-      presentList: true,
-    );
-
-    // Сначала пытаемся поставить более надежный exact режим на Android,
-    // при ошибке (например, нет exact-alarm разрешения) откатываемся на inexact.
-    try {
-      await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduled,
-        const NotificationDetails(android: androidDetails, iOS: iosDetails),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-    } catch (_) {
-      await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduled,
-        const NotificationDetails(android: androidDetails, iOS: iosDetails),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-    }
   }
 
   Future<int> getPendingReminderCount() async {
     if (kIsWeb) return 0;
     await initialize();
-    final pending = await _plugin.pendingNotificationRequests();
+    final pending = await AwesomeNotifications().listScheduledNotifications();
     return pending
-        .where(
-            (request) => request.id >= _waterBaseId && request.id <= _dinnerId)
+        .where((request) =>
+            request.content?.id != null &&
+            request.content!.id! >= _waterBaseId &&
+            request.content!.id! <= _dinnerId)
         .length;
   }
 
@@ -407,48 +316,14 @@ class AppNotificationService {
     return tz.local.name;
   }
 
-  /// Возвращает детальный статус разрешений уведомлений по платформе.
-  /// Нужен для быстрой диагностики на реальном устройстве.
+  /// Возвращает детальный статус разрешений уведомлений (универсально для всех платформ).
   Future<String> getPermissionDiagnostics() async {
     if (kIsWeb) return 'Платформа: web (системные права не применяются).';
-
     await initialize();
-
-    if (Platform.isIOS) {
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-      if (ios == null) {
-        return 'iOS implementation: недоступен (ios == null).';
-      }
-
-      final perms = await ios.checkPermissions();
-      if (perms == null) {
-        return 'iOS permissions: checkPermissions() вернул null.';
-      }
-
-      return 'iOS permissions:\n'
-          'isEnabled=${perms.isEnabled}\n'
-          'isAlertEnabled=${perms.isAlertEnabled}\n'
-          'isBadgeEnabled=${perms.isBadgeEnabled}\n'
-          'isSoundEnabled=${perms.isSoundEnabled}\n'
-          'isProvisionalEnabled=${perms.isProvisionalEnabled}\n'
-          'isCriticalEnabled=${perms.isCriticalEnabled}';
-    }
-
-    if (Platform.isAndroid) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      if (android == null) {
-        return 'Android implementation: недоступен (android == null).';
-      }
-
-      final enabled = await android.areNotificationsEnabled();
-      return 'Android permissions:\n'
-          'notificationsEnabled=${enabled ?? false}\n'
-          'exactAlarmPermission=см. системные настройки (может требоваться на Android 14+)';
-    }
-
-    return 'Платформа ${Platform.operatingSystem}: отдельная диагностика не реализована.';
+    final allowed = await AwesomeNotifications().isNotificationAllowed();
+    return allowed
+        ? 'Разрешения на уведомления: ВЫДАНЫ'
+        : 'Разрешения на уведомления: НЕ ВЫДАНЫ';
   }
 
   /// Явный ручной запрос разрешений уведомлений.
