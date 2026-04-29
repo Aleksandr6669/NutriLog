@@ -51,7 +51,7 @@ class AppNotificationService {
     if (_initialized) return;
 
     await AwesomeNotifications().initialize(
-      null, // icon resource
+      'resource://mipmap/launcher_icon',
       [
         NotificationChannel(
           channelKey: 'nutrilog_reminders',
