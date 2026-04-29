@@ -19,6 +19,7 @@ import 'screens/stats/stats_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
@@ -67,6 +68,34 @@ void _reportFatalAppError(String title, Object error,
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Сброс badge при запуске приложения (iOS)
+  if (!kIsWeb) {
+    try {
+      await AwesomeNotifications().setGlobalBadgeCounter(0);
+      // Обработка нажатий на уведомления
+      AwesomeNotifications().setListeners(
+        onActionReceivedMethod: (receivedAction) async {
+          // id уведомления
+          final id = receivedAction.id;
+          // Если приложение не запущено, оно стартует с home
+          // Для ужина (1103) — переход к добавлению ужина
+          // Для взвешивания (1200) — переход к добавлению веса
+          // Для остальных — стартовая страница
+          if (id == 1103) {
+            // TODO: реализовать переход к добавлению ужина
+            // Например, через глобальный navigatorKey
+            navigatorKey.currentState
+                ?.pushNamed('/meal', arguments: {'type': 'dinner'});
+          } else if (id == 1200) {
+            navigatorKey.currentState?.pushNamed('/weight');
+          } else {
+            navigatorKey.currentState?.pushNamed('/');
+          }
+        },
+      );
+    } catch (_) {}
+  }
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
@@ -160,6 +189,7 @@ class MyApp extends StatelessWidget {
       title: 'NutriLog',
       theme: _buildTheme(Brightness.light),
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       navigatorObservers: [_UnfocusOnRouteChangeObserver()],
       locale: const Locale('ru', 'RU'),
       localizationsDelegates: const [
@@ -808,3 +838,5 @@ ThemeData _buildTheme(Brightness brightness) {
     ),
   );
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
