@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_calories_left">осталось ккал</string>
+    <string name="widget_carbs">Углеводы</string>
+    <string name="widget_protein">Белки</string>
+    <string name="widget_fat">Жиры</string>
+</resources>

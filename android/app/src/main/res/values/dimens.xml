@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="nutrilog_card_radius">18dp</dimen>
+    <dimen name="nutrilog_circle_radius">80dp</dimen>
+    <dimen name="nutrilog_circle_stroke">8dp</dimen>
+    <dimen name="nutrilog_padding">16dp</dimen>
+</resources>
