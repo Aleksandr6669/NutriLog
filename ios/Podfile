@@ -44,6 +44,8 @@ post_install do |installer|
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'YES'
         config.build_settings['SWIFT_OBJC_INTERFACE_HEADER_NAME'] = 'health-Swift.h'
+      elsif target.name == 'Runner'
+        config.build_settings['DEFINES_MODULE'] = 'NO'
       end
     end
   end
