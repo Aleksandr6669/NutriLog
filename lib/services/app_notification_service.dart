@@ -193,50 +193,20 @@ class AppNotificationService {
   }
 
   Future<int> _scheduleWaterReminders() async {
-    final profile = await _profileService.loadProfile();
-    final dailyWaterGoalMl = profile.waterGoal;
-
-    // Количество напоминаний напрямую зависит от цели воды (1 уведомление на ~250 мл).
-    final reminderCount = math
-        .max(1, (dailyWaterGoalMl / 250).ceil())
-        .clamp(1, _maxWaterReminders);
-    const totalMinutes = (_waterEndHour - _waterStartHour) * 60;
-    final stepMinutes = totalMinutes / reminderCount;
-    final amountPerReminderMl =
-        ((dailyWaterGoalMl / reminderCount) / 10).round() * 10;
-    final safeAmountPerReminderMl = math.max(100, amountPerReminderMl);
-
+    // Уведомление каждый час с завтрака до ужина, без количества и объема
+    final hours = _waterEndHour - _waterStartHour;
     var scheduledCount = 0;
-    var previousMinuteOfDay = -1;
-    for (var i = 0; i < reminderCount; i++) {
-      var minutesFromStart = (i * stepMinutes).round();
-      var minuteOfDay = _waterStartHour * 60 + minutesFromStart;
-
-      // Гарантируем строго возрастающее время, чтобы не терять уведомления из-за дублей.
-      if (minuteOfDay <= previousMinuteOfDay) {
-        minuteOfDay = previousMinuteOfDay + 1;
-      }
-
-      const maxMinuteOfDay = (_waterEndHour * 60) - 1;
-      if (minuteOfDay > maxMinuteOfDay) {
-        minuteOfDay = maxMinuteOfDay;
-      }
-
-      previousMinuteOfDay = minuteOfDay;
-      final hour = minuteOfDay ~/ 60;
-      final minute = minuteOfDay % 60;
-
+    for (var i = 0; i < hours; i++) {
+      final hour = _waterStartHour + i;
       await _scheduleDaily(
         id: _waterBaseId + i,
-        title: 'Пора выпить воду',
-        body:
-            'Выпейте около $safeAmountPerReminderMl мл. План на день: $dailyWaterGoalMl мл, $reminderCount напоминаний.',
+        title: 'Пора попить воды',
+        body: 'Ваша цель — поддерживать водный баланс.',
         hour: hour,
-        minute: minute,
+        minute: 0,
       );
       scheduledCount++;
     }
-
     return scheduledCount;
   }
 
