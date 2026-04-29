@@ -210,23 +210,7 @@ class AppNotificationService {
     return scheduledCount;
   }
 
-  /// Планирует ежедневное уведомление в конкретное локальное время.
-  ///
-  /// Параметры:
-  /// - hour, minute: локальное время устройства (например, 08:00).
-  ///
-  /// Критичные параметры zonedSchedule:
-  /// 1. **wallClockTime**: Гарантирует, что уведомление придёт в точно
-  ///    указанное время устройства. Без этого приходит в random time.
-  /// 2. **matchDateTimeComponents: DateTimeComponents.time**: Делает уведомление
-  ///    ежедневным повторяющимся. Система сама пересчитает next day,
-  ///    не нужно ручное планирование.
-  /// 3. **TZDateTime.from(localTarget, tz.local)**: Конвертирует локальное
-  ///    время в TZDateTime в правильной таймзоне.
-  ///
-  /// Если текущее время уже позже целевого часа в сегодня,
-  /// планируем на завтра (система с matchDateTimeComponents всё равно
-  /// пересчитает, но явно указываем next day для безопасности).
+ 
   Future<void> _scheduleDaily({
     required int id,
     required String title,
