@@ -17,6 +17,15 @@
         android:text="NutriLog" />
 
     <TextView
+        android:id="@+id/widgetCalories"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#0F2317"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:text="0 / 0 ккал" />
+
+    <TextView
         android:id="@+id/widgetMainValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
