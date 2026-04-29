@@ -6,6 +6,8 @@ import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'edit_activity_entry_screen.dart';
+import '../../services/profile_service.dart';
+import '../../services/home_widget_service.dart';
 
 class ActivityLogScreen extends StatefulWidget {
   final DateTime date;
@@ -64,6 +66,12 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
     }
 
     final refreshed = await _service.getLogForDate(widget.date);
+    // Обновление виджета
+    final profileService = ProfileService();
+    final homeWidgetSyncService = HomeWidgetSyncService();
+    final profile = await profileService.loadProfile();
+    await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+
     if (!mounted) return;
 
     setState(() {
@@ -77,6 +85,12 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
     setState(() => _saving = true);
     await _service.removeActivity(widget.date, id: entry.id);
     final refreshed = await _service.getLogForDate(widget.date);
+    // Обновление виджета
+    final profileService = ProfileService();
+    final homeWidgetSyncService = HomeWidgetSyncService();
+    final profile = await profileService.loadProfile();
+    await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+
     if (!mounted) return;
 
     setState(() {

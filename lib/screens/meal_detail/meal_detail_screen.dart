@@ -8,6 +8,8 @@ import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
+import '../../services/profile_service.dart';
+import '../../services/home_widget_service.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealName;
@@ -52,6 +54,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     );
 
     final updatedLog = await _dailyLogService.getLogForDate(widget.date);
+    // Обновление виджета
+    final profileService = ProfileService();
+    final homeWidgetSyncService = HomeWidgetSyncService();
+    final profile = await profileService.loadProfile();
+    await homeWidgetSyncService.syncDailyData(
+        log: updatedLog, profile: profile);
+
     if (!mounted) return;
 
     setState(() {
@@ -66,6 +75,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       widget.mealName,
       index,
     );
+
+    final updatedLog = await _dailyLogService.getLogForDate(widget.date);
+    // Обновление виджета
+    final profileService = ProfileService();
+    final homeWidgetSyncService = HomeWidgetSyncService();
+    final profile = await profileService.loadProfile();
+    await homeWidgetSyncService.syncDailyData(
+        log: updatedLog, profile: profile);
 
     if (!mounted) return;
 

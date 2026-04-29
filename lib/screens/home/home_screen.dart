@@ -802,12 +802,24 @@ class _MealsSection extends StatelessWidget {
             waterGoal: profile.waterGoal,
             onAdd: () async {
               final service = DailyLogService();
+              final profileService = ProfileService();
+              final homeWidgetSyncService = HomeWidgetSyncService();
               await service.addWater(selectedDate, amount: 250);
+              final log = await service.getLogForDate(selectedDate);
+              final profile = await profileService.loadProfile();
+              await homeWidgetSyncService.syncDailyData(
+                  log: log, profile: profile);
               await onDataChanged();
             },
             onRemove: () async {
               final service = DailyLogService();
+              final profileService = ProfileService();
+              final homeWidgetSyncService = HomeWidgetSyncService();
               await service.removeWater(selectedDate, amount: 250);
+              final log = await service.getLogForDate(selectedDate);
+              final profile = await profileService.loadProfile();
+              await homeWidgetSyncService.syncDailyData(
+                  log: log, profile: profile);
               await onDataChanged();
             }),
         const SizedBox(height: 22),
