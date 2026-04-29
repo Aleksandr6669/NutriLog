@@ -3,27 +3,208 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:color/white"
-    android:padding="16dp"
-    android:elevation="6dp"
-    android:clipToPadding="false"
-    android:gravity="center_horizontal">
-
-    <!-- Круг калорий -->
+    <!-- Круг калорий в карточке -->
     <FrameLayout
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:layout_gravity="center"
         android:background="@drawable/bg_circle_widget">
-        <TextView
-            android:id="@+id/tvCalories"
+        <ProgressBar
+            android:id="@+id/progressCalories"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_circle_calories"
+            android:rotation="-90"
+            android:layout_gravity="center" />
+        <TextView
+            android:id="@+id/widgetCalories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="2500"
+            android:text="0 / 0 ккал"
             android:textColor="#16261B"
-            android:textSize="40sp"
-            android:textStyle="bold" />
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:layout_marginTop="60dp" />
+    </FrameLayout>
+            <TextView
+                android:text="Цель"
+                android:textColor="#B0B0B0"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Блок нутриентов и воды в карточках -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="8dp">
+        <!-- Нутриенты -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Углеводы -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_widget"
+                android:padding="10dp"
+                android:layout_marginEnd="6dp">
+                <TextView
+                    android:text="Углеводы"
+                    android:textColor="#1DB954"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+                <ProgressBar
+                    android:id="@+id/progressCarbs"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_bar_carbs"
+                    android:layout_marginTop="4dp" />
+                <TextView
+                    android:id="@+id/tvCarbs"
+                    android:text="0г / 0г"
+                    android:textColor="#16261B"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+            <!-- Белки -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_widget"
+                android:padding="10dp"
+                android:layout_marginEnd="6dp">
+                <TextView
+                    android:text="Белки"
+                    android:textColor="#FFB300"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+                <ProgressBar
+                    android:id="@+id/progressProtein"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_bar_protein"
+                    android:layout_marginTop="4dp" />
+                <TextView
+                    android:id="@+id/tvProtein"
+                    android:text="0г / 0г"
+                    android:textColor="#16261B"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+            <!-- Жиры -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_widget"
+                android:padding="10dp">
+                <TextView
+                    android:text="Жиры"
+                    android:textColor="#4FC3F7"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+                <ProgressBar
+                    android:id="@+id/progressFat"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_bar_fat"
+                    android:layout_marginTop="4dp" />
+                <TextView
+                    android:id="@+id/tvFat"
+                    android:text="0г / 0г"
+                    android:textColor="#16261B"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+        <!-- Вода -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="10dp"
+            android:gravity="center">
+            <TextView
+                android:text="Вода"
+                android:textColor="#00BFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressWater"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="40dp"
+                android:layout_height="120dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_water"
+                android:rotation="-90"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp" />
+            <TextView
+                android:id="@+id/tvWater"
+                android:text="0мл / 0мл"
+                android:textColor="#16261B"
+                android:textSize="13sp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+            android:id="@+id/widgetMacros"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Белки: 0/120 г\nЖиры: 0/70 г\nУглеводы: 0/250 г"
+            android:textColor="#B0B0B0"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+        <TextView
+            android:id="@+id/widgetWater"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Вода: 0.0 / 2.0 л"
+            android:textColor="#4FC3F7"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+        <ProgressBar
+            android:id="@+id/progressWater"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_bar_water"
+            android:layout_marginTop="4dp" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -55,11 +236,22 @@
                 android:textColor="#1DB954"
                 android:textSize="13sp"
                 android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressCarbs"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_carbs"
+                android:layout_marginTop="4dp" />
             <TextView
                 android:id="@+id/tvCarbs"
-                android:text="0г / 250г"
+                android:text="0г / 0г"
                 android:textColor="#16261B"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -75,11 +267,22 @@
                 android:textColor="#FFB300"
                 android:textSize="13sp"
                 android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressProtein"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_protein"
+                android:layout_marginTop="4dp" />
             <TextView
                 android:id="@+id/tvProtein"
-                android:text="0г / 120г"
+                android:text="0г / 0г"
                 android:textColor="#16261B"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -94,11 +297,22 @@
                 android:textColor="#4FC3F7"
                 android:textSize="13sp"
                 android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressFat"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_fat"
+                android:layout_marginTop="4dp" />
             <TextView
                 android:id="@+id/tvFat"
-                android:text="0г / 70г"
+                android:text="0г / 0г"
                 android:textColor="#16261B"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

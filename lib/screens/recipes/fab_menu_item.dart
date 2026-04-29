@@ -75,7 +75,7 @@ class _FabMenuItemState extends State<FabMenuItem>
                 // Оценка ширины текста
                 final text = widget.label;
                 const textStyle =
-                    TextStyle(fontSize: 18, fontWeight: FontWeight.w600);
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
                 final textPainter = TextPainter(
                   text: TextSpan(text: text, style: textStyle),
                   maxLines: 1,
@@ -106,7 +106,7 @@ class _FabMenuItemState extends State<FabMenuItem>
                             ),
                           ),
                         ),
-                        Icon(widget.icon, color: AppColors.primary, size: iconWidth),
+                        Icon(widget.icon, color: AppColors.primary, size: 28),
                       ],
                     ),
                   ),
