@@ -189,13 +189,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ),
             const SizedBox(height: 6),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: panelListMaxHeight),
-              child: Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(children: recipeTiles),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: panelListMaxHeight),
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(children: recipeTiles),
+                  ),
                 ),
               ),
             ),
