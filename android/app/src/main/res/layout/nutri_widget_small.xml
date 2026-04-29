@@ -1,42 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:padding="16dp"
+    android:elevation="6dp"
+    android:clipToPadding="false"
+    android:gravity="center_horizontal">
 
-    <TextView
-        android:id="@+id/widgetTitle"
-        android:layout_width="wrap_content"
+    <!-- Круг калорий -->
+    <FrameLayout
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_circle_widget">
+        <TextView
+            android:id="@+id/tvCalories"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="2500"
+            android:textColor="#16261B"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center|bottom"
+            android:text="осталось ккал"
+            android:textColor="#B0B0B0"
+            android:textSize="13sp"
+            android:layout_marginBottom="24dp" />
+    </FrameLayout>
+
+    <!-- Блок нутриентов -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Дневная цель"
-        android:textSize="16sp"
-        android:textColor="@android:color/black" />
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
 
-    <TextView
-        android:id="@+id/widgetMainValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="22sp"
-        android:textColor="#0F2317"
-        android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="10dp"
+            android:layout_marginEnd="6dp">
+            <TextView
+                android:text="Углеводы"
+                android:textColor="#1DB954"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvCarbs"
+                android:text="0г / 250г"
+                android:textColor="#16261B"
+                android:textSize="13sp" />
+        </LinearLayout>
 
-    <TextView
-        android:id="@+id/widgetSubValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Осталось ккал"
-        android:textSize="13sp"
-        android:textColor="#7ACFA6" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="10dp"
+            android:layout_marginEnd="6dp">
+            <TextView
+                android:text="Белки"
+                android:textColor="#FFB300"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvProtein"
+                android:text="0г / 120г"
+                android:textColor="#16261B"
+                android:textSize="13sp" />
+        </LinearLayout>
 
-    <TextView
-        android:id="@+id/widgetMeta"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0 / 0 ккал"
-        android:textSize="13sp"
-        android:textColor="#7A7A7A" />
-
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="10dp">
+            <TextView
+                android:text="Жиры"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvFat"
+                android:text="0г / 70г"
+                android:textColor="#16261B"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>
