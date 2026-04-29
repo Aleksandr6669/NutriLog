@@ -87,7 +87,7 @@ class _FabMenuItemState extends State<FabMenuItem>
                 const minWidth = iconWidth; // только иконка
                 final maxWidth = textWidth + spacing + iconWidth;
                 final width =
-                    (minWidth + (maxWidth - minWidth)+20) * _textWidth.value;
+                    (minWidth + (maxWidth - minWidth)+30) * _textWidth.value;
                 return SizedBox(
                   width: width,
                   child: Opacity(
@@ -97,7 +97,7 @@ class _FabMenuItemState extends State<FabMenuItem>
                       children: [
                         Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
+                            padding: const EdgeInsets.only(right: 10, left: 4),
                             child: Text(
                               widget.label,
                               overflow: TextOverflow.clip,
@@ -106,7 +106,7 @@ class _FabMenuItemState extends State<FabMenuItem>
                             ),
                           ),
                         ),
-                        Icon(widget.icon, color: AppColors.primary, size: 38),
+                        Icon(widget.icon, color: AppColors.primary, size: iconWidth),
                       ],
                     ),
                   ),
