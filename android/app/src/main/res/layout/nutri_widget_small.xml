@@ -9,10 +9,10 @@
     android:clipToPadding="false"
     android:gravity="center_horizontal">
 
-    <!-- Круг калорий и макросы одной строкой -->
+    <!-- Круглый прогресс-бар калорий -->
     <FrameLayout
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_gravity="center"
         android:background="@drawable/bg_circle_widget">
         <ProgressBar
@@ -31,19 +31,223 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="0 / 0 ккал"
+            android:text="1800"
             android:textColor="#16261B"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginTop="32dp" />
+            android:layout_gravity="center" />
         <TextView
-            android:id="@+id/widgetMacros"
+            android:id="@+id/widgetCaloriesSub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center|bottom"
-            android:text="Б 0/120  Ж 0/70  У 0/250"
+            android:gravity="center"
+            android:text="осталось ккал"
             android:textColor="#B0B0B0"
-            android:textSize="12sp"
-            android:layout_marginBottom="16dp" />
+            android:textSize="10sp"
+            android:layout_gravity="center|bottom"
+            android:layout_marginBottom="10dp" />
     </FrameLayout>
+
+    <!-- Блок ККал, Актив, Цель -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_food"
+                android:tint="#1DB954" />
+            <TextView
+                android:id="@+id/tvCalories"
+                android:text="0"
+                android:textColor="#16261B"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <TextView
+                android:text="ККал"
+                android:textColor="#B0B0B0"
+                android:textSize="9sp" />
+        </LinearLayout>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="18dp"
+            android:background="#E0E0E0" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_activity"
+                android:tint="#FFB300" />
+            <TextView
+                android:id="@+id/tvActivity"
+                android:text="0"
+                android:textColor="#16261B"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <TextView
+                android:text="Актив"
+                android:textColor="#B0B0B0"
+                android:textSize="9sp" />
+        </LinearLayout>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="18dp"
+            android:background="#E0E0E0" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_goal"
+                android:tint="#4FC3F7" />
+            <TextView
+                android:id="@+id/tvGoal"
+                android:text="1800"
+                android:textColor="#16261B"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <TextView
+                android:text="Цель"
+                android:textColor="#B0B0B0"
+                android:textSize="9sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Карточки нутриентов -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="4dp">
+        <!-- Углеводы -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="4dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:text="Углеводы"
+                android:textColor="#1DB954"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressCarbs"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_carbs"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvCarbsPercent"
+                android:text="0%"
+                android:textColor="#1DB954"
+                android:textSize="8sp"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvCarbs"
+                android:text="0г / 195г"
+                android:textColor="#16261B"
+                android:textSize="9sp"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+        <!-- Белки -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="4dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:text="Белки"
+                android:textColor="#FFB300"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressProtein"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_protein"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvProteinPercent"
+                android:text="0%"
+                android:textColor="#FFB300"
+                android:textSize="8sp"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvProtein"
+                android:text="0г / 120г"
+                android:textColor="#16261B"
+                android:textSize="9sp"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+        <!-- Жиры -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_widget"
+            android:padding="4dp">
+            <TextView
+                android:text="Жиры"
+                android:textColor="#4FC3F7"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/progressFat"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_fat"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvFatPercent"
+                android:text="0%"
+                android:textColor="#4FC3F7"
+                android:textSize="8sp"
+                android:layout_marginTop="1dp" />
+            <TextView
+                android:id="@+id/tvFat"
+                android:text="0г / 60г"
+                android:textColor="#16261B"
+                android:textSize="9sp"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>
