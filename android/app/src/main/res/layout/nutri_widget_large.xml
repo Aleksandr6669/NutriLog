@@ -391,42 +391,6 @@
                 android:layout_marginTop="8dp" />
         </LinearLayout>
     </LinearLayout>
-            android:id="@+id/widgetMacros"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Белки: 0/120 г\nЖиры: 0/70 г\nУглеводы: 0/250 г"
-            android:textColor="#B0B0B0"
-            android:textSize="14sp"
-            android:layout_marginTop="8dp" />
-        <TextView
-            android:id="@+id/widgetWater"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Вода: 0.0 / 2.0 л"
-            android:textColor="#4FC3F7"
-            android:textSize="14sp"
-            android:layout_marginTop="8dp" />
-        <ProgressBar
-            android:id="@+id/progressWater"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progress="0"
-            android:progressDrawable="@drawable/progress_bar_water"
-            android:layout_marginTop="4dp" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center|bottom"
-            android:text="осталось ккал"
-            android:textColor="#B0B0B0"
-            android:textSize="13sp"
-            android:layout_marginBottom="24dp" />
-    </FrameLayout>
 
     <!-- Блок нутриентов -->
     <LinearLayout
