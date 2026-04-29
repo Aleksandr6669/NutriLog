@@ -7,11 +7,36 @@
     android:background="@android:color/white">
 
     <TextView
-        android:id="@+id/widget_title"
+        android:id="@+id/widgetTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nutri Water Widget"
+        android:text="Вода"
         android:textSize="16sp"
         android:textColor="@android:color/black" />
+
+    <TextView
+        android:id="@+id/widgetMainValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 / 0 л"
+        android:textSize="22sp"
+        android:textColor="#0F2317"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/widgetSubValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Дневной баланс"
+        android:textSize="13sp"
+        android:textColor="#7ACFA6" />
+
+    <TextView
+        android:id="@+id/widgetMeta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 из 0 мл"
+        android:textSize="13sp"
+        android:textColor="#7A7A7A" />
 
 </LinearLayout>
