@@ -194,7 +194,7 @@ class AppNotificationService {
 
   Future<int> _scheduleWaterReminders() async {
     // Уведомление каждый час с завтрака до ужина, без количества и объема
-    final hours = _waterEndHour - _waterStartHour;
+    const hours = _waterEndHour - _waterStartHour;
     var scheduledCount = 0;
     for (var i = 0; i < hours; i++) {
       final hour = _waterStartHour + i;

@@ -1,5 +1,4 @@
-package com.example.myapp
-
+package com.nutrilog.app
 
 import android.os.Build
 import io.flutter.embedding.engine.FlutterEngine
