@@ -46,6 +46,33 @@
             android:textSize="13sp"
             android:layout_gravity="center|bottom"
             android:layout_marginBottom="20dp" />
+
+        <!-- Для совместимости с Kotlin-кодом -->
+        <TextView
+            android:id="@+id/widgetTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/widgetMainValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/widgetSubValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/widgetMeta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/widgetMacros"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
     </FrameLayout>
 
     <!-- Блок ККал, Актив, Цель -->
