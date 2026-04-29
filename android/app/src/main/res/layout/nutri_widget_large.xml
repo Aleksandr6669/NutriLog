@@ -3,60 +3,63 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_bg">
+    android:background="@drawable/widget_bg"
+    android:padding="18dp">
 
     <TextView
         android:id="@+id/widgetTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#801A1A1A"
-        android:textSize="12sp"
+        android:textColor="#00C753"
+        android:textSize="15sp"
         android:textStyle="bold"
-        android:text="Дневные цели" />
+        android:text="NutriLog" />
 
     <TextView
         android:id="@+id/widgetMainValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="#1A1A1A"
-        android:textSize="24sp"
+        android:layout_marginTop="10dp"
+        android:textColor="#0F2317"
+        android:textSize="32sp"
         android:textStyle="bold"
-        android:text="0 ккал" />
+        android:text="0 / 0 ккал" />
 
     <TextView
         android:id="@+id/widgetSubValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#881A1A1A"
-        android:textSize="12sp"
+        android:textColor="#7ACFA6"
+        android:textSize="14sp"
         android:text="Осталось" />
 
     <TextView
         android:id="@+id/widgetMeta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textColor="#AA1A1A1A"
-        android:textSize="11sp"
+        android:layout_marginTop="6dp"
+        android:textColor="#7A7A7A"
+        android:textSize="13sp"
         android:text="Съедено: 0 / 0" />
 
     <TextView
         android:id="@+id/widgetMacros"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#AA1A1A1A"
-        android:textSize="12sp"
-        android:text="Белки: 0/0 г&#10;Жиры: 0/0 г&#10;Углеводы: 0/0 г" />
+        android:layout_marginTop="12dp"
+        android:textColor="#0F2317"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:text="Б 0/0   Ж 0/0   У 0/0" />
 
     <TextView
         android:id="@+id/widgetWater"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#2255C4"
-        android:textSize="12sp"
+        android:layout_marginTop="12dp"
+        android:textColor="#00C753"
+        android:textSize="14sp"
         android:textStyle="bold"
-        android:text="Вода: 0.0 / 0.0 л" />
+        android:text="Вода: 0/0 л" />
+
 </LinearLayout>

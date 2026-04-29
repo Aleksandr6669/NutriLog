@@ -3,33 +3,45 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_bg">
+    android:background="@drawable/widget_bg"
+    android:padding="16dp"
+    android:gravity="center_vertical|center_horizontal">
 
     <TextView
         android:id="@+id/widgetTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#801A1A1A"
-        android:textSize="12sp"
+        android:textColor="#00C753"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:text="NutriLog" />
 
     <TextView
-        android:id="@+id/widgetCalories"
+        android:id="@+id/widgetMainValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="#1A1A1A"
-        android:textSize="20sp"
+        android:textColor="#0F2317"
+        android:textSize="26sp"
         android:textStyle="bold"
         android:text="0 / 0 ккал" />
+
+    <TextView
+        android:id="@+id/widgetSubValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#7ACFA6"
+        android:textSize="13sp"
+        android:text="Осталось" />
 
     <TextView
         android:id="@+id/widgetMacros"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#AA1A1A1A"
-        android:textSize="13sp"
-        android:text="Б 0/0  Ж 0/0  У 0/0" />
+        android:layout_marginTop="10dp"
+        android:textColor="#0F2317"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:text="Б 0/0   Ж 0/0   У 0/0" />
+
 </LinearLayout>
