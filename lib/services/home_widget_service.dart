@@ -4,7 +4,7 @@ import '../models/daily_log.dart';
 import '../models/user_profile.dart';
 
 class HomeWidgetSyncService {
-  static const String _iosAppGroup = 'group.com.example.myapp.nutrilog';
+  static const String _iosAppGroup = 'group.com.nutrilog.app.nutrilog';
 
   Future<void> syncDailyData({
     required DailyLog log,
