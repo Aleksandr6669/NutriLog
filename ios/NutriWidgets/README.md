@@ -11,7 +11,7 @@ The Swift file in this folder contains the widget implementation in the same vis
    - Runner
    - Widget Extension
 5. Use the same group id in both targets:
-   - `group.com.example.myapp.nutrilog`
+   - `group.com.nutrilog.app.nutrilog`
 6. Build and run. The 4 widgets will be available:
    - NutriSmallWidget
    - NutriMediumWidget

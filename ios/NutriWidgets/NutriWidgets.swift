@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-private let appGroupId = "group.com.example.myapp.nutrilog"
+private let appGroupId = "group.com.nutrilog.app.nutrilog"
 
 struct NutriEntry: TimelineEntry {
     let date: Date
