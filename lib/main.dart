@@ -16,6 +16,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
 import 'screens/stats/stats_screen.dart';
+import 'screens/meal_detail/meal_detail_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
@@ -78,13 +79,14 @@ void main() async {
         onActionReceivedMethod: (receivedAction) async {
           // id уведомления
           final id = receivedAction.id;
-          // Если приложение не запущено, оно стартует с home
-          // Для ужина (1103) — переход к добавлению ужина
-          // Для взвешивания (1200) — переход к добавлению веса
-          // Для остальных — стартовая страница
-          if (id == 1103) {
-            // TODO: реализовать переход к добавлению ужина
-            // Например, через глобальный navigatorKey
+          // Для каждого типа приёма пищи переход на нужный экран
+          if (id == 1101) {
+            navigatorKey.currentState
+                ?.pushNamed('/meal', arguments: {'type': 'breakfast'});
+          } else if (id == 1102) {
+            navigatorKey.currentState
+                ?.pushNamed('/meal', arguments: {'type': 'lunch'});
+          } else if (id == 1103) {
             navigatorKey.currentState
                 ?.pushNamed('/meal', arguments: {'type': 'dinner'});
           } else if (id == 1200) {
@@ -201,6 +203,35 @@ class MyApp extends StatelessWidget {
         Locale('ru', 'RU'),
         Locale('en', 'US'),
       ],
+      onGenerateRoute: (settings) {
+        if (settings.name == '/meal') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          final type = args != null ? args['type'] as String? : null;
+          String mealName;
+          switch (type) {
+            case 'breakfast':
+              mealName = 'Завтрак';
+              break;
+            case 'lunch':
+              mealName = 'Обед';
+              break;
+            case 'dinner':
+              mealName = 'Ужин';
+              break;
+            default:
+              mealName = type ?? 'Приём пищи';
+          }
+          return MaterialPageRoute(
+            builder: (context) => MealDetailScreen(
+              mealName: mealName,
+              items: const [],
+              date: DateTime.now(),
+            ),
+          );
+        }
+        // fallback
+        return null;
+      },
       builder: (context, child) {
         final content = child ?? const SizedBox.shrink();
         return ValueListenableBuilder<_FatalAppError?>(
@@ -349,7 +380,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   static const SystemUiOverlayStyle _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -364,6 +395,26 @@ class _MainScreenState extends State<MainScreen> {
     StatsScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!kIsWeb && state == AppLifecycleState.resumed) {
+      AwesomeNotifications().setGlobalBadgeCounter(0);
+    }
+  }
 
   void _onItemTapped(int index) {
     // На iOS предотвращаем кейс, когда при смене вкладки остается активный
