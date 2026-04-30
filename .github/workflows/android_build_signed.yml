@@ -32,5 +32,5 @@ jobs:
           $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks android/app/mykeys.keystore --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --key-pass pass:${{ secrets.KEY_PASSWORD }} build/app/outputs/flutter-apk/app-aligned.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: aligned-apk
           path: build/app/outputs/flutter-apk/app-aligned.apk
