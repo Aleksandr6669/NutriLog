@@ -28,15 +28,8 @@ jobs:
       - run: flutter build apk --release --no-tree-shake-icons --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} --dart-define=USDA_API_KEY=${{ secrets.USDA_API_KEY }}
       - name: Align and Sign APK
         run: |
-          $ANDROID_HOME/build-tools/34.0.0/zipalign -v -p 4 \
-            build/app/outputs/flutter-apk/app-release.apk \
-            build/app/outputs/flutter-apk/app-aligned.apk
-          $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
-            --ks android/app/mykeys.keystore \
-            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
-            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-            build/app/outputs/flutter-apk/app-aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v -p 4 build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks android/app/mykeys.keystore --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --key-pass pass:${{ secrets.KEY_PASSWORD }} build/app/outputs/flutter-apk/app-aligned.apk
       - uses: actions/upload-artifact@v4
         with:
           name: release-apk
