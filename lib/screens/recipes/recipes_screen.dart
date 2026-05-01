@@ -241,7 +241,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         color: AppColors.primary,
                         size: 18,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 5),
                       Text(
                         _selectedRecipesCollapsed
                             ? 'Показать все (${selectedRecipes.length})'
