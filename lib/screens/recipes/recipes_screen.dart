@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_loader.dart';
@@ -9,10 +10,6 @@ import '../../services/recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
-import 'create_recipe_from_description_screen.dart';
-import 'create_recipe_from_photo_screen.dart';
-import 'edit_recipe_screen.dart';
-import 'recipe_detail_screen.dart';
 import 'fab_menu_item.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -77,19 +74,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Future<void> _openRecipeDetail(Recipe recipe) async {
     HapticFeedback.selectionClick();
     if (!widget.selectionMode) {
-      await _navigateAndRefresh(RecipeDetailScreen(recipe: recipe));
+      await _navigateAndRefreshRoute('/recipe_detail', extra: {'recipe': recipe});
       return;
     }
 
     final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
-    final detailResult = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => RecipeDetailScreen(
-          recipe: recipe,
-          selectionMode: true,
-          isSelected: isSelected,
-        ),
-      ),
+    final detailResult = await context.push<bool>(
+      '/recipe_detail',
+      extra: {
+        'recipe': recipe,
+        'selectionMode': true,
+        'isSelected': isSelected,
+      },
     );
 
     if (detailResult == null) return;
@@ -174,7 +170,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     ).toList();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
@@ -299,7 +295,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _editRecipe(Recipe recipe) async {
-    await _navigateAndRefresh(EditRecipeScreen(recipe: recipe));
+    await _navigateAndRefreshRoute('/recipe/edit', extra: {'recipe': recipe});
   }
 
   void _toggleDeleteSelectionMode() {
@@ -377,7 +373,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     final fixedTopInset = glassAppBarTotalHeight(context) + 8;
 
     final fixedSearch = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: ClipRRect(
         borderRadius: AppStyles.defaultBorderRadius,
         child: BackdropFilter(
@@ -505,8 +501,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     label: 'По фото блюда',
                     onTap: () async {
                       setState(() => _showFabMenu = false);
-                      await _navigateAndRefresh(
-                          const CreateRecipeFromPhotoScreen());
+                      await _navigateAndRefreshRoute('/recipe/create_photo');
                     },
                     delay: const Duration(milliseconds: 200),
                   ),
@@ -517,8 +512,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     label: 'По описанию',
                     onTap: () async {
                       setState(() => _showFabMenu = false);
-                      await _navigateAndRefresh(
-                          const CreateRecipeFromDescriptionScreen());
+                      await _navigateAndRefreshRoute('/recipe/create_description');
                     },
                     delay: const Duration(milliseconds: 100),
                   ),
@@ -529,7 +523,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     label: 'Вручную',
                     onTap: () async {
                       setState(() => _showFabMenu = false);
-                      await _navigateAndRefresh(const EditRecipeScreen());
+                      await _navigateAndRefreshRoute('/recipe/edit');
                     },
                     delay: const Duration(milliseconds: 0),
                   ),
@@ -645,7 +639,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   Widget _buildRecipesList() {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -797,6 +791,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _navigateAndRefreshRoute(String path, {Object? extra}) async {
+    final result = await context.push(path, extra: extra);
+    if (result == true) {
+      _loadAllRecipes();
+    }
   }
 }
 

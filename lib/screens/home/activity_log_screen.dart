@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/daily_log_provider.dart';
 import '../../models/daily_log.dart';
 import '../../services/daily_log_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'edit_activity_entry_screen.dart';
-import '../../services/profile_service.dart';
-import '../../services/home_widget_service.dart';
 
 class ActivityLogScreen extends StatefulWidget {
   final DateTime date;
@@ -51,6 +50,8 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
     if (result == null || !mounted) return;
 
     setState(() => _saving = true);
+    final provider = context.read<DailyLogProvider>();
+    
     if (entry == null) {
       await _service.addActivity(
         widget.date,
@@ -68,19 +69,12 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       );
     }
 
-    final refreshed = await _service.getLogForDate(widget.date);
-    // Обновление виджета (безопасно)
-    try {
-      final profileService = ProfileService();
-      final homeWidgetSyncService = HomeWidgetSyncService();
-      final profile = await profileService.loadProfile();
-      await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
-    } catch (_) {}
+    await provider.refreshCurrentLog();
 
     if (!mounted) return;
 
     setState(() {
-      _activities = refreshed.activities;
+      _activities = provider.currentLog?.activities ?? [];
       _saving = false;
       _hasChanges = true;
     });
@@ -88,23 +82,22 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
 
   Future<void> _removeActivity(ActivityEntry entry) async {
     setState(() => _saving = true);
+    final provider = context.read<DailyLogProvider>();
+    
     await _service.removeActivity(widget.date, id: entry.id);
-    final refreshed = await _service.getLogForDate(widget.date);
-    // Обновление виджета (безопасно)
-    try {
-      final profileService = ProfileService();
-      final homeWidgetSyncService = HomeWidgetSyncService();
-      final profile = await profileService.loadProfile();
-      await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
-    } catch (_) {}
+    await provider.refreshCurrentLog();
 
     if (!mounted) return;
 
     setState(() {
-      _activities = refreshed.activities;
+      _activities = provider.currentLog?.activities ?? [];
       _saving = false;
       _hasChanges = true;
     });
+  }
+
+  void _saveChanges() {
+    Navigator.of(context).pop(true);
   }
 
   Future<void> _confirmAndRemoveActivity(ActivityEntry entry) async {
@@ -127,7 +120,18 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.grey.shade50,
-        appBar: buildGlassAppBar(title: const Text('Активность')),
+        appBar: buildGlassAppBar(
+          title: const Text('Активность'),
+          actions: [
+            if (_hasChanges)
+              IconButton(
+                icon: const Icon(Symbols.check_circle, size: 28),
+                onPressed: _saving ? null : _saveChanges,
+                tooltip: 'Сохранить изменения',
+              ),
+            const SizedBox(width: 8),
+          ],
+        ),
         body: Stack(
           children: [
             Column(

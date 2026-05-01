@@ -11,6 +11,7 @@ import 'dart:math' as math;
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
 import '../../models/recipe.dart';
+import '../../models/food_item.dart';
 import '../../services/daily_log_service.dart';
 import '../../services/health_steps_service.dart';
 import '../../services/home_widget_service.dart';
@@ -18,12 +19,10 @@ import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
-import '../meal_detail/meal_detail_screen.dart';
-import '../../models/food_item.dart';
 import '../recipes/recipes_screen.dart';
-import '../profile/edit_goals_screen.dart'; // Изменено
-import 'activity_log_screen.dart';
-import 'weight_entry_screen.dart';
+import 'package:provider/provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/daily_log_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,22 +32,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final DailyLogService _logService = DailyLogService();
-  final ProfileService _profileService = ProfileService();
-  final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
   final HealthStepsService _healthStepsService = HealthStepsService();
 
-  late Future<UserProfile> _userProfileFuture;
-  DailyLog? _currentDailyLog;
-  bool _isLoadingLog = true;
-  bool _isSyncingSteps = false;
   bool _isHealthConnected = false;
 
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
 
   bool _isCalendarVisible = false;
-  Set<DateTime> _loggedDates = {};
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _waterKey = GlobalKey();
@@ -56,10 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _userProfileFuture = _profileService.loadProfile();
     _refreshHealthConnectionState();
     _loadLogForSelectedDate();
-    _loadLoggedDates();
     _checkScrollRequest();
   }
 
@@ -100,94 +89,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _loadLoggedDates() async {
-    final dates = await _logService.getLoggedDates();
-    if (mounted) {
-      setState(() {
-        _loggedDates = dates;
-      });
-    }
+  Future<void> _loadLogForSelectedDate() async {
+    context.read<DailyLogProvider>().setSelectedDate(_selectedDay);
   }
 
-  Future<void> _loadLogForSelectedDate({bool showLoader = true}) async {
-    if (mounted && showLoader) {
-      setState(() {
-        _isLoadingLog = true;
-      });
-    }
-
-    DailyLog log;
-    try {
-      log = await _logService.getLogForDate(_selectedDay);
-    } catch (_) {
-      log = DailyLog.empty(_selectedDay);
-    }
-
-    try {
-      final connected = await _healthStepsService.isConnected();
-      if (mounted) {
-        setState(() {
-          _isHealthConnected = connected;
-        });
-      }
-    } catch (_) {
-      // Проверка статуса подключения вторична.
-    }
-
-    try {
-      log = await _syncStepsIfConnected(log);
-    } catch (_) {
-      // Автосинк шагов не должен ломать загрузку дневника.
-    }
-
-    try {
-      final profile = await _profileService.loadProfile();
-      await _syncHomeWidgetSafely(log, profile);
-    } catch (_) {
-      // Ошибка профиля/синка не должна блокировать загрузку дневника.
-    }
-
-    if (mounted) {
-      setState(() {
-        _currentDailyLog = log;
-        _isLoadingLog = false;
-      });
-    }
-
-    try {
-      await _loadLoggedDates();
-    } catch (_) {
-      // Маркеры в календаре вторичны, не ломаем экран.
-    }
-  }
-
-  Future<void> _syncHomeWidgetSafely(DailyLog log, UserProfile profile) async {
-    try {
-      await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
-    } catch (_) {
-      // На web/desktop или при недоступном плагине синк может падать.
-    }
-  }
-
-  Future<DailyLog> _syncStepsIfConnected(DailyLog currentLog) async {
-    if (_isSyncingSteps) return currentLog;
-    _isSyncingSteps = true;
-
-    try {
-      final steps = await _healthStepsService.fetchStepsForDate(_selectedDay);
-      if (steps == null || steps == currentLog.steps) return currentLog;
-
-      await _logService.setSteps(_selectedDay, steps: steps);
-      return currentLog.copyWith(steps: steps);
-    } finally {
-      _isSyncingSteps = false;
-    }
-  }
-
-  Future<void> _setStepsManually() async {
+  Future<void> _showManualStepsInput() async {
     final theme = Theme.of(context);
+    final currentSteps = context.read<DailyLogProvider>().currentLog?.steps ?? 0;
     final controller = TextEditingController(
-      text: (_currentDailyLog?.steps ?? 0).toString(),
+      text: currentSteps.toString(),
     );
 
     final manualSteps = await showModalBottomSheet<int>(
@@ -308,14 +218,12 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
-    if (manualSteps == null) return;
-
-    await _logService.setSteps(_selectedDay, steps: manualSteps);
-    await _loadLogForSelectedDate();
+    if (manualSteps == null || !mounted) return;
+    await context.read<DailyLogProvider>().updateSteps(manualSteps);
   }
 
   bool _isLoggedDay(DateTime day) {
-    return _loggedDates.any((d) => isSameDay(d, day));
+    return context.read<DailyLogProvider>().loggedDates.any((d) => isSameDay(d, day));
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -325,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
       });
-      _loadLogForSelectedDate();
+      context.read<DailyLogProvider>().setSelectedDate(selectedDay);
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           setState(() {
@@ -336,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   void _toggleCalendarVisibility() {
     HapticFeedback.lightImpact();
     setState(() {
@@ -343,26 +252,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _reloadProfile() {
-    if (mounted) {
-      setState(() {
-        _userProfileFuture = _profileService.loadProfile();
-      });
-    }
-  }
-
   Future<void> _navigateToEditGoals(UserProfile profile) async {
-    // Изменено
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditGoalsScreen(profile: profile), // Изменено
-      ),
+    final result = await context.push<bool>(
+      '/profile/daily_goals',
+      extra: {'profile': profile},
     );
 
-    if (result == true) {
-      _reloadProfile();
-      _loadLogForSelectedDate(); // Also reload log data in case goals changed
+    if (result == true && mounted) {
+      context.read<ProfileProvider>().refreshProfile();
+      context.read<DailyLogProvider>().refreshCurrentLog();
     }
   }
 
@@ -381,25 +279,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return FutureBuilder<UserProfile>(
-      future: _userProfileFuture,
-      builder: (context, userSnapshot) {
-        if (userSnapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<ProfileProvider>(
+      builder: (context, profileProvider, child) {
+        final userProfile = profileProvider.profile;
+        
+        if (profileProvider.isLoading || userProfile == null) {
           return Scaffold(
             appBar: AppBar(),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
-
-        if (userSnapshot.hasError || !userSnapshot.hasData) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Ошибка')),
-            body: Center(
-                child: Text('Ошибка загрузки профиля: ${userSnapshot.error}')),
-          );
-        }
-
-        final userProfile = userSnapshot.data!;
 
         return Scaffold(
           extendBodyBehindAppBar: true,
@@ -448,44 +337,52 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
             ],
           ),
-          body: Stack(
-            children: [
-              _isLoadingLog
-                  ? const Center(child: CircularProgressIndicator())
-                  : _currentDailyLog == null
-                      ? const Center(child: Text('Нет данных для этой даты.'))
-                      : SingleChildScrollView(
-                          controller: _scrollController,
-                          padding: glassBodyPadding(
-                            context,
-                            top: 16,
-                            bottom: 120,
-                          ),
-                          child: Column(
-                            children: [
-                              _CaloriesCard(
-                                  dailyLog: _currentDailyLog!,
-                                  profile: userProfile),
-                              const SizedBox(height: 16),
-                              _Macronutrients(
-                                  dailyLog: _currentDailyLog!,
-                                  profile: userProfile),
-                              const SizedBox(height: 24),
-                              _MealsSection(
-                                dailyLog: _currentDailyLog!,
-                                profile: userProfile,
-                                onDataChanged: () =>
-                                    _loadLogForSelectedDate(showLoader: false),
-                                selectedDate: _selectedDay,
-                                showManualStepsInput: !_isHealthConnected,
-                                onManualStepsInput: _setStepsManually,
-                                waterKey: _waterKey,
+          body: Consumer<DailyLogProvider>(
+            builder: (context, logProvider, child) {
+              final isLoading = logProvider.isLoading;
+              final dailyLog = logProvider.currentLog;
+
+              return Stack(
+                children: [
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : dailyLog == null
+                          ? const Center(
+                              child: Text('Нет данных для этой даты.'))
+                          : SingleChildScrollView(
+                              controller: _scrollController,
+                              padding: glassBodyPadding(
+                                context,
+                                top: 16,
+                                bottom: 120,
                               ),
-                            ],
-                          ),
-                        ),
-              _buildCalendarOverlay(),
-            ],
+                              child: Column(
+                                children: [
+                                  _CaloriesCard(
+                                      dailyLog: dailyLog,
+                                      profile: userProfile),
+                                  const SizedBox(height: 16),
+                                  _Macronutrients(
+                                      dailyLog: dailyLog,
+                                      profile: userProfile),
+                                  const SizedBox(height: 24),
+                                  _MealsSection(
+                                    dailyLog: dailyLog,
+                                    profile: userProfile,
+                                    onDataChanged: () => logProvider
+                                        .loadLogForDate(_selectedDay),
+                                    selectedDate: _selectedDay,
+                                    showManualStepsInput: !_isHealthConnected,
+                                    onManualStepsInput: _showManualStepsInput,
+                                    waterKey: _waterKey,
+                                  ),
+                                ],
+                              ),
+                            ),
+                  _buildCalendarOverlay(),
+                ],
+              );
+            },
           ),
         );
       },
@@ -1638,8 +1535,7 @@ class _MealCard extends StatelessWidget {
                               spreadRadius: 2,
                               offset: const Offset(0, 5))
                         ]),
-                    child:
-                        const Icon(Symbols.add, color: Colors.white, size: 28),
+                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),
                 ),
               ],

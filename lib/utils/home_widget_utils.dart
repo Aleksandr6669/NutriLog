@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
 class HomeWidgetUtils {
@@ -6,6 +8,7 @@ class HomeWidgetUtils {
       required double goal,
       required int reminders,
       required int totalReminders}) async {
+    if (kIsWeb || !Platform.isAndroid) return;
     await HomeWidget.saveWidgetData('water_current', current);
     await HomeWidget.saveWidgetData('water_goal', goal);
     await HomeWidget.saveWidgetData('water_reminders', reminders);

@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
-import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 
 class EditGoalsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -19,7 +20,6 @@ class EditGoalsScreen extends StatefulWidget {
 
 class _EditGoalsScreenState extends State<EditGoalsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _profileService = ProfileService();
   final _geminiRecipeService = GeminiRecipeService();
 
   late TextEditingController _calorieGoalController;
@@ -69,9 +69,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
         fatGoal: int.parse(_fatGoalController.text),
       );
 
-      await _profileService.saveProfile(updatedProfile);
-
-      // SnackBar при сохранении убран по требованию
+      await context.read<ProfileProvider>().updateProfile(updatedProfile);
+      if (!mounted) return;
       Navigator.pop(context, true);
     }
   }

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal"
     android:background="@drawable/widget_bg"
-    android:padding="8dp">
+    android:padding="12dp"
+    android:gravity="center_vertical">
 
+    <!-- Лево: Вертикальный индикатор воды -->
     <FrameLayout
-        android:layout_width="match_parent"
+        android:layout_width="40dp"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:background="@drawable/bg_circle_widget">
-        
+        android:background="@drawable/bg_card_widget"
+        android:padding="4dp">
         <ProgressBar
             android:id="@+id/progressWater"
             style="@android:style/Widget.ProgressBar.Horizontal"
@@ -19,39 +21,57 @@
             android:indeterminate="false"
             android:max="100"
             android:progress="0"
-            android:progressDrawable="@drawable/progress_circle_water"
-            android:rotation="-90"
-            android:layout_gravity="center" />
+            android:progressDrawable="@drawable/progress_bar_water"
+            android:rotation="-90" />
+    </FrameLayout>
+
+    <View android:layout_width="12dp" android:layout_height="match_parent" />
+
+    <!-- Право: Текстовая информация -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Вода"
+            android:textColor="#16261B"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_gravity="center">
-            
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_activity"
-                android:tint="#2196F3"
-                android:layout_marginBottom="4dp"/>
-
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            android:gravity="bottom">
             <TextView
                 android:id="@+id/widgetWater"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.5"
-                android:textColor="#16261B"
+                android:textColor="#1DB954"
                 android:textSize="22sp"
                 android:textStyle="bold" />
-                
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="литра"
+                android:text=" литра"
                 android:textColor="#707070"
-                android:textSize="10sp" />
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
         </LinearLayout>
-    </FrameLayout>
-</FrameLayout>
+
+        <TextView
+            android:id="@+id/tvWaterGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Цель: 2.0 л"
+            android:textColor="#B0B0B0"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+</LinearLayout>

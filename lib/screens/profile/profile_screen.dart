@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
-import 'package:nutri_log/screens/profile/edit_general_goals_screen.dart';
-import 'package:nutri_log/screens/profile/edit_goals_screen.dart';
-import 'package:nutri_log/screens/profile/edit_physical_params_screen.dart';
-import 'package:nutri_log/screens/profile/connections_notifications_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
-import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,9 +16,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final ProfileService _profileService = ProfileService();
   final DailyLogService _dailyLogService = DailyLogService();
-  late Future<UserProfile> _profileFuture;
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
@@ -43,7 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _profileFuture = _loadProfile();
     _nameFocusNode.addListener(() {
       if (!_nameFocusNode.hasFocus && _isEditingName) {
         _saveNameFromController();
@@ -58,28 +53,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Future<UserProfile> _loadProfile() async {
-    await _dailyLogService.syncProfileWeightFromLogs();
-    return _profileService.loadProfile();
-  }
-
   void _refreshProfile() {
-    if (!mounted) return;
-    setState(() {
-      _profileFuture = _loadProfile();
-    });
+    context.read<ProfileProvider>().refreshProfile();
   }
 
-  Future<void> _navigateTo(Widget screen) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
-
-    if (result == true) {
-      _refreshProfile();
-    }
-  }
 
   String _avatarKeyFromProfile(UserProfile profile) {
     final value = profile.avatarImagePath;
@@ -153,8 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final updatedProfile =
         profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');
-    await _profileService.saveProfile(updatedProfile);
-    _refreshProfile();
+    await context.read<ProfileProvider>().updateProfile(updatedProfile);
   }
 
   @override
@@ -171,19 +147,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Профиль'),
         centerTitle: true,
       ),
-      body: FutureBuilder<UserProfile>(
-        future: _profileFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<ProfileProvider>(
+        builder: (context, profileProvider, child) {
+          final profile = profileProvider.profile;
+          if (profileProvider.isLoading || profile == null) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Ошибка загрузки: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final profile = snapshot.data!;
-            return _buildProfileContent(context, profile);
-          } else {
-            return const Center(child: Text('Нет данных для отображения'));
           }
+          return _buildProfileContent(context, profile);
         },
       ),
     );
@@ -212,8 +182,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme: theme,
             title: 'Физические параметры',
             icon: Symbols.accessibility_new,
-            onEdit: () =>
-                _navigateTo(EditPhysicalParamsScreen(profile: profile)),
+            onEdit: () async {
+              final result = await context.push('/profile/physical', extra: {'profile': profile});
+              if (result == true) _refreshProfile();
+            },
             children: [
               _buildInfoRow(theme, 'Дата рождения',
                   '${profile.birthDate.day.toString().padLeft(2, '0')}.${profile.birthDate.month.toString().padLeft(2, '0')}.${profile.birthDate.year}'),
@@ -228,7 +200,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme: theme,
             title: 'Общие цели',
             icon: Symbols.flag,
-            onEdit: () => _navigateTo(EditGeneralGoalsScreen(profile: profile)),
+            onEdit: () async {
+              final result = await context.push('/profile/general_goals', extra: {'profile': profile});
+              if (result == true) _refreshProfile();
+            },
             children: [
               _buildInfoRow(theme, 'Цель по весу', '$weightGoal кг'),
               _buildInfoRow(theme, 'Тип цели', profile.goalType.ruLabel),
@@ -239,7 +214,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme: theme,
             title: 'Дневные цели',
             icon: Symbols.track_changes,
-            onEdit: () => _navigateTo(EditGoalsScreen(profile: profile)),
+            onEdit: () async {
+              final result = await context.push('/profile/daily_goals', extra: {'profile': profile});
+              if (result == true) _refreshProfile();
+            },
             children: [
               _buildInfoRow(theme, 'Калории', '${profile.calorieGoal} ккал'),
               _buildInfoRow(
@@ -265,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Настройки'),
         subtitle: const Text('Подключения и сообщения'),
         trailing: const Icon(Symbols.chevron_right),
-        onTap: () => _navigateTo(const ConnectionsNotificationsScreen()),
+        onTap: () => context.push('/profile/connections'),
       ),
     );
   }
@@ -280,11 +258,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final newName = _nameController.text.trim();
     setState(() => _isEditingName = false);
     if (newName.isEmpty) return;
-    final profile = await _profileFuture;
-    if (newName == profile.name) return;
-    final updated = profile.copyWith(name: newName);
-    await _profileService.saveProfile(updated);
-    _refreshProfile();
+    
+    final provider = context.read<ProfileProvider>();
+    final currentProfile = provider.profile;
+    if (currentProfile == null || newName == currentProfile.name) return;
+    
+    final updated = currentProfile.copyWith(name: newName);
+    await provider.updateProfile(updated);
   }
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {

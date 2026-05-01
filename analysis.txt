@@ -1,0 +1,89 @@
+Analyzing NutriLog...                                           
+
+  error • The name 'HealthStepsService' isn't a type, so it can't be used as a type argument • lib/main.dart:143:20 • non_type_as_type_argument
+  error • The function 'HealthStepsService' isn't defined • lib/main.dart:143:55 • undefined_function
+  error • Target of URI doesn't exist: '../models/activity_entry.dart' • lib/providers/daily_log_provider.dart:4:8 • uri_does_not_exist
+  error • The method 'getSteps' isn't defined for the type 'HealthStepsService' • lib/providers/daily_log_provider.dart:52:49 • undefined_method
+  error • The method 'updateSteps' isn't defined for the type 'DailyLogService' • lib/providers/daily_log_provider.dart:55:26 • undefined_method
+  error • The method 'updateWater' isn't defined for the type 'DailyLogService' • lib/providers/daily_log_provider.dart:96:20 • undefined_method
+  error • The method 'updateSteps' isn't defined for the type 'DailyLogService' • lib/providers/daily_log_provider.dart:102:20 • undefined_method
+  error • The method 'updateWeight' isn't defined for the type 'DailyLogService' • lib/providers/daily_log_provider.dart:108:20 • undefined_method
+warning • Unused import: 'package:provider/provider.dart' • lib/router.dart:3:8 • unused_import
+warning • Unused import: 'services/app_startup_service.dart' • lib/router.dart:22:8 • unused_import
+warning • The declaration '_syncStepsIfConnected' isn't referenced • lib/screens/home/home_screen.dart:92:20 • unused_element
+warning • The declaration '_setStepsManually' isn't referenced • lib/screens/home/home_screen.dart:107:16 • unused_element
+  error • Undefined name '_currentDailyLog' • lib/screens/home/home_screen.dart:110:14 • undefined_identifier
+  error • The name '_setStepsManually' is already defined • lib/screens/home/home_screen.dart:258:16 • duplicate_definition
+  error • Undefined name '_userProfileFuture' • lib/screens/home/home_screen.dart:272:9 • undefined_identifier
+  error • Undefined name '_profileService' • lib/screens/home/home_screen.dart:272:30 • undefined_identifier
+  error • The name 'GlassAppBarBackground' isn't a class • lib/screens/home/home_screen.dart:323:34 • creation_with_non_type
+  error • Invalid constant value • lib/screens/home/home_screen.dart:335:32 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:335:32 • undefined_identifier
+  error • The method 'glassBodyPadding' isn't defined for the type '_HomeScreenState' • lib/screens/home/home_screen.dart:376:40 • undefined_method
+  error • The argument type 'Future<void> Function(int)' can't be assigned to the parameter type 'Future<void> Function()'.  • lib/screens/home/home_screen.dart:398:57 • argument_type_not_assignable
+  error • The method 'glassAppBarTotalHeight' isn't defined for the type '_HomeScreenState' • lib/screens/home/home_screen.dart:433:21 • undefined_method
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:450:23 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:461:23 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:485:55 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:485:55 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:487:56 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:487:56 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:495:26 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:495:26 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:531:32 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:531:32 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:573:23 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:577:27 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:578:39 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:618:32 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:648:36 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:680:24 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:742:30 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:742:30 • undefined_identifier
+  error • The method 'ProfileService' isn't defined for the type '_MealsSection' • lib/screens/home/home_screen.dart:768:38 • undefined_method
+  error • The method 'HomeWidgetSyncService' isn't defined for the type '_MealsSection' • lib/screens/home/home_screen.dart:769:45 • undefined_method
+  error • The method 'ProfileService' isn't defined for the type '_MealsSection' • lib/screens/home/home_screen.dart:780:38 • undefined_method
+  error • The method 'HomeWidgetSyncService' isn't defined for the type '_MealsSection' • lib/screens/home/home_screen.dart:781:45 • undefined_method
+  error • Const variables must be initialized with a constant value • lib/screens/home/home_screen.dart:828:22 • const_initialized_with_non_constant_value
+  error • The values in a const map literal must be constant • lib/screens/home/home_screen.dart:828:22 • non_constant_map_value
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:828:22 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:887:51 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:897:33 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1054:51 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1063:24 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1064:31 • undefined_identifier
+  error • Invalid constant value • lib/screens/home/home_screen.dart:1066:59 • invalid_constant
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1066:59 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1116:21 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1118:53 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1128:33 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1170:26 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1171:41 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1381:23 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1403:29 • undefined_identifier
+  error • The name 'FoodItem' isn't a type, so it can't be used as a type argument • lib/screens/home/home_screen.dart:1439:14 • non_type_as_type_argument
+  error • The name 'RecipesScreen' isn't a class • lib/screens/home/home_screen.dart:1458:37 • creation_with_non_type
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1493:21 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1498:27 • undefined_identifier
+  error • Undefined name 'AppStyles' • lib/screens/home/home_screen.dart:1513:37 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1552:32 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/screens/home/home_screen.dart:1555:38 • undefined_identifier
+  error • Expected to find ')' • lib/screens/home/home_screen.dart:1566:10 • expected_token
+  error • Expected to find ')' • lib/screens/home/home_screen.dart:1568:6 • expected_token
+warning • Unused import: 'package:nutri_log/styles/app_styles.dart' • lib/screens/home/weight_entry_screen.dart:8:8 • unused_import
+warning • Unused import: 'package:nutri_log/screens/recipes/recipe_detail_screen.dart' • lib/screens/meal_detail/meal_detail_screen.dart:7:8 • unused_import
+   info • Don't use 'BuildContext's across async gaps • lib/screens/meal_detail/meal_detail_screen.dart:53:22 • use_build_context_synchronously
+warning • The declaration '_requestNotificationPermission' isn't referenced • lib/screens/profile/connections_notifications_screen.dart:69:16 • unused_element
+warning • Unused import: 'package:nutri_log/screens/profile/edit_general_goals_screen.dart' • lib/screens/profile/profile_screen.dart:5:8 • unused_import
+warning • Unused import: 'package:nutri_log/screens/profile/edit_goals_screen.dart' • lib/screens/profile/profile_screen.dart:6:8 • unused_import
+warning • Unused import: 'package:nutri_log/screens/profile/edit_physical_params_screen.dart' • lib/screens/profile/profile_screen.dart:7:8 • unused_import
+warning • Unused import: 'package:nutri_log/screens/profile/connections_notifications_screen.dart' • lib/screens/profile/profile_screen.dart:8:8 • unused_import
+warning • The value of the field '_dailyLogService' isn't used • lib/screens/profile/profile_screen.dart:23:25 • unused_field
+   info • Don't use 'BuildContext's across async gaps • lib/screens/profile/profile_screen.dart:137:11 • use_build_context_synchronously
+warning • Unused import: 'create_recipe_from_description_screen.dart' • lib/screens/recipes/recipes_screen.dart:13:8 • unused_import
+warning • Unused import: 'create_recipe_from_photo_screen.dart' • lib/screens/recipes/recipes_screen.dart:14:8 • unused_import
+warning • Unused import: 'edit_recipe_screen.dart' • lib/screens/recipes/recipes_screen.dart:15:8 • unused_import
+warning • Unused import: 'recipe_detail_screen.dart' • lib/screens/recipes/recipes_screen.dart:16:8 • unused_import
+warning • The declaration '_navigateAndRefresh' isn't referenced • lib/screens/recipes/recipes_screen.dart:293:16 • unused_element
+warning • The value of the field '_profileService' isn't used • lib/services/app_notification_service.dart:40:24 • unused_field
+

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
-import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 
 class EditPhysicalParamsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -19,7 +20,6 @@ class EditPhysicalParamsScreen extends StatefulWidget {
 
 class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _profileService = ProfileService();
 
   late TextEditingController _nameController;
   late TextEditingController _heightController;
@@ -56,8 +56,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         height: int.tryParse(_heightController.text) ?? 0,
         weight: double.tryParse(_weightController.text) ?? 0,
       );
-      await _profileService.saveProfile(updatedProfile);
-      // SnackBar при сохранении убран по требованию
+      await context.read<ProfileProvider>().updateProfile(updatedProfile);
       if (mounted) Navigator.pop(context, true);
     }
   }
