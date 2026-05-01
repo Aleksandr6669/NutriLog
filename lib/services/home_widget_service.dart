@@ -24,79 +24,37 @@ class HomeWidgetSyncService {
     final protein = log.totalNutrients.protein.round();
     final fat = log.totalNutrients.fat.round();
 
-    final waterIntake = log.waterIntake;
-    final waterGoal = profile.waterGoal;
-    final waterLiters = (waterIntake / 1000).toStringAsFixed(1);
-    final waterGoalLiters = (waterGoal / 1000).toStringAsFixed(1);
-
-    final caloriesPercent = profile.calorieGoal > 0
-        ? ((effectiveConsumed / profile.calorieGoal) * 100)
-            .round()
-            .clamp(0, 999)
-        : 0;
-
-    final carbsPercent = profile.carbsGoal > 0
-        ? ((carbs / profile.carbsGoal) * 100).round().clamp(0, 100)
-        : 0;
-    final proteinPercent = profile.proteinGoal > 0
-        ? ((protein / profile.proteinGoal) * 100).round().clamp(0, 100)
-        : 0;
-    final fatPercent = profile.fatGoal > 0
-        ? ((fat / profile.fatGoal) * 100).round().clamp(0, 100)
-        : 0;
+    final waterLiters = (log.waterIntake / 1000).toStringAsFixed(1);
+    final steps = log.steps.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]} ',
+        );
 
     try {
       await HomeWidget.setAppGroupId(_iosAppGroup);
-    } catch (_) {
-      // Android does not require app group setup.
-    }
+    } catch (_) {}
 
     await Future.wait([
-      HomeWidget.saveWidgetData<String>('widget_title', 'NutriLog'),
-      HomeWidget.saveWidgetData<int>(
-          'widget_calories_goal', profile.calorieGoal),
-      HomeWidget.saveWidgetData<int>(
-          'widget_calories_consumed', consumed), // Raw consumed for the icon block
-      HomeWidget.saveWidgetData<int>(
-          'widget_calories_effective', effectiveConsumed), // For the circle
-      HomeWidget.saveWidgetData<int>('widget_calories_activity', activity),
-      HomeWidget.saveWidgetData<int>('widget_calories_remaining', remaining),
-      HomeWidget.saveWidgetData<int>(
-          'widget_calories_percent', caloriesPercent),
-      HomeWidget.saveWidgetData<int>('widget_carbs', carbs),
-      HomeWidget.saveWidgetData<int>('widget_carbs_goal', profile.carbsGoal),
-      HomeWidget.saveWidgetData<int>('widget_carbs_percent', carbsPercent),
-      HomeWidget.saveWidgetData<int>('widget_protein', protein),
-      HomeWidget.saveWidgetData<int>(
-          'widget_protein_goal', profile.proteinGoal),
-      HomeWidget.saveWidgetData<int>('widget_protein_percent', proteinPercent),
-      HomeWidget.saveWidgetData<int>('widget_fat', fat),
-      HomeWidget.saveWidgetData<int>('widget_fat_goal', profile.fatGoal),
-      HomeWidget.saveWidgetData<int>('widget_fat_percent', fatPercent),
-      HomeWidget.saveWidgetData<int>('widget_water_intake', waterIntake),
-      HomeWidget.saveWidgetData<int>('widget_water_goal', waterGoal),
-      HomeWidget.saveWidgetData<String>('widget_water_liters', waterLiters),
-      HomeWidget.saveWidgetData<String>(
-          'widget_water_goal_liters', waterGoalLiters),
+      // New Keys for our Card Widgets
+      HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
+      HomeWidget.saveWidgetData<String>('proteins', '${protein}г'),
+      HomeWidget.saveWidgetData<String>('fats', '${fat}г'),
+      HomeWidget.saveWidgetData<String>('carbs', '${carbs}г'),
+      HomeWidget.saveWidgetData<String>('calories_summary', '${consumed} ккал'),
+      HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
+      HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
+      HomeWidget.saveWidgetData<String>('steps', steps),
+      
+      // Keep legacy keys if needed elsewhere
+      HomeWidget.saveWidgetData<int>('widget_calories_consumed', consumed),
+      HomeWidget.saveWidgetData<int>('widget_water_intake', log.waterIntake),
     ]);
 
     await Future.wait([
-      HomeWidget.updateWidget(
-        androidName: 'NutriSmallWidgetProvider',
-        iOSName: 'NutriSmallWidget',
-      ),
-      HomeWidget.updateWidget(
-        androidName: 'NutriMediumWidgetProvider',
-        iOSName: 'NutriMediumWidget',
-      ),
-      HomeWidget.updateWidget(
-        androidName: 'NutriLargeWidgetProvider',
-        iOSName: 'NutriLargeWidget',
-      ),
-      HomeWidget.updateWidget(
-        androidName: 'NutriWaterWidgetProvider',
-        iOSName: 'NutriWaterWidget',
-      ),
+      HomeWidget.updateWidget(androidName: 'NutriSmallWidgetProvider'),
+      HomeWidget.updateWidget(androidName: 'NutriMediumWidgetProvider'),
+      HomeWidget.updateWidget(androidName: 'NutriLargeWidgetProvider'),
+      HomeWidget.updateWidget(androidName: 'NutriWaterWidgetProvider'),
     ]);
   }
 }
