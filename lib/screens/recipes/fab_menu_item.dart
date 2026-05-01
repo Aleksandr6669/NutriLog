@@ -22,6 +22,7 @@ class FabMenuItem extends StatefulWidget {
 class _FabMenuItemState extends State<FabMenuItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _iconScale;
   late Animation<double> _textWidth;
   late Animation<double> _opacity;
 
@@ -30,14 +31,31 @@ class _FabMenuItemState extends State<FabMenuItem>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 350),
     );
+
+    // Иконка "выскакивает" первой (0.0 -> 0.5)
+    _iconScale = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
+      ),
+    );
+
+    // Текст "выезжает" и появляется после иконки (0.4 -> 1.0)
     _textWidth = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+      ),
     );
     _opacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeIn),
+      ),
     );
+
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
     });
@@ -53,68 +71,80 @@ class _FabMenuItemState extends State<FabMenuItem>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 234, 246, 235),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                // Оценка ширины текста
-                final text = widget.label;
-                const textStyle =
-                    TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
-                final textPainter = TextPainter(
-                  text: TextSpan(text: text, style: textStyle),
-                  maxLines: 1,
-                  textDirection: TextDirection.ltr,
-                )..layout();
-                final textWidth = textPainter.size.width;
-                const iconWidth = 32.0;
-                const spacing = 30.0;
-                const minWidth = iconWidth; // только иконка
-                final maxWidth = textWidth + spacing + iconWidth;
-                final width =
-                    (minWidth + (maxWidth - minWidth)) * _textWidth.value;
-                return SizedBox(
-                  width: width,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Текст
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              const textStyle = TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              );
+
+              return ClipRect(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  widthFactor: _textWidth.value,
                   child: Opacity(
                     opacity: _opacity.value,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 5, left: 5),
-                            child: Text(
-                              widget.label,
-                              overflow: TextOverflow.clip,
-                              style: textStyle,
-                              maxLines: 1,
-                            ),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        Icon(widget.icon, color: AppColors.primary, size: iconWidth),
-                      ],
+                        ],
+                      ),
+                      child: Text(
+                        widget.label,
+                        style: textStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.visible,
+                      ),
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+          
+          // Кружок с иконкой
+          ScaleTransition(
+            scale: _iconScale,
+            child: Container(
+              width: 48,
+              height: 48,
+              // Небольшой отступ справа, чтобы выровнять с главной FAB кнопкой (которая 58x58)
+              margin: const EdgeInsets.only(right: 5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(
+                widget.icon,
+                color: AppColors.primary,
+                size: 24,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
