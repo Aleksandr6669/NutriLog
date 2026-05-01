@@ -30,6 +30,16 @@ class HomeWidgetSyncService {
             .clamp(0, 999)
         : 0;
 
+    final carbsPercent = profile.carbsGoal > 0
+        ? ((carbs / profile.carbsGoal) * 100).round().clamp(0, 100)
+        : 0;
+    final proteinPercent = profile.proteinGoal > 0
+        ? ((protein / profile.proteinGoal) * 100).round().clamp(0, 100)
+        : 0;
+    final fatPercent = profile.fatGoal > 0
+        ? ((fat / profile.fatGoal) * 100).round().clamp(0, 100)
+        : 0;
+
     try {
       await HomeWidget.setAppGroupId(_iosAppGroup);
     } catch (_) {
@@ -41,17 +51,23 @@ class HomeWidgetSyncService {
       HomeWidget.saveWidgetData<int>(
           'widget_calories_goal', profile.calorieGoal),
       HomeWidget.saveWidgetData<int>(
-          'widget_calories_consumed', effectiveConsumed),
+          'widget_calories_consumed', consumed), // Raw consumed for the icon block
+      HomeWidget.saveWidgetData<int>(
+          'widget_calories_effective', effectiveConsumed), // For the circle
+      HomeWidget.saveWidgetData<int>('widget_calories_activity', activity),
       HomeWidget.saveWidgetData<int>('widget_calories_remaining', remaining),
       HomeWidget.saveWidgetData<int>(
           'widget_calories_percent', caloriesPercent),
       HomeWidget.saveWidgetData<int>('widget_carbs', carbs),
       HomeWidget.saveWidgetData<int>('widget_carbs_goal', profile.carbsGoal),
+      HomeWidget.saveWidgetData<int>('widget_carbs_percent', carbsPercent),
       HomeWidget.saveWidgetData<int>('widget_protein', protein),
       HomeWidget.saveWidgetData<int>(
           'widget_protein_goal', profile.proteinGoal),
+      HomeWidget.saveWidgetData<int>('widget_protein_percent', proteinPercent),
       HomeWidget.saveWidgetData<int>('widget_fat', fat),
       HomeWidget.saveWidgetData<int>('widget_fat_goal', profile.fatGoal),
+      HomeWidget.saveWidgetData<int>('widget_fat_percent', fatPercent),
       HomeWidget.saveWidgetData<int>('widget_water_intake', waterIntake),
       HomeWidget.saveWidgetData<int>('widget_water_goal', waterGoal),
       HomeWidget.saveWidgetData<String>('widget_water_liters', waterLiters),

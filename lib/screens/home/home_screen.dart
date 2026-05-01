@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Center(
                         child: Container(
@@ -202,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 14),
                       Text(
                         'Ручной ввод шагов',
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),

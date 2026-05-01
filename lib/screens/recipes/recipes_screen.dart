@@ -480,6 +480,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
           bottomNavigationBar: null,
           floatingActionButton: null,
         ),
+        if (_showFabMenu)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => setState(() => _showFabMenu = false),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.15),
+              ),
+            ),
+          ),
         if (!widget.selectionMode)
           Positioned(
             right: 24,
@@ -527,7 +536,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   const SizedBox(height: 16),
                 ],
                 GestureDetector(
-                  onTap: () => setState(() => _showFabMenu = !_showFabMenu),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _showFabMenu = !_showFabMenu);
+                  },
                   child: AnimatedRotation(
                     turns: _showFabMenu ? 0.125 : 0.0,
                     duration: const Duration(milliseconds: 220),

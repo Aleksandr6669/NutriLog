@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'profile_service.dart';
 import 'notification_settings_service.dart';
+import '../router.dart';
 
 class NotificationPermissionDeniedException implements Exception {
   final String message;
@@ -38,6 +39,43 @@ class AppNotificationService {
 
   final ProfileService _profileService = ProfileService();
   static bool _initialized = false;
+
+  final List<String> _breakfastMessages = [
+    "Доброе утро! Завтрак — это топливо для великих дел. Что сегодня в меню?",
+    "Проснулись — потянулись! Не забудьте внести свой полезный завтрак в NutriLog.",
+    "Завтрак — самый важный прием пищи. Зарядитесь энергией и отметьте это!",
+  ];
+
+  final List<String> _lunchMessages = [
+    "Время обеда! Сделайте паузу и насладитесь вкусом. Жду ваш отчет в приложении.",
+    "Обед по расписанию! Поддержите свой метаболизм правильной порцией.",
+    "Приятного аппетита! Что интересного сегодня на тарелке? Запишите в NutriLog.",
+  ];
+
+  final List<String> _dinnerMessages = [
+    "Скоро вечер! Легкий ужин — залог крепкого сна. Что планируете?",
+    "Время ужинать. Подведем итоги дня? Добавьте последний прием пищи.",
+    "Ваш организм скажет 'спасибо' за сбалансированный ужин. Не забудьте отметить!",
+  ];
+
+  final List<String> _weightMessages = [
+    "Пора на весы! Помните: цифра — это просто данные для прогресса. Внесите их.",
+    "Время контрольного взвешивания. Фиксируем результат и идем дальше!",
+    "Дисциплина — ключ к успеху. Один замер веса приблизит вас к цели.",
+  ];
+
+  final List<String> _waterMessages = [
+    "Глоток свежести! Пора попить воды.",
+    "Ваши клетки просят влаги. Небольшой стакан воды?",
+    "H2O — ваш лучший друг. Увлажняемся!",
+    "Чувствуете усталость? Возможно, пора выпить немного воды.",
+    "Водный баланс — залог красоты и здоровья. Пьем?",
+    "Не ждите жажды, попейте сейчас!",
+    "Чистая вода — чистая энергия. Сделайте пару глотков.",
+    "Напоминание: стакан воды сделает ваш день лучше.",
+    "Вода — это жизнь. Не забудьте про свой стакан!",
+    "Время освежиться и пополнить запасы воды.",
+  ];
 
   /// Инициализирует сервис уведомлений один раз в жизни приложения.
   /// Настраивает таймзону локально и Android/iOS детали.
@@ -127,7 +165,7 @@ class AppNotificationService {
     await AwesomeNotifications().cancel(1200);
 
     final hasEnabledReminders =
-        settings.waterReminderEnabled || settings.mealRemindersEnabled;
+        settings.waterReminderEnabled || settings.mealRemindersEnabled || settings.weightReminderEnabled;
     if (!hasEnabledReminders) return;
 
     final granted = await _requestPermissions();
@@ -137,69 +175,67 @@ class AppNotificationService {
       );
     }
 
-    var scheduledCount = 0;
-
     if (settings.waterReminderEnabled) {
-      scheduledCount += await _scheduleWaterReminders();
+      await _scheduleWaterReminders();
     }
 
     // Добавляем напоминание о взвешивании, если включено
     if (settings.weightReminderEnabled) {
       final hour = settings.weightReminderTime.hour;
       final minute = settings.weightReminderTime.minute;
-      final timeStr =
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      final body = _weightMessages[DateTime.now().millisecond % _weightMessages.length];
+      
       await _scheduleDaily(
         id: 1200,
         title: 'Взвешивание',
-        body:
-            'Не забудьте внести свой вес в дневник NutriLog! Время напоминания: $timeStr',
+        body: body,
         hour: hour,
         minute: minute,
       );
     }
 
     if (settings.mealRemindersEnabled) {
+      final breakfastBody = _breakfastMessages[DateTime.now().millisecond % _breakfastMessages.length];
       await _scheduleDaily(
         id: _breakfastId,
         title: 'Время завтрака',
-        body: 'Добавьте прием пищи в дневник, чтобы не терять статистику.',
+        body: breakfastBody,
         hour: settings.breakfastTime.hour,
         minute: settings.breakfastTime.minute,
       );
-      scheduledCount++;
+      
+      final lunchBody = _lunchMessages[(DateTime.now().millisecond + 1) % _lunchMessages.length];
       await _scheduleDaily(
         id: _lunchId,
         title: 'Время обеда',
-        body: 'Напоминание: отметьте обед в NutriLog.',
+        body: lunchBody,
         hour: settings.lunchTime.hour,
         minute: settings.lunchTime.minute,
       );
-      scheduledCount++;
+      
+      final dinnerBody = _dinnerMessages[(DateTime.now().millisecond + 2) % _dinnerMessages.length];
       await _scheduleDaily(
         id: _dinnerId,
         title: 'Время ужина',
-        body: 'Пора проверить дневник и добавить ужин.',
+        body: dinnerBody,
         hour: settings.dinnerTime.hour,
         minute: settings.dinnerTime.minute,
       );
-      scheduledCount++;
     }
-
-    // TODO: Для AwesomeNotifications нет прямого аналога pendingNotificationRequests с фильтрацией по id, но listScheduledNotifications используется ниже.
-    // Можно реализовать дополнительную проверку, если потребуется.
   }
 
   Future<int> _scheduleWaterReminders() async {
-    // Уведомление каждый час с завтрака до ужина, без количества и объема
+    // Уведомление каждый час с завтрака до ужина
     const hours = _waterEndHour - _waterStartHour;
     var scheduledCount = 0;
     for (var i = 0; i < hours; i++) {
       final hour = _waterStartHour + i;
+      final body = _waterMessages[i % _waterMessages.length];
+      
       await _scheduleDaily(
         id: _waterBaseId + i,
         title: 'Пора попить воды',
-        body: 'Ваша цель — поддерживать водный баланс.',
+        body: body,
         hour: hour,
         minute: 0,
       );
@@ -300,5 +336,22 @@ class AppNotificationService {
         'Локальное время: ${now.hour}:${now.minute.toString().padLeft(2, '0')}\n'
         'Запланировано уведомлений: $pendingCount\n'
         '(waterReminders: 0-19, breakfast: 1101, lunch: 1102, dinner: 1103)';
+  }
+
+  @pragma('vm:entry-point')
+  static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
+    final id = receivedAction.id;
+    
+    if (id == _breakfastId) {
+      appRouter.push('/meal', extra: {'type': 'breakfast'});
+    } else if (id == _lunchId) {
+      appRouter.push('/meal', extra: {'type': 'lunch'});
+    } else if (id == _dinnerId) {
+      appRouter.push('/meal', extra: {'type': 'dinner'});
+    } else if (id == 1200) {
+      appRouter.push('/weight');
+    } else {
+      appRouter.go('/home');
+    }
   }
 }

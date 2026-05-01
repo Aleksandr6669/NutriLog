@@ -85,11 +85,12 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
         : 'Сохранено за $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(title: const Text('Вес')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: glassBodyPadding(context, bottom: 110),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Card(
               child: Padding(

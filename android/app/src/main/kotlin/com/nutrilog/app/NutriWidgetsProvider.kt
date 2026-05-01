@@ -3,6 +3,7 @@ package com.nutrilog.app
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
@@ -17,63 +18,61 @@ private object NutriWidgetMapper {
 
     fun bindSmall(views: RemoteViews, data: SharedPreferences) {
         val remaining = intValue(data, "widget_calories_remaining")
-        val consumed = intValue(data, "widget_calories_consumed")
-        val goal = intValue(data, "widget_calories_goal")
+        val percent = intValue(data, "widget_calories_percent")
 
-        views.setTextViewText(R.id.widgetTitle, "Дневная цель")
-        views.setTextViewText(R.id.widgetMainValue, "$remaining")
-        views.setTextViewText(R.id.widgetSubValue, "Осталось ккал")
-        views.setTextViewText(R.id.widgetMeta, "$consumed / $goal ккал")
+        views.setTextViewText(R.id.widgetCalories, "$remaining")
+        views.setProgressBar(R.id.progressCalories, 100, percent.coerceIn(0, 100), false)
     }
 
     fun bindMedium(views: RemoteViews, data: SharedPreferences) {
-        val consumed = intValue(data, "widget_calories_consumed")
-        val goal = intValue(data, "widget_calories_goal")
-
-        views.setTextViewText(R.id.widgetTitle, "NutriLog")
-        views.setTextViewText(R.id.widgetCalories, "$consumed / $goal ккал")
-        views.setTextViewText(
-            R.id.widgetMacros,
-            "Б ${intValue(data, "widget_protein")}/${intValue(data, "widget_protein_goal")}  " +
-                "Ж ${intValue(data, "widget_fat")}/${intValue(data, "widget_fat_goal")}  " +
-                "У ${intValue(data, "widget_carbs")}/${intValue(data, "widget_carbs_goal")}",
-        )
-    }
-
-    fun bindLarge(views: RemoteViews, data: SharedPreferences) {
         val remaining = intValue(data, "widget_calories_remaining")
         val consumed = intValue(data, "widget_calories_consumed")
         val goal = intValue(data, "widget_calories_goal")
+        val percent = intValue(data, "widget_calories_percent")
 
-        views.setTextViewText(R.id.widgetTitle, "Дневные цели")
-        views.setTextViewText(R.id.widgetMainValue, "$remaining ккал")
-        views.setTextViewText(R.id.widgetSubValue, "Осталось")
-        views.setTextViewText(R.id.widgetMeta, "Съедено: $consumed / $goal")
-        views.setTextViewText(
-            R.id.widgetMacros,
-            "Белки: ${intValue(data, "widget_protein")}/${intValue(data, "widget_protein_goal")} г\n" +
-                "Жиры: ${intValue(data, "widget_fat")}/${intValue(data, "widget_fat_goal")} г\n" +
-                "Углеводы: ${intValue(data, "widget_carbs")}/${intValue(data, "widget_carbs_goal")} г",
-        )
-        views.setTextViewText(
-            R.id.widgetWater,
-            "Вода: ${stringValue(data, "widget_water_liters", "0.0")} / " +
-                "${stringValue(data, "widget_water_goal_liters", "0.0")} л",
-        )
+        // Калории
+        views.setTextViewText(R.id.widgetCalories, "$remaining")
+        views.setProgressBar(R.id.progressCalories, 100, percent.coerceIn(0, 100), false)
+        views.setTextViewText(R.id.tvCalories, "$consumed")
+        views.setTextViewText(R.id.tvGoal, "$goal")
+
+        // Макросы
+        val carbs = intValue(data, "widget_carbs")
+        val carbsGoal = intValue(data, "widget_carbs_goal")
+        val carbsPercent = intValue(data, "widget_carbs_percent")
+        views.setTextViewText(R.id.tvCarbs, "$carbs/${carbsGoal}г")
+        views.setProgressBar(R.id.progressCarbs, 100, carbsPercent.coerceIn(0, 100), false)
+
+        val protein = intValue(data, "widget_protein")
+        val proteinGoal = intValue(data, "widget_protein_goal")
+        val proteinPercent = intValue(data, "widget_protein_percent")
+        views.setTextViewText(R.id.tvProtein, "$protein/${proteinGoal}г")
+        views.setProgressBar(R.id.progressProtein, 100, proteinPercent.coerceIn(0, 100), false)
+
+        val fat = intValue(data, "widget_fat")
+        val fatGoal = intValue(data, "widget_fat_goal")
+        val fatPercent = intValue(data, "widget_fat_percent")
+        views.setTextViewText(R.id.tvFat, "$fat/${fatGoal}г")
+        views.setProgressBar(R.id.progressFat, 100, fatPercent.coerceIn(0, 100), false)
+    }
+
+    fun bindLarge(views: RemoteViews, data: SharedPreferences) {
+        // Large layout can reuse medium logic
+        bindMedium(views, data)
+        
+        // Large specific: Activity
+        val activity = intValue(data, "widget_calories_activity")
+        views.setTextViewText(R.id.tvActivity, "$activity ккал")
     }
 
     fun bindWater(views: RemoteViews, data: SharedPreferences) {
-        views.setTextViewText(R.id.widgetTitle, "Вода")
-        views.setTextViewText(
-            R.id.widgetMainValue,
-            "${stringValue(data, "widget_water_liters", "0.0")} / " +
-                "${stringValue(data, "widget_water_goal_liters", "0.0")} л",
-        )
-        views.setTextViewText(R.id.widgetSubValue, "Дневной баланс")
-        views.setTextViewText(
-            R.id.widgetMeta,
-            "${intValue(data, "widget_water_intake")} из ${intValue(data, "widget_water_goal")} мл",
-        )
+        val waterLiters = stringValue(data, "widget_water_liters", "0.0")
+        val intake = intValue(data, "widget_water_intake")
+        val goal = intValue(data, "widget_water_goal")
+        val percent = if (goal > 0) (intake * 100 / goal) else 0
+
+        views.setTextViewText(R.id.widgetWater, waterLiters)
+        views.setProgressBar(R.id.progressWater, 100, percent.coerceIn(0, 100), false)
     }
 }
 
