@@ -16,7 +16,6 @@
         android:background="#F1F8F4"
         android:layout_marginBottom="8dp">
         
-        <!-- Green Accent Line -->
         <View
             android:layout_width="4dp"
             android:layout_height="match_parent"
@@ -35,8 +34,7 @@
                 android:text="КАЛОРИИ"
                 android:textColor="#1DB954"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -49,9 +47,8 @@
                     android:layout_height="wrap_content"
                     android:text="1450"
                     android:textColor="#16261B"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:includeFontPadding="false" />
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -72,7 +69,6 @@
         android:orientation="horizontal"
         android:background="#F1F8F4">
 
-        <!-- Green Accent Line -->
         <View
             android:layout_width="4dp"
             android:layout_height="match_parent"

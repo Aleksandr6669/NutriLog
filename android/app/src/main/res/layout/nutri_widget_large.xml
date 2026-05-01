@@ -32,8 +32,7 @@
                 android:text="ОБЗОР ДНЯ"
                 android:textColor="#1DB954"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/widgetCalories"
                 android:layout_width="wrap_content"
@@ -41,8 +40,7 @@
                 android:text="1840 ккал"
                 android:textColor="#16261B"
                 android:textSize="32sp"
-                android:textStyle="bold"
-                android:includeFontPadding="false" />
+                android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
