@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/recipes_screen.dart';
@@ -39,6 +40,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 
   Future<void> _addFromRecipes() async {
+    HapticFeedback.selectionClick();
     final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
       MaterialPageRoute(
         builder: (_) => const RecipesScreen(selectionMode: true),
@@ -70,6 +72,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 
   Future<void> _removeFoodItemAt(int index) async {
+    HapticFeedback.mediumImpact();
     await _dailyLogService.removeFoodItemFromMeal(
       widget.date,
       widget.mealName,

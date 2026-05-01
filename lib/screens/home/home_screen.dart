@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -284,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
+      HapticFeedback.selectionClick();
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
@@ -300,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _toggleCalendarVisibility() {
+    HapticFeedback.lightImpact();
     setState(() {
       _isCalendarVisible = !_isCalendarVisible;
     });
@@ -801,6 +804,7 @@ class _MealsSection extends StatelessWidget {
             waterIntake: dailyLog.waterIntake,
             waterGoal: profile.waterGoal,
             onAdd: () async {
+              HapticFeedback.lightImpact();
               final service = DailyLogService();
               final profileService = ProfileService();
               final homeWidgetSyncService = HomeWidgetSyncService();
@@ -812,6 +816,7 @@ class _MealsSection extends StatelessWidget {
               await onDataChanged();
             },
             onRemove: () async {
+              HapticFeedback.lightImpact();
               final service = DailyLogService();
               final profileService = ProfileService();
               final homeWidgetSyncService = HomeWidgetSyncService();

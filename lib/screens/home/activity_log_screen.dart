@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/daily_log.dart';
 import '../../services/daily_log_service.dart';
@@ -39,6 +40,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       _activities.fold<int>(0, (sum, activity) => sum + activity.calories);
 
   Future<void> _addOrEditActivity({ActivityEntry? entry}) async {
+    HapticFeedback.selectionClick();
     final result = await Navigator.of(context).push<ActivityEntry>(
       MaterialPageRoute(
         builder: (_) => EditActivityEntryScreen(entry: entry),
@@ -101,6 +103,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
   }
 
   Future<void> _confirmAndRemoveActivity(ActivityEntry entry) async {
+    HapticFeedback.mediumImpact();
     await _removeActivity(entry);
     if (!mounted) return;
     // SnackBar при удалении активности убран по требованию

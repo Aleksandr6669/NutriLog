@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_loader.dart';
@@ -52,6 +53,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _addRecipeSelection(Recipe recipe) {
+    HapticFeedback.lightImpact();
     setState(() {
       _selectedRecipeCounts[recipe.id] =
           (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
@@ -59,6 +61,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _removeRecipeSelection(Recipe recipe) {
+    HapticFeedback.lightImpact();
     final currentCount = _selectedRecipeCounts[recipe.id] ?? 0;
     if (currentCount <= 0) return;
 
@@ -72,6 +75,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _openRecipeDetail(Recipe recipe) async {
+    HapticFeedback.selectionClick();
     if (!widget.selectionMode) {
       await _navigateAndRefresh(RecipeDetailScreen(recipe: recipe));
       return;
@@ -299,6 +303,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _toggleDeleteSelectionMode() {
+    HapticFeedback.lightImpact();
     setState(() {
       _isDeleteSelectionMode = !_isDeleteSelectionMode;
 
@@ -315,6 +320,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _toggleRecipeForDelete(Recipe recipe) {
+    HapticFeedback.lightImpact();
     if (!recipe.isUserRecipe) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -337,6 +343,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _deleteSelectedRecipes() async {
+    HapticFeedback.heavyImpact();
     if (_selectedRecipeIdsForDelete.isEmpty) return;
 
     // final count = _selectedRecipeIdsForDelete.length; // не используется
@@ -357,6 +364,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _deleteRecipe(Recipe recipe) async {
+    HapticFeedback.mediumImpact();
     await _recipeService.deleteRecipe(recipe.id);
     _loadAllRecipes();
     // SnackBar больше не показываем
