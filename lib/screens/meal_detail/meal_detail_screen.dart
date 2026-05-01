@@ -324,17 +324,20 @@ class _FoodItemsList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Рецепты в приеме пищи', style: theme.textTheme.headlineSmall),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         foodItems.isEmpty
             ? _buildEmptyState(context)
             : ListView.separated(
+                padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: foodItems.length,
                 itemBuilder: (context, index) {
-                  final item = foodItems[index];
+                  // Отображаем в обратном порядке (новое вверху)
+                  final originalIndex = foodItems.length - 1 - index;
+                  final item = foodItems[originalIndex];
                   return Dismissible(
-                    key: ValueKey('${item.name}_${item.description}_$index'),
+                    key: ValueKey('${item.name}_${item.description}_$originalIndex'),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       decoration: BoxDecoration(
@@ -350,11 +353,11 @@ class _FoodItemsList extends StatelessWidget {
                       ),
                     ),
                     confirmDismiss: (_) async => true,
-                    onDismissed: (_) => onRemove(index),
+                    onDismissed: (_) => onRemove(originalIndex),
                     child: _FoodListItem(
                       item: item,
                       onTap: () => onItemTap(item),
-                      onDeleteTap: () => onRemove(index),
+                      onDeleteTap: () => onRemove(originalIndex),
                     ),
                   );
                 },

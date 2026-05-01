@@ -100,6 +100,14 @@ class Recipe {
     );
   }
 
+  factory Recipe.empty() {
+    return Recipe(
+      id: '',
+      name: '',
+      icon: Icons.restaurant,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
