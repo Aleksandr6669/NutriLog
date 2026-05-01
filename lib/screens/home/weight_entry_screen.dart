@@ -88,7 +88,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(title: const Text('Вес')),
       body: SingleChildScrollView(
-        padding: glassBodyPadding(context, bottom: 110),
+        padding: glassBodyPadding(context, bottom: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
