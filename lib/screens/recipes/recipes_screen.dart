@@ -469,38 +469,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: (_isDeleteSelectionMode && !widget.selectionMode)
-              ? SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _selectedRecipeIdsForDelete.isEmpty
-                            ? null
-                            : _deleteSelectedRecipes,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 28,
-                            vertical: 14,
-                          ),
-                        ),
-                        icon: const Icon(Symbols.delete),
-                        label: const Text('Удалить'),
-                      ),
-                    ),
-                  ),
-                )
-              : null,
+          bottomNavigationBar: null,
           floatingActionButton: null,
         ),
-        if (!widget.selectionMode && !_isDeleteSelectionMode)
+        if (!widget.selectionMode)
           Positioned(
             right: 24,
             bottom: (MediaQuery.of(context).padding.bottom + 26),
-            child: Column(
+            child: _isDeleteSelectionMode
+                ? _buildDeleteFab()
+                : Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (_showFabMenu) ...[
@@ -573,6 +551,37 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildDeleteFab() {
+    final hasSelection = _selectedRecipeIdsForDelete.isNotEmpty;
+    return GestureDetector(
+      onTap: hasSelection ? _deleteSelectedRecipes : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 58,
+        height: 58,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: hasSelection ? Colors.red : Colors.grey.shade400,
+          boxShadow: hasSelection
+              ? [
+                  BoxShadow(
+                    color: Colors.red.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: const Icon(
+          Symbols.delete,
+          color: Colors.white,
+          size: 30,
+        ),
+      ),
     );
   }
 
