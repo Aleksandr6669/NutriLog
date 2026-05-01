@@ -34,8 +34,7 @@
                 android:text="КАЛОРИИ"
                 android:textColor="#1DB954"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widgetCalories"
@@ -44,8 +43,7 @@
                 android:text="1450"
                 android:textColor="#16261B"
                 android:textSize="28sp"
-                android:textStyle="bold"
-                android:includeFontPadding="false" />
+                android:textStyle="bold" />
             
             <TextView
                 android:layout_width="wrap_content"

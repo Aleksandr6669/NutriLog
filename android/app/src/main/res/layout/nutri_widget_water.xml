@@ -32,10 +32,10 @@
                 android:text="ВОДА"
                 android:textColor="#1DB954"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
 
-            <Space
+            <!-- Margin instead of Space -->
+            <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
@@ -47,8 +47,7 @@
                 android:text="1.2 Л"
                 android:textColor="#16261B"
                 android:textSize="28sp"
-                android:textStyle="bold"
-                android:includeFontPadding="false" />
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -58,7 +57,7 @@
                 android:textSize="11sp"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Quick Add Button Placeholder -->
+            <!-- Quick Add Button Placeholder (Removed Tint for compatibility) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -68,13 +67,12 @@
                 <FrameLayout
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="@drawable/bg_circle_widget"
-                    android:backgroundTint="#1DB954">
+                    android:background="@drawable/bg_circle_widget">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="+"
-                        android:textColor="#fff"
+                        android:textColor="#1DB954"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_gravity="center" />
