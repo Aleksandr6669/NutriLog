@@ -100,12 +100,40 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
               children: [
                 Card(
                   child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Symbols.info,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Здесь вы фиксируете ваш вес на выбранную дату.\n'
+                            'Это позволяет отслеживать прогресс в достижении целей\n'
+                            'и точнее рассчитывать нормы калорий в аналитике.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  height: 1.35,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
-                          Symbols.info,
+                          Symbols.target,
                           size: 20,
                           color: AppColors.primary,
                         ),
