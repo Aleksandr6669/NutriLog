@@ -123,12 +123,6 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
         appBar: buildGlassAppBar(
           title: const Text('Активность'),
           actions: [
-            if (_hasChanges)
-              IconButton(
-                icon: const Icon(Symbols.check_circle, size: 28),
-                onPressed: _saving ? null : _saveChanges,
-                tooltip: 'Сохранить изменения',
-              ),
             const SizedBox(width: 8),
           ],
         ),
