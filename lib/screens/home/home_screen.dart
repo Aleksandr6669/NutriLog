@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -49,6 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isCalendarVisible = false;
   Set<DateTime> _loggedDates = {};
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _waterKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +60,36 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshHealthConnectionState();
     _loadLogForSelectedDate();
     _loadLoggedDates();
+    _checkScrollRequest();
+  }
+
+  void _checkScrollRequest() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final state = GoRouterState.of(context);
+        if (state.uri.queryParameters['scrollTo'] == 'water') {
+          _scrollToWater();
+        }
+      } catch (_) {}
+    });
+  }
+
+  void _scrollToWater() {
+    final context = _waterKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshHealthConnectionState() async {
@@ -421,6 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : _currentDailyLog == null
                       ? const Center(child: Text('Нет данных для этой даты.'))
                       : SingleChildScrollView(
+                          controller: _scrollController,
                           padding: glassBodyPadding(
                             context,
                             top: 16,
@@ -444,6 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedDate: _selectedDay,
                                 showManualStepsInput: !_isHealthConnected,
                                 onManualStepsInput: _setStepsManually,
+                                waterKey: _waterKey,
                               ),
                             ],
                           ),
@@ -754,6 +790,7 @@ class _MealsSection extends StatelessWidget {
   final DateTime selectedDate;
   final bool showManualStepsInput;
   final Future<void> Function() onManualStepsInput;
+  final GlobalKey? waterKey;
 
   const _MealsSection({
     required this.dailyLog,
@@ -762,6 +799,7 @@ class _MealsSection extends StatelessWidget {
     required this.selectedDate,
     required this.showManualStepsInput,
     required this.onManualStepsInput,
+    this.waterKey,
   });
 
   @override
@@ -796,6 +834,7 @@ class _MealsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text('Вода',
+                key: waterKey,
                 style: theme.textTheme.headlineSmall
                     ?.copyWith(color: theme.colorScheme.onSurface)),
           ],

@@ -341,7 +341,13 @@ class AppNotificationService {
   @pragma('vm:entry-point')
   static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
     final id = receivedAction.id;
-    
+    if (id != null) {
+      // Уменьшаем счетчик на иконке при нажатии на конкретное уведомление
+      AwesomeNotifications().decrementGlobalBadgeCounter();
+      // Убираем только это уведомление из шторки
+      AwesomeNotifications().dismiss(id);
+    }
+
     if (id == _breakfastId) {
       appRouter.push('/meal', extra: {'type': 'breakfast'});
     } else if (id == _lunchId) {
@@ -350,6 +356,8 @@ class AppNotificationService {
       appRouter.push('/meal', extra: {'type': 'dinner'});
     } else if (id == 1200) {
       appRouter.push('/weight');
+    } else if (id != null && id >= _waterBaseId && id < _waterBaseId + _maxWaterReminders) {
+      appRouter.go('/home?scrollTo=water');
     } else {
       appRouter.go('/home');
     }
