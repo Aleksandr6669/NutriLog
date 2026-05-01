@@ -101,6 +101,20 @@ class AppNotificationService {
       debug: false,
     );
     _initialized = true;
+
+    // Сброс счетчика и уведомлений при первой инициализации
+    await resetBadge();
+  }
+
+  /// Сбрасывает счетчик на иконке и убирает все уведомления из шторки.
+  Future<void> resetBadge() async {
+    if (kIsWeb) return;
+    try {
+      await AwesomeNotifications().setGlobalBadgeCounter(0);
+      await AwesomeNotifications().dismissAllNotifications();
+    } catch (e) {
+      debugPrint('Error resetting badge: $e');
+    }
   }
 
   Future<void> _configureTimezone() async {

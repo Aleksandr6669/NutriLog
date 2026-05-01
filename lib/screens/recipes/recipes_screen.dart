@@ -36,6 +36,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _selectedRecipesCollapsed = true;
   bool _isDeleteSelectionMode = false;
   late Map<String, int> _selectedRecipeCounts;
+  final List<String> _selectedOrder = [];
   final Set<String> _selectedRecipeIdsForDelete = <String>{};
   bool _showFabMenu = false;
 
@@ -45,6 +46,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _selectedRecipeCounts = {
       for (final id in widget.initialSelectedRecipeIds) id: 1,
     };
+    _selectedOrder.addAll(widget.initialSelectedRecipeIds);
     _loadAllRecipes();
     _searchController.addListener(_filterRecipes);
   }
@@ -54,6 +56,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() {
       _selectedRecipeCounts[recipe.id] =
           (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
+      
+      // Перемещаем в начало, так как это последнее добавленное/измененное
+      _selectedOrder.remove(recipe.id);
+      _selectedOrder.insert(0, recipe.id);
     });
   }
 
@@ -65,6 +71,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() {
       if (currentCount == 1) {
         _selectedRecipeCounts.remove(recipe.id);
+        _selectedOrder.remove(recipe.id);
       } else {
         _selectedRecipeCounts[recipe.id] = currentCount - 1;
       }
@@ -97,7 +104,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   void _finishSelection() {
     final selectedRecipes = <Recipe>[];
-    for (final recipe in _allRecipes) {
+    // Используем _selectedOrder в обратном порядке (от старых к новым),
+    // чтобы при добавлении в общий список и последующем реверсе в UI
+    // новые элементы оказались сверху.
+    for (final id in _selectedOrder.reversed) {
+      final recipe = _allRecipes.firstWhere((r) => r.id == id, orElse: () => Recipe.empty());
+      if (recipe.id.isEmpty) continue;
+      
       final count = _selectedRecipeCounts[recipe.id] ?? 0;
       for (var i = 0; i < count; i++) {
         selectedRecipes.add(recipe);
@@ -111,8 +124,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
       return const SizedBox.shrink();
     }
 
-    final selectedRecipes = _allRecipes
-        .where((recipe) => (_selectedRecipeCounts[recipe.id] ?? 0) > 0)
+    final selectedRecipes = _selectedOrder
+        .map((id) => _allRecipes.firstWhere((r) => r.id == id, orElse: () => Recipe.empty()))
+        .where((r) => r.id.isNotEmpty)
         .toList();
     final totalSelected =
         _selectedRecipeCounts.values.fold<int>(0, (a, b) => a + b);

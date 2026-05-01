@@ -74,15 +74,11 @@ void _reportFatalAppError(String title, Object error,
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Сброс badge при запуске приложения (iOS)
+  // Слушатели уведомлений настраиваем сразу
   if (!kIsWeb) {
-    try {
-      await AwesomeNotifications().setGlobalBadgeCounter(0);
-      // Обработка нажатий на уведомления
-      AwesomeNotifications().setListeners(
-        onActionReceivedMethod: AppNotificationService.onActionReceivedMethod,
-      );
-    } catch (_) {}
+    AwesomeNotifications().setListeners(
+      onActionReceivedMethod: AppNotificationService.onActionReceivedMethod,
+    );
   }
 
   FlutterError.onError = (details) {
@@ -153,6 +149,15 @@ void main() async {
 }
 
 Future<void> _bootstrapServices() async {
+  if (!kIsWeb) {
+    try {
+      final notificationService = AppNotificationService();
+      await notificationService.initialize();
+    } catch (_) {
+      // Не показываем предупреждение на старте.
+    }
+  }
+
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {
@@ -167,16 +172,6 @@ Future<void> _bootstrapServices() async {
     // Не блокируем запуск приложения из-за локализации дат.
     _reportStartupWarning(
         'Локализация дат не инициализировалась. Форматы дат могут быть упрощены.');
-  }
-
-  if (!kIsWeb) {
-    try {
-      final notificationService = AppNotificationService();
-      await notificationService.initialize();
-    } catch (_) {
-      // Не показываем предупреждение на старте. Доступ и настройка уведомлений
-      // выполняются только при взаимодействии пользователя с переключателями.
-    }
   }
 }
 
@@ -276,7 +271,7 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
   void initState() {
     super.initState();
     if (!kIsWeb) {
-      AwesomeNotifications().setGlobalBadgeCounter(0);
+      AppNotificationService().resetBadge();
     }
     _init();
   }
@@ -373,7 +368,7 @@ class _MainScreenShellState extends State<MainScreenShell> with WidgetsBindingOb
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (!kIsWeb) {
-      AwesomeNotifications().setGlobalBadgeCounter(0);
+      AppNotificationService().resetBadge();
     }
   }
 
@@ -387,7 +382,7 @@ class _MainScreenShellState extends State<MainScreenShell> with WidgetsBindingOb
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (!kIsWeb && state == AppLifecycleState.resumed) {
-      AwesomeNotifications().setGlobalBadgeCounter(0);
+      AppNotificationService().resetBadge();
     }
   }
 
