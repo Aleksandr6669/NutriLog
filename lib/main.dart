@@ -408,6 +408,7 @@ class _MainScreenShellState extends State<MainScreenShell> with WidgetsBindingOb
   }
 
   void _onItemTapped(int index) {
+    HapticFeedback.selectionClick();
     FocusManager.instance.primaryFocus?.unfocus();
     widget.navigationShell.goBranch(
       index,

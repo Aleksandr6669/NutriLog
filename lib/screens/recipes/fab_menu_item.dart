@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../styles/app_colors.dart';
 
 class FabMenuItem extends StatefulWidget {
@@ -70,7 +71,10 @@ class _FabMenuItemState extends State<FabMenuItem>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
