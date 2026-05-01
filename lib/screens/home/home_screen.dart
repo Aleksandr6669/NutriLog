@@ -1070,13 +1070,12 @@ class _ActivityWeightRow extends StatelessWidget {
                 icon: Symbols.fitness_center,
                 iconColor: Colors.orange,
                 onTap: () async {
-                  final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => ActivityLogScreen(
-                        date: selectedDate,
-                        initialActivities: dailyLog.activities,
-                      ),
-                    ),
+                  final result = await context.push<bool>(
+                    '/activity',
+                    extra: {
+                      'date': selectedDate,
+                      'initialActivities': dailyLog.activities,
+                    },
                   );
                   if (result == true) {
                     await onDataChanged();
@@ -1094,12 +1093,9 @@ class _ActivityWeightRow extends StatelessWidget {
                 icon: Symbols.monitor_weight,
                 iconColor: Colors.indigo,
                 onTap: () async {
-                  final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => WeightEntryScreen(
-                        date: selectedDate,
-                      ),
-                    ),
+                  final result = await context.push<bool>(
+                    '/weight',
+                    extra: {'date': selectedDate},
                   );
                   if (result == true) {
                     await onDataChanged();
@@ -1557,15 +1553,19 @@ class _MealCard extends StatelessWidget {
     final isNotEaten = calories == '0';
     return InkWell(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MealDetailScreen(
-              mealName: mealName,
-              items: items,
-              date: selectedDate,
-            ),
-          ),
+        final result = await context.push<bool>(
+          '/meal',
+          extra: {
+            'type': mealName == 'Завтрак'
+                ? 'breakfast'
+                : mealName == 'Обед'
+                    ? 'lunch'
+                    : mealName == 'Ужин'
+                        ? 'dinner'
+                        : 'snacks',
+            'items': items,
+            'date': selectedDate,
+          },
         );
         if (result == true) {
           await onDataChanged();

@@ -123,6 +123,18 @@ final GoRouter appRouter = GoRouter(
       path: '/weight',
       builder: (context, state) => WeightEntryScreen(date: DateTime.now()),
     ),
+    GoRoute(
+      path: '/activity',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final date = extra?['date'] as DateTime? ?? DateTime.now();
+        final initialActivities = extra?['initialActivities'] as List<ActivityEntry>? ?? [];
+        return ActivityLogScreen(
+          date: date,
+          initialActivities: initialActivities,
+        );
+      },
+    ),
     // Other top-level screens can be added here
   ],
 );

@@ -271,7 +271,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
             ),
             Positioned(
                 right: 24,
-                bottom: MediaQuery.paddingOf(context).bottom + 100,
+                bottom: MediaQuery.paddingOf(context).bottom + 24,
                 child: Container(
                   width: 58,
                   height: 58,
