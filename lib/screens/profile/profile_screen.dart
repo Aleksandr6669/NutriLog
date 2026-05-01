@@ -7,6 +7,8 @@ import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/services/app_startup_service.dart';
+import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -237,14 +239,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSimpleSettingsMenuCard(ThemeData theme) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Symbols.settings),
-        title: const Text('Настройки'),
-        subtitle: const Text('Подключения и сообщения'),
-        trailing: const Icon(Symbols.chevron_right),
-        onTap: () => context.push('/profile/connections'),
-      ),
+    return Column(
+      children: [
+        Card(
+          child: ListTile(
+            leading: const Icon(Symbols.settings),
+            title: const Text('Настройки'),
+            subtitle: const Text('Подключения и сообщения'),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () => context.push('/profile/connections'),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildVersionInfo(theme),
+      ],
+    );
+  }
+
+  Widget _buildVersionInfo(ThemeData theme) {
+    final startupService = AppStartupService();
+    return FutureBuilder<StartupState>(
+      future: startupService.loadState(),
+      builder: (context, snapshot) {
+        final version = snapshot.data?.currentVersion ?? '...';
+        return Column(
+          children: [
+            Text(
+              'Версия $version',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () async {
+                final state = await startupService.loadState();
+                if (!mounted) return;
+                
+                // Show WhatsNewScreen as a full-screen dialog or navigate to it
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => WhatsNewScreen(
+                      version: state.currentVersion,
+                      text: "• Улучшена производительность приложения.\n"
+                            "• Исправлены мелкие баги и улучшена стабильность.\n"
+                            "• Добавлены уведомления по воде и приемам пищи.\n"
+                            "• Добавлены уведомления напоминания взвеситься.\n"
+                            "• Улучшена интеграция с нейросетью.\n"
+                            "• Добавлены виджеты для андроида.\n"
+                            "• Добавлена поддержка новых устройств и экранов.",
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Что нового?',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -40,7 +40,13 @@ class AppStartupService {
     final prefs = await SharedPreferences.getInstance();
     final currentVersion = await _resolveCurrentVersion();
 
-    final needsOnboarding = !(prefs.getBool(_onboardingDoneKey) ?? false);
+    // Онбординг нужен, если:
+    // 1. Флаг прохождения не установлен.
+    // 2. ИЛИ в системе вообще нет данных профиля.
+    final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
+    final hasProfile = prefs.containsKey('user_profile');
+    
+    final needsOnboarding = !onboardingCompleted || !hasProfile;
 
     final lastSeenVersion = prefs.getString(_lastSeenWhatsNewVersionKey);
     final whatsNewText = _whatsNewByVersion[currentVersion];
