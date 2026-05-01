@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_bg"
-    android:padding="12dp"
-    android:gravity="center">
+    android:padding="12dp">
 
     <!-- Water Main Card -->
     <LinearLayout
@@ -24,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -34,7 +33,6 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Margin instead of Space -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -46,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:text="1.2 Л"
                 android:textColor="#16261B"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -54,36 +52,31 @@
                 android:layout_height="wrap_content"
                 android:text="цель: 2.5 л"
                 android:textColor="#8E998F"
-                android:textSize="11sp"
-                android:layout_marginBottom="12dp" />
+                android:textSize="11sp" />
 
-            <!-- Quick Add Button Placeholder (Removed Tint for compatibility) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
                 
-                <FrameLayout
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_circle_widget">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="+"
-                        android:textColor="#1DB954"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_gravity="center" />
-                </FrameLayout>
+                <TextView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:text="+"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:background="#1DB954" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Добавить стакан"
                     android:textColor="#16261B"
-                    android:textSize="10sp"
+                    android:textSize="9sp"
                     android:textStyle="bold"
                     android:layout_marginStart="8dp" />
             </LinearLayout>
