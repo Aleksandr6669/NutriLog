@@ -131,9 +131,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     final totalSelected =
         _selectedRecipeCounts.values.fold<int>(0, (a, b) => a + b);
     final canCollapse = selectedRecipes.length > 3;
-    final visibleRecipes = (_selectedRecipesCollapsed && canCollapse)
-        ? selectedRecipes.take(3).toList()
-        : selectedRecipes;
+    final visibleRecipes = selectedRecipes;
     final screenHeight = MediaQuery.of(context).size.height;
     const oneCardHeight = 76.0;
     final collapsedMaxHeight = screenHeight * 0.24;
