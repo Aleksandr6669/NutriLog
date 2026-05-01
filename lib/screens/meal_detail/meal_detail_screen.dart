@@ -157,12 +157,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             onPressed: () => Navigator.of(context).pop(_hasChanges),
           ),
           actions: [
-            if (_hasChanges)
-              IconButton(
-                icon: const Icon(Symbols.check_circle, size: 28),
-                onPressed: _saveChanges,
-                tooltip: 'Сохранить изменения',
-              ),
             IconButton(
               icon: const Icon(Symbols.add_circle_outline),
               onPressed: _addFromRecipes,
