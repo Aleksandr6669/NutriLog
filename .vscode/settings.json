@@ -8,5 +8,6 @@
     }
   },
   "remote.autoForwardPortsFallback": 0,
-  "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+  "livePreview.defaultPreviewPath": "/web_tools/nutrilog_studio/index.html"
 }
