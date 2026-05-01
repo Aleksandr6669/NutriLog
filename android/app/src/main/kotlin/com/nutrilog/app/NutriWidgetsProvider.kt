@@ -29,40 +29,41 @@ private object NutriWidgetMapper {
         val consumed = intValue(data, "widget_calories_consumed")
         val goal = intValue(data, "widget_calories_goal")
         val percent = intValue(data, "widget_calories_percent")
+        val activity = intValue(data, "widget_calories_activity")
 
         // Калории
         views.setTextViewText(R.id.widgetCalories, "$remaining")
         views.setProgressBar(R.id.progressCalories, 100, percent.coerceIn(0, 100), false)
         views.setTextViewText(R.id.tvCalories, "$consumed")
         views.setTextViewText(R.id.tvGoal, "$goal")
+        views.setTextViewText(R.id.tvActivity, "$activity")
 
         // Макросы
         val carbs = intValue(data, "widget_carbs")
         val carbsGoal = intValue(data, "widget_carbs_goal")
         val carbsPercent = intValue(data, "widget_carbs_percent")
-        views.setTextViewText(R.id.tvCarbs, "$carbs/${carbsGoal}г")
+        views.setTextViewText(R.id.tvCarbs, "${carbs}/${carbsGoal}г")
+        views.setTextViewText(R.id.tvCarbsPercent, "$carbsPercent%")
         views.setProgressBar(R.id.progressCarbs, 100, carbsPercent.coerceIn(0, 100), false)
 
         val protein = intValue(data, "widget_protein")
         val proteinGoal = intValue(data, "widget_protein_goal")
         val proteinPercent = intValue(data, "widget_protein_percent")
-        views.setTextViewText(R.id.tvProtein, "$protein/${proteinGoal}г")
+        views.setTextViewText(R.id.tvProtein, "${protein}/${proteinGoal}г")
+        views.setTextViewText(R.id.tvProteinPercent, "$proteinPercent%")
         views.setProgressBar(R.id.progressProtein, 100, proteinPercent.coerceIn(0, 100), false)
 
         val fat = intValue(data, "widget_fat")
         val fatGoal = intValue(data, "widget_fat_goal")
         val fatPercent = intValue(data, "widget_fat_percent")
-        views.setTextViewText(R.id.tvFat, "$fat/${fatGoal}г")
+        views.setTextViewText(R.id.tvFat, "${fat}/${fatGoal}г")
+        views.setTextViewText(R.id.tvFatPercent, "$fatPercent%")
         views.setProgressBar(R.id.progressFat, 100, fatPercent.coerceIn(0, 100), false)
     }
 
     fun bindLarge(views: RemoteViews, data: SharedPreferences) {
-        // Large layout can reuse medium logic
+        // Large layout uses the same binding logic but may have more specific IDs if needed
         bindMedium(views, data)
-        
-        // Large specific: Activity
-        val activity = intValue(data, "widget_calories_activity")
-        views.setTextViewText(R.id.tvActivity, "$activity ккал")
     }
 
     fun bindWater(views: RemoteViews, data: SharedPreferences) {
@@ -71,7 +72,10 @@ private object NutriWidgetMapper {
         val goal = intValue(data, "widget_water_goal")
         val percent = if (goal > 0) (intake * 100 / goal) else 0
 
+        val waterGoalLiters = stringValue(data, "widget_water_goal_liters", "0.0")
+
         views.setTextViewText(R.id.widgetWater, waterLiters)
+        views.setTextViewText(R.id.tvWaterGoal, "Цель: $waterGoalLiters л")
         views.setProgressBar(R.id.progressWater, 100, percent.coerceIn(0, 100), false)
     }
 }

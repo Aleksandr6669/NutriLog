@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../models/daily_log.dart';
@@ -10,6 +12,9 @@ class HomeWidgetSyncService {
     required DailyLog log,
     required UserProfile profile,
   }) async {
+    // Widgets are currently only implemented for Android.
+    // Skip for Web and other platforms to prevent MissingPluginException.
+    if (kIsWeb || !Platform.isAndroid) return;
     final consumed = log.totalNutrients.calories.round();
     final activity = log.activityCalories;
     final effectiveConsumed = (consumed - activity).clamp(0, 99999);

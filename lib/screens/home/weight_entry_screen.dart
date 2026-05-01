@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../../models/user_profile.dart';
-import '../../services/daily_log_service.dart';
-import '../../services/profile_service.dart';
-import '../../styles/app_colors.dart';
-import '../../widgets/glass_app_bar_background.dart';
-
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:nutri_log/models/user_profile.dart';
+import 'package:nutri_log/services/daily_log_service.dart';
+import 'package:nutri_log/styles/app_colors.dart';
+import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/providers/daily_log_provider.dart';
 
 class WeightEntryScreen extends StatefulWidget {
   final DateTime date;
@@ -21,29 +23,23 @@ class WeightEntryScreen extends StatefulWidget {
 }
 
 class _WeightEntryScreenState extends State<WeightEntryScreen> {
-  late final DailyLogService _service;
-  late final ProfileService _profileService;
   late TextEditingController _weightController;
   bool _saving = false;
-  UserProfile? _profile;
   double? _currentWeight;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _service = context.read<DailyLogService>();
-    _profileService = context.read<ProfileService>();
     _weightController = TextEditingController();
     _loadData();
   }
 
   Future<void> _loadData() async {
-    final profile = await _profileService.loadProfile();
-    final log = await _service.getLogForDate(widget.date);
+    final log = await DailyLogService().getLogForDate(widget.date);
+    
     if (!mounted) return;
     setState(() {
-      _profile = profile;
       _currentWeight = log.weight;
       _weightController.text = _currentWeight?.toStringAsFixed(1) ?? '';
       _loading = false;
@@ -62,7 +58,13 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
     if (value == null || value <= 0) return;
 
     setState(() => _saving = true);
-    await _service.setWeight(widget.date, weight: value);
+    
+    final logProvider = context.read<DailyLogProvider>();
+    final profileProvider = context.read<ProfileProvider>();
+    
+    await logProvider.updateWeight(value);
+    await profileProvider.refreshProfile();
+    
     if (!mounted) return;
     setState(() => _saving = false);
     Navigator.of(context).pop(true);
@@ -70,128 +72,133 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading || _profile == null) {
-      return Scaffold(
-        appBar: buildGlassAppBar(title: const Text('Вес')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    return Consumer<ProfileProvider>(
+      builder: (context, profileProvider, child) {
+        final profile = profileProvider.profile;
 
-    final goalLabel = _profile!.goalType.ruLabel;
-    final goalHint = _profile!.goalType.ruHint;
-    final dateText = DateFormat('d MMMM yyyy', 'ru_RU').format(widget.date);
-    final savedWeightText = _currentWeight == null
-        ? 'За $dateText вес еще не сохранен'
-        : 'Сохранено за $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
+        if (_loading || profile == null) {
+          return Scaffold(
+            appBar: buildGlassAppBar(title: const Text('Вес')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: buildGlassAppBar(title: const Text('Вес')),
-      body: SingleChildScrollView(
-        padding: glassBodyPadding(context, bottom: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 20,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Здесь вы вносите вес за конкретную дату.\n'
-                        'Регулярные записи помогают видеть реальную динамику\n'
-                        'и точнее отслеживать прогресс по вашей цели.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              height: 1.35,
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Ваша основная цель'),
-                    const SizedBox(height: 6),
-                    Text(goalLabel,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text(
-                      goalHint,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            height: 1.4,
-                            fontWeight: FontWeight.w500,
+        final goalLabel = profile.goalType.ruLabel;
+        final goalHint = profile.goalType.ruHint;
+        final dateText = DateFormat('d MMMM yyyy', 'ru_RU').format(widget.date);
+        final savedWeightText = _currentWeight == null
+            ? 'За $dateText вес еще не сохранен'
+            : 'Сохранено за $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
+
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: buildGlassAppBar(title: const Text('Вес')),
+          body: SingleChildScrollView(
+            padding: glassBodyPadding(context, bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Symbols.info,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Текущая цель: $goalLabel',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                goalHint,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                        'Целевой вес: ${_profile!.weightGoal.toStringAsFixed(1)} кг'),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Вес за выбранную дату'),
-                    const SizedBox(height: 6),
-                    Text(savedWeightText,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _weightController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        hintText: 'Введите вес в кг',
-                        suffixText: 'кг',
+                const SizedBox(height: 24),
+                Text(
+                  savedWeightText,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).hintColor,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  width: 200,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        width: 2,
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Сохранить вес'),
-                      ),
+                  ),
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                    decoration: const InputDecoration(
+                      hintText: '0.0',
+                      suffixText: 'кг',
+                      suffixStyle: TextStyle(fontSize: 20, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
                     ),
-                  ],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d{0,1}')),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 48),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saving ? null : _save,
+                      child: _saving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Сохранить вес'),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

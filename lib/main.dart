@@ -12,11 +12,6 @@ import 'services/app_notification_service.dart';
 import 'services/app_startup_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/profile/profile_screen.dart';
-import 'screens/recipes/recipes_screen.dart';
-import 'screens/stats/stats_screen.dart';
-import 'screens/meal_detail/meal_detail_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
@@ -26,8 +21,10 @@ import 'package:go_router/go_router.dart';
 import 'router.dart';
 import 'services/daily_log_service.dart';
 import 'services/profile_service.dart';
-import 'services/health_steps_service.dart';
 import 'services/home_widget_service.dart';
+import 'providers/profile_provider.dart';
+import 'providers/daily_log_provider.dart';
+import 'services/health_steps_service.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
@@ -135,6 +132,8 @@ void main() async {
     () => runApp(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => DailyLogProvider()),
+          ChangeNotifierProvider(create: (_) => ProfileProvider()..loadProfile()),
           Provider<DailyLogService>(create: (_) => DailyLogService()),
           Provider<ProfileService>(create: (_) => ProfileService()),
           Provider<HealthStepsService>(create: (_) => HealthStepsService()),

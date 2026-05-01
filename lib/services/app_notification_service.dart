@@ -340,6 +340,7 @@ class AppNotificationService {
 
   @pragma('vm:entry-point')
   static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
+    if (kIsWeb) return;
     final id = receivedAction.id;
     if (id != null) {
       // Уменьшаем счетчик на иконке при нажатии на конкретное уведомление

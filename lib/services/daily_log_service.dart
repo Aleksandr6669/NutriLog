@@ -160,7 +160,7 @@ class DailyLogService {
     await _saveRawData(all);
   }
 
-  FoodItem _recipeToFoodItem(Recipe recipe) {
+  FoodItem recipeToFoodItem(Recipe recipe) {
     return FoodItem(
       icon: recipe.icon,
       name: recipe.name,
@@ -229,13 +229,25 @@ class DailyLogService {
 
     final currentLog = await getLogForDate(date);
     final currentItems = List<FoodItem>.from(currentLog.meals[mealName] ?? []);
-    currentItems.addAll(recipes.map(_recipeToFoodItem));
+    currentItems.addAll(recipes.map(recipeToFoodItem));
 
     final updatedMeals = Map<String, List<FoodItem>>.from(currentLog.meals);
     updatedMeals[mealName] = currentItems;
 
     final updatedLog = currentLog.copyWith(meals: updatedMeals);
 
+    await _saveLog(updatedLog);
+  }
+
+  Future<void> updateMealItems(
+    DateTime date,
+    String mealName,
+    List<FoodItem> items,
+  ) async {
+    final currentLog = await getLogForDate(date);
+    final updatedMeals = Map<String, List<FoodItem>>.from(currentLog.meals);
+    updatedMeals[mealName] = items;
+    final updatedLog = currentLog.copyWith(meals: updatedMeals);
     await _saveLog(updatedLog);
   }
 
@@ -277,6 +289,19 @@ class DailyLogService {
     final currentLog = await getLogForDate(date);
     final nextSteps = steps < 0 ? 0 : steps;
     await _saveLog(currentLog.copyWith(steps: nextSteps));
+  }
+
+  Future<void> updateActivityList(
+    DateTime date,
+    List<ActivityEntry> activities,
+  ) async {
+    final currentLog = await getLogForDate(date);
+    final total = activities.fold<int>(0, (sum, item) => sum + item.calories);
+    final updatedLog = currentLog.copyWith(
+      activities: activities,
+      activityCalories: total,
+    );
+    await _saveLog(updatedLog);
   }
 
   Future<void> addActivity(

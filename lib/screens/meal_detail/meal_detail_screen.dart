@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/recipes_screen.dart';
-import 'package:nutri_log/screens/recipes/recipe_detail_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
 import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
-import '../../services/profile_service.dart';
-import '../../services/home_widget_service.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/daily_log_provider.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealName;
@@ -49,62 +49,56 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     if (selectedRecipes == null || selectedRecipes.isEmpty) return;
 
+    final provider = context.read<DailyLogProvider>();
     await _dailyLogService.addRecipesToMeal(
       widget.date,
       widget.mealName,
       selectedRecipes,
     );
 
-    final updatedLog = await _dailyLogService.getLogForDate(widget.date);
-    // Обновление виджета
-    final profileService = ProfileService();
-    final homeWidgetSyncService = HomeWidgetSyncService();
-    final profile = await profileService.loadProfile();
-    await homeWidgetSyncService.syncDailyData(
-        log: updatedLog, profile: profile);
+    await provider.refreshCurrentLog();
 
     if (!mounted) return;
 
     setState(() {
-      _foodItems = List<FoodItem>.from(updatedLog.meals[widget.mealName] ?? []);
+      _foodItems =
+          List<FoodItem>.from(provider.currentLog?.meals[widget.mealName] ?? []);
       _hasChanges = true;
     });
   }
 
   Future<void> _removeFoodItemAt(int index) async {
     HapticFeedback.mediumImpact();
+    final provider = context.read<DailyLogProvider>();
+    
     await _dailyLogService.removeFoodItemFromMeal(
       widget.date,
       widget.mealName,
       index,
     );
 
-    final updatedLog = await _dailyLogService.getLogForDate(widget.date);
-    // Обновление виджета
-    final profileService = ProfileService();
-    final homeWidgetSyncService = HomeWidgetSyncService();
-    final profile = await profileService.loadProfile();
-    await homeWidgetSyncService.syncDailyData(
-        log: updatedLog, profile: profile);
+    await provider.refreshCurrentLog();
 
     if (!mounted) return;
 
     setState(() {
-      _foodItems.removeAt(index);
+      _foodItems =
+          List<FoodItem>.from(provider.currentLog?.meals[widget.mealName] ?? []);
       _hasChanges = true;
     });
+  }
 
-    // SnackBar при успешном удалении блюда убран по требованию
+  void _saveChanges() {
+    Navigator.of(context).pop(true);
   }
 
   Future<void> _openFoodItemAsRecipeDetail(FoodItem item) async {
     final recipe = _toSavedRecipeSnapshot(item);
     if (!mounted) return;
 
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RecipeDetailScreen(recipe: recipe),
-      ),
+    await context.push(
+      '/recipe_detail',
+      extra: {'recipe': recipe},
     );
   }
 
@@ -163,6 +157,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             onPressed: () => Navigator.of(context).pop(_hasChanges),
           ),
           actions: [
+            if (_hasChanges)
+              IconButton(
+                icon: const Icon(Symbols.check_circle, size: 28),
+                onPressed: _saveChanges,
+                tooltip: 'Сохранить изменения',
+              ),
             IconButton(
               icon: const Icon(Symbols.add_circle_outline),
               onPressed: _addFromRecipes,
@@ -177,7 +177,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _MealSummaryCard(totalNutrients: totalNutrients),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               _FoodItemsList(
                 foodItems: _foodItems,
                 onRemove: _removeFoodItemAt,
