@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/daily_log.dart';
@@ -68,11 +69,13 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
     }
 
     final refreshed = await _service.getLogForDate(widget.date);
-    // Обновление виджета
-    final profileService = ProfileService();
-    final homeWidgetSyncService = HomeWidgetSyncService();
-    final profile = await profileService.loadProfile();
-    await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+    // Обновление виджета (безопасно)
+    try {
+      final profileService = ProfileService();
+      final homeWidgetSyncService = HomeWidgetSyncService();
+      final profile = await profileService.loadProfile();
+      await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+    } catch (_) {}
 
     if (!mounted) return;
 
@@ -87,11 +90,13 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
     setState(() => _saving = true);
     await _service.removeActivity(widget.date, id: entry.id);
     final refreshed = await _service.getLogForDate(widget.date);
-    // Обновление виджета
-    final profileService = ProfileService();
-    final homeWidgetSyncService = HomeWidgetSyncService();
-    final profile = await profileService.loadProfile();
-    await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+    // Обновление виджета (безопасно)
+    try {
+      final profileService = ProfileService();
+      final homeWidgetSyncService = HomeWidgetSyncService();
+      final profile = await profileService.loadProfile();
+      await homeWidgetSyncService.syncDailyData(log: refreshed, profile: profile);
+    } catch (_) {}
 
     if (!mounted) return;
 
@@ -120,14 +125,16 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
         Navigator.of(context).pop(_hasChanges);
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: Colors.grey.shade50,
         appBar: buildGlassAppBar(title: const Text('Активность')),
         body: Stack(
           children: [
             Column(
               children: [
+                SizedBox(height: MediaQuery.of(context).padding.top + 56 + 12),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: Card(
                     child: Padding(
                       padding: const EdgeInsets.all(14),
@@ -200,7 +207,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                   child: _activities.isEmpty
                       ? const Center(child: Text('Пока нет активностей'))
                       : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                           itemCount: _activities.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 10),
@@ -262,44 +269,49 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                 ),
               ],
             ),
+            Positioned(
+                right: 24,
+                bottom: MediaQuery.paddingOf(context).bottom + 100,
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _saving
+                        ? AppColors.primary.withAlpha(120)
+                        : AppColors.primary,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withAlpha(100),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(29),
+                      onTap: _saving ? null : _addOrEditActivity,
+                      child: const Center(
+                        child: Icon(
+                          Symbols.add,
+                          color: Colors.white,
+                          size: 30,
+                          weight: 700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             if (_saving)
               Container(
                 color: Colors.black.withAlpha(30),
                 child: const Center(child: CircularProgressIndicator()),
               ),
           ],
-        ),
-        floatingActionButton: Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color:
-                _saving ? AppColors.primary.withAlpha(120) : AppColors.primary,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(100),
-                blurRadius: 12,
-                spreadRadius: 2,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(29),
-              onTap: _saving ? null : _addOrEditActivity,
-              child: const Center(
-                child: Icon(
-                  Symbols.add,
-                  color: Colors.white,
-                  size: 30,
-                  weight: 700,
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

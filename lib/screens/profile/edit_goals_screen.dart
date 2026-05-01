@@ -140,7 +140,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: glassBodyPadding(context, top: 16, bottom: 16),
+          padding: glassBodyPadding(context, top: 16, bottom: 110),
           child: Column(
             children: [
               Card(

@@ -439,7 +439,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             left: 16,
             top: 8,
             right: 16,
-            bottom: 8,
+            bottom: 110,
           ),
           child: Column(
             children: [

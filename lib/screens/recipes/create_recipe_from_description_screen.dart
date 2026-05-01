@@ -108,7 +108,7 @@ class _CreateRecipeFromDescriptionScreenState
           left: 16,
           top: 8,
           right: 16,
-          bottom: 24,
+          bottom: 110,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

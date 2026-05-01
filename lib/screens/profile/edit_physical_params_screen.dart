@@ -80,7 +80,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: glassBodyPadding(context, top: 16, bottom: 16),
+          padding: glassBodyPadding(context, top: 16, bottom: 110),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

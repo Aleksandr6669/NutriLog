@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@android:color/white"
-    android:padding="16dp"
-    android:elevation="6dp"
-    android:clipToPadding="false"
-    android:gravity="center_horizontal">
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:padding="8dp">
 
-    <!-- Круглый прогресс воды, крупное число -->
     <FrameLayout
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
         android:background="@drawable/bg_circle_widget">
+        
         <ProgressBar
             android:id="@+id/progressWater"
             style="@android:style/Widget.ProgressBar.Horizontal"
@@ -26,15 +22,36 @@
             android:progressDrawable="@drawable/progress_circle_water"
             android:rotation="-90"
             android:layout_gravity="center" />
-        <TextView
-            android:id="@+id/widgetWater"
-            android:layout_width="match_parent"
+
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="0 / 0 мл"
-            android:textColor="#16261B"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginTop="40dp" />
+            android:layout_gravity="center">
+            
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_activity"
+                android:tint="#2196F3"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/widgetWater"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1.5"
+                android:textColor="#16261B"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="литра"
+                android:textColor="#707070"
+                android:textSize="10sp" />
+        </LinearLayout>
     </FrameLayout>
-</LinearLayout>
+</FrameLayout>

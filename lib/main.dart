@@ -83,22 +83,7 @@ void main() async {
       await AwesomeNotifications().setGlobalBadgeCounter(0);
       // Обработка нажатий на уведомления
       AwesomeNotifications().setListeners(
-        onActionReceivedMethod: (receivedAction) async {
-          // id уведомления
-          final id = receivedAction.id;
-          // Для каждого типа приёма пищи переход на нужный экран
-          if (id == 1101) {
-            appRouter.push('/meal', extra: {'type': 'breakfast'});
-          } else if (id == 1102) {
-            appRouter.push('/meal', extra: {'type': 'lunch'});
-          } else if (id == 1103) {
-            appRouter.push('/meal', extra: {'type': 'dinner'});
-          } else if (id == 1200) {
-            appRouter.push('/weight');
-          } else {
-            appRouter.go('/');
-          }
-        },
+        onActionReceivedMethod: AppNotificationService.onActionReceivedMethod,
       );
     } catch (_) {}
   }
@@ -740,14 +725,23 @@ class _NavItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: color,
-                fill: isSelected ? 1.0 : 0.0,
-                weight: isSelected ? 600.0 : 300.0,
+              AnimatedScale(
+                scale: isSelected ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  icon,
+                  color: color,
+                  fill: isSelected ? 1.0 : 0.0,
+                  weight: isSelected ? 600.0 : 300.0,
+                ),
               ),
               const SizedBox(height: 4),
-              Text(label, style: labelStyle),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: labelStyle ?? const TextStyle(),
+                child: Text(label),
+              ),
             ],
           ),
         ),

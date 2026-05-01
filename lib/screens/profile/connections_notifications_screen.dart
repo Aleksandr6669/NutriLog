@@ -142,7 +142,7 @@ class _ConnectionsNotificationsScreenState
         title: const Text('Настройки'),
       ),
       body: ListView(
-        padding: glassBodyPadding(context, top: 16, bottom: 24),
+        padding: glassBodyPadding(context, top: 16, bottom: 110),
         children: [
           _buildSectionTitle(theme, 'Подключения'),
           const SizedBox(height: 10),
