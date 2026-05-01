@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_card_widget"
-        android:padding="8dp">
+        android:padding="10dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -36,13 +36,20 @@
                     android:layout_height="wrap_content"
                     android:text="1800"
                     android:textColor="#16261B"
-                    android:textSize="18sp"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ккал"
+                    android:textColor="#707070"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="осталось"
-                    android:textColor="#707070"
+                    android:textColor="#A0A0A0"
                     android:textSize="8sp" />
             </LinearLayout>
         </FrameLayout>
