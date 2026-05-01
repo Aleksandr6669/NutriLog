@@ -1053,8 +1053,6 @@ class _ActivityWeightRow extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => WeightEntryScreen(
                         date: selectedDate,
-                        currentWeight: dailyLog.weight,
-                        profile: profile,
                       ),
                     ),
                   );

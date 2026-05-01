@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/user_profile.dart';
 import '../../services/daily_log_service.dart';
+import '../../services/profile_service.dart';
 import '../../styles/app_colors.dart';
 import '../../widgets/glass_app_bar_background.dart';
 
+import 'package:provider/provider.dart';
+
 class WeightEntryScreen extends StatefulWidget {
   final DateTime date;
-  final double? currentWeight;
-  final UserProfile profile;
 
   const WeightEntryScreen({
     super.key,
     required this.date,
-    required this.currentWeight,
-    required this.profile,
   });
 
   @override
@@ -22,16 +21,33 @@ class WeightEntryScreen extends StatefulWidget {
 }
 
 class _WeightEntryScreenState extends State<WeightEntryScreen> {
-  final DailyLogService _service = DailyLogService();
+  late final DailyLogService _service;
+  late final ProfileService _profileService;
   late TextEditingController _weightController;
   bool _saving = false;
+  UserProfile? _profile;
+  double? _currentWeight;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _weightController = TextEditingController(
-      text: widget.currentWeight?.toStringAsFixed(1) ?? '',
-    );
+    _service = context.read<DailyLogService>();
+    _profileService = context.read<ProfileService>();
+    _weightController = TextEditingController();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final profile = await _profileService.loadProfile();
+    final log = await _service.getLogForDate(widget.date);
+    if (!mounted) return;
+    setState(() {
+      _profile = profile;
+      _currentWeight = log.weight;
+      _weightController.text = _currentWeight?.toStringAsFixed(1) ?? '';
+      _loading = false;
+    });
   }
 
   @override
@@ -54,12 +70,19 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final goalLabel = widget.profile.goalType.ruLabel;
-    final goalHint = widget.profile.goalType.ruHint;
+    if (_loading || _profile == null) {
+      return Scaffold(
+        appBar: buildGlassAppBar(title: const Text('Вес')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final goalLabel = _profile!.goalType.ruLabel;
+    final goalHint = _profile!.goalType.ruHint;
     final dateText = DateFormat('d MMMM yyyy', 'ru_RU').format(widget.date);
-    final savedWeightText = widget.currentWeight == null
+    final savedWeightText = _currentWeight == null
         ? 'За $dateText вес еще не сохранен'
-        : 'Сохранено за $dateText: ${widget.currentWeight!.toStringAsFixed(1)} кг';
+        : 'Сохранено за $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
 
     return Scaffold(
       appBar: buildGlassAppBar(title: const Text('Вес')),
@@ -117,7 +140,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                        'Целевой вес: ${widget.profile.weightGoal.toStringAsFixed(1)} кг'),
+                        'Целевой вес: ${_profile!.weightGoal.toStringAsFixed(1)} кг'),
                   ],
                 ),
               ),

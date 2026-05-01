@@ -21,6 +21,13 @@ import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'router.dart';
+import 'services/daily_log_service.dart';
+import 'services/profile_service.dart';
+import 'services/health_steps_service.dart';
+import 'services/home_widget_service.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
@@ -81,18 +88,15 @@ void main() async {
           final id = receivedAction.id;
           // Для каждого типа приёма пищи переход на нужный экран
           if (id == 1101) {
-            navigatorKey.currentState
-                ?.pushNamed('/meal', arguments: {'type': 'breakfast'});
+            appRouter.push('/meal', extra: {'type': 'breakfast'});
           } else if (id == 1102) {
-            navigatorKey.currentState
-                ?.pushNamed('/meal', arguments: {'type': 'lunch'});
+            appRouter.push('/meal', extra: {'type': 'lunch'});
           } else if (id == 1103) {
-            navigatorKey.currentState
-                ?.pushNamed('/meal', arguments: {'type': 'dinner'});
+            appRouter.push('/meal', extra: {'type': 'dinner'});
           } else if (id == 1200) {
-            navigatorKey.currentState?.pushNamed('/weight');
+            appRouter.push('/weight');
           } else {
-            navigatorKey.currentState?.pushNamed('/');
+            appRouter.go('/');
           }
         },
       );
@@ -143,7 +147,17 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   runZonedGuarded(
-    () => runApp(const MyApp()),
+    () => runApp(
+      MultiProvider(
+        providers: [
+          Provider<DailyLogService>(create: (_) => DailyLogService()),
+          Provider<ProfileService>(create: (_) => ProfileService()),
+          Provider<HealthStepsService>(create: (_) => HealthStepsService()),
+          Provider<HomeWidgetSyncService>(create: (_) => HomeWidgetSyncService()),
+        ],
+        child: const MyApp(),
+      ),
+    ),
     (error, stackTrace) {
       _reportFatalAppError(
         'Необработанная ошибка приложения',
@@ -187,12 +201,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: appRouter,
       title: 'NutriLog',
       theme: _buildTheme(Brightness.light),
       debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey,
-      navigatorObservers: [_UnfocusOnRouteChangeObserver()],
       locale: const Locale('ru', 'RU'),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -203,35 +216,6 @@ class MyApp extends StatelessWidget {
         Locale('ru', 'RU'),
         Locale('en', 'US'),
       ],
-      onGenerateRoute: (settings) {
-        if (settings.name == '/meal') {
-          final args = settings.arguments as Map<String, dynamic>?;
-          final type = args != null ? args['type'] as String? : null;
-          String mealName;
-          switch (type) {
-            case 'breakfast':
-              mealName = 'Завтрак';
-              break;
-            case 'lunch':
-              mealName = 'Обед';
-              break;
-            case 'dinner':
-              mealName = 'Ужин';
-              break;
-            default:
-              mealName = type ?? 'Приём пищи';
-          }
-          return MaterialPageRoute(
-            builder: (context) => MealDetailScreen(
-              mealName: mealName,
-              items: const [],
-              date: DateTime.now(),
-            ),
-          );
-        }
-        // fallback
-        return null;
-      },
       builder: (context, child) {
         final content = child ?? const SizedBox.shrink();
         return ValueListenableBuilder<_FatalAppError?>(
@@ -262,13 +246,12 @@ class MyApp extends StatelessWidget {
           },
         );
       },
-      home: const AppBootstrapScreen(),
     );
   }
 }
 
-class _UnfocusOnRouteChangeObserver extends NavigatorObserver {
-  _UnfocusOnRouteChangeObserver();
+class UnfocusOnRouteChangeObserver extends NavigatorObserver {
+  UnfocusOnRouteChangeObserver();
 
   void _clearFocus() {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -308,6 +291,9 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
   @override
   void initState() {
     super.initState();
+    if (!kIsWeb) {
+      AwesomeNotifications().setGlobalBadgeCounter(0);
+    }
     _init();
   }
 
@@ -369,37 +355,42 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
       );
     }
 
-    return const MainScreen();
+    // AppBootstrapScreen does not return MainScreenShell anymore, it redirects via go_router.
+    // However, since it is used as the builder for '/', we can just do a post-frame callback
+    // to navigate to '/home' and show a loader in the meantime.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.go('/home');
+      }
+    });
+
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class MainScreenShell extends StatefulWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const MainScreenShell({super.key, required this.navigationShell});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreenShell> createState() => _MainScreenShellState();
 }
 
-class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+class _MainScreenShellState extends State<MainScreenShell> with WidgetsBindingObserver {
   static const SystemUiOverlayStyle _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
     statusBarBrightness: Brightness.light,
   );
 
-  int _selectedIndex = 0;
-
-  static const List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    RecipesScreen(),
-    StatsScreen(),
-    ProfileScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (!kIsWeb) {
+      AwesomeNotifications().setGlobalBadgeCounter(0);
+    }
   }
 
   @override
@@ -417,13 +408,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   }
 
   void _onItemTapped(int index) {
-    // На iOS предотвращаем кейс, когда при смене вкладки остается активный
-    // EditableText и система пытается показать toolbar без корректного Overlay.
     FocusManager.instance.primaryFocus?.unfocus();
-
-    setState(() {
-      _selectedIndex = index;
-    });
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
 
   @override
@@ -431,9 +420,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: Scaffold(
-        body: _widgetOptions.elementAt(_selectedIndex),
+        body: widget.navigationShell,
         bottomNavigationBar: _BottomNavBar(
-          currentIndex: _selectedIndex,
+          currentIndex: widget.navigationShell.currentIndex,
           onTap: _onItemTapped,
         ),
         extendBody: true,
