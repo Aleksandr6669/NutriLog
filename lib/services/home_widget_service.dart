@@ -37,10 +37,10 @@ class HomeWidgetSyncService {
     await Future.wait([
       // New Keys for our Card Widgets
       HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
-      HomeWidget.saveWidgetData<String>('proteins', '${protein}г'),
-      HomeWidget.saveWidgetData<String>('fats', '${fat}г'),
-      HomeWidget.saveWidgetData<String>('carbs', '${carbs}г'),
-      HomeWidget.saveWidgetData<String>('calories_summary', '${consumed} ккал'),
+      HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
+      HomeWidget.saveWidgetData<String>('fats', '$fatг'),
+      HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
+      HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
       HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
       HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
       HomeWidget.saveWidgetData<String>('steps', steps),
