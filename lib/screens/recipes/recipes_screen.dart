@@ -245,7 +245,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       Text(
                         _selectedRecipesCollapsed
                             ? 'Показать все (${selectedRecipes.length})'
-                            : 'Свернуть до 3',
+                            : 'Свернуть',
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
