@@ -38,10 +38,10 @@ struct Provider: TimelineProvider {
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let calories: Int
-    let protein: Int
-    let fat: Int
-    let carbs: Int
+    let calories: String
+    let protein: String
+    let fat: String
+    let carbs: String
     let water: String
 }
 
@@ -73,9 +73,9 @@ struct NutriLogWidgetEntryView : View {
                     Divider()
                     
                     VStack(spacing: 16) {
-                        MediumMacroView(label: "Белки", value: "\(entry.protein)г", color: Color(hex: "00C753"))
-                        MediumMacroView(label: "Жиры", value: "\(entry.fat)г", color: Color(hex: "00C753"))
-                        MediumMacroView(label: "Углев", value: "\(entry.carbs)г", color: Color(hex: "00C753"))
+                        MediumMacroView(label: "Белки", value: "\(entry.protein)", color: Color(hex: "00C753"))
+                        MediumMacroView(label: "Жиры", value: "\(entry.fat)", color: Color(hex: "00C753"))
+                        MediumMacroView(label: "Углев", value: "\(entry.carbs)", color: Color(hex: "00C753"))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -124,12 +124,13 @@ struct MediumMacroView: View {
     
     var body: some View {
         HStack(spacing: 4) {
-            Text(value)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color.primary)
             Text(label)
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(color)
+            Text(value)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(Color.primary)
+            
         }
     }
 }
