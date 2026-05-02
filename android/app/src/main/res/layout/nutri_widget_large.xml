@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="4dp"
+    android:background="#ebf5efff">
 
     <!-- Top Row -->
     <LinearLayout
@@ -36,17 +37,16 @@
             android:padding="8dp"
             android:gravity="center"
             android:layout_marginEnd="4dp">
-            <TextView android:text="БЖУ (Г)" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="left">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="left">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:text="Б" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
+                        <TextView android:text="Белки" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:text="Ж" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
+                        <TextView android:text="Жиры" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:text="У" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
+                        <TextView android:text="Углеводы" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                     </LinearLayout>
                 </LinearLayout>
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="left">
