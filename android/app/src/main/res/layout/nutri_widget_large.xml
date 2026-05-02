@@ -20,12 +20,12 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F1F8F4"
+            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center"
             android:layout_marginEnd="4dp">
-            <TextView android:text="КАЛОРИИ" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <TextView android:id="@+id/widgetCalories" android:text="1450" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="КАЛОРИИ" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetCalories" android:text="1450" android:textColor="#0F2317" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <TextView android:text="осталось" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
 
@@ -35,11 +35,11 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F1F8F4"
+            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center">
-            <TextView android:text="ШАГИ" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <TextView android:id="@+id/widgetSteps" android:text="8400" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="ШАГИ" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetSteps" android:text="8400" android:textColor="#0F2317" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <TextView android:text="из 10000" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
     </LinearLayout>
@@ -57,23 +57,23 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F1F8F4"
+            android:background="#F5F8F7"
             android:padding="8dp"
             android:gravity="center"
             android:layout_marginEnd="4dp">
-            <TextView android:text="БЖУ (Г)" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="БЖУ (Г)" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:text="85" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    <TextView android:text="Б" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/widgetProteins" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="Б" android:textColor="#00C753" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:text="45" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    <TextView android:text="Ж" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/widgetFats" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="Ж" android:textColor="#00C753" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:text="120" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    <TextView android:text="У" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/widgetCarbs" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="У" android:textColor="#00C753" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -84,11 +84,11 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F1F8F4"
+            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center">
-            <TextView android:text="ВОДА" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <TextView android:id="@+id/widgetWater" android:text="1.5 Л" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="ВОДА" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetWater" android:text="1.5 Л" android:textColor="#0F2317" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <TextView android:text="цель: 2.0" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
     </LinearLayout>

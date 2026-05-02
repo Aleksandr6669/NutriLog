@@ -11,34 +11,7 @@ import com.nutrilog.app.R
  * Consolidated Widget Providers for NutriLog
  */
 
-class NutriSmallWidgetProvider : HomeWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
-        for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.nutri_widget_small)
-            try {
-                views.setTextViewText(R.id.widgetCalories, widgetData.getString("calories", "0"))
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            } catch (e: Exception) {
-                // Fail silently or log
-            }
-        }
-    }
-}
 
-class NutriMediumWidgetProvider : HomeWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
-        for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.nutri_widget_medium)
-            try {
-                views.setTextViewText(R.id.widgetCalories, widgetData.getString("calories", "0"))
-                views.setTextViewText(R.id.widgetProteins, widgetData.getString("proteins", "0г"))
-                views.setTextViewText(R.id.widgetFats, widgetData.getString("fats", "0г"))
-                views.setTextViewText(R.id.widgetCarbs, widgetData.getString("carbs", "0г"))
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            } catch (e: Exception) { }
-        }
-    }
-}
 
 class NutriLargeWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
@@ -48,6 +21,9 @@ class NutriLargeWidgetProvider : HomeWidgetProvider() {
                 views.setTextViewText(R.id.widgetCalories, widgetData.getString("calories_summary", "0 ккал"))
                 views.setTextViewText(R.id.widgetWater, widgetData.getString("water", "0.0 Л"))
                 views.setTextViewText(R.id.widgetSteps, widgetData.getString("steps", "0"))
+                views.setTextViewText(R.id.widgetProteins, widgetData.getString("proteins_val", "0"))
+                views.setTextViewText(R.id.widgetFats, widgetData.getString("fats_val", "0"))
+                views.setTextViewText(R.id.widgetCarbs, widgetData.getString("carbs_val", "0"))
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) { }
         }
@@ -66,14 +42,4 @@ class NutriWaterWidgetProvider : HomeWidgetProvider() {
     }
 }
 
-class NutriTestWidgetProvider : HomeWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
-        for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.nutri_widget_test)
-            try {
-                views.setTextViewText(R.id.widgetText, "TEST OK")
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            } catch (e: Exception) { }
-        }
-    }
-}
+
