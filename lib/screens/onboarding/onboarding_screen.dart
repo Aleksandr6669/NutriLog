@@ -28,19 +28,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _dailyGoalsFormKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
-  final _heightController = TextEditingController(text: '170');
-  final _weightController = TextEditingController(text: '65.0');
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
 
-  final _weightGoalController = TextEditingController(text: '62.0');
+  final _weightGoalController = TextEditingController();
   final _activityTypesController = TextEditingController();
   final _aiContextController = TextEditingController();
 
-  final _calorieGoalController = TextEditingController(text: '1800');
-  final _proteinGoalController = TextEditingController(text: '120');
-  final _fatGoalController = TextEditingController(text: '60');
-  final _carbsGoalController = TextEditingController(text: '195');
-  final _waterGoalController = TextEditingController(text: '2000');
-  final _stepsGoalController = TextEditingController(text: '10000');
+  final _calorieGoalController = TextEditingController();
+  final _proteinGoalController = TextEditingController();
+  final _fatGoalController = TextEditingController();
+  final _carbsGoalController = TextEditingController();
+  final _waterGoalController = TextEditingController();
+  final _stepsGoalController = TextEditingController();
 
   Gender _gender = Gender.female;
   GoalType _goalType = GoalType.healthyEating;
