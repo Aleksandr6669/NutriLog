@@ -213,13 +213,6 @@ struct NutriLogWaterWidget: Widget {
     }
 }
 
-@main
-struct NutriLogWidgetsBundle: WidgetBundle {
-    var body: some Widget {
-        NutriLogWidget()
-        NutriLogWaterWidget()
-    }
-}
 
 // Helper for Hex Colors
 extension Color {
