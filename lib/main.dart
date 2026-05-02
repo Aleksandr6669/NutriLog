@@ -81,7 +81,7 @@ void main() async {
   // Initialize HomeWidget App Group for iOS
   if (!kIsWeb && Platform.isIOS) {
     try {
-      await HomeWidget.setAppGroupId('group.com.nutrilog.app');
+      await HomeWidget.setAppGroupId('group.com.app.nutrilog.app');
     } catch (_) {}
   }
 

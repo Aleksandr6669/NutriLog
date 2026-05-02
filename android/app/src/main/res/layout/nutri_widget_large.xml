@@ -5,18 +5,17 @@
     android:orientation="horizontal"
     android:padding="16dp"
     android:background="@drawable/bg_card_widget"
-    android:baselineAligned="false"
-    android:gravity="center_vertical">
+    android:gravity="center">
 
     <!-- Left Column: Calories -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.2"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
-        android:paddingStart="8dp"
-        android:paddingEnd="16dp">
+        android:paddingLeft="4dp"
+        android:paddingRight="12dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -24,8 +23,7 @@
             android:text="КАЛОРИИ"
             android:textColor="#00C753"
             android:textSize="12sp"
-            android:textStyle="bold"
-            android:gravity="right" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/widgetCalories"
@@ -35,8 +33,7 @@
             android:textColor="#0F2317"
             android:textSize="32sp"
             android:textStyle="bold"
-            android:layout_marginTop="2dp"
-            android:gravity="right" />
+            android:layout_marginTop="2dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -44,17 +41,16 @@
             android:text="за сегодня"
             android:textColor="#8E998F"
             android:textSize="10sp"
-            android:layout_marginTop="2dp"
-            android:gravity="right" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <!-- Divider -->
-    <View
+    <FrameLayout
         android:layout_width="1dp"
         android:layout_height="match_parent"
         android:background="#E0E0E0"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp" />
 
     <!-- Right Column: Macros -->
     <LinearLayout
@@ -63,8 +59,8 @@
         android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
 
         <!-- Protein -->
         <LinearLayout
@@ -79,7 +75,7 @@
                 android:textColor="#00C753"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginRight="8dp" />
             <TextView
                 android:id="@+id/widgetProteins"
                 android:layout_width="wrap_content"
@@ -104,7 +100,7 @@
                 android:textColor="#00C753"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginRight="8dp" />
             <TextView
                 android:id="@+id/widgetFats"
                 android:layout_width="wrap_content"
@@ -129,7 +125,7 @@
                 android:textColor="#00C753"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginRight="8dp" />
             <TextView
                 android:id="@+id/widgetCarbs"
                 android:layout_width="wrap_content"

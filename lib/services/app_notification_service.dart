@@ -364,13 +364,13 @@ class AppNotificationService {
     }
 
     if (id == _breakfastId) {
-      appRouter.push('/meal', extra: {'type': 'breakfast'});
+      appRouter.push('/meal/breakfast');
     } else if (id == _lunchId) {
-      appRouter.push('/meal', extra: {'type': 'lunch'});
+      appRouter.push('/meal/lunch');
     } else if (id == _dinnerId) {
-      appRouter.push('/meal', extra: {'type': 'dinner'});
+      appRouter.push('/meal/dinner');
     } else if (id == 1200) {
-      appRouter.push('/weight');
+      appRouter.push('/weight', extra: {'date': DateTime.now()});
     } else if (id != null && id >= _waterBaseId && id < _waterBaseId + _maxWaterReminders) {
       appRouter.go('/home?scrollTo=water');
     } else {
