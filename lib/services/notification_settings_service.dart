@@ -62,14 +62,14 @@ class NotificationSettingsService {
   static const _weightReminderMinutesKey = 'notif_weight_minutes';
 
   static const NotificationSettings defaults = NotificationSettings(
-    waterReminderEnabled: false,
+    waterReminderEnabled: true,
     waterReminderTime: TimeOfDay(hour: 10, minute: 0),
-    mealRemindersEnabled: false,
+    mealRemindersEnabled: true,
     breakfastTime: TimeOfDay(hour: 8, minute: 30),
     lunchTime: TimeOfDay(hour: 13, minute: 0),
     dinnerTime: TimeOfDay(hour: 19, minute: 0),
-    messagesEnabled: false, // Значение по умолчанию
-    weightReminderEnabled: false,
+    messagesEnabled: true,
+    weightReminderEnabled: true,
     weightReminderTime: TimeOfDay(hour: 21, minute: 30),
   );
 
@@ -119,6 +119,7 @@ class NotificationSettingsService {
         _weightReminderEnabledKey, settings.weightReminderEnabled);
     await prefs.setInt(
         _weightReminderMinutesKey, _toMinutes(settings.weightReminderTime));
+    await prefs.setBool(_messagesEnabledKey, settings.messagesEnabled);
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {

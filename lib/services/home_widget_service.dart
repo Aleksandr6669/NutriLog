@@ -46,17 +46,16 @@ class HomeWidgetSyncService {
         HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
         HomeWidget.saveWidgetData<String>('steps', stepsString),
       ]);
-      // Use fully-qualified class names to avoid ClassNotFoundException when
-      // the package context resolves to null in background isolates.
-      const pkg = 'com.nutrilog.app';
-      for (final cls in [
-        '$pkg.NutriLargeWidgetProvider',
-        '$pkg.NutriWaterWidgetProvider',
-      ]) {
-        try {
-          await HomeWidget.updateWidget(androidName: cls);
-        } catch (_) {}
-      }
+      try {
+        await HomeWidget.updateWidget(
+          androidName: 'NutriLargeWidgetProvider',
+          qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider'
+        );
+        await HomeWidget.updateWidget(
+          androidName: 'NutriWaterWidgetProvider',
+          qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider'
+        );
+      } catch (_) {}
     } else if (Platform.isIOS) {
       // iOS: save ints
       await Future.wait([
