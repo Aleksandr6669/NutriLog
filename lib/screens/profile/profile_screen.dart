@@ -281,13 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   MaterialPageRoute(
                     builder: (context) => WhatsNewScreen(
                       version: state.currentVersion,
-                      text: "• Улучшена производительность приложения.\n"
-                            "• Исправлены мелкие баги и улучшена стабильность.\n"
-                            "• Добавлены уведомления по воде и приемам пищи.\n"
-                            "• Добавлены уведомления напоминания взвеситься.\n"
-                            "• Улучшена интеграция с нейросетью.\n"
-                            "• Добавлены виджеты для андроида.\n"
-                            "• Добавлена поддержка новых устройств и экранов.",
+                      text: AppStartupService.getWhatsNewForVersion(state.currentVersion) ?? 'Нет информации об обновлениях для этой версии.',
                     ),
                   ),
                 );

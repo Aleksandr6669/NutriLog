@@ -36,6 +36,10 @@ class AppStartupService {
         '• Добавлены настраиваемые push-напоминания по воде и приемам пищи.',
   };
 
+  static String? getWhatsNewForVersion(String version) {
+    return _whatsNewByVersion[version];
+  }
+
   Future<StartupState> loadState() async {
     final prefs = await SharedPreferences.getInstance();
     
