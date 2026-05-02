@@ -14,12 +14,10 @@ class ProfileService {
         final Map<String, dynamic> jsonMap = json.decode(profileString);
         return UserProfile.fromJson(jsonMap);
       } catch (e) {
-        // Если данные повреждены, возвращаем профиль по умолчанию
-        return _createAndSaveDefaultProfile();
+        return _createDefaultProfile();
       }
     } else {
-      // Если данных нет, создаем профиль по умолчанию
-      return _createAndSaveDefaultProfile();
+      return _createDefaultProfile();
     }
   }
 
@@ -29,27 +27,25 @@ class ProfileService {
     await prefs.setString(_profileKey, profileString);
   }
 
-  Future<UserProfile> _createAndSaveDefaultProfile() async {
-    final defaultProfile = UserProfile(
+  UserProfile _createDefaultProfile() {
+    return UserProfile(
       name: 'Пользователь',
       gender: Gender.female,
-      birthDate: DateTime(1997, 6, 15),
-      height: 168,
-      weight: 62.5,
-      weightGoal: 60.0,
+      birthDate: DateTime(2000, 1, 1),
+      height: 0,
+      weight: 0.0,
+      weightGoal: 0.0,
       goalType: GoalType.healthyEating,
       activityFrequency: ActivityFrequency.light,
       activityTypes: '',
       aiContext: '',
-      calorieGoal: 1800,
-      proteinGoal: 120,
-      fatGoal: 60,
-      carbsGoal: 195,
+      calorieGoal: 2000,
+      proteinGoal: 150,
+      fatGoal: 70,
+      carbsGoal: 200,
       waterGoal: 2000,
       stepsGoal: 10000,
       weightHistory: const [],
     );
-    await saveProfile(defaultProfile);
-    return defaultProfile;
   }
 }

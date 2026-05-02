@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,8 @@ import 'services/home_widget_service.dart';
 import 'providers/profile_provider.dart';
 import 'providers/daily_log_provider.dart';
 import 'services/health_steps_service.dart';
+import 'models/daily_log.dart';
+import 'models/user_profile.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
@@ -292,11 +295,24 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
         currentVersion: '0.0.0+0',
       );
     }
-    if (!mounted) return;
+    // Сообщаем состоянию, что инициализация прошла успешно
     setState(() {
       _state = state;
       _loading = false;
     });
+
+    // После загрузки состояния — принудительно обновляем виджеты (если не web)
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        final dailyLog = context.read<DailyLogProvider>().currentLog ?? DailyLog.empty(DateTime.now());
+        final profile = context.read<ProfileProvider>().profile;
+        if (profile != null) {
+          context.read<HomeWidgetSyncService>().syncDailyData(log: dailyLog, profile: profile);
+        }
+      } catch (e) {
+        debugPrint('WIDGET_SYNC_ERROR: $e');
+      }
+    }
   }
 
   Future<void> _completeOnboarding() async {
