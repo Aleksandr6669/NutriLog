@@ -12,6 +12,7 @@ import SwiftUI
 struct NutriLogWidgetBundle: WidgetBundle {
     var body: some Widget {
         NutriLogWidget()
+        NutriLogWaterWidget()
         NutriLogWidgetControl()
         NutriLogWidgetLiveActivity()
     }
