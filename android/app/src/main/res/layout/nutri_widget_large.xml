@@ -6,13 +6,13 @@
     android:background="@drawable/widget_bg"
     android:padding="12dp">
 
-    <!-- Top Card: Calories (Large) -->
+    <!-- Top: Calories -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="15"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#F1F8F4"
+        android:padding="12dp"
         android:layout_marginBottom="8dp">
         
         <View
@@ -21,68 +21,52 @@
             android:background="#1DB954" />
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp"
-            android:gravity="center_vertical">
-            
+            android:layout_marginStart="12dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="КАЛОРИИ"
+                android:text="КАЛОРИИ СЕГОДНЯ"
                 android:textColor="#1DB954"
-                android:textSize="12sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
-
             <TextView
                 android:id="@+id/widgetCalories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1450"
                 android:textColor="#16261B"
-                android:textSize="32sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Bottom Row: Water and Steps -->
+    <!-- Middle: Water -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="10"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#F1F8F4"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp">
+        <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
+        <TextView android:text="ВОДА: " android:textColor="#1DB954" android:textSize="12sp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/widgetWater" android:text="1.2 Л" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
 
-        <!-- Water Card -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:background="#F1F8F4"
-            android:layout_marginEnd="4dp">
-            <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
-            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="8dp" android:gravity="center_vertical">
-                <TextView android:text="ВОДА" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <TextView android:id="@+id/widgetWater" android:text="1.2 Л" android:textColor="#16261B" android:textSize="16sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Steps Card -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:background="#F1F8F4"
-            android:layout_marginStart="4dp">
-            <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
-            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="8dp" android:gravity="center_vertical">
-                <TextView android:text="ШАГИ" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <TextView android:id="@+id/widgetSteps" android:text="6500" android:textColor="#16261B" android:textSize="16sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            </LinearLayout>
-        </LinearLayout>
-
+    <!-- Bottom: Steps -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#F1F8F4"
+        android:padding="8dp">
+        <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
+        <TextView android:text="ШАГИ: " android:textColor="#1DB954" android:textSize="12sp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/widgetSteps" android:text="6500" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     </LinearLayout>
 
 </LinearLayout>
