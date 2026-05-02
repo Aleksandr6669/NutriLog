@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="225dp"
-    android:minHeight="70dp"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
     android:updatePeriodMillis="0"
-    android:initialLayout="@layout/nutri_widget_large"
-    android:previewLayout="@layout/nutri_widget_large"
+    android:initialLayout="@layout/nutri_widget_small"
+    android:previewLayout="@layout/nutri_widget_small"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

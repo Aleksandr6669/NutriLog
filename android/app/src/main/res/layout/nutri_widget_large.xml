@@ -2,65 +2,142 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="4dp"
-    android:background="#ebf5efff">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@drawable/bg_card_widget"
+    android:baselineAligned="false"
+    android:gravity="center_vertical">
 
-    <!-- Top Row -->
+    <!-- Left Column: Calories -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:layout_marginBottom="4dp">
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.2"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp">
 
-        <!-- Calories Quadrant -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="КАЛОРИИ"
+            android:textColor="#00C753"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="right" />
+
+        <TextView
+            android:id="@+id/widgetCalories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#0F2317"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_marginTop="2dp"
+            android:gravity="right" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="за сегодня"
+            android:textColor="#8E998F"
+            android:textSize="10sp"
+            android:layout_marginTop="2dp"
+            android:gravity="right" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#E0E0E0"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- Right Column: Macros -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <!-- Protein -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:padding="12dp"
-            android:gravity="center"
-            android:layout_marginEnd="4dp">
-            <TextView android:text="КАЛОРИИ" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <TextView android:id="@+id/widgetCalories" android:text="1450" android:textColor="#0F2317" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <TextView android:text="за день" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Белки"
+                android:textColor="#00C753"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+            <TextView
+                android:id="@+id/widgetProteins"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0г"
+                android:textColor="#0F2317"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Macros Quadrant -->
+        <!-- Fats -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:padding="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginEnd="4dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="left">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="left">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
-                        <TextView android:text="Белки" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
-                        <TextView android:text="Жиры" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="left">
-                        <TextView android:text="Углеводы" android:textColor="#00C753" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </LinearLayout>
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="left">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:id="@+id/widgetProteins" android:paddingLeft="10dp" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:id="@+id/widgetFats" android:paddingLeft="10dp" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
-                        <TextView android:id="@+id/widgetCarbs" android:paddingLeft="10dp" android:text="0" android:textColor="#0F2317" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
+            android:layout_marginTop="8dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Жиры"
+                android:textColor="#00C753"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+            <TextView
+                android:id="@+id/widgetFats"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0г"
+                android:textColor="#0F2317"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Carbs -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Углев"
+                android:textColor="#00C753"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+            <TextView
+                android:id="@+id/widgetCarbs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0г"
+                android:textColor="#0F2317"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 

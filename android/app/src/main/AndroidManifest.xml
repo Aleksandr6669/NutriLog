@@ -102,6 +102,20 @@
                 android:resource="@xml/nutri_large_widget_info" />
         </receiver>
 
+        <!-- Виджет Дневник Малый (2x2) -->
+        <receiver
+            android:name="com.nutrilog.app.NutriSmallWidgetProvider"
+            android:exported="false"
+            android:label="NutriLog Дневник">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nutri_small_widget_info" />
+        </receiver>
+
         <!-- Виджет Вода -->
         <receiver
             android:name="com.nutrilog.app.NutriWaterWidgetProvider"
