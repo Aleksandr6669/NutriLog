@@ -56,9 +56,9 @@ class AppStartupService {
     final profileStr = prefs.getString('user_profile') ?? '';
     final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
     
-    // Если профиль пуст или имя дефолтное - значит онбординг не пройден до конца
-    final isDefaultProfile = profileStr.contains('"name":"Пользователь"');
-    final needsOnboarding = !onboardingCompleted || profileStr.isEmpty || isDefaultProfile;
+    // Если профиль пуст или имя отсутствует - значит онбординг не пройден
+    final isEmptyName = profileStr.contains('"name":""');
+    final needsOnboarding = !onboardingCompleted || profileStr.isEmpty || isEmptyName;
 
     final lastSeenVersion = prefs.getString(_lastSeenWhatsNewVersionKey);
     final whatsNewText = _whatsNewByVersion[currentVersion];

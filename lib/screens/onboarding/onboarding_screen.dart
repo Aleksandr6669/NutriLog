@@ -174,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final profileDraft = UserProfile(
         name: _nameController.text.trim().isEmpty
-            ? 'Пользователь'
+            ? 'Гость'
             : _nameController.text.trim(),
         gender: _gender,
         birthDate: _birthDate,
