@@ -3,7 +3,7 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), calories: 0, protein: 0, fat: 0, carbs: 0, water: "0.0 Л")
+        SimpleEntry(date: Date(), calories: "0", protein: "0", fat: "0", carbs: "0", water: "0.0 Л")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
