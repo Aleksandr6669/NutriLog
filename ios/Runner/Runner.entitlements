@@ -12,7 +12,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.nutrilog.app</string>
+		<string>group.com.app.nutrilog.app</string>
 	</array>
 </dict>
 </plist>
