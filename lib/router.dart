@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'providers/profile_provider.dart';
 
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
@@ -39,7 +42,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => OnboardingScreen(
-        onCompleted: () async => context.go('/home'),
+        onCompleted: () async {
+          await context.read<ProfileProvider>().reloadProfile();
+          if (context.mounted) context.go('/home');
+        },
       ),
     ),
     GoRoute(

@@ -317,6 +317,8 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
 
   Future<void> _completeOnboarding() async {
     await _startupService.completeOnboarding();
+    // Сбрасываем кэш провайдера, чтобы он перечитал только что сохранённый профиль
+    await context.read<ProfileProvider>().reloadProfile();
     await _init();
   }
 
