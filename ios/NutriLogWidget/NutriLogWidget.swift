@@ -64,7 +64,7 @@ struct NutriLogWidgetEntryView : View {
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(Color.primary)
                             
-                        Text("осталось сегодня")
+                        Text("за сегодня")
                             .font(.system(size: 10))
                             .foregroundColor(Color.secondary)
                     }
@@ -72,8 +72,7 @@ struct NutriLogWidgetEntryView : View {
                     
                     Divider()
                     
-                    // Right Column (Macros)
-                    HStack(spacing: 16) {
+                    VStack(spacing: 16) {
                         MediumMacroView(label: "Белки", value: "\(entry.protein)г", color: Color(hex: "00C753"))
                         MediumMacroView(label: "Жиры", value: "\(entry.fat)г", color: Color(hex: "00C753"))
                         MediumMacroView(label: "Углев", value: "\(entry.carbs)г", color: Color(hex: "00C753"))
