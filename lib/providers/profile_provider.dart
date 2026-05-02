@@ -14,7 +14,7 @@ class ProfileProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> loadProfile() async {
-    if (_profile != null) return; // Уже загружено
+    if (_profile != null && !_isLoading) return; // Уже загружено
     
     _isLoading = true;
     notifyListeners();
@@ -24,6 +24,13 @@ class ProfileProvider with ChangeNotifier {
     
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// Сбрасывает кэш и перечитывает профиль из хранилища.
+  /// Вызывать после онбординга или внешнего сохранения.
+  Future<void> reloadProfile() async {
+    _profile = null;
+    await loadProfile();
   }
 
   Future<void> refreshProfile() async {

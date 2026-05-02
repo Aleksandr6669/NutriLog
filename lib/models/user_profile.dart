@@ -139,7 +139,7 @@ class UserProfile {
       carbsGoal: json['carbsGoal'] as int,
       waterGoal: json['waterGoal'] as int,
       stepsGoal: json['stepsGoal'] as int,
-      weightHistory: (json['weightHistory'] as List<dynamic>)
+      weightHistory: ((json['weightHistory'] as List<dynamic>?) ?? [])
           .map((e) => e as Map<String, dynamic>)
           .toList(),
     );
