@@ -49,15 +49,11 @@ class AppStartupService {
       onTimeout: () => '0.0.0+0',
     );
 
-    // Онбординг нужен, если в системе нет данных профиля.
-    // Флаг onboarding_completed используем как дополнительный.
-    // Онбординг нужен, если в системе нет данных профиля 
-    // или если профиль содержит дефолтное имя "Пользователь".
     final profileStr = prefs.getString('user_profile') ?? '';
     final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
-    
-    // Если профиль пуст или имя отсутствует - значит онбординг не пройден
     final isEmptyName = profileStr.contains('"name":""');
+
+    // Если есть бэкап в iCloud/Google Drive с пройденным онбордингом - используем его
     final needsOnboarding = !onboardingCompleted || profileStr.isEmpty || isEmptyName;
 
     final lastSeenVersion = prefs.getString(_lastSeenWhatsNewVersionKey);

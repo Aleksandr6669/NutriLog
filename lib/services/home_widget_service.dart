@@ -38,6 +38,9 @@ class HomeWidgetSyncService {
         HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
         HomeWidget.saveWidgetData<String>('fats', '$fatг'),
         HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
+        HomeWidget.saveWidgetData<String>('proteins_val', protein.toString()),
+        HomeWidget.saveWidgetData<String>('fats_val', fat.toString()),
+        HomeWidget.saveWidgetData<String>('carbs_val', carbs.toString()),
         HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
         HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
         HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
@@ -47,8 +50,6 @@ class HomeWidgetSyncService {
       // the package context resolves to null in background isolates.
       const pkg = 'com.nutrilog.app';
       for (final cls in [
-        '$pkg.NutriSmallWidgetProvider',
-        '$pkg.NutriMediumWidgetProvider',
         '$pkg.NutriLargeWidgetProvider',
         '$pkg.NutriWaterWidgetProvider',
       ]) {
@@ -70,6 +71,10 @@ class HomeWidgetSyncService {
         await HomeWidget.updateWidget(
           name: 'NutriLogWidget',
           iOSName: 'NutriLogWidget',
+        );
+        await HomeWidget.updateWidget(
+          name: 'NutriLogWaterWidget',
+          iOSName: 'NutriLogWaterWidget',
         );
       } catch (_) {}
     }

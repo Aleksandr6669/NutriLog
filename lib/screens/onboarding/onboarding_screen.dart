@@ -6,6 +6,8 @@ import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final Future<void> Function()? onCompleted;
@@ -50,6 +52,57 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentStep = 0;
   bool _saving = false;
   bool _isAiFillingDailyGoals = false;
+  bool _isLoadingData = true;
+  UserProfile? _initialProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    final profileProvider = context.read<ProfileProvider>();
+    await profileProvider.loadProfile();
+    final profile = profileProvider.profile ?? await _profileService.loadProfile();
+    if (!mounted) return;
+
+    _initialProfile = profile;
+
+    setState(() {
+      _nameController.text = profile.name.isNotEmpty ? profile.name : 'Пользователь';
+      _gender = profile.gender;
+      
+      if (profile.birthDate.year > 1900) {
+        _birthDate = profile.birthDate;
+      } else {
+        _birthDate = DateTime(1997, 6, 15);
+      }
+
+      _heightController.text = profile.height > 0 ? profile.height.toString() : '170';
+      _weightController.text = profile.weight > 0 ? profile.weight.toString() : '70.0';
+      _weightGoalController.text = profile.weightGoal > 0 ? profile.weightGoal.toString() : '65.0';
+
+      _goalType = profile.goalType;
+      _activityFrequency = profile.activityFrequency;
+
+      if (profile.activityTypes.isNotEmpty) {
+        _activityTypesController.text = profile.activityTypes;
+      }
+      if (profile.aiContext.isNotEmpty) {
+        _aiContextController.text = profile.aiContext;
+      }
+
+      _calorieGoalController.text = profile.calorieGoal > 0 ? profile.calorieGoal.toString() : '1800';
+      _proteinGoalController.text = profile.proteinGoal > 0 ? profile.proteinGoal.toString() : '120';
+      _fatGoalController.text = profile.fatGoal > 0 ? profile.fatGoal.toString() : '60';
+      _carbsGoalController.text = profile.carbsGoal > 0 ? profile.carbsGoal.toString() : '195';
+      _waterGoalController.text = profile.waterGoal > 0 ? profile.waterGoal.toString() : '2000';
+      _stepsGoalController.text = profile.stepsGoal > 0 ? profile.stepsGoal.toString() : '10000';
+
+      _isLoadingData = false;
+    });
+  }
 
   @override
   void dispose() {
@@ -144,10 +197,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         carbsGoal: int.parse(_carbsGoalController.text.trim()),
         waterGoal: int.parse(_waterGoalController.text.trim()),
         stepsGoal: int.parse(_stepsGoalController.text.trim()),
-        weightHistory: const [],
+        weightHistory: _initialProfile?.weightHistory ?? const [],
       );
 
-      await _profileService.saveProfile(profile);
+      await context.read<ProfileProvider>().updateProfile(profile);
       if (!mounted) return;
 
       if (widget.onCompleted != null) {
@@ -191,7 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         carbsGoal: int.tryParse(_carbsGoalController.text.trim()) ?? 195,
         waterGoal: int.tryParse(_waterGoalController.text.trim()) ?? 2000,
         stepsGoal: int.tryParse(_stepsGoalController.text.trim()) ?? 10000,
-        weightHistory: const [],
+        weightHistory: _initialProfile?.weightHistory ?? const [],
       );
 
       final draft = await _geminiRecipeService.generateDailyGoals(
@@ -262,6 +315,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingData) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final stepTitle = switch (_currentStep) {
       0 => 'Физические параметры',
       1 => 'Общие цели',

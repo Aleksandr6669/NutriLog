@@ -86,39 +86,13 @@
             </intent-filter>
         </receiver>
 
-        <!-- Виджет Small (2x2) -->
-        <receiver
-            android:name="com.nutrilog.app.NutriSmallWidgetProvider"
-            android:exported="false"
-            android:label="NutriLog Small">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/nutri_small_widget_info" />
-        </receiver>
 
-        <!-- Виджет Medium (4x2) -->
-        <receiver
-            android:name="com.nutrilog.app.NutriMediumWidgetProvider"
-            android:exported="false"
-            android:label="NutriLog Medium">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/nutri_medium_widget_info" />
-        </receiver>
 
-        <!-- Виджет Large (4x4) -->
+        <!-- Виджет Сводка (4x2) -->
         <receiver
             android:name="com.nutrilog.app.NutriLargeWidgetProvider"
             android:exported="false"
-            android:label="NutriLog Large">
+            android:label="NutriLog Сводка">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
@@ -128,11 +102,11 @@
                 android:resource="@xml/nutri_large_widget_info" />
         </receiver>
 
-        <!-- Виджет Water -->
+        <!-- Виджет Вода -->
         <receiver
             android:name="com.nutrilog.app.NutriWaterWidgetProvider"
             android:exported="false"
-            android:label="NutriLog Water">
+            android:label="NutriLog Вода">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
@@ -140,20 +114,6 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/nutri_water_widget_info" />
-        </receiver>
-
-        <!-- Виджет TEST (Простой) -->
-        <receiver
-            android:name="com.nutrilog.app.NutriTestWidgetProvider"
-            android:exported="false"
-            android:label="NutriLog TEST">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/nutri_test_widget_info" />
         </receiver>
     </application>
 

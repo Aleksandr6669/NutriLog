@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F1F8F4"
+    android:background="#F5F8F7"
     android:padding="12dp"
     android:gravity="center">
 
@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ВОДА"
-        android:textColor="#1DB954"
+        android:textColor="#00C753"
         android:textSize="12sp"
         android:textStyle="bold" />
 
@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="1.5 Л"
-        android:textColor="#16261B"
+        android:textColor="#0F2317"
         android:textSize="28sp"
         android:textStyle="bold"
         android:layout_marginTop="4dp" />
