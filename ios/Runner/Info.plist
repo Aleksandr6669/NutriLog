@@ -2,20 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to let you pick a photo.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs camera access to scan QR codes and take pictures.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs microphone access to record audio.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to provide location-based services.</string>
-    <key>NSHealthShareUsageDescription</key>
-	<string>NutriLog запрашивает доступ только к данным Шаги (Steps), чтобы показывать прогресс активности.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>NutriLog не изменяет данные Здоровья и использует их только для отображения активности в приложении.</string>
-    <key>NSUserNotificationsUsageDescription</key>
-    <string>This app needs to send you notifications to keep you updated.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -40,6 +26,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan QR codes and take pictures.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>NutriLog запрашивает доступ только к данным Шаги (Steps), чтобы показывать прогресс активности.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>NutriLog не изменяет данные Здоровья и использует их только для отображения активности в приложении.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide location-based services.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record audio.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to let you pick a photo.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This app needs to send you notifications to keep you updated.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
