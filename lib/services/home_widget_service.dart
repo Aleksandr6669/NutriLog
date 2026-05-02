@@ -59,12 +59,17 @@ class HomeWidgetSyncService {
     } else if (Platform.isIOS) {
       // iOS: save ints
       await Future.wait([
-        HomeWidget.saveWidgetData<int>('calories', consumed),
-        HomeWidget.saveWidgetData<int>('proteins', protein),
-        HomeWidget.saveWidgetData<int>('fats', fat),
-        HomeWidget.saveWidgetData<int>('carbs', carbs),
-        HomeWidget.saveWidgetData<int>('steps_value', stepsValue),
+        HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
+        HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
+        HomeWidget.saveWidgetData<String>('fats', '$fatг'),
+        HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
+        HomeWidget.saveWidgetData<String>('proteins_val', protein.toString()),
+        HomeWidget.saveWidgetData<String>('fats_val', fat.toString()),
+        HomeWidget.saveWidgetData<String>('carbs_val', carbs.toString()),
+        HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
         HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
+        HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
+        HomeWidget.saveWidgetData<String>('steps', stepsString),
       ]);
       try {
         await HomeWidget.updateWidget(

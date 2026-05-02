@@ -123,7 +123,7 @@ struct MediumMacroView: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 4) {
+        HStack(spacing: 4) {
             Text(value)
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(Color.primary)
