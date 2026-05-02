@@ -65,3 +65,15 @@ class NutriWaterWidgetProvider : HomeWidgetProvider() {
         }
     }
 }
+
+class NutriTestWidgetProvider : HomeWidgetProvider() {
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
+        for (appWidgetId in appWidgetIds) {
+            val views = RemoteViews(context.packageName, R.layout.nutri_widget_test)
+            try {
+                views.setTextViewText(R.id.widgetText, "TEST OK")
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            } catch (e: Exception) { }
+        }
+    }
+}
