@@ -4,7 +4,6 @@
     android:minHeight="110dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/nutri_widget_medium"
-    android:previewImage="@drawable/preview_medium"
     android:previewLayout="@layout/nutri_widget_medium"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
