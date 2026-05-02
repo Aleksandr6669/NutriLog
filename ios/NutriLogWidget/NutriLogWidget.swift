@@ -1,59 +1,104 @@
-//
-//  NutriLogWidget.swift
-//  NutriLogWidget
-//
-//  Created by Александр Рыженков on 02.05.2026.
-//
-
 import WidgetKit
 import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
+        SimpleEntry(date: Date(), calories: 0, protein: 0, fat: 0, carbs: 0)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
+        let entry = loadEntry()
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
-        }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        let entry = loadEntry()
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
-
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
+    
+    private func loadEntry() -> SimpleEntry {
+        let userDefaults = UserDefaults(suiteName: "group.com.nutrilog.app")
+        let calories = userDefaults?.integer(forKey: "calories") ?? 0
+        let protein = userDefaults?.integer(forKey: "proteins") ?? 0
+        let fat = userDefaults?.integer(forKey: "fats") ?? 0
+        let carbs = userDefaults?.integer(forKey: "carbs") ?? 0
+        
+        return SimpleEntry(
+            date: Date(),
+            calories: calories,
+            protein: protein,
+            fat: fat,
+            carbs: carbs
+        )
+    }
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let emoji: String
+    let calories: Int
+    let protein: Int
+    let fat: Int
+    let carbs: Int
 }
 
 struct NutriLogWidgetEntryView : View {
     var entry: Provider.Entry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Emoji:")
-            Text(entry.emoji)
+        ZStack {
+            Color(hex: "F5FAF8")
+            
+            VStack(spacing: 8) {
+                // Header
+                HStack {
+                    Text("КАЛОРИИ")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Color(hex: "1DB954"))
+                    Spacer()
+                }
+                
+                // Main Calories
+                HStack {
+                    Text("\(entry.calories)")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(Color(hex: "16261B"))
+                    Spacer()
+                }
+                
+                Spacer()
+                
+                // Macros Row
+                HStack(spacing: 0) {
+                    MacroView(label: "Б", value: entry.protein, color: Color(hex: "1DB954"))
+                    MacroView(label: "Ж", value: entry.fat, color: Color(hex: "1DB954"))
+                    MacroView(label: "У", value: entry.carbs, color: Color(hex: "1DB954"))
+                }
+                .padding(6)
+                .background(Color.white.opacity(0.5))
+                .cornerRadius(8)
+            }
+            .padding(12)
         }
+    }
+}
+
+struct MacroView: View {
+    let label: String
+    let value: Int
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Text("\(value)")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(Color(hex: "16261B"))
+            Text(label)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundColor(color)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -71,14 +116,35 @@ struct NutriLogWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("NutriLog Дневник")
+        .description("Ваши калории и БЖУ на сегодня.")
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
-#Preview(as: .systemSmall) {
-    NutriLogWidget()
-} timeline: {
-    SimpleEntry(date: .now, emoji: "😀")
-    SimpleEntry(date: .now, emoji: "🤩")
+// Helper for Hex Colors
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
 }
