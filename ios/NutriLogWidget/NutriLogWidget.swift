@@ -51,8 +51,6 @@ struct NutriLogWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F5F8F7")
-            
             if family == .systemMedium {
                 // Medium Widget Layout
                 HStack(spacing: 16) {
@@ -181,8 +179,6 @@ struct NutriLogWaterWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F5F8F7")
-            
             VStack(spacing: 8) {
                 Text("ВОДА")
                     .font(.system(size: 12, weight: .bold))
