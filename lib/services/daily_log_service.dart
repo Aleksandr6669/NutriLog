@@ -14,14 +14,28 @@ class DailyLogService {
 
   Future<Map<String, dynamic>> _loadRawData() async {
     final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString(_storageKey);
+    String? stored = prefs.getString(_storageKey);
+
+    // Fallback to older daily_logs key if v2 is empty
+    if (stored == null || stored.isEmpty) {
+      stored = prefs.getString('daily_logs');
+      if (stored != null && stored.isNotEmpty) {
+        // Save to new key to complete migration
+        await prefs.setString(_storageKey, stored);
+      }
+    }
+
     if (stored == null || stored.isEmpty) {
       return {};
     }
-    final decoded = json.decode(stored);
-    if (decoded is Map<String, dynamic>) {
-      return decoded;
-    }
+    
+    try {
+      final decoded = json.decode(stored);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } catch (_) {}
+    
     return {};
   }
 

@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
     android:padding="8dp">
 
     <!-- Top Row -->
@@ -20,7 +19,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center"
             android:layout_marginEnd="4dp">
@@ -35,7 +33,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center">
             <TextView android:text="ШАГИ" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
@@ -57,7 +54,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F5F8F7"
             android:padding="8dp"
             android:gravity="center"
             android:layout_marginEnd="4dp">
@@ -84,7 +80,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="#F5F8F7"
             android:padding="12dp"
             android:gravity="center">
             <TextView android:text="ВОДА" android:textColor="#00C753" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
