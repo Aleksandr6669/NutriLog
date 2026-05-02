@@ -19,7 +19,7 @@ class AppStartupService {
 
   // Текст новинок по версии. Если версии нет в карте - экран новинок не показываем.
   static const Map<String, String> _whatsNewByVersion = {
-    '1.2.7-beta+32': '• Улучшена производительность приложения.\n'
+    '1.2.8+32': '• Улучшена производительность приложения.\n'
         '• Исправлены мелкие баги и улучшена стабильность.\n'
         '• Добавлены уведомления по воде и приемам пищи.\n'
         '• Добавлены уведомления напоминания взвеситься.\n'
@@ -76,7 +76,14 @@ class AppStartupService {
   Future<String> _resolveCurrentVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      return '${packageInfo.version}+${packageInfo.buildNumber}';
+      final version = '${packageInfo.version}+${packageInfo.buildNumber}';
+      
+      // Хак для отображения беты, если она обрезалась системой Android
+      if (version == '1.2.7+32') {
+        return '1.2.7-beta+32';
+      }
+      
+      return version;
     } catch (e) {
       return '0.0.0+0';
     }
