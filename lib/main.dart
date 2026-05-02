@@ -10,6 +10,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui';
 import 'services/app_notification_service.dart';
+import 'services/notification_settings_service.dart';
 import 'services/app_startup_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
@@ -155,6 +156,9 @@ Future<void> _bootstrapServices() async {
     try {
       final notificationService = AppNotificationService();
       await notificationService.initialize();
+      final settingsService = NotificationSettingsService();
+      final settings = await settingsService.load();
+      await notificationService.applySettings(settings);
     } catch (_) {
       // Не показываем предупреждение на старте.
     }

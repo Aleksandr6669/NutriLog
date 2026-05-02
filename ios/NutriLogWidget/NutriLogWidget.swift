@@ -62,11 +62,11 @@ struct NutriLogWidgetEntryView : View {
                         
                         Text("\(entry.calories)")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color(hex: "0F2317"))
+                            .foregroundColor(Color.primary)
                             
                         Text("осталось сегодня")
                             .font(.system(size: 10))
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(Color.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -96,7 +96,7 @@ struct NutriLogWidgetEntryView : View {
                     HStack {
                         Text("\(entry.calories)")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(Color(hex: "0F2317"))
+                            .foregroundColor(Color.primary)
                         Spacer()
                     }
                     
@@ -109,7 +109,7 @@ struct NutriLogWidgetEntryView : View {
                         MacroView(label: "У", value: entry.carbs, color: Color(hex: "00C753"))
                     }
                     .padding(6)
-                    .background(Color.white.opacity(0.5))
+                    .background(Color.secondary.opacity(0.2))
                     .cornerRadius(8)
                 }
                 .padding(12)
@@ -127,7 +127,7 @@ struct MediumMacroView: View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(hex: "0F2317"))
+                .foregroundColor(Color.primary)
             Text(label)
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(color)
@@ -144,7 +144,7 @@ struct MacroView: View {
         VStack(spacing: 2) {
             Text("\(value)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(hex: "0F2317"))
+                .foregroundColor(Color.primary)
             Text(label)
                 .font(.system(size: 8, weight: .bold))
                 .foregroundColor(color)
@@ -186,7 +186,7 @@ struct NutriLogWaterWidgetEntryView : View {
                 
                 Text(entry.water)
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(Color(hex: "0F2317"))
+                    .foregroundColor(Color.primary)
             }
             .padding(12)
         }

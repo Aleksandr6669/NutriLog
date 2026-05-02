@@ -67,9 +67,15 @@ class DailyLogProvider with ChangeNotifier {
   }
 
   Future<void> refreshCurrentLog() async {
-    _currentLog = await _service.getLogForDate(_selectedDate);
+    final log = await _service.getLogForDate(_selectedDate);
+    _currentLog = log;
     await loadLoggedDates();
     notifyListeners();
+
+    try {
+      final profile = await _profileService.loadProfile();
+      await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
+    } catch (_) {}
   }
 
   // --- Actions ---
