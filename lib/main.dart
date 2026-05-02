@@ -28,6 +28,7 @@ import 'providers/profile_provider.dart';
 import 'providers/daily_log_provider.dart';
 import 'services/health_steps_service.dart';
 import 'models/daily_log.dart';
+import 'package:home_widget/home_widget.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);
@@ -76,6 +77,13 @@ void _reportFatalAppError(String title, Object error,
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize HomeWidget App Group for iOS
+  if (!kIsWeb && Platform.isIOS) {
+    try {
+      await HomeWidget.setAppGroupId('group.com.nutrilog.app');
+    } catch (_) {}
+  }
 
   // Слушатели уведомлений настраиваем сразу
   if (!kIsWeb) {
@@ -305,7 +313,7 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     });
 
     // После загрузки состояния — принудительно обновляем виджеты (если не web)
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       try {
         final dailyLog = context.read<DailyLogProvider>().currentLog ?? DailyLog.empty(DateTime.now());
         final profile = context.read<ProfileProvider>().profile;

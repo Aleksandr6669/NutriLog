@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp"
+    android:padding="16dp"
+    android:background="@drawable/bg_card_widget"
     android:gravity="center">
 
     <TextView
@@ -18,18 +19,10 @@
         android:id="@+id/widgetWaterValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1.5 Л"
+        android:text="0.0 Л"
         android:textColor="#0F2317"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:layout_marginTop="4dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ЦЕЛЬ: 2.0 Л"
-        android:textColor="#8E998F"
-        android:textSize="12sp"
         android:layout_marginTop="4dp" />
 
 </LinearLayout>

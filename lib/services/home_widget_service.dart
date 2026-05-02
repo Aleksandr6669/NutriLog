@@ -27,29 +27,41 @@ class HomeWidgetSyncService {
           (Match m) => '${m[1]} ',
         );
 
-    try {
-      await HomeWidget.setAppGroupId(_iosAppGroup);
-    } catch (_) {}
+    // Initial sync might need App Group ID again just in case, but we moved it to main()
+    // We'll keep it here as a fallback if Platform is iOS, but won't await it every time if it's already set.
+    // Actually, calling it multiple times is safe and ensures the correct group is used.
+    if (Platform.isIOS) {
+      try {
+        await HomeWidget.setAppGroupId(_iosAppGroup);
+      } catch (_) {}
+    }
+
+    final Map<String, dynamic> data = {
+      'calories': consumed.toString(),
+      'proteins': '$proteinг',
+      'fats': '$fatг',
+      'carbs': '$carbsг',
+      'proteins_val': protein.toString(),
+      'fats_val': fat.toString(),
+      'carbs_val': carbs.toString(),
+      'calories_summary': '$consumed ккал',
+      'water': '$waterLiters Л',
+      'water_value': '$waterLiters Л',
+      'steps': stepsString,
+    };
+
+    // Save all data
+    await Future.wait(data.entries.map((e) => HomeWidget.saveWidgetData(e.key, e.value)));
 
     if (Platform.isAndroid) {
-      // Android: save strings
-      await Future.wait([
-        HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
-        HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
-        HomeWidget.saveWidgetData<String>('fats', '$fatг'),
-        HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
-        HomeWidget.saveWidgetData<String>('proteins_val', protein.toString()),
-        HomeWidget.saveWidgetData<String>('fats_val', fat.toString()),
-        HomeWidget.saveWidgetData<String>('carbs_val', carbs.toString()),
-        HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
-        HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
-        HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
-        HomeWidget.saveWidgetData<String>('steps', stepsString),
-      ]);
       try {
         await HomeWidget.updateWidget(
           androidName: 'NutriLargeWidgetProvider',
           qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider'
+        );
+        await HomeWidget.updateWidget(
+          androidName: 'NutriSmallWidgetProvider',
+          qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider'
         );
         await HomeWidget.updateWidget(
           androidName: 'NutriWaterWidgetProvider',
@@ -57,20 +69,6 @@ class HomeWidgetSyncService {
         );
       } catch (_) {}
     } else if (Platform.isIOS) {
-      // iOS: save ints
-      await Future.wait([
-        HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
-        HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
-        HomeWidget.saveWidgetData<String>('fats', '$fatг'),
-        HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
-        HomeWidget.saveWidgetData<String>('proteins_val', protein.toString()),
-        HomeWidget.saveWidgetData<String>('fats_val', fat.toString()),
-        HomeWidget.saveWidgetData<String>('carbs_val', carbs.toString()),
-        HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
-        HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
-        HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
-        HomeWidget.saveWidgetData<String>('steps', stepsString),
-      ]);
       try {
         await HomeWidget.updateWidget(
           name: 'NutriLogWidget',
