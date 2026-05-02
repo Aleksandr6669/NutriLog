@@ -19,10 +19,10 @@ struct Provider: TimelineProvider {
     
     private func loadEntry() -> SimpleEntry {
         let userDefaults = UserDefaults(suiteName: "group.com.nutrilog.app")
-        let calories = userDefaults?.integer(forKey: "calories") ?? 0
-        let protein = userDefaults?.integer(forKey: "proteins") ?? 0
-        let fat = userDefaults?.integer(forKey: "fats") ?? 0
-        let carbs = userDefaults?.integer(forKey: "carbs") ?? 0
+        let calories = userDefaults?.string(forKey: "calories") ?? "0"
+        let protein = userDefaults?.string(forKey: "proteins") ?? "0"
+        let fat = userDefaults?.string(forKey: "fats") ?? "0"
+        let carbs = userDefaults?.string(forKey: "carbs") ?? "0"
         let water = userDefaults?.string(forKey: "water") ?? "0.0 Л"
         
         return SimpleEntry(
@@ -137,7 +137,7 @@ struct MediumMacroView: View {
 
 struct MacroView: View {
     let label: String
-    let value: Int
+    let value: String
     let color: Color
     
     var body: some View {
