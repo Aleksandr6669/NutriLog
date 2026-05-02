@@ -240,7 +240,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return null;
   }
 
-  double _parseDouble(String value) => double.parse(value.replaceAll(',', '.'));
+  double _parseDouble(String value) =>
+      double.tryParse(value.trim().replaceAll(',', '.')) ?? 0.0;
 
   double? _tryParseDouble(String value) =>
       double.tryParse(value.replaceAll(',', '.'));
