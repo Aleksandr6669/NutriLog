@@ -1450,16 +1450,17 @@ class _MealCard extends StatelessWidget {
     final isNotEaten = calories == '0';
     return InkWell(
       onTap: () async {
+        final mealType = mealName == 'Завтрак'
+            ? 'breakfast'
+            : mealName == 'Обед'
+                ? 'lunch'
+                : mealName == 'Ужин'
+                    ? 'dinner'
+                    : 'snacks';
+
         final result = await context.push<bool>(
-          '/meal',
+          '/meal/$mealType',
           extra: {
-            'type': mealName == 'Завтрак'
-                ? 'breakfast'
-                : mealName == 'Обед'
-                    ? 'lunch'
-                    : mealName == 'Ужин'
-                        ? 'dinner'
-                        : 'snacks',
             'items': items,
             'date': selectedDate,
           },

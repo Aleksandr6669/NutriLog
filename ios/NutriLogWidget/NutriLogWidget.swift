@@ -18,7 +18,7 @@ struct Provider: TimelineProvider {
     }
     
     private func loadEntry() -> SimpleEntry {
-        let userDefaults = UserDefaults(suiteName: "group.com.nutrilog.app")
+        let userDefaults = UserDefaults(suiteName: "group.com.app.nutrilog.app")
         let calories = userDefaults?.string(forKey: "calories") ?? "0"
         let protein = userDefaults?.string(forKey: "proteins") ?? "0"
         let fat = userDefaults?.string(forKey: "fats") ?? "0"

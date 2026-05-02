@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$USER_HOME$/flutter/packages/flutter_tools/gradle" name="gradle">
+                <projects>
+                  <project path="$USER_HOME$/flutter/packages/flutter_tools/gradle" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/app_settings-6.1.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/awesome_notifications-0.11.0/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/device_info_plus-12.1.0/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.34/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/flutter_timezone-3.0.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/health-13.3.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/home_widget-0.9.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_android-0.8.13+16/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/jni-1.0.0/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/jni_flutter-1.0.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/package_info_plus-8.3.1/android" />
+            <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/shared_preferences_android-2.4.23/android" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$USER_HOME$/flutter/packages/flutter_tools/gradle" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>

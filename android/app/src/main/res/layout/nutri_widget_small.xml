@@ -26,7 +26,7 @@
         android:textStyle="bold"
         android:layout_marginTop="2dp" />
 
-    <View
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
@@ -36,7 +36,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#ffffffe1"
         android:padding="6dp">
 
         <!-- Protein -->

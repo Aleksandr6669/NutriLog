@@ -76,17 +76,20 @@ final GoRouter appRouter = GoRouter(
     
     // Дневник: Детали приёма пищи, Вес, Активность
     GoRoute(
-      path: '/meal',
+      path: '/meal/:type',
       builder: (context, state) {
+        final type = state.pathParameters['type'] ?? 'snacks';
         final extra = state.extra as Map<String, dynamic>?;
-        final type = extra?['type'] as String?;
+        
         String mealName;
         switch (type) {
           case 'breakfast': mealName = 'Завтрак'; break;
           case 'lunch': mealName = 'Обед'; break;
           case 'dinner': mealName = 'Ужин'; break;
-          default: mealName = type ?? 'Приём пищи';
+          case 'snacks': mealName = 'Перекусы'; break;
+          default: mealName = extra?['mealName'] as String? ?? 'Приём пищи';
         }
+
         return MealDetailScreen(
           mealName: mealName,
           items: (extra?['items'] as List?)?.cast<FoodItem>() ?? <FoodItem>[],
@@ -96,7 +99,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/weight',
-      builder: (context, state) => WeightEntryScreen(date: DateTime.now()),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final date = extra?['date'] as DateTime? ?? DateTime.now();
+        return WeightEntryScreen(date: date);
+      },
     ),
     GoRoute(
       path: '/activity',
