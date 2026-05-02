@@ -27,7 +27,6 @@ import 'providers/profile_provider.dart';
 import 'providers/daily_log_provider.dart';
 import 'services/health_steps_service.dart';
 import 'models/daily_log.dart';
-import 'models/user_profile.dart';
 
 final ValueNotifier<String?> _startupWarningMessage = ValueNotifier(null);
 final ValueNotifier<_FatalAppError?> _fatalAppError = ValueNotifier(null);

@@ -31,33 +31,47 @@ class HomeWidgetSyncService {
       await HomeWidget.setAppGroupId(_iosAppGroup);
     } catch (_) {}
 
-    await Future.wait([
-      // Data for Android (mostly Strings)
-      HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
-      HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
-      HomeWidget.saveWidgetData<String>('fats', '$fatг'),
-      HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
-      HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
-      HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
-      HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
-      HomeWidget.saveWidgetData<String>('steps', stepsString),
-      
-      // Data for iOS (Ints)
-      HomeWidget.saveWidgetData<int>('calories', consumed),
-      HomeWidget.saveWidgetData<int>('proteins', protein),
-      HomeWidget.saveWidgetData<int>('fats', fat),
-      HomeWidget.saveWidgetData<int>('carbs', carbs),
-      HomeWidget.saveWidgetData<int>('steps_value', stepsValue),
-    ]);
-
-    await Future.wait([
-      // Android Updates
-      HomeWidget.updateWidget(androidName: 'NutriSmallWidgetProvider'),
-      HomeWidget.updateWidget(androidName: 'NutriMediumWidgetProvider'),
-      HomeWidget.updateWidget(androidName: 'NutriLargeWidgetProvider'),
-      HomeWidget.updateWidget(androidName: 'NutriWaterWidgetProvider'),
-      // iOS Update
-      HomeWidget.updateWidget(iOSName: 'NutriLogWidget'),
-    ]);
+    if (Platform.isAndroid) {
+      // Android: save strings
+      await Future.wait([
+        HomeWidget.saveWidgetData<String>('calories', consumed.toString()),
+        HomeWidget.saveWidgetData<String>('proteins', '$proteinг'),
+        HomeWidget.saveWidgetData<String>('fats', '$fatг'),
+        HomeWidget.saveWidgetData<String>('carbs', '$carbsг'),
+        HomeWidget.saveWidgetData<String>('calories_summary', '$consumed ккал'),
+        HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
+        HomeWidget.saveWidgetData<String>('water_value', '$waterLiters Л'),
+        HomeWidget.saveWidgetData<String>('steps', stepsString),
+      ]);
+      // Use fully-qualified class names to avoid ClassNotFoundException when
+      // the package context resolves to null in background isolates.
+      const pkg = 'com.nutrilog.app';
+      for (final cls in [
+        '$pkg.NutriSmallWidgetProvider',
+        '$pkg.NutriMediumWidgetProvider',
+        '$pkg.NutriLargeWidgetProvider',
+        '$pkg.NutriWaterWidgetProvider',
+      ]) {
+        try {
+          await HomeWidget.updateWidget(androidName: cls);
+        } catch (_) {}
+      }
+    } else if (Platform.isIOS) {
+      // iOS: save ints
+      await Future.wait([
+        HomeWidget.saveWidgetData<int>('calories', consumed),
+        HomeWidget.saveWidgetData<int>('proteins', protein),
+        HomeWidget.saveWidgetData<int>('fats', fat),
+        HomeWidget.saveWidgetData<int>('carbs', carbs),
+        HomeWidget.saveWidgetData<int>('steps_value', stepsValue),
+        HomeWidget.saveWidgetData<String>('water', '$waterLiters Л'),
+      ]);
+      try {
+        await HomeWidget.updateWidget(
+          name: 'NutriLogWidget',
+          iOSName: 'NutriLogWidget',
+        );
+      } catch (_) {}
+    }
   }
 }
