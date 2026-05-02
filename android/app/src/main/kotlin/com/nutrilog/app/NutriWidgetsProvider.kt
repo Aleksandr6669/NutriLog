@@ -19,8 +19,6 @@ class NutriLargeWidgetProvider : HomeWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.nutri_widget_large)
             try {
                 views.setTextViewText(R.id.widgetCalories, widgetData.getString("calories_summary", "0 ккал"))
-                views.setTextViewText(R.id.widgetWater, widgetData.getString("water", "0.0 Л"))
-                views.setTextViewText(R.id.widgetSteps, widgetData.getString("steps", "0"))
                 views.setTextViewText(R.id.widgetProteins, widgetData.getString("proteins_val", "0"))
                 views.setTextViewText(R.id.widgetFats, widgetData.getString("fats_val", "0"))
                 views.setTextViewText(R.id.widgetCarbs, widgetData.getString("carbs_val", "0"))
