@@ -29,7 +29,7 @@ class ProfileService {
 
   UserProfile _createDefaultProfile() {
     return UserProfile(
-      name: 'Пользователь',
+      name: '',
       gender: Gender.female,
       birthDate: DateTime(2000, 1, 1),
       height: 0,
@@ -39,12 +39,12 @@ class ProfileService {
       activityFrequency: ActivityFrequency.light,
       activityTypes: '',
       aiContext: '',
-      calorieGoal: 2000,
-      proteinGoal: 150,
-      fatGoal: 70,
-      carbsGoal: 200,
-      waterGoal: 2000,
-      stepsGoal: 10000,
+      calorieGoal: 0,
+      proteinGoal: 0,
+      fatGoal: 0,
+      carbsGoal: 0,
+      waterGoal: 0,
+      stepsGoal: 0,
       weightHistory: const [],
     );
   }
