@@ -19,7 +19,7 @@ class AppStartupService {
 
   // Текст новинок по версии. Если версии нет в карте - экран новинок не показываем.
   static const Map<String, String> _whatsNewByVersion = {
-    '1.2.5+17': '• Улучшена производительность приложения.\n'
+    '1.2.7-beta+32': '• Улучшена производительность приложения.\n'
         '• Исправлены мелкие баги и улучшена стабильность.\n'
         '• Добавлены уведомления по воде и приемам пищи.\n'
         '• Добавлены уведомления напоминания взвеситься.\n'
@@ -38,15 +38,23 @@ class AppStartupService {
 
   Future<StartupState> loadState() async {
     final prefs = await SharedPreferences.getInstance();
-    final currentVersion = await _resolveCurrentVersion();
-
-    // Онбординг нужен, если:
-    // 1. Флаг прохождения не установлен.
-    // 2. ИЛИ в системе вообще нет данных профиля.
-    final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
-    final hasProfile = prefs.containsKey('user_profile');
     
-    final needsOnboarding = !onboardingCompleted || !hasProfile;
+    // Используем таймаут для получения версии, чтобы не блокировать запуск
+    final currentVersion = await _resolveCurrentVersion().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => '0.0.0+0',
+    );
+
+    // Онбординг нужен, если в системе нет данных профиля.
+    // Флаг onboarding_completed используем как дополнительный.
+    // Онбординг нужен, если в системе нет данных профиля 
+    // или если профиль содержит дефолтное имя "Пользователь".
+    final profileStr = prefs.getString('user_profile') ?? '';
+    final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
+    
+    // Если профиль пуст или имя дефолтное - значит онбординг не пройден до конца
+    final isDefaultProfile = profileStr.contains('"name":"Пользователь"');
+    final needsOnboarding = !onboardingCompleted || profileStr.isEmpty || isDefaultProfile;
 
     final lastSeenVersion = prefs.getString(_lastSeenWhatsNewVersionKey);
     final whatsNewText = _whatsNewByVersion[currentVersion];
@@ -65,8 +73,7 @@ class AppStartupService {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       return '${packageInfo.version}+${packageInfo.buildNumber}';
-    } catch (_) {
-      // Для web/preview-платформ не блокируем запуск, если plugin недоступен.
+    } catch (e) {
       return '0.0.0+0';
     }
   }

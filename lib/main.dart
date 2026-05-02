@@ -280,10 +280,11 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     StartupState state;
     try {
       state = await _startupService.loadState();
-    } catch (_) {
-      // Защита от зависания стартового экрана при сбое plugin/prefs.
+    } catch (e, stack) {
+      debugPrint('STARTUP_ERROR: $e');
+      debugPrint(stack.toString());
       _reportStartupWarning(
-        'Стартовые данные не загрузились. Приложение открылось без онбординга и уведомлений о новой версии.',
+        'Ошибка загрузки: $e. Приложение открылось без онбординга.',
       );
       state = const StartupState(
         needsOnboarding: false,
