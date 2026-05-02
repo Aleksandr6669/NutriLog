@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               controller: _scrollController,
                               padding: glassBodyPadding(
                                 context,
-                                top: 16,
+                                top: -4,
                                 bottom: 120,
                               ),
                               child: Column(

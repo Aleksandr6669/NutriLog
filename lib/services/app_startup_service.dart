@@ -78,11 +78,6 @@ class AppStartupService {
       final packageInfo = await PackageInfo.fromPlatform();
       final version = '${packageInfo.version}+${packageInfo.buildNumber}';
       
-      // Хак для отображения беты, если она обрезалась системой Android
-      if (version == '1.2.7+32') {
-        return '1.2.7-beta+32';
-      }
-      
       return version;
     } catch (e) {
       return '0.0.0+0';

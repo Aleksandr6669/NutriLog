@@ -3,70 +3,94 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_bg"
-    android:padding="12dp">
+    android:background="#FFFFFF"
+    android:padding="8dp">
 
-    <!-- Top: Calories -->
+    <!-- Top Row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="horizontal"
-        android:background="#F1F8F4"
-        android:padding="12dp"
-        android:layout_marginBottom="8dp">
-        
-        <View
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:background="#1DB954" />
+        android:layout_marginBottom="4dp">
 
+        <!-- Calories Quadrant -->
         <LinearLayout
             android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginStart="12dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="КАЛОРИИ СЕГОДНЯ"
-                android:textColor="#1DB954"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/widgetCalories"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1450"
-                android:textColor="#16261B"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+            android:background="#F1F8F4"
+            android:padding="12dp"
+            android:gravity="center"
+            android:layout_marginEnd="4dp">
+            <TextView android:text="КАЛОРИИ" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetCalories" android:text="1450" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="осталось" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Steps Quadrant -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="#F1F8F4"
+            android:padding="12dp"
+            android:gravity="center">
+            <TextView android:text="ШАГИ" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetSteps" android:text="8400" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="из 10000" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Middle: Water -->
+    <!-- Bottom Row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#F1F8F4"
-        android:padding="8dp"
-        android:layout_marginBottom="8dp">
-        <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
-        <TextView android:text="ВОДА: " android:textColor="#1DB954" android:textSize="12sp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-        <TextView android:id="@+id/widgetWater" android:text="1.2 Л" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    </LinearLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
 
-    <!-- Bottom: Steps -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#F1F8F4"
-        android:padding="8dp">
-        <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#1DB954" />
-        <TextView android:text="ШАГИ: " android:textColor="#1DB954" android:textSize="12sp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-        <TextView android:id="@+id/widgetSteps" android:text="6500" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <!-- Macros Quadrant -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="#F1F8F4"
+            android:padding="8dp"
+            android:gravity="center"
+            android:layout_marginEnd="4dp">
+            <TextView android:text="БЖУ (Г)" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:text="85" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="Б" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:text="45" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="Ж" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:text="120" android:textColor="#16261B" android:textSize="12sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:text="У" android:textColor="#1DB954" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Water Quadrant -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="#F1F8F4"
+            android:padding="12dp"
+            android:gravity="center">
+            <TextView android:text="ВОДА" android:textColor="#1DB954" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/widgetWater" android:text="1.5 Л" android:textColor="#16261B" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:text="цель: 2.0" android:textColor="#8E998F" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
