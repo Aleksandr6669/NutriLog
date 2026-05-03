@@ -20,7 +20,7 @@ class WhatsNewScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Новинки'),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: SafeArea(
         child: Padding(

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
 import 'package:nutri_log/services/notification_settings_service.dart';
+import 'package:nutri_log/services/app_startup_service.dart';
+import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class ConnectionsNotificationsScreen extends StatefulWidget {
@@ -146,19 +149,9 @@ class _ConnectionsNotificationsScreenState
         children: [
           _buildSectionTitle(theme, 'Подключения'),
           const SizedBox(height: 10),
-          const Card(
+          Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: Icon(Symbols.health_and_safety),
-                  title: Text('Приложение "Здоровье"'),
-                  subtitle: Text('В разработке'),
-                  trailing: FilledButton.tonal(
-                    onPressed: null,
-                    child: Text('Подключить'),
-                  ),
-                ),
-                Divider(height: 1),
                 ListTile(
                   leading: Icon(Symbols.account_circle),
                   title: Text('Вход в аккаунт'),
@@ -268,6 +261,48 @@ class _ConnectionsNotificationsScreenState
                       : const SizedBox.shrink(),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionTitle(theme, 'Приложение'),
+          const SizedBox(height: 10),
+          Card(
+            child: FutureBuilder<String>(
+              future: AppStartupService().loadState().then((s) => s.currentVersion),
+              builder: (context, snapshot) {
+                final version = snapshot.data ?? '...';
+                return ListTile(
+                  leading: Icon(Symbols.info),
+                  title: const Text('Версия приложения'),
+                  subtitle: Text(version),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      final state = await AppStartupService().loadState();
+                      if (!context.mounted) return;
+                      
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (context) => WhatsNewScreen(
+                            version: state.currentVersion,
+                            text: AppStartupService.getWhatsNewForVersion(state.currentVersion) ?? 'Нет информации об обновлениях.',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Что нового?'),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Symbols.description),
+              title: const Text('Пользовательское соглашение'),
+              subtitle: const Text('Данные, хранение и нейросети'),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () => context.push('/profile/agreement'),
             ),
           ),
         ],

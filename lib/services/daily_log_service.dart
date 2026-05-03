@@ -9,21 +9,12 @@ import 'recipe_loader.dart';
 
 class DailyLogService {
   static final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
-  static const String _storageKey = 'daily_logs_v2';
+  static const String _storageKey = 'daily_logs';
   final ProfileService _profileService = ProfileService();
 
   Future<Map<String, dynamic>> _loadRawData() async {
     final prefs = await SharedPreferences.getInstance();
     String? stored = prefs.getString(_storageKey);
-
-    // Fallback to older daily_logs key if v2 is empty
-    if (stored == null || stored.isEmpty) {
-      stored = prefs.getString('daily_logs');
-      if (stored != null && stored.isNotEmpty) {
-        // Save to new key to complete migration
-        await prefs.setString(_storageKey, stored);
-      }
-    }
 
     if (stored == null || stored.isEmpty) {
       return {};

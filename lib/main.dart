@@ -14,6 +14,7 @@ import 'services/notification_settings_service.dart';
 import 'services/app_startup_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
+import 'package:nutri_log/screens/profile/user_agreement_screen.dart';
 import 'styles/app_colors.dart';
 import 'styles/app_styles.dart';
 import 'widgets/glass_app_bar_background.dart';
@@ -85,11 +86,22 @@ void main() async {
     } catch (_) {}
   }
 
-  // Слушатели уведомлений настраиваем сразу
+  // Слушатели уведомлений и виджетов настраиваем сразу
   if (!kIsWeb) {
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: AppNotificationService.onActionReceivedMethod,
     );
+    
+    // Слушаем нажатия на виджеты (Android/iOS)
+    HomeWidget.widgetClicked.listen((Uri? uri) {
+      if (uri != null) {
+        debugPrint('WIDGET_CLICKED: $uri');
+        // Обрабатываем переход, если в URI есть информация о маршруте
+        if (uri.path.isNotEmpty) {
+          appRouter.push(uri.path);
+        }
+      }
+    });
   }
 
   FlutterError.onError = (details) {
@@ -211,32 +223,41 @@ class MyApp extends StatelessWidget {
       ],
       builder: (context, child) {
         final content = child ?? const SizedBox.shrink();
-        return ValueListenableBuilder<_FatalAppError?>(
-          valueListenable: _fatalAppError,
-          builder: (context, fatalError, _) {
-            if (fatalError != null) {
-              return _FatalErrorScreen(
-                title: fatalError.title,
-                message: fatalError.details,
-              );
+        return GestureDetector(
+          onTap: () {
+            // Скрываем клавиатуру при тапе в любое место, где нет ввода текста
+            final currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+              FocusManager.instance.primaryFocus?.unfocus();
             }
-
-            return ValueListenableBuilder<String?>(
-              valueListenable: _startupWarningMessage,
-              builder: (context, warningMessage, _) {
-                return Stack(
-                  children: [
-                    content,
-                    if (warningMessage != null)
-                      _StartupWarningBanner(
-                        message: warningMessage,
-                        onClose: () => _startupWarningMessage.value = null,
-                      ),
-                  ],
-                );
-              },
-            );
           },
+          child: ValueListenableBuilder<_FatalAppError?>(
+            valueListenable: _fatalAppError,
+            builder: (context, fatalError, _) {
+              if (fatalError != null) {
+                return _FatalErrorScreen(
+                  title: fatalError.title,
+                  message: fatalError.details,
+                );
+              }
+
+              return ValueListenableBuilder<String?>(
+                valueListenable: _startupWarningMessage,
+                builder: (context, warningMessage, _) {
+                  return Stack(
+                    children: [
+                      content,
+                      if (warningMessage != null)
+                        _StartupWarningBanner(
+                          message: warningMessage,
+                          onClose: () => _startupWarningMessage.value = null,
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -302,6 +323,7 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
       );
       state = const StartupState(
         needsOnboarding: false,
+        hasAcceptedAgreement: true,
         whatsNewText: null,
         currentVersion: '0.0.0+0',
       );
@@ -340,13 +362,26 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     await _init();
   }
 
+  Future<void> _acceptAgreement() async {
+    await _startupService.acceptAgreement();
+    await _init();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading || _state == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _buildLoadingScreen();
     }
 
     final state = _state!;
+
+    if (!state.hasAcceptedAgreement) {
+      return UserAgreementScreen(
+        key: const ValueKey('agreement'),
+        showAcceptButton: true,
+        onAccepted: _acceptAgreement,
+      );
+    }
 
     if (state.needsOnboarding) {
       return OnboardingScreen(
@@ -369,11 +404,129 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     // to navigate to '/home' and show a loader in the meantime.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.go('/home');
+        // Проверяем, не находимся ли мы уже на другом экране (например, открытом через уведомление)
+        // Если текущий путь не '/', значит навигация уже произошла.
+        final router = GoRouter.of(context);
+        final currentPath = router.routeInformationProvider.value.uri.path;
+        
+        if (currentPath == '/') {
+          context.go('/home');
+        } else {
+          debugPrint('BOOTSTRAP: Navigation already occurred to $currentPath, skipping redirect to /home');
+        }
       }
     });
 
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return _buildLoadingScreen();
+  }
+
+  Widget _buildLoadingScreen() {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.backgroundLight,
+              AppColors.primary.withValues(alpha: 0.08),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Стильный контейнер для логотипа
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutBack,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Symbols.nutrition,
+                    size: 72,
+                    color: AppColors.primary,
+                    fill: 1.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Название приложения
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: (1 - value) * 20),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Column(
+                  children: [
+                    Text(
+                      'NutriLog',
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -1.5,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ваш путь к здоровью',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppColors.subtleTextLight,
+                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 64),
+              // Тонкий индикатор загрузки
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primary.withValues(alpha: 0.4),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -3,11 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StartupState {
   final bool needsOnboarding;
+  final bool hasAcceptedAgreement;
   final String? whatsNewText;
   final String currentVersion;
 
   const StartupState({
     required this.needsOnboarding,
+    required this.hasAcceptedAgreement,
     required this.whatsNewText,
     required this.currentVersion,
   });
@@ -16,6 +18,7 @@ class StartupState {
 class AppStartupService {
   static const String _onboardingDoneKey = 'onboarding_completed';
   static const String _lastSeenWhatsNewVersionKey = 'whats_new_seen_version';
+  static const String _agreementAcceptedKey = 'user_agreement_accepted';
 
   // Текст новинок по версии. Если версии нет в карте - экран новинок не показываем.
   static const Map<String, String> _whatsNewByVersion = {
@@ -51,6 +54,7 @@ class AppStartupService {
 
     final profileStr = prefs.getString('user_profile') ?? '';
     final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
+    final hasAcceptedAgreement = prefs.getBool(_agreementAcceptedKey) ?? false;
     final isEmptyName = profileStr.contains('"name":""');
 
     // Если есть бэкап в iCloud/Google Drive с пройденным онбордингом - используем его
@@ -64,6 +68,7 @@ class AppStartupService {
 
     return StartupState(
       needsOnboarding: needsOnboarding,
+      hasAcceptedAgreement: hasAcceptedAgreement,
       whatsNewText: shouldShowWhatsNew ? whatsNewText : null,
       currentVersion: currentVersion,
     );
@@ -83,6 +88,11 @@ class AppStartupService {
   Future<void> completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingDoneKey, true);
+  }
+
+  Future<void> acceptAgreement() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_agreementAcceptedKey, true);
   }
 
   Future<void> markWhatsNewSeen(String version) async {

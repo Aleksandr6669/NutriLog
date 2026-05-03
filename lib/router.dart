@@ -16,6 +16,7 @@ import 'screens/home/activity_log_screen.dart';
 import 'screens/profile/edit_goals_screen.dart';
 import 'screens/profile/edit_general_goals_screen.dart';
 import 'screens/profile/edit_physical_params_screen.dart';
+import 'screens/profile/user_agreement_screen.dart';
 import 'screens/profile/connections_notifications_screen.dart';
 import 'screens/recipes/create_recipe_from_description_screen.dart';
 import 'screens/recipes/create_recipe_from_photo_screen.dart';
@@ -163,6 +164,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/profile/connections',
       builder: (context, state) => const ConnectionsNotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/profile/agreement',
+      builder: (context, state) => const UserAgreementScreen(),
     ),
   ],
 );
