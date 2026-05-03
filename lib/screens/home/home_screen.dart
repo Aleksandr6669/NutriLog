@@ -803,31 +803,31 @@ class _MealsSection extends StatelessWidget {
     Future<void> Function() onDataChanged,
     DateTime selectedDate,
   ) {
-    const mealOrder = ['Завтрак', 'Обед', 'Ужин', 'Перекусы'];
+    const mealOrder = ['breakfast', 'lunch', 'dinner', 'snacks'];
     final l10n = AppLocalizations.of(context)!;
     final mealDisplayNames = {
-      'Завтрак': l10n.breakfast,
-      'Обед': l10n.lunch,
-      'Ужин': l10n.dinner,
-      'Перекусы': l10n.snacks,
+      'breakfast': l10n.breakfast,
+      'lunch': l10n.lunch,
+      'dinner': l10n.dinner,
+      'snacks': l10n.snacks,
     };
     const mealDetails = {
-      'Завтрак': {
+      'breakfast': {
         'icon': Symbols.wb_sunny,
         'iconBg': Color(0xFFFFF4E6),
         'iconColor': Colors.orange,
       },
-      'Обед': {
+      'lunch': {
         'icon': Symbols.lunch_dining,
         'iconBg': Color(0xFFE6F9F0),
         'iconColor': AppColors.primary,
       },
-      'Ужин': {
+      'dinner': {
         'icon': Symbols.nights_stay,
         'iconBg': Color(0xFFEEF2FF),
         'iconColor': Colors.indigo,
       },
-      'Перекусы': {
+      'snacks': {
         'icon': Symbols.cookie,
         'iconBg': Color(0xFFFCE7F3),
         'iconColor': Colors.pink,
@@ -844,7 +844,8 @@ class _MealsSection extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12.0),
         child: _MealCard(
-          mealName: mealName,
+          mealKey: mealName,
+          mealName: mealDisplayNames[mealName]!,
           recommended: '${recommendation.minKcal} - ${recommendation.maxKcal}',
           calories: calories.toStringAsFixed(0),
           icon: details['icon'] as IconData,
@@ -1189,42 +1190,42 @@ _MealRecommendation _mealRecommendationByGoal(
   switch (profile.goalType) {
     case GoalType.loseWeight:
       shares = const {
-        'Завтрак': 0.25,
-        'Обед': 0.38,
-        'Ужин': 0.30,
-        'Перекусы': 0.07,
+        'breakfast': 0.25,
+        'lunch': 0.38,
+        'dinner': 0.30,
+        'snacks': 0.07,
       };
       break;
     case GoalType.gainWeight:
       shares = const {
-        'Завтрак': 0.22,
-        'Обед': 0.33,
-        'Ужин': 0.25,
-        'Перекусы': 0.20,
+        'breakfast': 0.22,
+        'lunch': 0.33,
+        'dinner': 0.25,
+        'snacks': 0.20,
       };
       break;
     case GoalType.gainMuscle:
       shares = const {
-        'Завтрак': 0.24,
-        'Обед': 0.34,
-        'Ужин': 0.26,
-        'Перекусы': 0.16,
+        'breakfast': 0.24,
+        'lunch': 0.34,
+        'dinner': 0.26,
+        'snacks': 0.16,
       };
       break;
     case GoalType.energetic:
       shares = const {
-        'Завтрак': 0.27,
-        'Обед': 0.35,
-        'Ужин': 0.26,
-        'Перекусы': 0.12,
+        'breakfast': 0.27,
+        'lunch': 0.35,
+        'dinner': 0.26,
+        'snacks': 0.12,
       };
       break;
     case GoalType.healthyEating:
       shares = const {
-        'Завтрак': 0.25,
-        'Обед': 0.35,
-        'Ужин': 0.28,
-        'Перекусы': 0.12,
+        'breakfast': 0.25,
+        'lunch': 0.35,
+        'dinner': 0.28,
+        'snacks': 0.12,
       };
       break;
   }
@@ -1432,7 +1433,7 @@ class _MacronutrientCard extends StatelessWidget {
 }
 
 class _MealCard extends StatelessWidget {
-  final String mealName, recommended, calories;
+  final String mealKey, mealName, recommended, calories;
   final IconData icon;
   final Color iconBg, iconColor;
   final List<FoodItem> items;
@@ -1440,6 +1441,7 @@ class _MealCard extends StatelessWidget {
   final DateTime selectedDate;
 
   const _MealCard({
+    required this.mealKey,
     required this.mealName,
     required this.recommended,
     required this.calories,
@@ -1461,7 +1463,7 @@ class _MealCard extends StatelessWidget {
     if (selectedRecipes == null || selectedRecipes.isEmpty) return;
 
     final service = DailyLogService();
-    await service.addRecipesToMeal(selectedDate, mealName, selectedRecipes);
+    await service.addRecipesToMeal(selectedDate, mealKey, selectedRecipes);
     await onDataChanged();
   }
 
@@ -1481,7 +1483,7 @@ class _MealCard extends StatelessWidget {
                     : 'snacks';
 
         final result = await context.push<bool>(
-          '/meal/$mealType',
+          '/meal/$mealKey',
           extra: {
             'items': items,
             'date': selectedDate,
@@ -1525,18 +1527,11 @@ class _MealCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          mealName == 'Завтрак'
-                              ? l10n.breakfast
-                              : mealName == 'Обед'
-                                  ? l10n.lunch
-                                  : mealName == 'Ужин'
-                                      ? l10n.dinner
-                                      : l10n.snacks,
+                      Text(mealName,
                           style: theme.textTheme.titleMedium
                               ?.copyWith(color: theme.colorScheme.onSurface)),
                       const SizedBox(height: 2),
-                      Text('Реком: $recommended ${l10n.kcal}',
+                      Text('${l10n.recommendedShort}: $recommended ${l10n.kcal}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                               fontSize: 11,
                               color: theme.textTheme.bodySmall?.color)),

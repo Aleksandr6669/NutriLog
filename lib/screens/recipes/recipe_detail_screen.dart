@@ -4,6 +4,7 @@ import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   final Recipe recipe;
@@ -28,6 +29,7 @@ class RecipeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       extendBodyBehindAppBar: true,
@@ -44,14 +46,14 @@ class RecipeDetailScreen extends StatelessWidget {
               icon: const Icon(Symbols.add_circle),
               onPressed: () => Navigator.of(context).pop(true),
               tooltip: isSelected
-                  ? 'Добавить еще в прием пищи'
-                  : 'Добавить в прием пищи',
+                  ? l10n.addOneMoreToMeal
+                  : l10n.addToMeal,
             )
           else if (recipe.isUserRecipe)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),
-              tooltip: 'Редактировать рецепт',
+              tooltip: l10n.editRecipeTooltip,
             ),
         ],
       ),
@@ -68,7 +70,7 @@ class RecipeDetailScreen extends StatelessWidget {
             _buildHeader(context),
             const SizedBox(height: 24),
             if (recipe.ingredients.isNotEmpty) ...[
-              _buildIngredientsCard(),
+              _buildIngredientsCard(context),
               const SizedBox(height: 24),
             ],
             _buildNutrientsCard(context),
@@ -120,7 +122,8 @@ class RecipeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIngredientsCard() {
+  Widget _buildIngredientsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -131,9 +134,9 @@ class RecipeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Состав',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.ingredients,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             ...recipe.ingredients.map(
@@ -161,6 +164,7 @@ class RecipeDetailScreen extends StatelessWidget {
   }
 
   Widget _buildNutrientsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -171,47 +175,47 @@ class RecipeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Пищевая ценность (на порцию)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.nutritionValuePerPortion,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _nutrientRow('Калории', recipe.nutrients['calories'], 'ккал'),
+            _nutrientRow(l10n.calories, recipe.nutrients['calories'], l10n.kcal),
             const Divider(height: 24),
-            _nutrientGroup('Основные', [
-              _nutrientRow('Белки', recipe.nutrients['protein'], 'г'),
-              _nutrientRow('Углеводы', recipe.nutrients['carbs'], 'г',
+            _nutrientGroup(l10n.mainNutrients, [
+              _nutrientRow(l10n.protein, recipe.nutrients['protein'], l10n.grams),
+              _nutrientRow(l10n.carbs, recipe.nutrients['carbs'], l10n.grams,
                   subRows: [
                     _nutrientSubRow(
-                        'в т.ч. Сахар', recipe.nutrients['sugar'], 'г'),
+                        l10n.sugarSub, recipe.nutrients['sugar'], l10n.grams),
                     _nutrientSubRow(
-                        'в т.ч. Клетчатка', recipe.nutrients['fiber'], 'г'),
+                        l10n.fiberSub, recipe.nutrients['fiber'], l10n.grams),
                   ]),
-              _nutrientRow('Жиры', recipe.nutrients['fat'], 'г', subRows: [
+              _nutrientRow(l10n.fat, recipe.nutrients['fat'], l10n.grams, subRows: [
                 _nutrientSubRow(
-                    'Насыщенные', recipe.nutrients['saturated_fat'], 'г'),
-                _nutrientSubRow('Полиненасыщенные',
-                    recipe.nutrients['polyunsaturated_fat'], 'г'),
-                _nutrientSubRow('Мононенасыщенные',
-                    recipe.nutrients['monounsaturated_fat'], 'г'),
+                    l10n.saturatedFatSub, recipe.nutrients['saturated_fat'], l10n.grams),
+                _nutrientSubRow(l10n.polyunsaturatedFatSub,
+                    recipe.nutrients['polyunsaturated_fat'], l10n.grams),
+                _nutrientSubRow(l10n.monounsaturatedFatSub,
+                    recipe.nutrients['monounsaturated_fat'], l10n.grams),
                 _nutrientSubRow(
-                    'Трансжиры', recipe.nutrients['trans_fat'], 'г'),
+                    l10n.transFatSub, recipe.nutrients['trans_fat'], l10n.grams),
                 _nutrientSubRow(
-                    'Холестерин', recipe.nutrients['cholesterol'], 'мг'),
+                    l10n.cholesterolSub, recipe.nutrients['cholesterol'], l10n.mg),
               ]),
             ]),
             const Divider(height: 24),
-            _nutrientGroup('Минералы', [
-              _nutrientRow('Натрий', recipe.nutrients['sodium'], 'мг'),
-              _nutrientRow('Калий', recipe.nutrients['potassium'], 'мг'),
-              _nutrientRow('Кальций', recipe.nutrients['calcium'], 'мг'),
-              _nutrientRow('Железо', recipe.nutrients['iron'], 'мг'),
+            _nutrientGroup(l10n.minerals, [
+              _nutrientRow(l10n.sodium, recipe.nutrients['sodium'], l10n.mg),
+              _nutrientRow(l10n.potassium, recipe.nutrients['potassium'], l10n.mg),
+              _nutrientRow(l10n.calcium, recipe.nutrients['calcium'], l10n.mg),
+              _nutrientRow(l10n.iron, recipe.nutrients['iron'], l10n.mg),
             ]),
             const Divider(height: 24),
-            _nutrientGroup('Витамины', [
-              _nutrientRow('Витамин A', recipe.nutrients['vitamin_a'], 'мкг'),
-              _nutrientRow('Витамин C', recipe.nutrients['vitamin_c'], 'мг'),
-              _nutrientRow('Витамин D', recipe.nutrients['vitamin_d'], 'мкг'),
+            _nutrientGroup(l10n.vitamins, [
+              _nutrientRow(l10n.vitaminA, recipe.nutrients['vitamin_a'], l10n.mcg),
+              _nutrientRow(l10n.vitaminC, recipe.nutrients['vitamin_c'], l10n.mg),
+              _nutrientRow(l10n.vitaminD, recipe.nutrients['vitamin_d'], l10n.mcg),
             ]),
           ],
         ),

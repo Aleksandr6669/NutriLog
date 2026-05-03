@@ -118,10 +118,10 @@ class DailyLog {
       weight: null,
       activities: const [],
       meals: {
-        'Завтрак': [],
-        'Обед': [],
-        'Ужин': [],
-        'Перекусы': [],
+        'breakfast': [],
+        'lunch': [],
+        'dinner': [],
+        'snacks': [],
       },
     );
   }

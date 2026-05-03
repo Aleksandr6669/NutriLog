@@ -1815,6 +1815,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} kcal'**
   String kcalValue(String value);
+
+  /// No description provided for @ingredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get ingredients;
+
+  /// No description provided for @nutritionValuePerPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition facts (per portion)'**
+  String get nutritionValuePerPortion;
+
+  /// No description provided for @mainNutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Nutrients'**
+  String get mainNutrients;
+
+  /// No description provided for @addOneMoreToMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one more to meal'**
+  String get addOneMoreToMeal;
+
+  /// No description provided for @editRecipeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recipe'**
+  String get editRecipeTooltip;
+
+  /// No description provided for @recommendedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get recommendedShort;
+
+  /// No description provided for @clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearchTooltip;
+
+  /// No description provided for @deselect.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect'**
+  String get deselect;
+
+  /// No description provided for @addMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more'**
+  String get addMore;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
 }
 
 class _AppLocalizationsDelegate

@@ -37,10 +37,10 @@ class DailyLogService {
 
   Map<String, dynamic> _emptyMealsJson() {
     return {
-      'Завтрак': [],
-      'Обед': [],
-      'Ужин': [],
-      'Перекусы': [],
+      'breakfast': [],
+      'lunch': [],
+      'dinner': [],
+      'snacks': [],
     };
   }
 
@@ -99,6 +99,13 @@ class DailyLogService {
     final mealsJson =
         (logJson['meals'] as Map<String, dynamic>?) ?? _emptyMealsJson();
     final meals = mealsJson.map((mealName, itemsJson) {
+      // Маппинг старых русских ключей на новые английские для обратной совместимости
+      String key = mealName;
+      if (mealName == 'Завтрак') key = 'breakfast';
+      if (mealName == 'Обед') key = 'lunch';
+      if (mealName == 'Ужин') key = 'dinner';
+      if (mealName == 'Перекусы') key = 'snacks';
+
       final items = (itemsJson as List)
           .map((itemJson) => itemJson as Map<String, dynamic>)
           .map((itemJson) {
@@ -121,7 +128,7 @@ class DailyLogService {
                   .toList(),
         );
       }).toList();
-      return MapEntry(mealName, items);
+      return MapEntry(key, items);
     });
 
     final activities = ((logJson['activities'] as List?) ?? const [])

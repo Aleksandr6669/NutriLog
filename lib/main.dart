@@ -100,7 +100,7 @@ void main() async {
         debugPrint('WIDGET_CLICKED: $uri');
         // Обрабатываем переход, если в URI есть информация о маршруте
         if (uri.path.isNotEmpty) {
-          appRouter.push(uri.path);
+          handleAppDeepLink(uri.path);
         }
       }
     });
@@ -414,14 +414,25 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     // However, since it is used as the builder for '/', we can just do a post-frame callback
     // to navigate to '/home' and show a loader in the meantime.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted && !isAppBootstrapped) {
         // Проверяем, не находимся ли мы уже на другом экране (например, открытом через уведомление)
         // Если текущий путь не '/', значит навигация уже произошла.
         final router = GoRouter.of(context);
         final currentPath = router.routeInformationProvider.value.uri.path;
 
         if (currentPath == '/') {
+          isAppBootstrapped = true;
           context.go('/home');
+          
+          if (pendingRoute != null) {
+            final route = pendingRoute!;
+            final extra = pendingRouteExtra;
+            pendingRoute = null;
+            pendingRouteExtra = null;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+               handleAppDeepLink(route, extra);
+            });
+          }
         } else {
           debugPrint(
               'BOOTSTRAP: Navigation already occurred to $currentPath, skipping redirect to /home');

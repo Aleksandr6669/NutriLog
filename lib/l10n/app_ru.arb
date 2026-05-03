@@ -361,5 +361,15 @@
   "kcalValue": "{value} ккал",
   "@kcalValue": {
     "placeholders": { "value": { "type": "String" } }
-  }
+  },
+  "ingredients": "Состав",
+  "nutritionValuePerPortion": "Пищевая ценность (на порцию)",
+  "mainNutrients": "Основные",
+  "addOneMoreToMeal": "Добавить еще в прием пищи",
+  "editRecipeTooltip": "Редактировать рецепт",
+  "recommendedShort": "Реком",
+  "clearSearchTooltip": "Очистить поиск",
+  "deselect": "Снять выбор",
+  "addMore": "Добавить еще",
+  "add": "Добавить"
 }

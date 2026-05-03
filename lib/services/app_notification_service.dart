@@ -560,24 +560,24 @@ class AppNotificationService {
 
     if (id == _breakfastId) {
       debugPrint('NAVIGATING_TO: /meal/breakfast');
-      appRouter.push('/meal/breakfast');
+      handleAppDeepLink('/meal/breakfast');
     } else if (id == _lunchId) {
       debugPrint('NAVIGATING_TO: /meal/lunch');
-      appRouter.push('/meal/lunch');
+      handleAppDeepLink('/meal/lunch');
     } else if (id == _dinnerId) {
       debugPrint('NAVIGATING_TO: /meal/dinner');
-      appRouter.push('/meal/dinner');
+      handleAppDeepLink('/meal/dinner');
     } else if (id == 1200) {
       debugPrint('NAVIGATING_TO: /weight');
-      appRouter.push('/weight', extra: {'date': DateTime.now()});
+      handleAppDeepLink('/weight', {'date': DateTime.now()});
     } else if (id != null &&
         id >= _waterBaseId &&
         id < _waterBaseId + _maxWaterReminders) {
       debugPrint('NAVIGATING_TO: /home?scrollTo=water');
-      appRouter.go('/home?scrollTo=water');
+      handleAppDeepLink('/home?scrollTo=water');
     } else {
       debugPrint('NAVIGATING_TO: /home (default)');
-      appRouter.go('/home');
+      handleAppDeepLink('/home');
     }
   }
 }

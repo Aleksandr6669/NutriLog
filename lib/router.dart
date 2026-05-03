@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:nutri_log/l10n/app_localizations.dart';
 
 import 'providers/profile_provider.dart';
 
@@ -29,6 +28,23 @@ import 'models/recipe.dart';
 import 'models/food_item.dart';
 import 'models/user_profile.dart';
 import 'main.dart';
+
+bool isAppBootstrapped = false;
+String? pendingRoute;
+Map<String, dynamic>? pendingRouteExtra;
+
+void handleAppDeepLink(String path, [Map<String, dynamic>? extra]) {
+  if (isAppBootstrapped) {
+    if (path.startsWith('/meal/') || path == '/weight' || path.startsWith('/recipe') || path.startsWith('/activity')) {
+      appRouter.push(path, extra: extra);
+    } else {
+      appRouter.go(path, extra: extra);
+    }
+  } else {
+    pendingRoute = path;
+    pendingRouteExtra = extra;
+  }
+}
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -96,30 +112,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/meal/:type',
       builder: (context, state) {
-        final l10n = AppLocalizations.of(context)!;
         final type = state.pathParameters['type'] ?? 'snacks';
         final extra = state.extra as Map<String, dynamic>?;
 
-        String mealName;
-        switch (type) {
-          case 'breakfast':
-            mealName = l10n.breakfast;
-            break;
-          case 'lunch':
-            mealName = l10n.lunch;
-            break;
-          case 'dinner':
-            mealName = l10n.dinner;
-            break;
-          case 'snacks':
-            mealName = l10n.snacks;
-            break;
-          default:
-            mealName = extra?['mealName'] as String? ?? l10n.meals;
-        }
-
         return MealDetailScreen(
-          mealName: mealName,
+          mealKey: type,
           items: (extra?['items'] as List?)?.cast<FoodItem>() ?? <FoodItem>[],
           date: extra?['date'] as DateTime? ?? DateTime.now(),
         );
