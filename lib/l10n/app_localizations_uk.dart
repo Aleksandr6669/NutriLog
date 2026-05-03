@@ -469,4 +469,481 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get appTagline => 'Ваш шлях до здоров\'я';
+
+  @override
+  String get statsInfoText =>
+      'Аналітика допомагає побачити загальну картину харчування, води, ваги та активності за період. Використовуйте її, щоб вчасно коригувати цілі та відстежувати стабільний прогрес без перевантаження.';
+
+  @override
+  String get statsCaloriesDynamics => 'Динаміка калорій';
+
+  @override
+  String get statsWeightDynamics => 'Динаміка ваги';
+
+  @override
+  String get statsAvgMacros => 'Середнє БЖВ';
+
+  @override
+  String get statsProgress => 'Прогрес';
+
+  @override
+  String get statsAiReportTitle => 'Звіт від AI';
+
+  @override
+  String get statsPeriodWeek => 'Тиждень';
+
+  @override
+  String get statsPeriodMonth => 'Місяць';
+
+  @override
+  String get statsPeriodYear => 'Рік';
+
+  @override
+  String get statsNoData => 'Немає даних';
+
+  @override
+  String get statsNoDataForAnalysis => 'Немає даних для аналізу.';
+
+  @override
+  String get statsNoDataToDisplay => 'Немає даних для відображення';
+
+  @override
+  String statsAnalysisFor(String period) {
+    return 'Аналіз $period';
+  }
+
+  @override
+  String get statsAiDisclaimer =>
+      'Нейромережа може помилятися приблизно на 10%. Використовуйте звіт як орієнтир.';
+
+  @override
+  String get statsAiLoading => 'Завантаження звіту від нейромережі...';
+
+  @override
+  String get statsAiError =>
+      'Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.';
+
+  @override
+  String get statsPeriodLabelWeek => 'тижня';
+
+  @override
+  String get statsPeriodLabelMonth => 'місяця';
+
+  @override
+  String get statsPeriodLabelYear => 'року';
+
+  @override
+  String statsErrorLoading(Object error) {
+    return 'Помилка завантаження даних: $error';
+  }
+
+  @override
+  String get dayMon => 'Пн';
+
+  @override
+  String get dayTue => 'Вт';
+
+  @override
+  String get dayWed => 'Ср';
+
+  @override
+  String get dayThu => 'Чт';
+
+  @override
+  String get dayFri => 'Пт';
+
+  @override
+  String get daySat => 'Сб';
+
+  @override
+  String get daySun => 'Нд';
+
+  @override
+  String get monthJan => 'Січ';
+
+  @override
+  String get monthFeb => 'Лют';
+
+  @override
+  String get monthMar => 'Бер';
+
+  @override
+  String get monthApr => 'Кві';
+
+  @override
+  String get monthMayAbbr => 'Тра';
+
+  @override
+  String get monthJun => 'Чер';
+
+  @override
+  String get monthJul => 'Лип';
+
+  @override
+  String get monthAug => 'Сер';
+
+  @override
+  String get monthSep => 'Вер';
+
+  @override
+  String get monthOct => 'Жов';
+
+  @override
+  String get monthNov => 'Лис';
+
+  @override
+  String get monthDec => 'Гру';
+
+  @override
+  String statsStepsAvg(Object value) {
+    return 'Середнє: $value кроків';
+  }
+
+  @override
+  String statsStepsLatest(Object value) {
+    return 'Останнє: $value кроків';
+  }
+
+  @override
+  String statsWeightAvgKg(String value) {
+    return 'Середнє: $value кг';
+  }
+
+  @override
+  String statsWeightLatestKg(String value) {
+    return 'Останнє: $value кг';
+  }
+
+  @override
+  String statsActivityAvgKcal(Object value) {
+    return 'Середнє: $value ккал';
+  }
+
+  @override
+  String statsWorkoutsCount(Object count) {
+    return 'Тренувань: $count';
+  }
+
+  @override
+  String statsWaterAvgL(String value) {
+    return 'Середнє: $value л';
+  }
+
+  @override
+  String statsWaterLatestL(String value) {
+    return 'Останнє: $value л';
+  }
+
+  @override
+  String statsGoalWeightKg(String value) {
+    return 'Ціль: $value кг';
+  }
+
+  @override
+  String statsGoalKcal(Object value) {
+    return 'Ціль: $value ккал';
+  }
+
+  @override
+  String goalAbove(Object value) {
+    return 'Ціль > $value';
+  }
+
+  @override
+  String goalWeightKg(String value) {
+    return 'Ціль $value кг';
+  }
+
+  @override
+  String goalWaterL(String value) {
+    return 'Ціль $value л';
+  }
+
+  @override
+  String goalValue(Object value) {
+    return 'Ціль $value';
+  }
+
+  @override
+  String get recipeNameLabel => 'Назва рецепту';
+
+  @override
+  String get recipeDescriptionLabel => 'Опис';
+
+  @override
+  String get recipeNutritionPer100g => 'Харчова цінність (на 100г)';
+
+  @override
+  String get fieldCannotBeEmpty => 'Поле не може бути порожнім';
+
+  @override
+  String get invalidFormat => 'Невірний формат';
+
+  @override
+  String get grams => 'г';
+
+  @override
+  String get liters => 'л';
+
+  @override
+  String get connectionsSection => 'Підключення';
+
+  @override
+  String get loginToAccount => 'Вхід в акаунт';
+
+  @override
+  String get inDevelopment => 'В розробці';
+
+  @override
+  String get signIn => 'Увійти';
+
+  @override
+  String get notificationMessagesSection => 'Повідомлення';
+
+  @override
+  String get waterReminderTitle => 'Нагадування про воду';
+
+  @override
+  String get waterReminderSubtitle =>
+      'Час і кількість розраховуються автоматично за вашою денною ціллю води';
+
+  @override
+  String get mealRemindersTitle => 'Нагадування про прийоми їжі';
+
+  @override
+  String get mealRemindersSubtitle => 'Сніданок, обід та вечеря у вибраний час';
+
+  @override
+  String get weightReminderTitle => 'Нагадування про зважування';
+
+  @override
+  String get weightReminderSubtitle =>
+      'Увімкнути щоденне нагадування внести вагу';
+
+  @override
+  String get weightReminderTimeTitle => 'Час нагадування про зважування';
+
+  @override
+  String get appSettingsSection => 'Додаток';
+
+  @override
+  String get changelogTitle => 'Історія версій';
+
+  @override
+  String get userAgreementSubtitle => 'Дані, зберігання та нейромережі';
+
+  @override
+  String notificationSettingsError(Object error) {
+    return 'Не вдалося застосувати налаштування сповіщень. Детальніше: $error';
+  }
+
+  @override
+  String get noUpdateInfo => 'Немає інформації про оновлення.';
+
+  @override
+  String get connectionsAndMessages => 'Підключення та сповіщення';
+
+  @override
+  String get physicalParamsInfoText =>
+      'Тут вказуються базові фізичні параметри:\nстать, вік, зріст і поточна вага.\nЦі дані потрібні для точного розрахунку\nнорм і персональних рекомендацій.';
+
+  @override
+  String get currentWeightKg => 'Поточна вага (кг)';
+
+  @override
+  String get generalGoalsInfoText =>
+      'Цей розділ задає вашу головну стратегію:\nцільову вагу та формат цілі (зниження, набір тощо).\nНа основі цих даних додаток підказує\nпідходящий вектор харчування та прогресу.';
+
+  @override
+  String get weightGoalKg => 'Ціль по вазі (кг)';
+
+  @override
+  String get dailyGoalsInfoText =>
+      'Тут налаштовуються денні норми:\nкалорії, вода, кроки та БЖВ.\nСаме ці значення використовуються в щоденнику\nдля контролю прогресу щодня.';
+
+  @override
+  String get aiGoalsFailed => 'Не вдалося заповнити цілі через нейромережу.';
+
+  @override
+  String get caloriesKcal => 'Калорії (ккал)';
+
+  @override
+  String get waterMl => 'Вода (мл)';
+
+  @override
+  String get proteinG => 'Білки (г)';
+
+  @override
+  String get carbsG => 'Вуглеводи (г)';
+
+  @override
+  String get fatG => 'Жири (г)';
+
+  @override
+  String get addFromRecipes => 'Додати з рецептів';
+
+  @override
+  String get mealSummary => 'Зведення за прийом їжі';
+
+  @override
+  String get recipesInMeal => 'Рецепти у прийомі їжі';
+
+  @override
+  String get nothingAddedYet => 'Ще нічого не додано';
+
+  @override
+  String get pressPlusToAddFood => 'Натисніть \"+\", щоб додати продукт';
+
+  @override
+  String get removeRecipeTooltip => 'Видалити рецепт';
+
+  @override
+  String get nutritionValue => 'Харчова цінність';
+
+  @override
+  String get minerals => 'Мінерали';
+
+  @override
+  String get sodium => 'Натрій';
+
+  @override
+  String get potassium => 'Калій';
+
+  @override
+  String get calcium => 'Кальцій';
+
+  @override
+  String get iron => 'Залізо';
+
+  @override
+  String get vitamins => 'Вітаміни';
+
+  @override
+  String get vitaminA => 'Вітамін A';
+
+  @override
+  String get vitaminC => 'Вітамін C';
+
+  @override
+  String get vitaminD => 'Вітамін D';
+
+  @override
+  String get mg => 'мг';
+
+  @override
+  String get mcg => 'мкг';
+
+  @override
+  String get sugarSub => 'у т.ч. Цукор';
+
+  @override
+  String get fiberSub => 'у т.ч. Клітковина';
+
+  @override
+  String get saturatedFatSub => 'Насичені';
+
+  @override
+  String get polyunsaturatedFatSub => 'Поліненасичені';
+
+  @override
+  String get monounsaturatedFatSub => 'Мононенасичені';
+
+  @override
+  String get transFatSub => 'Трансжири';
+
+  @override
+  String get cholesterolSub => 'Холестерин';
+
+  @override
+  String versionLabel(String version) {
+    return 'Версія $version';
+  }
+
+  @override
+  String get appLogs => 'Журнал додатку';
+
+  @override
+  String get noLogs => 'Журнал порожній';
+
+  @override
+  String get weightUnit => 'кг';
+
+  @override
+  String get editActivity => 'Редагувати активність';
+
+  @override
+  String get newActivity => 'Нова активність';
+
+  @override
+  String get activityIcon => 'Іконка активності';
+
+  @override
+  String get activityNameLabel => 'Назва активності';
+
+  @override
+  String get burnedCaloriesLabel => 'Спалені калорії';
+
+  @override
+  String get enterActivityName => 'Введіть назву активності';
+
+  @override
+  String get enterCorrectCalories => 'Введіть коректні калорії';
+
+  @override
+  String get activityLogTitle => 'Активність';
+
+  @override
+  String get activityInfoText =>
+      'Тут ви фіксуєте всі активності за вибраний день.\nЦі дані допомагають точніше рахувати спалені калорії\nі впливають на добовий баланс у щоденнику та аналітиці.';
+
+  @override
+  String get totalBurned => 'Всього спалено';
+
+  @override
+  String activityRecordsCount(int count) {
+    return '$count записів';
+  }
+
+  @override
+  String get noActivities => 'Поки немає активностей';
+
+  @override
+  String get deleteActivity => 'Видалити активність';
+
+  @override
+  String get enterCorrectNumber => 'Введіть коректне число (0 або більше)';
+
+  @override
+  String waterGoalText(String value) {
+    return 'Ціль: $value л';
+  }
+
+  @override
+  String litersValue(String value) {
+    return '$value л';
+  }
+
+  @override
+  String get notSet => 'Не вказано';
+
+  @override
+  String get pedometerTitle => 'Крокомір';
+
+  @override
+  String stepsCountValue(int count) {
+    return '$count кроків';
+  }
+
+  @override
+  String get enterValue => 'Ввести';
+
+  @override
+  String kgValue(String value) {
+    return '$value кг';
+  }
+
+  @override
+  String kcalValue(String value) {
+    return '$value ккал';
+  }
 }

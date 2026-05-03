@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../styles/app_styles.dart';
 
 class ProgressCard extends StatelessWidget {
@@ -33,7 +34,7 @@ class ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final goalText = _getGoalText();
+    final goalText = _getGoalText(context);
     final trendGraphic = _buildTrendGraphic(theme);
 
     return Card(
@@ -125,12 +126,13 @@ class ProgressCard extends StatelessWidget {
     );
   }
 
-  String? _getGoalText() {
+  String? _getGoalText(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (goal == null || goal == 0) return null;
-    if (useStrictGoalComparison) return 'Цель > ${goal!.toInt()}';
-    if (isWeight) return 'Цель ${goal!.toStringAsFixed(0)} кг';
-    if (isWater) return 'Цель ${goal!.toStringAsFixed(1)} л';
-    return 'Цель ${goal!.toInt()}';
+    if (useStrictGoalComparison) return l10n.goalAbove(goal!.toInt());
+    if (isWeight) return l10n.goalWeightKg(goal!.toStringAsFixed(0));
+    if (isWater) return l10n.goalWaterL(goal!.toStringAsFixed(1));
+    return l10n.goalValue(goal!.toInt());
   }
 
   Widget? _buildTrendGraphic(ThemeData theme) {

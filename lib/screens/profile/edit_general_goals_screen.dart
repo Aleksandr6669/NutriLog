@@ -7,6 +7,7 @@ import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class EditGeneralGoalsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -66,15 +67,16 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('Общие цели'),
+        title: Text(l10n.generalGoals),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save),
             onPressed: _saveProfile,
-            tooltip: 'Сохранить',
+            tooltip: l10n.save,
           ),
         ],
       ),
@@ -102,10 +104,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Этот раздел задает вашу главную стратегию:\n'
-                          'целевой вес и формат цели (снижение, набор и т.д.).\n'
-                          'На основе этих данных приложение подсказывает\n'
-                          'подходящий вектор питания и прогресса.',
+                          l10n.generalGoalsInfoText,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     height: 1.35,
@@ -127,12 +126,12 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Введите цель по весу';
+                    return l10n.enterWeightGoal;
                   }
                   return null;
                 },
-                decoration: AppStyles.inputDecoration(
-                    'Цель по весу (кг)', Symbols.flag),
+                decoration:
+                    AppStyles.inputDecoration(l10n.weightGoalKg, Symbols.flag),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 16),
@@ -143,10 +142,10 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
               TextFormField(
                 controller: _activityTypesController,
                 decoration: AppStyles.inputDecoration(
-                  'Каким спортом/активностью занимаетесь',
+                  l10n.sportsActivities,
                   Symbols.fitness_center,
                 ).copyWith(
-                  hintText: 'Можно оставить пустым',
+                  hintText: l10n.canBeLeftEmpty,
                 ),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
@@ -155,11 +154,10 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 controller: _aiContextController,
                 maxLines: 3,
                 decoration: AppStyles.inputDecoration(
-                  'Дополнительно для нейросети',
+                  l10n.additionalForAi,
                   Symbols.psychology,
                 ).copyWith(
-                  hintText:
-                      'Например: сидячая работа, вечерние тренировки, ограничения в питании. Можно оставить пустым.',
+                  hintText: l10n.additionalForAiHint,
                 ),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),

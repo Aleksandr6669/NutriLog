@@ -8,6 +8,7 @@ import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class EditGoalsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -109,7 +110,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Не удалось заполнить цели через нейросеть.'),
+          content: Text(AppLocalizations.of(context)!.aiGoalsFailed),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
@@ -124,15 +125,16 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('Дневные цели'),
+        title: Text(l10n.dailyGoalsTitle),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save),
             onPressed: _saveProfile,
-            tooltip: 'Сохранить',
+            tooltip: l10n.save,
           ),
         ],
       ),
@@ -159,10 +161,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Здесь настраиваются дневные нормы:\n'
-                          'калории, вода, шаги и БЖУ.\n'
-                          'Именно эти значения используются в дневнике\n'
-                          'для контроля прогресса каждый день.',
+                          l10n.dailyGoalsInfoText,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     height: 1.35,
@@ -188,8 +187,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                       : const Icon(Symbols.auto_awesome),
                   label: Text(
                     _isAiFilling
-                        ? 'Нейросеть подбирает цели...'
-                        : 'Заполнить через нейросеть',
+                        ? l10n.aiCalculatingGoals
+                        : l10n.aiCalculateGoals,
                   ),
                 ),
               ),
@@ -205,76 +204,72 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                     color: Colors.orange.withValues(alpha: 0.28),
                   ),
                 ),
-                child: const Text(
-                  'Нейросеть заполняет цели на основе ваших параметров и типа цели, но может ошибаться примерно на 10%. Проверьте значения перед сохранением.',
+                child: Text(
+                  l10n.aiGoalsNotice,
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _calorieGoalController,
-                label: 'Калории (ккал)',
+                label: l10n.caloriesKcal,
                 icon: Symbols.local_fire_department,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по калориям'
+                    ? l10n.enterCalorieGoal
                     : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _waterGoalController,
-                label: 'Вода (мл)',
+                label: l10n.waterMl,
                 icon: Symbols.water_drop,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по воде'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? l10n.enterWaterGoal : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _stepsGoalController,
-                label: 'Шаги',
+                label: l10n.steps,
                 icon: Symbols.directions_walk,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по шагам'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? l10n.enterStepsGoal : null,
               ),
               const Divider(height: 32),
               _buildTextFormField(
                 controller: _proteinGoalController,
-                label: 'Белки (г)',
+                label: l10n.proteinG,
                 icon: Symbols.egg,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по белкам'
+                    ? l10n.enterProteinGoal
                     : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _carbsGoalController,
-                label: 'Углеводы (г)',
+                label: l10n.carbsG,
                 icon: Symbols.bakery_dining,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по углеводам'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? l10n.enterCarbsGoal : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _fatGoalController,
-                label: 'Жиры (г)',
+                label: l10n.fatG,
                 icon: Symbols.oil_barrel,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Введите цель по жирам'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? l10n.enterFatGoal : null,
               ),
             ],
           ),

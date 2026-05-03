@@ -72,10 +72,12 @@ class RecipeLoader {
       final translation =
           (i18n[id] as Map<String, dynamic>?)?[locale] as Map<String, dynamic>?;
       if (translation != null) {
-        if (translation['name'] != null)
+        if (translation['name'] != null) {
           normalized['name'] = translation['name'];
-        if (translation['description'] != null)
+        }
+        if (translation['description'] != null) {
           normalized['description'] = translation['description'];
+        }
 
         // Переводим ингредиенты: заменяем name и unit, quantity оставляем из оригинала
         final transIngredients = translation['ingredients'] as List<dynamic>?;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/daily_log.dart';
 import '../../models/user_profile.dart';
 import '../../services/daily_log_service.dart';
@@ -30,7 +31,8 @@ class _StatsScreenState extends State<StatsScreen> {
   final ProfileService _profileService = ProfileService();
   final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
   late Future<Map<String, dynamic>> _statsFuture;
-  String _aiReport = 'Загрузка отчета от нейросети...';
+  String? _aiReport;
+  bool _aiError = false;
   int _dataRequestId = 0;
   int _aiStartedForRequestId = -1;
 
@@ -44,7 +46,8 @@ class _StatsScreenState extends State<StatsScreen> {
     _dataRequestId++;
     _aiStartedForRequestId = -1;
     setState(() {
-      _aiReport = 'Загрузка отчета от нейросети...';
+      _aiReport = null;
+      _aiError = false;
       _statsFuture = _loadData();
     });
   }
@@ -247,9 +250,8 @@ class _StatsScreenState extends State<StatsScreen> {
       'activitySeries': activitySeries,
       'waterSeries': waterSeries,
       'profile': profile,
-      'periodLabel': _periodLabel(),
       'aiInput': {
-        'periodLabel': _periodLabel(),
+        'periodLabel': _period.name,
         'calorieGoal': profile.calorieGoal,
         'proteinGoal': profile.proteinGoal,
         'fatGoal': profile.fatGoal,
@@ -366,60 +368,67 @@ class _StatsScreenState extends State<StatsScreen> {
       if (!mounted || requestId != _dataRequestId) return;
       setState(() {
         _aiReport = aiReport;
+        _aiError = false;
       });
     } on GeminiRecipeException catch (e) {
       developer.log('AI report error: ${e.message}', name: 'StatsScreen');
       if (!mounted || requestId != _dataRequestId) return;
       setState(() {
-        _aiReport =
-            'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+        _aiError = true;
       });
     } catch (e) {
       developer.log('AI report error: $e', name: 'StatsScreen');
       if (!mounted || requestId != _dataRequestId) return;
       setState(() {
-        _aiReport =
-            'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+        _aiError = true;
       });
     }
   }
 
-  String _periodLabel() {
+  String _periodLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (_period) {
       case _StatsPeriod.week:
-        return 'недели';
+        return l10n.statsPeriodLabelWeek;
       case _StatsPeriod.month:
-        return 'месяца';
+        return l10n.statsPeriodLabelMonth;
       case _StatsPeriod.year:
-        return 'года';
+        return l10n.statsPeriodLabelYear;
     }
   }
 
-  List<String>? _chartLabels() {
+  List<String>? _chartLabels(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (_period) {
       case _StatsPeriod.week:
-        final days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        final days = [
+          l10n.dayMon,
+          l10n.dayTue,
+          l10n.dayWed,
+          l10n.dayThu,
+          l10n.dayFri,
+          l10n.daySat,
+          l10n.daySun
+        ];
         final today = DateTime.now().weekday;
         return List.generate(7, (i) => days[(today - 7 + i) % 7]);
       case _StatsPeriod.month:
-        // Последний день — сегодня, подписи: последние 30 дней
         final now = DateTime.now();
         return List.generate(now.day, (i) => (i + 1).toString());
       case _StatsPeriod.year:
-        // Последний месяц — текущий, подписи: последние 12 месяцев
         final months = [
-          'Янв',
-          'Фев',
-          'Мар',
-          'Апр',
-          'Май',
-          'Июн',
-          'Июл',
-          'Авг',
-          'Сен',
-          'Окт',
-          'Ноя',
-          'Дек'
+          l10n.monthJan,
+          l10n.monthFeb,
+          l10n.monthMar,
+          l10n.monthApr,
+          l10n.monthMayAbbr,
+          l10n.monthJun,
+          l10n.monthJul,
+          l10n.monthAug,
+          l10n.monthSep,
+          l10n.monthOct,
+          l10n.monthNov,
+          l10n.monthDec
         ];
         final now = DateTime.now();
         return List.generate(
@@ -458,6 +467,7 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -468,7 +478,7 @@ class _StatsScreenState extends State<StatsScreen> {
         surfaceTintColor: Colors.transparent,
         forceMaterialTransparency: true,
         flexibleSpace: const GlassAppBarBackground(),
-        title: const Text('Аналитика'),
+        title: Text(l10n.analysis),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _statsFuture,
@@ -478,10 +488,10 @@ class _StatsScreenState extends State<StatsScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text('Ошибка загрузки данных: ${snapshot.error}'));
+                child: Text(l10n.statsErrorLoading(snapshot.error.toString())));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Нет данных для анализа.'));
+            return Center(child: Text(l10n.statsNoDataForAnalysis));
           }
 
           final data = snapshot.data!;
@@ -532,10 +542,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Аналитика помогает увидеть общую картину\n'
-                            'по питанию, воде, весу и активности за период.\n'
-                            'Используйте ее, чтобы вовремя корректировать цели\n'
-                            'и отслеживать устойчивый прогресс без перегруза.',
+                            l10n.statsInfoText,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               height: 1.35,
                               fontWeight: FontWeight.w500,
@@ -547,24 +554,28 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Динамика калорий', style: theme.textTheme.headlineSmall),
+                Text(l10n.statsCaloriesDynamics,
+                    style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildCaloriesChart(
-                    theme, data['calories'], profile.calorieGoal.toDouble()),
+                _buildCaloriesChart(context, theme, data['calories'],
+                    profile.calorieGoal.toDouble()),
                 const SizedBox(height: 24),
-                Text('Динамика веса', style: theme.textTheme.headlineSmall),
+                Text(l10n.statsWeightDynamics,
+                    style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
-                _buildWeightChart(theme, data['weight'], profile.weightGoal),
+                _buildWeightChart(
+                    context, theme, data['weight'], profile.weightGoal),
                 const SizedBox(height: 24),
-                Text('Среднее БЖУ', style: theme.textTheme.headlineSmall),
+                Text(l10n.statsAvgMacros, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
                 _buildPieChartAndLegend(
+                    context,
                     theme,
                     (data['avgCarbs'] as num).toDouble(),
                     (data['avgProtein'] as num).toDouble(),
                     (data['avgFat'] as num).toDouble()),
                 const SizedBox(height: 24),
-                Text('Прогресс', style: theme.textTheme.headlineSmall),
+                Text(l10n.statsProgress, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 10),
                 _buildProgressCards(
                   theme,
@@ -591,11 +602,12 @@ class _StatsScreenState extends State<StatsScreen> {
                       color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text('Отчет от AI', style: theme.textTheme.headlineSmall),
+                    Text(l10n.statsAiReportTitle,
+                        style: theme.textTheme.headlineSmall),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildAiReportCard(theme, _aiReport, data['periodLabel']),
+                _buildAiReportCard(context, theme),
               ],
             ),
           );
@@ -605,6 +617,7 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Widget _buildPeriodToggle(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -614,21 +627,21 @@ class _StatsScreenState extends State<StatsScreen> {
         children: [
           Expanded(
             child: _ToggleButton(
-              text: 'Неделя',
+              text: l10n.statsPeriodWeek,
               isSelected: _period == _StatsPeriod.week,
               onTap: () => _onPeriodChanged(_StatsPeriod.week),
             ),
           ),
           Expanded(
             child: _ToggleButton(
-              text: 'Месяц',
+              text: l10n.statsPeriodMonth,
               isSelected: _period == _StatsPeriod.month,
               onTap: () => _onPeriodChanged(_StatsPeriod.month),
             ),
           ),
           Expanded(
             child: _ToggleButton(
-              text: 'Год',
+              text: l10n.statsPeriodYear,
               isSelected: _period == _StatsPeriod.year,
               onTap: () => _onPeriodChanged(_StatsPeriod.year),
             ),
@@ -638,32 +651,39 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildCaloriesChart(
-      ThemeData theme, List<double> calories, double goal) {
+  Widget _buildCaloriesChart(BuildContext context, ThemeData theme,
+      List<double> calories, double goal) {
+    final l10n = AppLocalizations.of(context)!;
     return _LineChart(
       data: calories,
       goal: goal,
       lineColor: AppColors.primary,
       gradientColor: AppColors.primary.withAlpha(77),
-      labels: _chartLabels(),
+      labels: _chartLabels(context),
+      goalLabel: l10n.statsGoalKcal(goal.toInt()),
+      unit: l10n.kcal,
       hideZeroValues: true,
     );
   }
 
-  Widget _buildWeightChart(
-      ThemeData theme, List<double> weightData, double goal) {
+  Widget _buildWeightChart(BuildContext context, ThemeData theme,
+      List<double> weightData, double goal) {
+    final l10n = AppLocalizations.of(context)!;
     return _LineChart(
       data: weightData,
       goal: goal,
       lineColor: Colors.orange,
       gradientColor: Colors.orange.withAlpha(77),
-      labels: _chartLabels(),
+      labels: _chartLabels(context),
+      goalLabel: l10n.statsGoalWeightKg(goal.toStringAsFixed(1)),
+      unit: l10n.weightUnit,
       isWeight: true,
     );
   }
 
-  Widget _buildPieChartAndLegend(
-      ThemeData theme, double carbs, double protein, double fat) {
+  Widget _buildPieChartAndLegend(BuildContext context, ThemeData theme,
+      double carbs, double protein, double fat) {
+    final l10n = AppLocalizations.of(context)!;
     final hasData = carbs + protein + fat > 0;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: AppStyles.largeBorderRadius),
@@ -679,17 +699,17 @@ class _StatsScreenState extends State<StatsScreen> {
                 children: [
                   ChartLegendItem(
                       color: AppColors.primary,
-                      text: 'Углеводы',
+                      text: l10n.carbs,
                       percentage: carbs.round()),
                   const SizedBox(height: 12),
                   ChartLegendItem(
                       color: Colors.orange,
-                      text: 'Белки',
+                      text: l10n.protein,
                       percentage: protein.round()),
                   const SizedBox(height: 12),
                   ChartLegendItem(
                       color: Colors.blue,
-                      text: 'Жиры',
+                      text: l10n.fat,
                       percentage: fat.round()),
                 ],
               ),
@@ -724,7 +744,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       )
                     : Center(
-                        child: Text('Нет данных',
+                        child: Text(l10n.statsNoData,
                             style: theme.textTheme.bodySmall,
                             textAlign: TextAlign.center)),
               ),
@@ -751,14 +771,15 @@ class _StatsScreenState extends State<StatsScreen> {
     List<double> waterSeries,
     UserProfile profile,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final waterGoalLiters = profile.waterGoal / 1000.0;
     return Column(
       children: [
         ProgressCard(
             icon: Symbols.footprint,
-            title: 'Шаги',
-            primaryLine: 'Среднее: $avgSteps шагов',
-            secondaryLine: 'Последнее: $latestSteps шагов',
+            title: l10n.steps,
+            primaryLine: l10n.statsStepsAvg(avgSteps),
+            secondaryLine: l10n.statsStepsLatest(latestSteps),
             color: AppColors.primary,
             goal: profile.stepsGoal,
             metricValue: latestSteps,
@@ -766,9 +787,10 @@ class _StatsScreenState extends State<StatsScreen> {
         const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.weight,
-            title: 'Вес',
-            primaryLine: 'Среднее: ${avgWeight.toStringAsFixed(1)} кг',
-            secondaryLine: 'Последнее: ${latestWeight.toStringAsFixed(1)} кг',
+            title: l10n.weight,
+            primaryLine: l10n.statsWeightAvgKg(avgWeight.toStringAsFixed(1)),
+            secondaryLine:
+                l10n.statsWeightLatestKg(latestWeight.toStringAsFixed(1)),
             color: Colors.orange,
             goal: profile.weightGoal,
             isWeight: true,
@@ -777,9 +799,9 @@ class _StatsScreenState extends State<StatsScreen> {
         const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.fitness_center,
-            title: 'Активность',
-            primaryLine: 'Среднее: $avgActivityCalories ккал',
-            secondaryLine: 'Тренировок: $workouts',
+            title: l10n.activity,
+            primaryLine: l10n.statsActivityAvgKcal(avgActivityCalories),
+            secondaryLine: l10n.statsWorkoutsCount(workouts),
             color: Colors.blue,
             goal: 1,
             metricValue: workouts,
@@ -788,10 +810,11 @@ class _StatsScreenState extends State<StatsScreen> {
         const SizedBox(height: 8),
         ProgressCard(
             icon: Symbols.water_drop,
-            title: 'Вода',
-            primaryLine: 'Среднее: ${(avgWater / 1000).toStringAsFixed(1)} л',
+            title: l10n.water,
+            primaryLine:
+                l10n.statsWaterAvgL((avgWater / 1000).toStringAsFixed(1)),
             secondaryLine:
-                'Последнее: ${(latestWater / 1000).toStringAsFixed(1)} л',
+                l10n.statsWaterLatestL((latestWater / 1000).toStringAsFixed(1)),
             color: Colors.lightBlue,
             goal: waterGoalLiters,
             isWater: true,
@@ -801,8 +824,16 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildAiReportCard(
-      ThemeData theme, String aiReport, String periodLabel) {
+  Widget _buildAiReportCard(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final String reportText;
+    if (_aiError) {
+      reportText = l10n.statsAiError;
+    } else if (_aiReport == null) {
+      reportText = l10n.statsAiLoading;
+    } else {
+      reportText = _aiReport!;
+    }
     return Card(
       color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),
       shape: RoundedRectangleBorder(
@@ -815,13 +846,13 @@ class _StatsScreenState extends State<StatsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Анализ $periodLabel',
+            Text(l10n.statsAnalysisFor(_periodLabel(context)),
                 style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withAlpha(255),
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Text(
-              aiReport,
+              reportText,
               style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
                   color: theme.colorScheme.onSurface.withAlpha(204)),
@@ -838,7 +869,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
               ),
               child: Text(
-                'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.',
+                l10n.statsAiDisclaimer,
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -895,6 +926,8 @@ class _LineChart extends StatelessWidget {
   final List<String>? labels;
   final bool isWeight;
   final bool hideZeroValues;
+  final String? goalLabel;
+  final String? unit;
 
   const _LineChart({
     required this.data,
@@ -904,11 +937,14 @@ class _LineChart extends StatelessWidget {
     this.labels,
     this.isWeight = false,
     this.hideZeroValues = false,
+    this.goalLabel,
+    this.unit,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final bool shouldHideZeroValues = isWeight || hideZeroValues;
     final List<double> chartData =
         shouldHideZeroValues ? data.where((d) => d > 0).toList() : data;
@@ -1011,7 +1047,7 @@ class _LineChart extends StatelessWidget {
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             return LineTooltipItem(
-                              '${spot.y.toStringAsFixed(isWeight ? 1 : 0)} ${isWeight ? 'кг' : 'ккал'}',
+                              '${spot.y.toStringAsFixed(isWeight ? 1 : 0)} ${unit ?? (isWeight ? 'кг' : 'ккал')}',
                               TextStyle(
                                 color: spot.bar.color ?? lineColor,
                                 fontWeight: FontWeight.bold,
@@ -1090,9 +1126,11 @@ class _LineChart extends StatelessWidget {
                             padding: const EdgeInsets.only(right: 5, bottom: 2),
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.dividerColor),
-                            labelResolver: (_) => isWeight
-                                ? 'Цель: ${goal.toStringAsFixed(1)} кг'
-                                : 'Цель: ${goal.toInt()} ккал',
+                            labelResolver: (_) =>
+                                goalLabel ??
+                                (isWeight
+                                    ? 'Цель: ${goal.toStringAsFixed(1)} кг'
+                                    : 'Цель: ${goal.toInt()} ккал'),
                           ),
                         ),
                       ],
@@ -1101,7 +1139,7 @@ class _LineChart extends StatelessWidget {
                 )
               : Center(
                   child: Text(
-                  'Нет данных для отображения',
+                  l10n.statsNoDataToDisplay,
                   style: theme.textTheme.bodySmall,
                 )),
         ),

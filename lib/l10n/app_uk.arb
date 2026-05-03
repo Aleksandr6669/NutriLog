@@ -145,5 +145,221 @@
   "activityModerateHint": "Регулярна активність кілька разів на тиждень.",
   "activityActiveHint": "Часті тренування і високий середній рівень руху.",
   "activityVeryActiveHint": "Інтенсивні навантаження і спорт майже щодня.",
-  "appTagline": "Ваш шлях до здоров'я"
+  "appTagline": "Ваш шлях до здоров'я",
+  "statsInfoText": "Аналітика допомагає побачити загальну картину харчування, води, ваги та активності за період. Використовуйте її, щоб вчасно коригувати цілі та відстежувати стабільний прогрес без перевантаження.",
+  "statsCaloriesDynamics": "Динаміка калорій",
+  "statsWeightDynamics": "Динаміка ваги",
+  "statsAvgMacros": "Середнє БЖВ",
+  "statsProgress": "Прогрес",
+  "statsAiReportTitle": "Звіт від AI",
+  "statsPeriodWeek": "Тиждень",
+  "statsPeriodMonth": "Місяць",
+  "statsPeriodYear": "Рік",
+  "statsNoData": "Немає даних",
+  "statsNoDataForAnalysis": "Немає даних для аналізу.",
+  "statsNoDataToDisplay": "Немає даних для відображення",
+  "statsAnalysisFor": "Аналіз {period}",
+  "@statsAnalysisFor": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "statsAiDisclaimer": "Нейромережа може помилятися приблизно на 10%. Використовуйте звіт як орієнтир.",
+  "statsAiLoading": "Завантаження звіту від нейромережі...",
+  "statsAiError": "Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.",
+  "statsPeriodLabelWeek": "тижня",
+  "statsPeriodLabelMonth": "місяця",
+  "statsPeriodLabelYear": "року",
+  "statsErrorLoading": "Помилка завантаження даних: {error}",
+  "@statsErrorLoading": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "dayMon": "Пн",
+  "dayTue": "Вт",
+  "dayWed": "Ср",
+  "dayThu": "Чт",
+  "dayFri": "Пт",
+  "daySat": "Сб",
+  "daySun": "Нд",
+  "monthJan": "Січ",
+  "monthFeb": "Лют",
+  "monthMar": "Бер",
+  "monthApr": "Кві",
+  "monthMayAbbr": "Тра",
+  "monthJun": "Чер",
+  "monthJul": "Лип",
+  "monthAug": "Сер",
+  "monthSep": "Вер",
+  "monthOct": "Жов",
+  "monthNov": "Лис",
+  "monthDec": "Гру",
+  "statsStepsAvg": "Середнє: {value} кроків",
+  "@statsStepsAvg": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsStepsLatest": "Останнє: {value} кроків",
+  "@statsStepsLatest": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWeightAvgKg": "Середнє: {value} кг",
+  "@statsWeightAvgKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWeightLatestKg": "Останнє: {value} кг",
+  "@statsWeightLatestKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsActivityAvgKcal": "Середнє: {value} ккал",
+  "@statsActivityAvgKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWorkoutsCount": "Тренувань: {count}",
+  "@statsWorkoutsCount": {
+    "placeholders": { "count": { "type": "Object" } }
+  },
+  "statsWaterAvgL": "Середнє: {value} л",
+  "@statsWaterAvgL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWaterLatestL": "Останнє: {value} л",
+  "@statsWaterLatestL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalWeightKg": "Ціль: {value} кг",
+  "@statsGoalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalKcal": "Ціль: {value} ккал",
+  "@statsGoalKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalAbove": "Ціль > {value}",
+  "@goalAbove": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalWeightKg": "Ціль {value} кг",
+  "@goalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalWaterL": "Ціль {value} л",
+  "@goalWaterL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalValue": "Ціль {value}",
+  "@goalValue": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "recipeNameLabel": "Назва рецепту",
+  "recipeDescriptionLabel": "Опис",
+  "recipeNutritionPer100g": "Харчова цінність (на 100г)",
+  "fieldCannotBeEmpty": "Поле не може бути порожнім",
+  "invalidFormat": "Невірний формат",
+  "grams": "г",
+  "liters": "л",
+  "connectionsSection": "Підключення",
+  "loginToAccount": "Вхід в акаунт",
+  "inDevelopment": "В розробці",
+  "signIn": "Увійти",
+  "notificationMessagesSection": "Повідомлення",
+  "waterReminderTitle": "Нагадування про воду",
+  "waterReminderSubtitle": "Час і кількість розраховуються автоматично за вашою денною ціллю води",
+  "mealRemindersTitle": "Нагадування про прийоми їжі",
+  "mealRemindersSubtitle": "Сніданок, обід та вечеря у вибраний час",
+  "weightReminderTitle": "Нагадування про зважування",
+  "weightReminderSubtitle": "Увімкнути щоденне нагадування внести вагу",
+  "weightReminderTimeTitle": "Час нагадування про зважування",
+  "appSettingsSection": "Додаток",
+  "changelogTitle": "Історія версій",
+  "userAgreementSubtitle": "Дані, зберігання та нейромережі",
+  "notificationSettingsError": "Не вдалося застосувати налаштування сповіщень. Детальніше: {error}",
+  "@notificationSettingsError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noUpdateInfo": "Немає інформації про оновлення.",
+  "connectionsAndMessages": "Підключення та сповіщення",
+  "physicalParamsInfoText": "Тут вказуються базові фізичні параметри:\nстать, вік, зріст і поточна вага.\nЦі дані потрібні для точного розрахунку\nнорм і персональних рекомендацій.",
+  "currentWeightKg": "Поточна вага (кг)",
+  "generalGoalsInfoText": "Цей розділ задає вашу головну стратегію:\nцільову вагу та формат цілі (зниження, набір тощо).\nНа основі цих даних додаток підказує\nпідходящий вектор харчування та прогресу.",
+  "weightGoalKg": "Ціль по вазі (кг)",
+  "dailyGoalsInfoText": "Тут налаштовуються денні норми:\nкалорії, вода, кроки та БЖВ.\nСаме ці значення використовуються в щоденнику\nдля контролю прогресу щодня.",
+  "aiGoalsFailed": "Не вдалося заповнити цілі через нейромережу.",
+  "caloriesKcal": "Калорії (ккал)",
+  "waterMl": "Вода (мл)",
+  "proteinG": "Білки (г)",
+  "carbsG": "Вуглеводи (г)",
+  "fatG": "Жири (г)",
+  "addFromRecipes": "Додати з рецептів",
+  "mealSummary": "Зведення за прийом їжі",
+  "recipesInMeal": "Рецепти у прийомі їжі",
+  "nothingAddedYet": "Ще нічого не додано",
+  "pressPlusToAddFood": "Натисніть \"+\", щоб додати продукт",
+  "removeRecipeTooltip": "Видалити рецепт",
+  "nutritionValue": "Харчова цінність",
+  "minerals": "Мінерали",
+  "sodium": "Натрій",
+  "potassium": "Калій",
+  "calcium": "Кальцій",
+  "iron": "Залізо",
+  "vitamins": "Вітаміни",
+  "vitaminA": "Вітамін A",
+  "vitaminC": "Вітамін C",
+  "vitaminD": "Вітамін D",
+  "mg": "мг",
+  "mcg": "мкг",
+  "sugarSub": "у т.ч. Цукор",
+  "fiberSub": "у т.ч. Клітковина",
+  "saturatedFatSub": "Насичені",
+  "polyunsaturatedFatSub": "Поліненасичені",
+  "monounsaturatedFatSub": "Мононенасичені",
+  "transFatSub": "Трансжири",
+  "cholesterolSub": "Холестерин",
+  "versionLabel": "Версія {version}",
+  "@versionLabel": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "appLogs": "Журнал додатку",
+  "noLogs": "Журнал порожній",
+  "weightUnit": "кг",
+  "editActivity": "Редагувати активність",
+  "newActivity": "Нова активність",
+  "activityIcon": "Іконка активності",
+  "activityNameLabel": "Назва активності",
+  "burnedCaloriesLabel": "Спалені калорії",
+  "enterActivityName": "Введіть назву активності",
+  "enterCorrectCalories": "Введіть коректні калорії",
+  "activityLogTitle": "Активність",
+  "activityInfoText": "Тут ви фіксуєте всі активності за вибраний день.\nЦі дані допомагають точніше рахувати спалені калорії\nі впливають на добовий баланс у щоденнику та аналітиці.",
+  "totalBurned": "Всього спалено",
+  "activityRecordsCount": "{count} записів",
+  "@activityRecordsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noActivities": "Поки немає активностей",
+  "deleteActivity": "Видалити активність",
+  "enterCorrectNumber": "Введіть коректне число (0 або більше)",
+  "waterGoalText": "Ціль: {value} л",
+  "@waterGoalText": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "litersValue": "{value} л",
+  "@litersValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "notSet": "Не вказано",
+  "pedometerTitle": "Крокомір",
+  "stepsCountValue": "{count} кроків",
+  "@stepsCountValue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "enterValue": "Ввести",
+  "kgValue": "{value} кг",
+  "@kgValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "kcalValue": "{value} ккал",
+  "@kcalValue": {
+    "placeholders": { "value": { "type": "String" } }
+  }
 }

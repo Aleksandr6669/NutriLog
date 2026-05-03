@@ -136,7 +136,7 @@ class _ConnectionsNotificationsScreenState
       await _settingsService.save(previous);
       if (!mounted) return;
       _showSnack(
-        'Не удалось применить настройки уведомлений. Подробнее: $e',
+        AppLocalizations.of(context)!.notificationSettingsError(e),
         backgroundColor: Colors.red.shade700,
       );
     }
@@ -205,33 +205,32 @@ class _ConnectionsNotificationsScreenState
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 110),
         children: [
-          _buildSectionTitle(theme, 'Подключения'),
+          _buildSectionTitle(theme, l10n.connectionsSection),
           const SizedBox(height: 10),
-          const Card(
+          Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: Icon(Symbols.account_circle),
-                  title: Text('Вход в аккаунт'),
-                  subtitle: Text('В разработке'),
+                  leading: const Icon(Symbols.account_circle),
+                  title: Text(l10n.loginToAccount),
+                  subtitle: Text(l10n.inDevelopment),
                   trailing: FilledButton.tonal(
                     onPressed: null,
-                    child: Text('Войти'),
+                    child: Text(l10n.signIn),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionTitle(theme, 'Сообщения'),
+          _buildSectionTitle(theme, l10n.notificationMessagesSection),
           const SizedBox(height: 10),
           Card(
             child: Column(
               children: [
                 SwitchListTile.adaptive(
-                  title: const Text('Напоминание о воде'),
-                  subtitle: const Text(
-                      'Время и количество рассчитываются автоматически по вашей дневной цели воды'),
+                  title: Text(l10n.waterReminderTitle),
+                  subtitle: Text(l10n.waterReminderSubtitle),
                   value: _settings.waterReminderEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
@@ -240,9 +239,8 @@ class _ConnectionsNotificationsScreenState
                 ),
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
-                  title: const Text('Напоминания о приёмах пищи'),
-                  subtitle:
-                      const Text('Завтрак, обед и ужин в выбранное время'),
+                  title: Text(l10n.mealRemindersTitle),
+                  subtitle: Text(l10n.mealRemindersSubtitle),
                   value: _settings.mealRemindersEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
@@ -292,9 +290,8 @@ class _ConnectionsNotificationsScreenState
                 ),
                 const Divider(height: 1),
                 SwitchListTile.adaptive(
-                  title: const Text('Напоминание о взвешивании'),
-                  subtitle:
-                      const Text('Включить ежедневное напоминание внести вес'),
+                  title: Text(l10n.weightReminderTitle),
+                  subtitle: Text(l10n.weightReminderSubtitle),
                   value: _settings.weightReminderEnabled,
                   onChanged: (enabled) {
                     _saveNotificationSettings(
@@ -306,7 +303,7 @@ class _ConnectionsNotificationsScreenState
                   curve: Curves.easeOutCubic,
                   child: _settings.weightReminderEnabled
                       ? ListTile(
-                          title: const Text('Время напоминания о взвешивании'),
+                          title: Text(l10n.weightReminderTimeTitle),
                           subtitle:
                               Text(_formatTime(_settings.weightReminderTime)),
                           trailing: const Icon(Symbols.edit),
@@ -322,7 +319,7 @@ class _ConnectionsNotificationsScreenState
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionTitle(theme, 'Приложение'),
+          _buildSectionTitle(theme, l10n.appSettingsSection),
           const SizedBox(height: 10),
           Card(
             child: Column(
@@ -354,7 +351,7 @@ class _ConnectionsNotificationsScreenState
                           final text =
                               await AppStartupService.getWhatsNewForVersion(
                                       state.currentVersion, lang) ??
-                                  'Нет информации об обновлениях.';
+                                  l10n.noUpdateInfo;
                           if (!context.mounted) return;
 
                           Navigator.of(context, rootNavigator: true).push(
@@ -374,7 +371,7 @@ class _ConnectionsNotificationsScreenState
                 const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Symbols.history),
-                  title: const Text('История версий'),
+                  title: Text(l10n.changelogTitle),
                   trailing: const Icon(Symbols.chevron_right),
                   onTap: () => context.push('/profile/changelog'),
                 ),
@@ -386,7 +383,7 @@ class _ConnectionsNotificationsScreenState
             child: ListTile(
               leading: const Icon(Symbols.description),
               title: Text(l10n.userAgreement),
-              subtitle: const Text('Данные, хранение и нейросети'),
+              subtitle: Text(l10n.userAgreementSubtitle),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () => context.push('/profile/agreement'),
             ),

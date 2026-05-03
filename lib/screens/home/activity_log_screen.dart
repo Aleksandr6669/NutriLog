@@ -9,6 +9,7 @@ import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'edit_activity_entry_screen.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class ActivityLogScreen extends StatefulWidget {
   final DateTime date;
@@ -51,7 +52,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
 
     setState(() => _saving = true);
     final provider = context.read<DailyLogProvider>();
-    
+
     if (entry == null) {
       await _service.addActivity(
         widget.date,
@@ -83,7 +84,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
   Future<void> _removeActivity(ActivityEntry entry) async {
     setState(() => _saving = true);
     final provider = context.read<DailyLogProvider>();
-    
+
     await _service.removeActivity(widget.date, id: entry.id);
     await provider.refreshCurrentLog();
 
@@ -110,6 +111,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return PopScope(
       canPop: false,
@@ -121,7 +123,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.grey.shade50,
         appBar: buildGlassAppBar(
-          title: const Text('Активность'),
+          title: Text(l10n.activityLogTitle),
           actions: [
             const SizedBox(width: 8),
           ],
@@ -147,9 +149,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Здесь вы фиксируете все активности за выбранный день.\n'
-                              'Эти данные помогают точнее считать сожженные калории\n'
-                              'и влияют на суточный баланс в дневнике и аналитике.',
+                              l10n.activityInfoText,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 height: 1.35,
                                 fontWeight: FontWeight.w500,
@@ -185,16 +185,16 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Всего сожжено',
+                                Text(l10n.totalBurned,
                                     style: theme.textTheme.bodyMedium),
                                 const SizedBox(height: 2),
-                                Text('$_totalCalories ккал',
+                                Text('$_totalCalories ${l10n.kcal}',
                                     style: theme.textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
-                          Text('${_activities.length} записей',
+                          Text(l10n.activityRecordsCount(_activities.length),
                               style: theme.textTheme.bodySmall),
                         ],
                       ),
@@ -203,7 +203,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                 ),
                 Expanded(
                   child: _activities.isEmpty
-                      ? const Center(child: Text('Пока нет активностей'))
+                      ? Center(child: Text(l10n.noActivities))
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                           itemCount: _activities.length,
@@ -246,14 +246,15 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                                   ),
                                   title: Text(entry.name,
                                       style: theme.textTheme.titleMedium),
-                                  subtitle: Text('${entry.calories} ккал'),
+                                  subtitle:
+                                      Text('${entry.calories} ${l10n.kcal}'),
                                   onTap: () => _addOrEditActivity(entry: entry),
                                   trailing: IconButton(
                                     icon: const Icon(
                                       Symbols.delete_outline,
                                       color: Colors.red,
                                     ),
-                                    tooltip: 'Удалить активность',
+                                    tooltip: l10n.deleteActivity,
                                     onPressed: _saving
                                         ? null
                                         : () =>
@@ -268,42 +269,42 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
               ],
             ),
             Positioned(
-                right: 24,
-                bottom: MediaQuery.paddingOf(context).bottom + 24,
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _saving
-                        ? AppColors.primary.withAlpha(120)
-                        : AppColors.primary,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withAlpha(100),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(29),
-                      onTap: _saving ? null : _addOrEditActivity,
-                      child: const Center(
-                        child: Icon(
-                          Symbols.add,
-                          color: Colors.white,
-                          size: 30,
-                          weight: 700,
-                        ),
+              right: 24,
+              bottom: MediaQuery.paddingOf(context).bottom + 24,
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _saving
+                      ? AppColors.primary.withAlpha(120)
+                      : AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withAlpha(100),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(29),
+                    onTap: _saving ? null : _addOrEditActivity,
+                    child: const Center(
+                      child: Icon(
+                        Symbols.add,
+                        color: Colors.white,
+                        size: 30,
+                        weight: 700,
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
             if (_saving)
               Container(
                 color: Colors.black.withAlpha(30),

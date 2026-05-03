@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nutri_log/services/app_startup_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class ChangelogScreen extends StatelessWidget {
   const ChangelogScreen({super.key});
@@ -10,11 +11,12 @@ class ChangelogScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lang = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('История версий'),
+        title: Text(l10n.changelogTitle),
       ),
       body: FutureBuilder<List<MapEntry<String, String>>>(
         future: AppStartupService.getAllVersionChangelog(lang),
@@ -46,7 +48,7 @@ class ChangelogScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Версия ${entry.key}',
+                              l10n.versionLabel(entry.key),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primary,

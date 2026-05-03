@@ -7,6 +7,7 @@ import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class EditPhysicalParamsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -64,15 +65,16 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('Физические параметры'),
+        title: Text(l10n.physicalParams),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save),
             onPressed: _saveProfile,
-            tooltip: 'Сохранить',
+            tooltip: l10n.save,
           ),
         ],
       ),
@@ -100,10 +102,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Здесь указываются базовые физические параметры:\n'
-                          'пол, возраст, рост и текущий вес.\n'
-                          'Эти данные нужны для точного расчета\n'
-                          'норм и персональных рекомендаций.',
+                          l10n.physicalParamsInfoText,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             height: 1.35,
                             fontWeight: FontWeight.w500,
@@ -117,10 +116,10 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _nameController,
-                label: 'Имя',
+                label: l10n.name,
                 icon: Symbols.person,
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Введите ваше имя' : null,
+                    value == null || value.isEmpty ? l10n.enterYourName : null,
               ),
               const SizedBox(height: 24),
               _buildGenderSelector(theme),
@@ -129,25 +128,27 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _heightController,
-                label: 'Рост (см)',
+                label: l10n.heightCm,
                 icon: Symbols.height,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Введите ваш рост' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? l10n.enterYourHeight
+                    : null,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _weightController,
-                label: 'Текущий вес (кг)',
+                label: l10n.currentWeightKg,
                 icon: Symbols.weight,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}'))
                 ],
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Введите ваш вес' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? l10n.enterYourWeight
+                    : null,
               ),
             ],
           ),
@@ -157,6 +158,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   }
 
   Widget _buildBirthDatePicker(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final formatted =
         '${_birthDate.day.toString().padLeft(2, '0')}.${_birthDate.month.toString().padLeft(2, '0')}.${_birthDate.year}';
     final age = _calcAge(_birthDate);
@@ -175,13 +177,13 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         }
       },
       child: InputDecorator(
-        decoration: AppStyles.inputDecoration('Дата рождения', Symbols.cake),
+        decoration: AppStyles.inputDecoration(l10n.birthDate, Symbols.cake),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(formatted,
                 style: const TextStyle(fontWeight: FontWeight.w500)),
-            Text('$age лет',
+            Text('$age ${l10n.yearsOld}',
                 style: TextStyle(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w600)),
@@ -220,18 +222,19 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   }
 
   Widget _buildGenderSelector(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Пол',
+        Text(l10n.gender,
             style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.hintColor, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Row(
           children: [
-            _genderOption(theme, 'Мужской', Symbols.male, Gender.male),
+            _genderOption(theme, l10n.male, Symbols.male, Gender.male),
             const SizedBox(width: 16),
-            _genderOption(theme, 'Женский', Symbols.female, Gender.female),
+            _genderOption(theme, l10n.female, Symbols.female, Gender.female),
           ],
         ),
       ],

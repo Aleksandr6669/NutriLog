@@ -145,5 +145,221 @@
   "activityModerateHint": "Regular activity several times a week.",
   "activityActiveHint": "Frequent workouts and high average movement.",
   "activityVeryActiveHint": "Intense activity and sports almost every day.",
-  "appTagline": "Your path to health"
+  "appTagline": "Your path to health",
+  "statsInfoText": "Analytics helps you see the big picture of your nutrition, water, weight, and activity over a period. Use it to timely adjust your goals and track steady progress without overload.",
+  "statsCaloriesDynamics": "Calorie Trend",
+  "statsWeightDynamics": "Weight Trend",
+  "statsAvgMacros": "Average Macros",
+  "statsProgress": "Progress",
+  "statsAiReportTitle": "AI Report",
+  "statsPeriodWeek": "Week",
+  "statsPeriodMonth": "Month",
+  "statsPeriodYear": "Year",
+  "statsNoData": "No data",
+  "statsNoDataForAnalysis": "No data for analysis.",
+  "statsNoDataToDisplay": "No data to display",
+  "statsAnalysisFor": "Analysis for {period}",
+  "@statsAnalysisFor": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "statsAiDisclaimer": "AI may be off by ~10%. Use the report as a reference.",
+  "statsAiLoading": "Loading AI report...",
+  "statsAiError": "Could not generate AI report. Please try again later.",
+  "statsPeriodLabelWeek": "the week",
+  "statsPeriodLabelMonth": "the month",
+  "statsPeriodLabelYear": "the year",
+  "statsErrorLoading": "Error loading data: {error}",
+  "@statsErrorLoading": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+  "daySun": "Sun",
+  "monthJan": "Jan",
+  "monthFeb": "Feb",
+  "monthMar": "Mar",
+  "monthApr": "Apr",
+  "monthMayAbbr": "May",
+  "monthJun": "Jun",
+  "monthJul": "Jul",
+  "monthAug": "Aug",
+  "monthSep": "Sep",
+  "monthOct": "Oct",
+  "monthNov": "Nov",
+  "monthDec": "Dec",
+  "statsStepsAvg": "Average: {value} steps",
+  "@statsStepsAvg": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsStepsLatest": "Latest: {value} steps",
+  "@statsStepsLatest": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWeightAvgKg": "Average: {value} kg",
+  "@statsWeightAvgKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWeightLatestKg": "Latest: {value} kg",
+  "@statsWeightLatestKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsActivityAvgKcal": "Average: {value} kcal",
+  "@statsActivityAvgKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWorkoutsCount": "Workouts: {count}",
+  "@statsWorkoutsCount": {
+    "placeholders": { "count": { "type": "Object" } }
+  },
+  "statsWaterAvgL": "Average: {value} L",
+  "@statsWaterAvgL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWaterLatestL": "Latest: {value} L",
+  "@statsWaterLatestL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalWeightKg": "Goal: {value} kg",
+  "@statsGoalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalKcal": "Goal: {value} kcal",
+  "@statsGoalKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalAbove": "Goal > {value}",
+  "@goalAbove": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalWeightKg": "Goal: {value} kg",
+  "@goalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalWaterL": "Goal: {value} L",
+  "@goalWaterL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalValue": "Goal: {value}",
+  "@goalValue": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "recipeNameLabel": "Recipe name",
+  "recipeDescriptionLabel": "Description",
+  "recipeNutritionPer100g": "Nutrition (per 100g)",
+  "fieldCannotBeEmpty": "Field cannot be empty",
+  "invalidFormat": "Invalid format",
+  "grams": "g",
+  "liters": "l",
+  "connectionsSection": "Connections",
+  "loginToAccount": "Sign in",
+  "inDevelopment": "In development",
+  "signIn": "Sign in",
+  "notificationMessagesSection": "Notifications",
+  "waterReminderTitle": "Water reminder",
+  "waterReminderSubtitle": "Time and amount are calculated automatically based on your daily water goal",
+  "mealRemindersTitle": "Meal reminders",
+  "mealRemindersSubtitle": "Breakfast, lunch and dinner at the chosen time",
+  "weightReminderTitle": "Weigh-in reminder",
+  "weightReminderSubtitle": "Enable daily reminder to log weight",
+  "weightReminderTimeTitle": "Weigh-in reminder time",
+  "appSettingsSection": "App",
+  "changelogTitle": "Version history",
+  "userAgreementSubtitle": "Data, storage and AI",
+  "notificationSettingsError": "Could not apply notification settings. Details: {error}",
+  "@notificationSettingsError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noUpdateInfo": "No update information available.",
+  "connectionsAndMessages": "Connections and notifications",
+  "physicalParamsInfoText": "Enter your basic physical parameters:\ngender, age, height and current weight.\nThis data is needed for accurate calculations\nand personalized recommendations.",
+  "currentWeightKg": "Current weight (kg)",
+  "generalGoalsInfoText": "This section defines your main strategy:\ntarget weight and goal type (loss, gain, etc.).\nBased on this data, the app suggests\nthe appropriate nutrition direction.",
+  "weightGoalKg": "Weight goal (kg)",
+  "dailyGoalsInfoText": "Set your daily targets:\ncalories, water, steps and macros.\nThese values are used in the diary\nto track your daily progress.",
+  "aiGoalsFailed": "Could not fill goals with AI.",
+  "caloriesKcal": "Calories (kcal)",
+  "waterMl": "Water (ml)",
+  "proteinG": "Protein (g)",
+  "carbsG": "Carbs (g)",
+  "fatG": "Fat (g)",
+  "addFromRecipes": "Add from recipes",
+  "mealSummary": "Meal summary",
+  "recipesInMeal": "Recipes in meal",
+  "nothingAddedYet": "Nothing added yet",
+  "pressPlusToAddFood": "Tap \"+\" to add a food item",
+  "removeRecipeTooltip": "Remove recipe",
+  "nutritionValue": "Nutrition facts",
+  "minerals": "Minerals",
+  "sodium": "Sodium",
+  "potassium": "Potassium",
+  "calcium": "Calcium",
+  "iron": "Iron",
+  "vitamins": "Vitamins",
+  "vitaminA": "Vitamin A",
+  "vitaminC": "Vitamin C",
+  "vitaminD": "Vitamin D",
+  "mg": "mg",
+  "mcg": "mcg",
+  "sugarSub": "incl. Sugar",
+  "fiberSub": "incl. Fiber",
+  "saturatedFatSub": "Saturated",
+  "polyunsaturatedFatSub": "Polyunsaturated",
+  "monounsaturatedFatSub": "Monounsaturated",
+  "transFatSub": "Trans fat",
+  "cholesterolSub": "Cholesterol",
+  "versionLabel": "Version {version}",
+  "@versionLabel": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "appLogs": "App logs",
+  "noLogs": "No logs available",
+  "weightUnit": "kg",
+  "editActivity": "Edit activity",
+  "newActivity": "New activity",
+  "activityIcon": "Activity icon",
+  "activityNameLabel": "Activity name",
+  "burnedCaloriesLabel": "Calories burned",
+  "enterActivityName": "Enter activity name",
+  "enterCorrectCalories": "Enter valid calories",
+  "activityLogTitle": "Activity",
+  "activityInfoText": "Here you log all activities for the selected day.\nThis data helps calculate burned calories more accurately\nand affects the daily balance in the diary and analytics.",
+  "totalBurned": "Total burned",
+  "activityRecordsCount": "{count} records",
+  "@activityRecordsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noActivities": "No activities yet",
+  "deleteActivity": "Delete activity",
+  "enterCorrectNumber": "Enter a valid number (0 or more)",
+  "waterGoalText": "Goal: {value} L",
+  "@waterGoalText": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "litersValue": "{value} L",
+  "@litersValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "notSet": "Not set",
+  "pedometerTitle": "Pedometer",
+  "stepsCountValue": "{count} steps",
+  "@stepsCountValue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "enterValue": "Enter",
+  "kgValue": "{value} kg",
+  "@kgValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "kcalValue": "{value} kcal",
+  "@kcalValue": {
+    "placeholders": { "value": { "type": "String" } }
+  }
 }
