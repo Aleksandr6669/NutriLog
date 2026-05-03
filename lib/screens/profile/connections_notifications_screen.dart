@@ -6,6 +6,9 @@ import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/services/app_startup_service.dart';
 import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/locale_provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class ConnectionsNotificationsScreen extends StatefulWidget {
   const ConnectionsNotificationsScreen({super.key});
@@ -22,13 +25,83 @@ class _ConnectionsNotificationsScreenState
   final AppNotificationService _notificationService = AppNotificationService();
 
   bool _loading = true;
-  bool _requestingPermission = false;
   late NotificationSettings _settings;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+  }
+
+  String _getLanguageName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    switch (locale.languageCode) {
+      case 'ru':
+        return 'Русский';
+      case 'uk':
+        return 'Українська';
+      case 'en':
+        return 'English';
+      default:
+        return 'Системный';
+    }
+  }
+
+  void _showLanguagePicker(BuildContext context) {
+    final localeProvider = context.read<LocaleProvider>();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                AppLocalizations.of(context)!.language,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              title: const Text('Русский'),
+              onTap: () {
+                localeProvider.setLocale(const Locale('ru'));
+                Navigator.pop(context);
+              },
+              trailing: Localizations.localeOf(context).languageCode == 'ru'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+            ),
+            ListTile(
+              title: const Text('Українська'),
+              onTap: () {
+                localeProvider.setLocale(const Locale('uk'));
+                Navigator.pop(context);
+              },
+              trailing: Localizations.localeOf(context).languageCode == 'uk'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+            ),
+            ListTile(
+              title: const Text('English'),
+              onTap: () {
+                localeProvider.setLocale(const Locale('en'));
+                Navigator.pop(context);
+              },
+              trailing: Localizations.localeOf(context).languageCode == 'en'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadSettings() async {
@@ -66,22 +139,6 @@ class _ConnectionsNotificationsScreenState
         'Не удалось применить настройки уведомлений. Подробнее: $e',
         backgroundColor: Colors.red.shade700,
       );
-    }
-  }
-
-  Future<void> _requestNotificationPermission() async {
-    if (_requestingPermission || _loading) return; // Проверка на загрузку
-    setState(() => _requestingPermission = true);
-
-    try {
-      final granted = await _notificationService.requestPermissionNow();
-      if (!mounted) return;
-      setState(() {
-        _settings = _settings.copyWith(messagesEnabled: granted);
-      });
-      // Сообщение о результате больше не показываем
-    } finally {
-      if (mounted) setState(() => _requestingPermission = false);
     }
   }
 
@@ -131,6 +188,7 @@ class _ConnectionsNotificationsScreenState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -142,14 +200,14 @@ class _ConnectionsNotificationsScreenState
       extendBodyBehindAppBar: true,
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: buildGlassAppBar(
-        title: const Text('Настройки'),
+        title: Text(l10n.settings),
       ),
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 110),
         children: [
           _buildSectionTitle(theme, 'Подключения'),
           const SizedBox(height: 10),
-          Card(
+          const Card(
             child: Column(
               children: [
                 ListTile(
@@ -198,7 +256,7 @@ class _ConnectionsNotificationsScreenState
                       ? Column(
                           children: [
                             ListTile(
-                              title: const Text('Завтрак'),
+                              title: Text(l10n.breakfast),
                               subtitle:
                                   Text(_formatTime(_settings.breakfastTime)),
                               trailing: const Icon(Symbols.edit),
@@ -209,7 +267,7 @@ class _ConnectionsNotificationsScreenState
                               ),
                             ),
                             ListTile(
-                              title: const Text('Обед'),
+                              title: Text(l10n.lunch),
                               subtitle: Text(_formatTime(_settings.lunchTime)),
                               trailing: const Icon(Symbols.edit),
                               onTap: () => _pickTime(
@@ -219,7 +277,7 @@ class _ConnectionsNotificationsScreenState
                               ),
                             ),
                             ListTile(
-                              title: const Text('Ужин'),
+                              title: Text(l10n.dinner),
                               subtitle: Text(_formatTime(_settings.dinnerTime)),
                               trailing: const Icon(Symbols.edit),
                               onTap: () => _pickTime(
@@ -267,39 +325,67 @@ class _ConnectionsNotificationsScreenState
           _buildSectionTitle(theme, 'Приложение'),
           const SizedBox(height: 10),
           Card(
-            child: FutureBuilder<String>(
-              future: AppStartupService().loadState().then((s) => s.currentVersion),
-              builder: (context, snapshot) {
-                final version = snapshot.data ?? '...';
-                return ListTile(
-                  leading: Icon(Symbols.info),
-                  title: const Text('Версия приложения'),
-                  subtitle: Text(version),
-                  trailing: TextButton(
-                    onPressed: () async {
-                      final state = await AppStartupService().loadState();
-                      if (!context.mounted) return;
-                      
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (context) => WhatsNewScreen(
-                            version: state.currentVersion,
-                            text: AppStartupService.getWhatsNewForVersion(state.currentVersion) ?? 'Нет информации об обновлениях.',
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('Что нового?'),
-                  ),
-                );
-              },
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Symbols.language),
+                  title: Text(l10n.language),
+                  subtitle: Text(_getLanguageName(context)),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () => _showLanguagePicker(context),
+                ),
+                const Divider(height: 1, indent: 56),
+                FutureBuilder<String>(
+                  future: AppStartupService()
+                      .loadState()
+                      .then((s) => s.currentVersion),
+                  builder: (context, snapshot) {
+                    final version = snapshot.data ?? '...';
+                    return ListTile(
+                      leading: const Icon(Symbols.info),
+                      title: Text(l10n.version),
+                      subtitle: Text(version),
+                      trailing: TextButton(
+                        onPressed: () async {
+                          final state = await AppStartupService().loadState();
+                          if (!context.mounted) return;
+                          final lang =
+                              Localizations.localeOf(context).languageCode;
+                          final text =
+                              await AppStartupService.getWhatsNewForVersion(
+                                      state.currentVersion, lang) ??
+                                  'Нет информации об обновлениях.';
+                          if (!context.mounted) return;
+
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (context) => WhatsNewScreen(
+                                version: state.currentVersion,
+                                text: text,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(l10n.whatsNew),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Symbols.history),
+                  title: const Text('История версий'),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () => context.push('/profile/changelog'),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),
           Card(
             child: ListTile(
               leading: const Icon(Symbols.description),
-              title: const Text('Пользовательское соглашение'),
+              title: Text(l10n.userAgreement),
               subtitle: const Text('Данные, хранение и нейросети'),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () => context.push('/profile/agreement'),

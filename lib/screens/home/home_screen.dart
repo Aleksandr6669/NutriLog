@@ -23,6 +23,7 @@ import '../recipes/recipes_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/daily_log_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -145,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 14),
                       Text(
-                        'Ручной ввод шагов',
+                        AppLocalizations.of(context)!.manualStepsInput,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.w700),
@@ -156,8 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         autofocus: true,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Количество шагов',
-                          hintText: 'Например, 8500',
+                          labelText: AppLocalizations.of(context)!.enterStepsCount,
+                          hintText: '8500',
                           errorText: errorText,
                           filled: true,
                           fillColor: theme.colorScheme.surfaceContainerHighest
@@ -203,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }
                                 Navigator.of(context).pop(parsed);
                               },
-                              child: const Text('Сохранить'),
+                              child: Text(AppLocalizations.of(context)!.save),
                             ),
                           ),
                         ],
@@ -270,15 +271,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final yesterday = today.subtract(const Duration(days: 1));
     final selected = DateTime(date.year, date.month, date.day);
 
-    if (selected == today) return 'Сегодня';
-    if (selected == yesterday) return 'Вчера';
-    return DateFormat.yMMMMd('ru').format(date);
+    final l10n = AppLocalizations.of(context)!;
+    if (selected == today) return l10n.today;
+    if (selected == yesterday) return l10n.yesterday;
+    return DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final l10n = AppLocalizations.of(context)!;
+    
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
         final userProfile = profileProvider.profile;
@@ -331,8 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Symbols.edit_note, size: 28),
-                onPressed: () => _navigateToEditGoals(userProfile), // Изменено
-                tooltip: 'Редактировать цели', // Изменено
+                onPressed: () => _navigateToEditGoals(userProfile),
+                tooltip: l10n.editGoals,
               ),
               const SizedBox(width: 8),
             ],
@@ -347,8 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : dailyLog == null
-                          ? const Center(
-                              child: Text('Нет данных для этой даты.'))
+                          ? Center(
+                              child: Text(AppLocalizations.of(context)!.noDataForDate))
                           : SingleChildScrollView(
                               controller: _scrollController,
                               padding: glassBodyPadding(
@@ -447,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             child: TableCalendar(
-              locale: 'ru_RU',
+              locale: Localizations.localeOf(context).languageCode,
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
               focusedDay: _focusedDay,
@@ -537,6 +540,7 @@ class _CaloriesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final consumedCals = dailyLog.totalNutrients.calories;
     final effectiveConsumed =
         math.max(0.0, consumedCals - dailyLog.activityCalories);
@@ -576,7 +580,7 @@ class _CaloriesCard extends StatelessWidget {
                             style: theme.textTheme.displayLarge?.copyWith(
                                 fontSize: 52,
                                 color: theme.colorScheme.onSurface)),
-                        Text('осталось ккал',
+                        Text('${l10n.remaining} ${l10n.kcal}',
                             style: theme.textTheme.labelSmall?.copyWith(
                                 letterSpacing: 0.8,
                                 color: theme.textTheme.bodySmall?.color)),
@@ -592,21 +596,21 @@ class _CaloriesCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildStatItem(theme, Symbols.restaurant,
-                        consumedCals.toStringAsFixed(0), 'ККал',
+                        consumedCals.toStringAsFixed(0), l10n.kcal,
                         color: AppColors.primary),
                     SizedBox(
                         height: 40,
                         child: VerticalDivider(
                             color: theme.dividerColor, thickness: 1)),
                     _buildStatItem(theme, Symbols.fitness_center,
-                        dailyLog.activityCalories.toString(), 'Актив',
+                        dailyLog.activityCalories.toString(), l10n.activity,
                         color: Colors.orange.shade400),
                     SizedBox(
                         height: 40,
                         child: VerticalDivider(
                             color: theme.dividerColor, thickness: 1)),
                     _buildStatItem(theme, Symbols.flag,
-                        profile.calorieGoal.toString(), 'Цель',
+                        profile.calorieGoal.toString(), l10n.goal,
                         color: Colors.blue.shade400),
                   ],
                 ),
@@ -644,12 +648,13 @@ class _Macronutrients extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final nutrients = dailyLog.totalNutrients;
     return Row(
       children: [
         Expanded(
             child: _MacronutrientCard(
-                name: 'Углеводы',
+                name: l10n.carbs,
                 value: '${nutrients.carbs.toStringAsFixed(0)}г',
                 total: '${profile.carbsGoal}г',
                 percentage: profile.carbsGoal > 0
@@ -659,7 +664,7 @@ class _Macronutrients extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
             child: _MacronutrientCard(
-                name: 'Белки',
+                name: l10n.protein,
                 value: '${nutrients.protein.toStringAsFixed(0)}г',
                 total: '${profile.proteinGoal}г',
                 percentage: profile.proteinGoal > 0
@@ -669,7 +674,7 @@ class _Macronutrients extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
             child: _MacronutrientCard(
-                name: 'Жиры',
+                name: l10n.fat,
                 value: '${nutrients.fat.toStringAsFixed(0)}г',
                 total: '${profile.fatGoal}г',
                 percentage:
@@ -702,21 +707,22 @@ class _MealsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('Приемы пищи',
+            Text(l10n.meals,
                 style: theme.textTheme.headlineSmall
                     ?.copyWith(color: theme.colorScheme.onSurface)),
             TextButton(
               onPressed: () {
                 // TODO: Implement meal history navigation
               },
-              child: const Text('История',
-                  style: TextStyle(
+              child: Text(l10n.history,
+                  style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14)),
@@ -730,7 +736,7 @@ class _MealsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('Вода',
+            Text(l10n.water,
                 key: waterKey,
                 style: theme.textTheme.headlineSmall
                     ?.copyWith(color: theme.colorScheme.onSurface)),
@@ -769,7 +775,7 @@ class _MealsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('Физическое состояние',
+            Text(l10n.physicalCondition,
                 style: theme.textTheme.headlineSmall
                     ?.copyWith(color: theme.colorScheme.onSurface)),
           ],
@@ -794,6 +800,13 @@ class _MealsSection extends StatelessWidget {
     DateTime selectedDate,
   ) {
     const mealOrder = ['Завтрак', 'Обед', 'Ужин', 'Перекусы'];
+    final l10n = AppLocalizations.of(context)!;
+    final mealDisplayNames = {
+      'Завтрак': l10n.breakfast,
+      'Обед': l10n.lunch,
+      'Ужин': l10n.dinner,
+      'Перекусы': l10n.snacks,
+    };
     const mealDetails = {
       'Завтрак': {
         'icon': Symbols.wb_sunny,
@@ -1447,6 +1460,7 @@ class _MealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isNotEaten = calories == '0';
     return InkWell(
       onTap: () async {
@@ -1503,11 +1517,18 @@ class _MealCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(mealName,
+                      Text(
+                          mealName == 'Завтрак'
+                              ? l10n.breakfast
+                              : mealName == 'Обед'
+                                  ? l10n.lunch
+                                  : mealName == 'Ужин'
+                                      ? l10n.dinner
+                                      : l10n.snacks,
                           style: theme.textTheme.titleMedium
                               ?.copyWith(color: theme.colorScheme.onSurface)),
                       const SizedBox(height: 2),
-                      Text('Реком: $recommended ккал',
+                      Text('Реком: $recommended ${l10n.kcal}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                               fontSize: 11,
                               color: theme.textTheme.bodySmall?.color)),
@@ -1516,7 +1537,7 @@ class _MealCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 if (!isNotEaten)
-                  Text('$calories ккал',
+                  Text('$calories ${AppLocalizations.of(context)!.kcal}',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(color: theme.colorScheme.onSurface)),
                 const SizedBox(width: 12),

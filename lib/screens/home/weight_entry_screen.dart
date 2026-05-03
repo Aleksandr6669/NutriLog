@@ -6,6 +6,7 @@ import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:nutri_log/providers/daily_log_provider.dart';
@@ -37,7 +38,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
 
   Future<void> _loadData() async {
     final log = await DailyLogService().getLogForDate(widget.date);
-    
+
     if (!mounted) return;
     setState(() {
       _currentWeight = log.weight;
@@ -58,13 +59,13 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
     if (value == null || value <= 0) return;
 
     setState(() => _saving = true);
-    
+
     final logProvider = context.read<DailyLogProvider>();
     final profileProvider = context.read<ProfileProvider>();
-    
+
     await logProvider.updateWeight(value);
     await profileProvider.refreshProfile();
-    
+
     if (!mounted) return;
     setState(() => _saving = false);
     Navigator.of(context).pop(true);
@@ -72,27 +73,30 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
         final profile = profileProvider.profile;
 
         if (_loading || profile == null) {
           return Scaffold(
-            appBar: buildGlassAppBar(title: const Text('Вес')),
+            appBar: buildGlassAppBar(title: Text(l10n.weight)),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
 
-        final goalLabel = profile.goalType.ruLabel;
-        final goalHint = profile.goalType.ruHint;
-        final dateText = DateFormat('d MMMM yyyy', 'ru_RU').format(widget.date);
+        final goalLabel = profile.goalType.localizedLabel(context);
+        final goalHint = profile.goalType.localizedHint(context);
+        final localeCode = Localizations.localeOf(context).toLanguageTag();
+        final dateText =
+            DateFormat('d MMMM yyyy', localeCode).format(widget.date);
         final savedWeightText = _currentWeight == null
-            ? 'За $dateText вес еще не сохранен'
-            : 'Сохранено за $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
+            ? '${l10n.weightNotSavedForDate} $dateText'
+            : '${l10n.savedForDate} $dateText: ${_currentWeight!.toStringAsFixed(1)} кг';
 
         return Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: buildGlassAppBar(title: const Text('Вес')),
+          appBar: buildGlassAppBar(title: Text(l10n.weight)),
           body: SingleChildScrollView(
             padding: glassBodyPadding(context, bottom: 24),
             child: Column(
@@ -112,10 +116,11 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Здесь вы фиксируете ваш вес на выбранную дату.\n'
-                            'Это позволяет отслеживать прогресс в достижении целей\n'
-                            'и точнее рассчитывать нормы калорий в аналитике.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            l10n.weightScreenInfo,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   height: 1.35,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -143,7 +148,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Текущая цель: $goalLabel',
+                                '${l10n.currentGoal}: $goalLabel',
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleSmall
@@ -201,7 +206,8 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d{0,1}')),
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*[.,]?\d{0,1}')),
                     ],
                   ),
                 ),
@@ -218,7 +224,7 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Сохранить вес'),
+                          : Text(l10n.saveWeight),
                     ),
                   ),
                 ),

@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import '../l10n/app_localizations.dart';
 
 enum Gender {
   male,
@@ -170,76 +171,160 @@ class UserProfile {
 }
 
 extension ActivityFrequencyX on ActivityFrequency {
+  String localizedLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case ActivityFrequency.sedentary:
+        return l10n.sedentary;
+      case ActivityFrequency.light:
+        return l10n.lightActivity;
+      case ActivityFrequency.moderate:
+        return l10n.moderateActivity;
+      case ActivityFrequency.active:
+        return l10n.activeActivity;
+      case ActivityFrequency.veryActive:
+        return l10n.veryActiveActivity;
+    }
+  }
+
+  String get enLabel => ruLabel;
+
   String get ruLabel {
     switch (this) {
       case ActivityFrequency.sedentary:
-        return 'Почти нет активности';
+        return 'Almost no activity';
       case ActivityFrequency.light:
-        return 'Легкая активность 1-2 раза в неделю';
+        return 'Light activity 1-2 times per week';
       case ActivityFrequency.moderate:
-        return 'Умеренная активность 3-4 раза в неделю';
+        return 'Moderate activity 3-4 times per week';
       case ActivityFrequency.active:
-        return 'Активный режим 5-6 раз в неделю';
+        return 'Active lifestyle 5-6 times per week';
       case ActivityFrequency.veryActive:
-        return 'Очень высокий уровень, почти каждый день';
+        return 'Very high level, almost every day';
     }
   }
+
+  String get enHint => ruHint;
 
   String get ruHint {
     switch (this) {
       case ActivityFrequency.sedentary:
-        return 'Сидячая работа, редкие тренировки и мало шагов.';
+        return 'Sedentary work, rare workouts and low step count.';
       case ActivityFrequency.light:
-        return 'Иногда спорт или прогулки, но без стабильного графика.';
+        return 'Occasional sports or walks, but no consistent schedule.';
       case ActivityFrequency.moderate:
-        return 'Регулярная активность несколько раз в неделю.';
+        return 'Regular activity several times per week.';
       case ActivityFrequency.active:
-        return 'Частые тренировки и высокий средний уровень движения.';
+        return 'Frequent workouts and a high average movement level.';
       case ActivityFrequency.veryActive:
-        return 'Интенсивные нагрузки и спорт почти ежедневно.';
+        return 'Intense workouts and sports almost every day.';
+    }
+  }
+
+  String localizedHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case ActivityFrequency.sedentary:
+        return l10n.activitySedentaryHint;
+      case ActivityFrequency.light:
+        return l10n.activityLightHint;
+      case ActivityFrequency.moderate:
+        return l10n.activityModerateHint;
+      case ActivityFrequency.active:
+        return l10n.activityActiveHint;
+      case ActivityFrequency.veryActive:
+        return l10n.activityVeryActiveHint;
     }
   }
 }
 
 extension GenderX on Gender {
+  String localizedLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case Gender.male:
+        return l10n.male;
+      case Gender.female:
+        return l10n.female;
+    }
+  }
+
+  String get enLabel => ruLabel;
+
   String get ruLabel {
     switch (this) {
       case Gender.male:
-        return 'Мужской';
+        return 'Male';
       case Gender.female:
-        return 'Женский';
+        return 'Female';
     }
   }
 }
 
 extension GoalTypeX on GoalType {
+  String localizedLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case GoalType.loseWeight:
+        return l10n.loseWeight;
+      case GoalType.gainWeight:
+        return l10n.gainWeight;
+      case GoalType.gainMuscle:
+        return l10n.gainMuscle;
+      case GoalType.healthyEating:
+        return l10n.healthyEating;
+      case GoalType.energetic:
+        return l10n.energetic;
+    }
+  }
+
+  String get enLabel => ruLabel;
+
   String get ruLabel {
     switch (this) {
       case GoalType.loseWeight:
-        return 'Сбросить вес';
+        return 'Lose weight';
       case GoalType.gainWeight:
-        return 'Набрать вес';
+        return 'Gain weight';
       case GoalType.gainMuscle:
-        return 'Набрать мышечную массу';
+        return 'Build muscle mass';
       case GoalType.healthyEating:
-        return 'Здоровое питание';
+        return 'Healthy eating';
       case GoalType.energetic:
-        return 'Энергия на весь день';
+        return 'Energy throughout the day';
     }
   }
+
+  String get enHint => ruHint;
 
   String get ruHint {
     switch (this) {
       case GoalType.loseWeight:
-        return 'Мягкое снижение веса за счет умеренного дефицита калорий, контроля порций и стабильного режима питания без резких ограничений.';
+        return 'Gentle weight loss through a moderate calorie deficit, portion control, and a stable eating routine without harsh restrictions.';
       case GoalType.gainWeight:
-        return 'Постепенный набор веса через аккуратный профицит калорий, регулярные приемы пищи и отслеживание динамики каждую неделю.';
+        return 'Gradual weight gain through a careful calorie surplus, regular meals, and weekly progress tracking.';
       case GoalType.gainMuscle:
-        return 'Рост мышечной массы с фокусом на белок, силовые тренировки и восстановление, чтобы прогресс был заметным и устойчивым.';
+        return 'Muscle growth with a focus on protein, strength training, and recovery for noticeable and sustainable progress.';
       case GoalType.healthyEating:
-        return 'Сбалансированный рацион на каждый день: больше цельных продуктов, разнообразие нутриентов и комфортный ритм без перегибов.';
+        return 'A balanced daily diet: more whole foods, nutrient variety, and a comfortable rhythm without extremes.';
       case GoalType.energetic:
-        return 'Больше энергии на весь день за счет регулярного питания, качественного сна, достаточной воды и более ровного уровня активности.';
+        return 'More energy throughout the day through regular meals, quality sleep, adequate hydration, and a steadier activity level.';
+    }
+  }
+
+  String localizedHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case GoalType.loseWeight:
+        return l10n.goalLoseWeightHint;
+      case GoalType.gainWeight:
+        return l10n.goalGainWeightHint;
+      case GoalType.gainMuscle:
+        return l10n.goalGainMuscleHint;
+      case GoalType.healthyEating:
+        return l10n.goalHealthyEatingHint;
+      case GoalType.energetic:
+        return l10n.goalEnergeticHint;
     }
   }
 }

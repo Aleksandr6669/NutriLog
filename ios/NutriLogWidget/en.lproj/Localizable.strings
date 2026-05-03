@@ -1,0 +1,13 @@
+"widget.calories.title" = "CALORIES";
+"widget.today" = "today";
+"widget.protein" = "Protein";
+"widget.fat" = "Fat";
+"widget.carbs.short" = "Carbs";
+"widget.macro.protein.short" = "P";
+"widget.macro.fat.short" = "F";
+"widget.macro.carbs.short" = "C";
+"widget.diary.display_name" = "NutriLog Diary";
+"widget.diary.description" = "Your calories and macros for today.";
+"widget.water.title" = "WATER";
+"widget.water.display_name" = "NutriLog Water";
+"widget.water.description" = "Your water balance for today.";

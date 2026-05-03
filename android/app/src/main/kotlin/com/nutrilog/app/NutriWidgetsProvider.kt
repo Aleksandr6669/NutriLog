@@ -19,9 +19,9 @@ class NutriLargeWidgetProvider : HomeWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.nutri_widget_large)
             try {
                 views.setTextViewText(R.id.widgetCalories, widgetData.getString("calories", "0"))
-                views.setTextViewText(R.id.widgetProteins, widgetData.getString("proteins", "0г"))
-                views.setTextViewText(R.id.widgetFats, widgetData.getString("fats", "0г"))
-                views.setTextViewText(R.id.widgetCarbs, widgetData.getString("carbs", "0г"))
+                views.setTextViewText(R.id.widgetProteins, widgetData.getString("proteins", "0"))
+                views.setTextViewText(R.id.widgetFats, widgetData.getString("fats", "0"))
+                views.setTextViewText(R.id.widgetCarbs, widgetData.getString("carbs", "0"))
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) { }
         }
@@ -49,7 +49,7 @@ class NutriWaterWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.nutri_widget_water)
             try {
-                views.setTextViewText(R.id.widgetWaterValue, widgetData.getString("water_value", "0.0 Л"))
+                views.setTextViewText(R.id.widgetWaterValue, widgetData.getString("water_value", "0.0"))
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) { }
         }

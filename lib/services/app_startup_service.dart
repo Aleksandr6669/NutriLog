@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,32 +22,43 @@ class AppStartupService {
   static const String _lastSeenWhatsNewVersionKey = 'whats_new_seen_version';
   static const String _agreementAcceptedKey = 'user_agreement_accepted';
 
-  // Текст новинок по версии. Если версии нет в карте - экран новинок не показываем.
-  static const Map<String, String> _whatsNewByVersion = {
-    '1.2.8+32': '• Улучшена производительность приложения.\n'
-        '• Исправлены мелкие баги и улучшена стабильность.\n'
-        '• Добавлены уведомления по воде и приемам пищи.\n'
-        '• Добавлены уведомления напоминания взвеситься.\n'
-        '• Улучшена интеграция с нейросетью.\n'
-        '• Добавлены виджеты для андроида.\n'
-        '• Добавлена поддержка новых устройств и экранов.',
-    '1.2.2+14': '• Добавлен многошаговый онбординг на первом запуске.\n'
-        '• Появился экран "Подключения и сообщения" в настройках профиля.\n'
-        '• Напоминания о воде теперь рассчитываются автоматически по дневной цели.\n'
-        '• Дневные цели в онбординге можно рассчитать через нейросеть.',
-    '1.2.0+13': '• Добавлен шагомер с синхронизацией из приложения здоровья.\n'
-        '• Появился ручной ввод шагов, если источник здоровья недоступен.\n'
-        '• Улучшены карточки прогресса и аналитика.\n'
-        '• Добавлены настраиваемые push-напоминания по воде и приемам пищи.',
-  };
+  static const String _changelogAssetPath = 'assets/data/changelog.json';
 
-  static String? getWhatsNewForVersion(String version) {
-    return _whatsNewByVersion[version];
+  // Кэш загруженного changelog.
+  static List<Map<String, dynamic>>? _changelogCache;
+
+  static Future<List<Map<String, dynamic>>> _loadChangelog() async {
+    if (_changelogCache != null) return _changelogCache!;
+    final raw = await rootBundle.loadString(_changelogAssetPath);
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    _changelogCache = list;
+    return list;
+  }
+
+  static Future<String?> getWhatsNewForVersion(
+      String version, String lang) async {
+    final list = await _loadChangelog();
+    final entry = list.firstWhere(
+      (e) => e['version'] == version,
+      orElse: () => {},
+    );
+    if (entry.isEmpty) return null;
+    return (entry[lang] ?? entry['en']) as String?;
+  }
+
+  /// Возвращает список всех версий с текстом изменений для заданного языка.
+  static Future<List<MapEntry<String, String>>> getAllVersionChangelog(
+      String lang) async {
+    final list = await _loadChangelog();
+    return list
+        .map((e) => MapEntry(
+            e['version'] as String, (e[lang] ?? e['en'] ?? '') as String))
+        .toList();
   }
 
   Future<StartupState> loadState() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Используем таймаут для получения версии, чтобы не блокировать запуск
     final currentVersion = await _resolveCurrentVersion().timeout(
       const Duration(seconds: 2),
@@ -58,10 +71,13 @@ class AppStartupService {
     final isEmptyName = profileStr.contains('"name":""');
 
     // Если есть бэкап в iCloud/Google Drive с пройденным онбордингом - используем его
-    final needsOnboarding = !onboardingCompleted || profileStr.isEmpty || isEmptyName;
+    final needsOnboarding =
+        !onboardingCompleted || profileStr.isEmpty || isEmptyName;
 
     final lastSeenVersion = prefs.getString(_lastSeenWhatsNewVersionKey);
-    final whatsNewText = _whatsNewByVersion[currentVersion];
+    final currentLang = prefs.getString('app_locale') ?? 'ru';
+    final whatsNewText =
+        await getWhatsNewForVersion(currentVersion, currentLang);
     final shouldShowWhatsNew = whatsNewText != null &&
         whatsNewText.trim().isNotEmpty &&
         lastSeenVersion != currentVersion;
@@ -78,7 +94,7 @@ class AppStartupService {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final version = '${packageInfo.version}+${packageInfo.buildNumber}';
-      
+
       return version;
     } catch (e) {
       return '0.0.0+0';

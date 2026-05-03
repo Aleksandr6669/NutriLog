@@ -8,8 +8,8 @@
 
     <!-- Left Column: Calories -->
     <LinearLayout
-        android:layout_width="110dp"
-        android:layout_height="110dp"
+        android:layout_width="225dp"
+        android:layout_height="54dp"
         android:layout_weight="1"
         android:background="@drawable/bg_card_widget"
         android:gravity="center">
@@ -25,7 +25,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="КАЛОРИИ"
+                android:text="@string/widget_calories_title"
                 android:textColor="#00C753"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -43,7 +43,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="за сегодня"
+                android:text="@string/widget_today"
                 android:textColor="#8E998F"
                 android:textSize="10sp"
                 android:layout_marginTop="2dp" />
@@ -76,7 +76,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Белки"
+                    android:text="@string/widget_protein"
                     android:textColor="#00C753"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -85,7 +85,7 @@
                     android:id="@+id/widgetProteins"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0г"
+                    android:text="0"
                     android:textColor="#0F2317"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -101,7 +101,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Жиры"
+                    android:text="@string/widget_fat"
                     android:textColor="#00C753"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -110,7 +110,7 @@
                     android:id="@+id/widgetFats"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0г"
+                    android:text="0"
                     android:textColor="#0F2317"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -126,7 +126,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Углев"
+                    android:text="@string/widget_carbs_short"
                     android:textColor="#00C753"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -135,7 +135,7 @@
                     android:id="@+id/widgetCarbs"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0г"
+                    android:text="0"
                     android:textColor="#0F2317"
                     android:textSize="12sp"
                     android:textStyle="bold" />

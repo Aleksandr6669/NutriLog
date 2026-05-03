@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 import 'providers/profile_provider.dart';
 
@@ -17,6 +18,7 @@ import 'screens/profile/edit_goals_screen.dart';
 import 'screens/profile/edit_general_goals_screen.dart';
 import 'screens/profile/edit_physical_params_screen.dart';
 import 'screens/profile/user_agreement_screen.dart';
+import 'screens/profile/changelog_screen.dart';
 import 'screens/profile/connections_notifications_screen.dart';
 import 'screens/recipes/create_recipe_from_description_screen.dart';
 import 'screens/recipes/create_recipe_from_photo_screen.dart';
@@ -26,7 +28,7 @@ import 'models/daily_log.dart';
 import 'models/recipe.dart';
 import 'models/food_item.dart';
 import 'models/user_profile.dart';
-import 'main.dart'; 
+import 'main.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -64,31 +66,56 @@ final GoRouter appRouter = GoRouter(
 
     // --- Основное меню (с нижней навигацией) ---
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) => MainScreenShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) =>
+          MainScreenShell(navigationShell: navigationShell),
       branches: [
-        StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (context, state) => const HomeScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/recipes', builder: (context, state) => const RecipesScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/stats', builder: (context, state) => const StatsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen())]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+              path: '/home', builder: (context, state) => const HomeScreen())
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+              path: '/recipes',
+              builder: (context, state) => const RecipesScreen())
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+              path: '/stats', builder: (context, state) => const StatsScreen())
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen())
+        ]),
       ],
     ),
 
     // --- Вторичные экраны (без нижней навигации) ---
-    
+
     // Дневник: Детали приёма пищи, Вес, Активность
     GoRoute(
       path: '/meal/:type',
       builder: (context, state) {
+        final l10n = AppLocalizations.of(context)!;
         final type = state.pathParameters['type'] ?? 'snacks';
         final extra = state.extra as Map<String, dynamic>?;
-        
+
         String mealName;
         switch (type) {
-          case 'breakfast': mealName = 'Завтрак'; break;
-          case 'lunch': mealName = 'Обед'; break;
-          case 'dinner': mealName = 'Ужин'; break;
-          case 'snacks': mealName = 'Перекусы'; break;
-          default: mealName = extra?['mealName'] as String? ?? 'Приём пищи';
+          case 'breakfast':
+            mealName = l10n.breakfast;
+            break;
+          case 'lunch':
+            mealName = l10n.lunch;
+            break;
+          case 'dinner':
+            mealName = l10n.dinner;
+            break;
+          case 'snacks':
+            mealName = l10n.snacks;
+            break;
+          default:
+            mealName = extra?['mealName'] as String? ?? l10n.meals;
         }
 
         return MealDetailScreen(
@@ -112,7 +139,9 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>?;
         return ActivityLogScreen(
           date: extra?['date'] as DateTime? ?? DateTime.now(),
-          initialActivities: (extra?['initialActivities'] as List?)?.cast<ActivityEntry>() ?? <ActivityEntry>[],
+          initialActivities:
+              (extra?['initialActivities'] as List?)?.cast<ActivityEntry>() ??
+                  <ActivityEntry>[],
         );
       },
     ),
@@ -151,15 +180,18 @@ final GoRouter appRouter = GoRouter(
     // Профиль: Редактирование параметров и целей
     GoRoute(
       path: '/profile/physical',
-      builder: (context, state) => EditPhysicalParamsScreen(profile: (state.extra as Map)['profile'] as UserProfile),
+      builder: (context, state) => EditPhysicalParamsScreen(
+          profile: (state.extra as Map)['profile'] as UserProfile),
     ),
     GoRoute(
       path: '/profile/general_goals',
-      builder: (context, state) => EditGeneralGoalsScreen(profile: (state.extra as Map)['profile'] as UserProfile),
+      builder: (context, state) => EditGeneralGoalsScreen(
+          profile: (state.extra as Map)['profile'] as UserProfile),
     ),
     GoRoute(
       path: '/profile/daily_goals',
-      builder: (context, state) => EditGoalsScreen(profile: (state.extra as Map)['profile'] as UserProfile),
+      builder: (context, state) => EditGoalsScreen(
+          profile: (state.extra as Map)['profile'] as UserProfile),
     ),
     GoRoute(
       path: '/profile/connections',
@@ -168,6 +200,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/profile/agreement',
       builder: (context, state) => const UserAgreementScreen(),
+    ),
+    GoRoute(
+      path: '/profile/changelog',
+      builder: (context, state) => const ChangelogScreen(),
     ),
   ],
 );

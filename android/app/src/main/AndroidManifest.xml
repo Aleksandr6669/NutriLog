@@ -92,7 +92,7 @@
         <receiver
             android:name="com.nutrilog.app.NutriLargeWidgetProvider"
             android:exported="false"
-            android:label="NutriLog Сводка">
+            android:label="@string/widget_label_summary">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
@@ -106,7 +106,7 @@
         <receiver
             android:name="com.nutrilog.app.NutriSmallWidgetProvider"
             android:exported="false"
-            android:label="NutriLog Дневник">
+            android:label="@string/widget_label_diary">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />
@@ -120,7 +120,7 @@
         <receiver
             android:name="com.nutrilog.app.NutriWaterWidgetProvider"
             android:exported="false"
-            android:label="NutriLog Вода">
+            android:label="@string/widget_label_water">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="es.antonborri.home_widget.action.HOME_WIDGET_UPDATE" />

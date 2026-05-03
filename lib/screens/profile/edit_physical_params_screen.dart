@@ -168,10 +168,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
           initialDate: _birthDate,
           firstDate: DateTime(1900),
           lastDate: DateTime.now(),
-          locale: const Locale('ru', 'RU'),
-          helpText: 'Дата рождения',
-          cancelText: 'Отмена',
-          confirmText: 'Выбрать',
+          locale: Localizations.localeOf(context),
         );
         if (picked != null) {
           setState(() => _birthDate = picked);

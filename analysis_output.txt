@@ -1,0 +1,58 @@
+Resolving dependencies...
+Downloading packages...
+  app_settings 6.1.1 (7.0.0 available)
+  cli_util 0.4.2 (0.5.0 available)
+! device_info_plus 12.1.0 (overridden) (13.1.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  flutter_dotenv 5.2.1 (6.0.1 available)
+  flutter_launcher_icons 0.13.1 (0.14.4 available)
+  flutter_lints 3.0.2 (6.0.0 available)
+  flutter_timezone 3.0.1 (5.0.2 available)
+  go_router 13.2.5 (17.2.3 available)
+  image_picker_android 0.8.13+16 (0.8.13+17 available)
+  lints 3.0.0 (6.1.0 available)
+  matcher 0.12.19 (0.12.20 available)
+  meta 1.17.0 (1.18.2 available)
+  native_toolchain_c 0.17.6 (0.18.0 available)
+  package_info_plus 8.3.1 (10.1.0 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  test_api 0.7.10 (0.7.12 available)
+  timezone 0.9.4 (0.11.0 available)
+  vector_math 2.2.0 (2.3.0 available)
+  win32 5.15.0 (6.1.0 available)
+  win32_registry 2.1.0 (3.0.3 available)
+  xml 6.6.1 (7.0.1 available)
+Got dependencies!
+22 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing NutriLog...                                           
+
+   info • Don't use 'BuildContext's across async gaps • lib/main.dart:345:26 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/main.dart:346:25 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/main.dart:348:11 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/main.dart:359:11 • use_build_context_synchronously
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/widgets.dart' • lib/models/user_profile.dart:1:8 • unnecessary_import
+warning • The declaration '_saveChanges' isn't referenced • lib/screens/home/activity_log_screen.dart:99:8 • unused_element
+warning • The value of the local variable 'mealDisplayNames' isn't used • lib/screens/home/home_screen.dart:804:11 • unused_local_variable
+   info • Don't use 'BuildContext's across async gaps • lib/screens/meal_detail/meal_detail_screen.dart:52:22 • use_build_context_synchronously
+warning • The declaration '_saveChanges' isn't referenced • lib/screens/meal_detail/meal_detail_screen.dart:91:8 • unused_element
+warning • The declaration '_requestNotificationPermission' isn't referenced • lib/screens/profile/connections_notifications_screen.dart:145:16 • unused_element
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:226:11 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:227:20 • prefer_const_constructors
+   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/screens/profile/connections_notifications_screen.dart:228:25 • prefer_const_literals_to_create_immutables
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:229:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:230:28 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:231:26 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:232:29 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:233:29 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:235:28 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/screens/profile/connections_notifications_screen.dart:359:28 • prefer_const_constructors
+  error • 2 positional arguments expected by 'getWhatsNewForVersion', but 1 found • lib/screens/profile/connections_notifications_screen.dart:371:95 • not_enough_positional_arguments
+warning • Unused import: 'package:nutri_log/services/app_startup_service.dart' • lib/screens/profile/profile_screen.dart:10:8 • unused_import
+warning • Unused import: 'package:nutri_log/screens/onboarding/whats_new_screen.dart' • lib/screens/profile/profile_screen.dart:11:8 • unused_import
+warning • The value of the field '_dailyLogService' isn't used • lib/screens/profile/profile_screen.dart:22:25 • unused_field
+   info • Don't use 'BuildContext's across async gaps • lib/screens/profile/profile_screen.dart:136:11 • use_build_context_synchronously
+warning • The declaration '_navigateAndRefresh' isn't referenced • lib/screens/recipes/recipes_screen.dart:302:16 • unused_element
+   info • Use 'const' with the constructor to improve performance • lib/screens/recipes/recipes_screen.dart:338:19 • prefer_const_constructors
+warning • The value of the field '_profileService' isn't used • lib/services/app_notification_service.dart:40:24 • unused_field
+

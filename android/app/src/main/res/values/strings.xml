@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_calories_left">осталось ккал</string>
-    <string name="widget_carbs">Углеводы</string>
-    <string name="widget_protein">Белки</string>
-    <string name="widget_fat">Жиры</string>
+    <string name="widget_calories_left">kcal left</string>
+    <string name="widget_calories_title">CALORIES</string>
+    <string name="widget_today">today</string>
+    <string name="widget_carbs">Carbs</string>
+    <string name="widget_carbs_short">Carbs</string>
+    <string name="widget_protein">Protein</string>
+    <string name="widget_fat">Fat</string>
+    <string name="widget_macro_protein_short">P</string>
+    <string name="widget_macro_fat_short">F</string>
+    <string name="widget_macro_carbs_short">C</string>
+    <string name="widget_water_title">WATER</string>
+    <string name="widget_label_summary">NutriLog Summary</string>
+    <string name="widget_label_diary">NutriLog Diary</string>
+    <string name="widget_label_water">NutriLog Water</string>
 </resources>

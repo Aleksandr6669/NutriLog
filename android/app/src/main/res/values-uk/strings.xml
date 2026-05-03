@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_calories_left">залишилось ккал</string>
+    <string name="widget_calories_title">КАЛОРІЇ</string>
+    <string name="widget_today">за сьогодні</string>
+    <string name="widget_carbs">Вуглеводи</string>
+    <string name="widget_carbs_short">Вугл</string>
+    <string name="widget_protein">Білки</string>
+    <string name="widget_fat">Жири</string>
+    <string name="widget_macro_protein_short">Б</string>
+    <string name="widget_macro_fat_short">Ж</string>
+    <string name="widget_macro_carbs_short">В</string>
+    <string name="widget_water_title">ВОДА</string>
+    <string name="widget_label_summary">NutriLog Зведення</string>
+    <string name="widget_label_diary">NutriLog Щоденник</string>
+    <string name="widget_label_water">NutriLog Вода</string>
+</resources>

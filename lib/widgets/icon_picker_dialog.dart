@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class IconPickerDialog extends StatelessWidget {
   final Function(IconData) onIconSelected;
@@ -34,8 +35,9 @@ class IconPickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Выберите иконку'),
+      title: Text(l10n.chooseIcon),
       content: SizedBox(
         width: double.maxFinite,
         child: GridView.builder(
@@ -53,7 +55,8 @@ class IconPickerDialog extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               borderRadius: BorderRadius.circular(8),
-              child: Icon(icons[index], size: 32, color: Theme.of(context).colorScheme.primary),
+              child: Icon(icons[index],
+                  size: 32, color: Theme.of(context).colorScheme.primary),
             );
           },
         ),
@@ -61,7 +64,7 @@ class IconPickerDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Отмена'),
+          child: Text(l10n.cancel),
         ),
       ],
     );
