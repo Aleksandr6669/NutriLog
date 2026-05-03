@@ -467,4 +467,364 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appTagline => 'Your path to health';
+
+  @override
+  String get unitKg => 'kg';
+  @override
+  String get unitG => 'g';
+  @override
+  String get unitMg => 'mg';
+  @override
+  String get unitMcg => 'mcg';
+  @override
+  String get unitL => 'l';
+  @override
+  String get unitCm => 'cm';
+  @override
+  String get connections => 'Connections';
+  @override
+  String get messages => 'Messages';
+  @override
+  String get applicationSection => 'Application';
+  @override
+  String get loginAccount => 'Sign in';
+  @override
+  String get loginAccountSubtitle => 'In development';
+  @override
+  String get loginButton => 'Sign In';
+  @override
+  String get waterReminderTitle => 'Water reminder';
+  @override
+  String get waterReminderSubtitle =>
+      'Time and amount calculated automatically from your daily water goal';
+  @override
+  String get mealRemindersTitle => 'Meal reminders';
+  @override
+  String get mealRemindersSubtitle =>
+      'Breakfast, lunch and dinner at selected time';
+  @override
+  String get weightReminderTitle => 'Weight reminder';
+  @override
+  String get weightReminderSubtitle =>
+      'Enable daily reminder to log your weight';
+  @override
+  String get weightReminderTimeTitle => 'Weight reminder time';
+  @override
+  String get noUpdateInfo => 'No update information available.';
+  @override
+  String get versionHistory => 'Version History';
+  @override
+  String get versionWord => 'Version';
+  @override
+  String get dataStorageAndAi => 'Data, storage and AI';
+  @override
+  String get settingsSubtitle => 'Connections and messages';
+  @override
+  String failedToApplyNotificationSettings(String error) =>
+      'Failed to apply notification settings. Details: $error';
+  @override
+  String get generalGoalsInfo =>
+      'This section sets your main strategy:\ntarget weight and goal type (lose, gain, etc.).\nBased on this data, the app suggests\nan appropriate nutrition and progress vector.';
+  @override
+  String get physicalParamsInfo =>
+      'Here you specify basic physical parameters:\ngender, age, height, and current weight.\nThis data is needed for accurate calculations\nand personalized recommendations.';
+  @override
+  String get dailyGoalsInfo =>
+      'Here daily targets are configured:\ncalories, water, steps and macros.\nThese values are used in the diary\nto track progress every day.';
+  @override
+  String get weightGoalHint => 'Weight goal (kg)';
+  @override
+  String get enterWeightGoalValidator => 'Enter weight goal';
+  @override
+  String get enterNameValidator => 'Enter your name';
+  @override
+  String get enterHeightValidator => 'Enter your height';
+  @override
+  String get enterWeightValidator => 'Enter your weight';
+  @override
+  String get caloriesKcalLabel => 'Calories (kcal)';
+  @override
+  String get waterMlLabel => 'Water (ml)';
+  @override
+  String get stepsLabel => 'Steps';
+  @override
+  String get proteinGLabel => 'Protein (g)';
+  @override
+  String get carbsGLabel => 'Carbs (g)';
+  @override
+  String get fatGLabel => 'Fat (g)';
+  @override
+  String get failedToFillGoalsWithAi => 'Failed to fill goals with AI.';
+  @override
+  String get analyticsTitle => 'Analytics';
+  @override
+  String get analyticsInfo =>
+      'Analytics helps you see the big picture\nof nutrition, water, weight and activity over the period.\nUse it to adjust goals in time\nand track stable progress without overload.';
+  @override
+  String get caloriesDynamics => 'Calorie dynamics';
+  @override
+  String get weightDynamics => 'Weight dynamics';
+  @override
+  String get avgMacros => 'Average macros';
+  @override
+  String get progressTitle => 'Progress';
+  @override
+  String get aiReport => 'AI Report';
+  @override
+  String get week => 'Week';
+  @override
+  String get month => 'Month';
+  @override
+  String get year => 'Year';
+  @override
+  String get noData => 'No data';
+  @override
+  String get noDataForAnalysis => 'No data for analysis.';
+  @override
+  String errorLoadingData(String error) => 'Error loading data: $error';
+  @override
+  String avgStepsText(int steps) => 'Avg: $steps steps';
+  @override
+  String latestStepsText(int steps) => 'Latest: $steps steps';
+  @override
+  String avgWeightText(String weight) => 'Avg: $weight kg';
+  @override
+  String latestWeightText(String weight) => 'Latest: $weight kg';
+  @override
+  String avgCaloriesText(int kcal) => 'Avg: $kcal kcal';
+  @override
+  String workoutsCountText(int count) => 'Workouts: $count';
+  @override
+  String avgWaterText(String liters) => 'Avg: $liters l';
+  @override
+  String latestWaterText(String liters) => 'Latest: $liters l';
+  @override
+  String get activityTitle => 'Activity';
+  @override
+  String get aiReportLoadingText => 'Loading AI report...';
+  @override
+  String get aiReportError =>
+      'Failed to generate AI report. Please try again later.';
+  @override
+  String aiReportAnalysis(String period) => 'Analysis of $period';
+  @override
+  String get aiReportDisclaimer =>
+      'AI may be inaccurate by about 10%. Use the report as a guide.';
+  @override
+  String get periodOfWeek => 'the week';
+  @override
+  String get periodOfMonth => 'the month';
+  @override
+  String get periodOfYear => 'the year';
+  @override
+  String goalMoreThanLabel(String value) => 'Goal > $value';
+  @override
+  String goalKgLabel(String value) => 'Goal $value kg';
+  @override
+  String goalLitersLabel(String value) => 'Goal $value l';
+  @override
+  String goalIntLabel(String value) => 'Goal $value';
+  @override
+  String get dayMon => 'Mon';
+  @override
+  String get dayTue => 'Tue';
+  @override
+  String get dayWed => 'Wed';
+  @override
+  String get dayThu => 'Thu';
+  @override
+  String get dayFri => 'Fri';
+  @override
+  String get daySat => 'Sat';
+  @override
+  String get daySun => 'Sun';
+  @override
+  String get monthJan => 'Jan';
+  @override
+  String get monthFeb => 'Feb';
+  @override
+  String get monthMar => 'Mar';
+  @override
+  String get monthApr => 'Apr';
+  @override
+  String get monthMay => 'May';
+  @override
+  String get monthJun => 'Jun';
+  @override
+  String get monthJul => 'Jul';
+  @override
+  String get monthAug => 'Aug';
+  @override
+  String get monthSep => 'Sep';
+  @override
+  String get monthOct => 'Oct';
+  @override
+  String get monthNov => 'Nov';
+  @override
+  String get monthDec => 'Dec';
+  @override
+  String get mealSummary => 'Meal summary';
+  @override
+  String get mealRecipes => 'Recipes in meal';
+  @override
+  String get addFromRecipes => 'Add from recipes';
+  @override
+  String get nothingAddedYet => 'Nothing added yet';
+  @override
+  String get pressToAddFood => 'Press "+" to add food';
+  @override
+  String get deleteRecipeTooltip => 'Delete recipe';
+  @override
+  String get nutritionalValue => 'Nutritional value';
+  @override
+  String get nutritionalValuePerPortion => 'Nutritional value (per portion)';
+  @override
+  String get nutritionalValuePer100g => 'Nutritional value (per 100g)';
+  @override
+  String get nutrientSugar => 'incl. Sugar';
+  @override
+  String get nutrientFiber => 'incl. Fiber';
+  @override
+  String get nutrientSaturatedFat => 'Saturated';
+  @override
+  String get nutrientPolyunsaturatedFat => 'Polyunsaturated';
+  @override
+  String get nutrientMonounsaturatedFat => 'Monounsaturated';
+  @override
+  String get nutrientTransFat => 'Trans fats';
+  @override
+  String get nutrientCholesterol => 'Cholesterol';
+  @override
+  String get minerals => 'Minerals';
+  @override
+  String get nutrientSodium => 'Sodium';
+  @override
+  String get nutrientPotassium => 'Potassium';
+  @override
+  String get nutrientCalcium => 'Calcium';
+  @override
+  String get nutrientIron => 'Iron';
+  @override
+  String get vitamins => 'Vitamins';
+  @override
+  String get nutrientVitaminA => 'Vitamin A';
+  @override
+  String get nutrientVitaminC => 'Vitamin C';
+  @override
+  String get nutrientVitaminD => 'Vitamin D';
+  @override
+  String get compositionTitle => 'Composition';
+  @override
+  String get addIngredientTooltip => 'Add ingredient';
+  @override
+  String get mainInfoTitle => 'Main information';
+  @override
+  String get newRecipeTitle => 'New recipe';
+  @override
+  String get editRecipeTitle => 'Edit recipe';
+  @override
+  String get recipeNameLabel => 'Recipe name';
+  @override
+  String get recipeShortDescLabel => 'Short description';
+  @override
+  String get enterRecipeNameValidator => 'Enter recipe name';
+  @override
+  String get calculateNutritionalValue => 'Calculate nutritional value';
+  @override
+  String get aiDisclaimer =>
+      'AI may be inaccurate by about 10%. Check values before saving.';
+  @override
+  String get autoBjuLabel => 'Auto macros';
+  @override
+  String get bjuLabel => 'Macros';
+  @override
+  String get detailsLabel => 'Details';
+  @override
+  String get deleteRecipeButton => 'Delete recipe';
+  @override
+  String get fieldsUpdated => 'Fields updated';
+  @override
+  String get addIngredientsForAi => 'Add ingredients for AI calculation';
+  @override
+  String get failedToGetCalculation => 'Failed to get calculation';
+  @override
+  String get addMoreToMeal => 'Add more to meal';
+  @override
+  String get addToMealTooltip => 'Add to meal';
+  @override
+  String get editRecipeTooltip => 'Edit recipe';
+  @override
+  String get recipeByDescriptionTitle => 'Recipe by description';
+  @override
+  String get recipeByPhotoTitle => 'Recipe by photo';
+  @override
+  String get instructionTitle => 'Instruction';
+  @override
+  String get describeRecipeInstruction1 =>
+      '1. Describe the dish and ingredients in detail.';
+  @override
+  String get describeRecipeInstruction2 =>
+      '2. Press the recipe generation button.';
+  @override
+  String get describeRecipeInstruction3 =>
+      '3. The editor will open with filled fields.';
+  @override
+  String get describeRecipeInstruction4 =>
+      '4. Check and correct details if needed.';
+  @override
+  String get photoRecipeInstruction1 =>
+      '1. Take a photo of the dish or select from gallery.';
+  @override
+  String get photoRecipeInstruction2 =>
+      '2. Optionally add a brief description.';
+  @override
+  String get photoRecipeInstruction3 => '3. Press the generate button.';
+  @override
+  String get photoRecipeInstruction4 =>
+      '4. The editor will open with filled fields.';
+  @override
+  String get aiDisclaimerMandatory =>
+      'AI may be inaccurate by about 10%, always check the data.';
+  @override
+  String get dishDescriptionTitle => 'Dish description';
+  @override
+  String get dishPhotoTitle => 'Dish photo';
+  @override
+  String get noPhotoAddedYet => 'No photo added yet';
+  @override
+  String get cameraButton => 'Camera';
+  @override
+  String get galleryButton => 'Gallery';
+  @override
+  String get generateAndOpenEditor => 'Generate and open editor';
+  @override
+  String get generatingRecipe => 'Generating recipe...';
+  @override
+  String get enterDishDescription => 'Enter dish description.';
+  @override
+  String get failedToCreateRecipeByDescription =>
+      'Failed to create recipe from description.';
+  @override
+  String get failedToCreateRecipeByPhoto =>
+      'Failed to create recipe from photo.';
+  @override
+  String get addPhotoFirst => 'Add a photo of the dish first.';
+  @override
+  String get descriptionOptionalTitle => 'Description (optional)';
+  @override
+  String get optionalLabel => 'Optional';
+  @override
+  String get dishDescriptionHintPhoto =>
+      'E.g.: pasta with chicken and cream sauce';
+  @override
+  String get dishDescriptionHintDescription =>
+      'E.g.: Chicken pasta in cream sauce with garlic and parmesan. For 2 servings.';
+  @override
+  String get requiredFieldValidator => 'Field cannot be empty';
+  @override
+  String get invalidFormatValidator => 'Invalid format';
+  @override
+  String get appLogsTitle => 'App logs';
+  @override
+  String get noLogsAvailable => 'No logs available';
 }

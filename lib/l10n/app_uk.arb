@@ -145,5 +145,248 @@
   "activityModerateHint": "Регулярна активність кілька разів на тиждень.",
   "activityActiveHint": "Часті тренування і високий середній рівень руху.",
   "activityVeryActiveHint": "Інтенсивні навантаження і спорт майже щодня.",
-  "appTagline": "Ваш шлях до здоров'я"
+  "appTagline": "Ваш шлях до здоров'я",
+  "unitKg": "кг",
+  "unitG": "г",
+  "unitMg": "мг",
+  "unitMcg": "мкг",
+  "unitL": "л",
+  "unitCm": "см",
+  "connections": "Підключення",
+  "messages": "Повідомлення",
+  "applicationSection": "Додаток",
+  "loginAccount": "Вхід в обліковий запис",
+  "loginAccountSubtitle": "У розробці",
+  "loginButton": "Увійти",
+  "waterReminderTitle": "Нагадування про воду",
+  "waterReminderSubtitle": "Час і кількість розраховуються автоматично за вашою денною ціллю води",
+  "mealRemindersTitle": "Нагадування про прийоми їжі",
+  "mealRemindersSubtitle": "Сніданок, обід та вечеря у вибраний час",
+  "weightReminderTitle": "Нагадування про зважування",
+  "weightReminderSubtitle": "Увімкнути щоденне нагадування вносити вагу",
+  "weightReminderTimeTitle": "Час нагадування про зважування",
+  "noUpdateInfo": "Немає інформації про оновлення.",
+  "versionHistory": "Історія версій",
+  "versionWord": "Версія",
+  "dataStorageAndAi": "Дані, зберігання та нейромережі",
+  "settingsSubtitle": "Підключення та повідомлення",
+  "failedToApplyNotificationSettings": "Не вдалося застосувати налаштування сповіщень. Докладніше: {error}",
+  "@failedToApplyNotificationSettings": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "generalGoalsInfo": "Цей розділ задає вашу головну стратегію:\nцільову вагу та формат цілі (зниження, набір тощо).\nНа основі цих даних додаток підказує\nвідповідний вектор харчування та прогресу.",
+  "physicalParamsInfo": "Тут вказуються базові фізичні параметри:\nстать, вік, зріст і поточна вага.\nЦі дані потрібні для точного розрахунку\nнорм і персональних рекомендацій.",
+  "dailyGoalsInfo": "Тут налаштовуються денні норми:\nкалорії, вода, кроки та БЖВ.\nСаме ці значення використовуються в щоденнику\nдля контролю прогресу щодня.",
+  "weightGoalHint": "Ціль по вазі (кг)",
+  "enterWeightGoalValidator": "Введіть ціль по вазі",
+  "enterNameValidator": "Введіть ваше ім'я",
+  "enterHeightValidator": "Введіть ваш зріст",
+  "enterWeightValidator": "Введіть вашу вагу",
+  "caloriesKcalLabel": "Калорії (ккал)",
+  "waterMlLabel": "Вода (мл)",
+  "stepsLabel": "Кроки",
+  "proteinGLabel": "Білки (г)",
+  "carbsGLabel": "Вуглеводи (г)",
+  "fatGLabel": "Жири (г)",
+  "failedToFillGoalsWithAi": "Не вдалося заповнити цілі через нейромережу.",
+  "analyticsTitle": "Аналітика",
+  "analyticsInfo": "Аналітика допомагає побачити загальну картину\nз харчування, воді, вазі та активності за період.\nВикористовуйте її, щоб вчасно коригувати цілі\nта відстежувати стійкий прогрес без перевантаження.",
+  "caloriesDynamics": "Динаміка калорій",
+  "weightDynamics": "Динаміка ваги",
+  "avgMacros": "Середнє БЖВ",
+  "progressTitle": "Прогрес",
+  "aiReport": "Звіт від AI",
+  "week": "Тиждень",
+  "month": "Місяць",
+  "year": "Рік",
+  "noData": "Немає даних",
+  "noDataForAnalysis": "Немає даних для аналізу.",
+  "errorLoadingData": "Помилка завантаження даних: {error}",
+  "@errorLoadingData": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "avgStepsText": "Середнє: {steps} кроків",
+  "@avgStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "latestStepsText": "Останнє: {steps} кроків",
+  "@latestStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "avgWeightText": "Середнє: {weight} кг",
+  "@avgWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "latestWeightText": "Останнє: {weight} кг",
+  "@latestWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "avgCaloriesText": "Середнє: {kcal} ккал",
+  "@avgCaloriesText": {
+    "placeholders": {
+      "kcal": { "type": "int" }
+    }
+  },
+  "workoutsCountText": "Тренувань: {count}",
+  "@workoutsCountText": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "avgWaterText": "Середнє: {liters} л",
+  "@avgWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "latestWaterText": "Останнє: {liters} л",
+  "@latestWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "activityTitle": "Активність",
+  "aiReportLoadingText": "Завантаження звіту від нейромережі...",
+  "aiReportError": "Не вдалося сформувати звіт від нейромережі. Спробуйте пізніше.",
+  "aiReportAnalysis": "Аналіз {period}",
+  "@aiReportAnalysis": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "aiReportDisclaimer": "Нейромережа може помилятися приблизно на 10%. Використовуйте звіт як орієнтир.",
+  "periodOfWeek": "тижня",
+  "periodOfMonth": "місяця",
+  "periodOfYear": "року",
+  "goalMoreThanLabel": "Ціль > {value}",
+  "@goalMoreThanLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalKgLabel": "Ціль {value} кг",
+  "@goalKgLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalLitersLabel": "Ціль {value} л",
+  "@goalLitersLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalIntLabel": "Ціль {value}",
+  "@goalIntLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "dayMon": "Пн",
+  "dayTue": "Вт",
+  "dayWed": "Ср",
+  "dayThu": "Чт",
+  "dayFri": "Пт",
+  "daySat": "Сб",
+  "daySun": "Нд",
+  "monthJan": "Січ",
+  "monthFeb": "Лют",
+  "monthMar": "Бер",
+  "monthApr": "Квіт",
+  "monthMay": "Трав",
+  "monthJun": "Черв",
+  "monthJul": "Лип",
+  "monthAug": "Серп",
+  "monthSep": "Вер",
+  "monthOct": "Жовт",
+  "monthNov": "Лист",
+  "monthDec": "Груд",
+  "mealSummary": "Зведення за прийом їжі",
+  "mealRecipes": "Рецепти в прийомі їжі",
+  "addFromRecipes": "Додати з рецептів",
+  "nothingAddedYet": "Ще нічого не додано",
+  "pressToAddFood": "Натисніть \"+\", щоб додати продукт",
+  "deleteRecipeTooltip": "Видалити рецепт",
+  "nutritionalValue": "Харчова цінність",
+  "nutritionalValuePerPortion": "Харчова цінність (на порцію)",
+  "nutritionalValuePer100g": "Харчова цінність (на 100г)",
+  "nutrientSugar": "в т.ч. Цукор",
+  "nutrientFiber": "в т.ч. Клітковина",
+  "nutrientSaturatedFat": "Насичені",
+  "nutrientPolyunsaturatedFat": "Поліненасичені",
+  "nutrientMonounsaturatedFat": "Мононенасичені",
+  "nutrientTransFat": "Трансжири",
+  "nutrientCholesterol": "Холестерин",
+  "minerals": "Мінерали",
+  "nutrientSodium": "Натрій",
+  "nutrientPotassium": "Калій",
+  "nutrientCalcium": "Кальцій",
+  "nutrientIron": "Залізо",
+  "vitamins": "Вітаміни",
+  "nutrientVitaminA": "Вітамін A",
+  "nutrientVitaminC": "Вітамін C",
+  "nutrientVitaminD": "Вітамін D",
+  "compositionTitle": "Склад",
+  "addIngredientTooltip": "Додати інгредієнт",
+  "mainInfoTitle": "Основна інформація",
+  "newRecipeTitle": "Новий рецепт",
+  "editRecipeTitle": "Редагувати рецепт",
+  "recipeNameLabel": "Назва рецепта",
+  "recipeShortDescLabel": "Короткий опис",
+  "enterRecipeNameValidator": "Введіть назву",
+  "calculateNutritionalValue": "Розрахувати харчову цінність",
+  "aiDisclaimer": "Нейромережа може помилятися приблизно на 10%. Перевірте значення перед збереженням.",
+  "autoBjuLabel": "Авто БЖВ",
+  "bjuLabel": "БЖВ",
+  "detailsLabel": "Деталізація",
+  "deleteRecipeButton": "Видалити рецепт",
+  "fieldsUpdated": "Поля оновлено",
+  "addIngredientsForAi": "Додайте інгредієнти для AI-підрахунку",
+  "failedToGetCalculation": "Не вдалося отримати розрахунок",
+  "addMoreToMeal": "Додати ще в прийом їжі",
+  "addToMealTooltip": "Додати в прийом їжі",
+  "editRecipeTooltip": "Редагувати рецепт",
+  "recipeByDescriptionTitle": "Рецепт за описом",
+  "recipeByPhotoTitle": "Рецепт за фото",
+  "instructionTitle": "Інструкція",
+  "describeRecipeInstruction1": "1. Детально опишіть страву та інгредієнти.",
+  "describeRecipeInstruction2": "2. Натисніть кнопку генерації рецепта.",
+  "describeRecipeInstruction3": "3. Відкриється екран редагування із заповненими полями.",
+  "describeRecipeInstruction4": "4. Перевірте і за необхідності виправте деталі.",
+  "photoRecipeInstruction1": "1. Зробіть фото страви або виберіть з галереї.",
+  "photoRecipeInstruction2": "2. За бажанням додайте коротке описання.",
+  "photoRecipeInstruction3": "3. Натисніть кнопку генерації.",
+  "photoRecipeInstruction4": "4. Відкриється екран редагування із заповненими полями.",
+  "aiDisclaimerMandatory": "Нейромережа може помилятися приблизно на 10%, обов'язково перевірте дані.",
+  "dishDescriptionTitle": "Опис страви",
+  "dishPhotoTitle": "Фото страви",
+  "noPhotoAddedYet": "Фото поки не додано",
+  "cameraButton": "Камера",
+  "galleryButton": "Галерея",
+  "generateAndOpenEditor": "Згенерувати і відкрити редактор",
+  "generatingRecipe": "Генеруємо рецепт...",
+  "enterDishDescription": "Введіть опис страви.",
+  "failedToCreateRecipeByDescription": "Не вдалося створити рецепт за описом.",
+  "failedToCreateRecipeByPhoto": "Не вдалося створити рецепт за фото.",
+  "addPhotoFirst": "Спочатку додайте фото страви.",
+  "descriptionOptionalTitle": "Опис (необов'язково)",
+  "optionalLabel": "Необов'язково",
+  "dishDescriptionHintPhoto": "Наприклад: паста з куркою та вершковим соусом",
+  "dishDescriptionHintDescription": "Наприклад: Куряча паста у вершковому соусі з часником і пармезаном. На 2 порції.",
+  "requiredFieldValidator": "Поле не може бути порожнім",
+  "invalidFormatValidator": "Невірний формат",
+  "appLogsTitle": "Логи додатку",
+  "noLogsAvailable": "Логи відсутні"
 }

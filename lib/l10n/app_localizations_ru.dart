@@ -469,4 +469,366 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appTagline => 'Ваш путь к здоровью';
+
+  @override
+  String get unitKg => 'кг';
+  @override
+  String get unitG => 'г';
+  @override
+  String get unitMg => 'мг';
+  @override
+  String get unitMcg => 'мкг';
+  @override
+  String get unitL => 'л';
+  @override
+  String get unitCm => 'см';
+  @override
+  String get connections => 'Подключения';
+  @override
+  String get messages => 'Сообщения';
+  @override
+  String get applicationSection => 'Приложение';
+  @override
+  String get loginAccount => 'Вход в аккаунт';
+  @override
+  String get loginAccountSubtitle => 'В разработке';
+  @override
+  String get loginButton => 'Войти';
+  @override
+  String get waterReminderTitle => 'Напоминание о воде';
+  @override
+  String get waterReminderSubtitle =>
+      'Время и количество рассчитываются автоматически по вашей дневной цели воды';
+  @override
+  String get mealRemindersTitle => 'Напоминания о приёмах пищи';
+  @override
+  String get mealRemindersSubtitle =>
+      'Завтрак, обед и ужин в выбранное время';
+  @override
+  String get weightReminderTitle => 'Напоминание о взвешивании';
+  @override
+  String get weightReminderSubtitle =>
+      'Включить ежедневное напоминание внести вес';
+  @override
+  String get weightReminderTimeTitle => 'Время напоминания о взвешивании';
+  @override
+  String get noUpdateInfo => 'Нет информации об обновлениях.';
+  @override
+  String get versionHistory => 'История версий';
+  @override
+  String get versionWord => 'Версия';
+  @override
+  String get dataStorageAndAi => 'Данные, хранение и нейросети';
+  @override
+  String get settingsSubtitle => 'Подключения и сообщения';
+  @override
+  String failedToApplyNotificationSettings(String error) =>
+      'Не удалось применить настройки уведомлений. Подробнее: $error';
+  @override
+  String get generalGoalsInfo =>
+      'Этот раздел задает вашу главную стратегию:\nцелевой вес и формат цели (снижение, набор и т.д.).\nНа основе этих данных приложение подсказывает\nподходящий вектор питания и прогресса.';
+  @override
+  String get physicalParamsInfo =>
+      'Здесь указываются базовые физические параметры:\nпол, возраст, рост и текущий вес.\nЭти данные нужны для точного расчета\nнорм и персональных рекомендаций.';
+  @override
+  String get dailyGoalsInfo =>
+      'Здесь настраиваются дневные нормы:\nкалории, вода, шаги и БЖУ.\nИменно эти значения используются в дневнике\nдля контроля прогресса каждый день.';
+  @override
+  String get weightGoalHint => 'Цель по весу (кг)';
+  @override
+  String get enterWeightGoalValidator => 'Введите цель по весу';
+  @override
+  String get enterNameValidator => 'Введите ваше имя';
+  @override
+  String get enterHeightValidator => 'Введите ваш рост';
+  @override
+  String get enterWeightValidator => 'Введите ваш вес';
+  @override
+  String get caloriesKcalLabel => 'Калории (ккал)';
+  @override
+  String get waterMlLabel => 'Вода (мл)';
+  @override
+  String get stepsLabel => 'Шаги';
+  @override
+  String get proteinGLabel => 'Белки (г)';
+  @override
+  String get carbsGLabel => 'Углеводы (г)';
+  @override
+  String get fatGLabel => 'Жиры (г)';
+  @override
+  String get failedToFillGoalsWithAi =>
+      'Не удалось заполнить цели через нейросеть.';
+  @override
+  String get analyticsTitle => 'Аналитика';
+  @override
+  String get analyticsInfo =>
+      'Аналитика помогает увидеть общую картину\nпо питанию, воде, весу и активности за период.\nИспользуйте ее, чтобы вовремя корректировать цели\nи отслеживать устойчивый прогресс без перегруза.';
+  @override
+  String get caloriesDynamics => 'Динамика калорий';
+  @override
+  String get weightDynamics => 'Динамика веса';
+  @override
+  String get avgMacros => 'Среднее БЖУ';
+  @override
+  String get progressTitle => 'Прогресс';
+  @override
+  String get aiReport => 'Отчет от AI';
+  @override
+  String get week => 'Неделя';
+  @override
+  String get month => 'Месяц';
+  @override
+  String get year => 'Год';
+  @override
+  String get noData => 'Нет данных';
+  @override
+  String get noDataForAnalysis => 'Нет данных для анализа.';
+  @override
+  String errorLoadingData(String error) =>
+      'Ошибка загрузки данных: $error';
+  @override
+  String avgStepsText(int steps) => 'Среднее: $steps шагов';
+  @override
+  String latestStepsText(int steps) => 'Последнее: $steps шагов';
+  @override
+  String avgWeightText(String weight) => 'Среднее: $weight кг';
+  @override
+  String latestWeightText(String weight) => 'Последнее: $weight кг';
+  @override
+  String avgCaloriesText(int kcal) => 'Среднее: $kcal ккал';
+  @override
+  String workoutsCountText(int count) => 'Тренировок: $count';
+  @override
+  String avgWaterText(String liters) => 'Среднее: $liters л';
+  @override
+  String latestWaterText(String liters) => 'Последнее: $liters л';
+  @override
+  String get activityTitle => 'Активность';
+  @override
+  String get aiReportLoadingText => 'Загрузка отчета от нейросети...';
+  @override
+  String get aiReportError =>
+      'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+  @override
+  String aiReportAnalysis(String period) => 'Анализ $period';
+  @override
+  String get aiReportDisclaimer =>
+      'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.';
+  @override
+  String get periodOfWeek => 'недели';
+  @override
+  String get periodOfMonth => 'месяца';
+  @override
+  String get periodOfYear => 'года';
+  @override
+  String goalMoreThanLabel(String value) => 'Цель > $value';
+  @override
+  String goalKgLabel(String value) => 'Цель $value кг';
+  @override
+  String goalLitersLabel(String value) => 'Цель $value л';
+  @override
+  String goalIntLabel(String value) => 'Цель $value';
+  @override
+  String get dayMon => 'Пн';
+  @override
+  String get dayTue => 'Вт';
+  @override
+  String get dayWed => 'Ср';
+  @override
+  String get dayThu => 'Чт';
+  @override
+  String get dayFri => 'Пт';
+  @override
+  String get daySat => 'Сб';
+  @override
+  String get daySun => 'Вс';
+  @override
+  String get monthJan => 'Янв';
+  @override
+  String get monthFeb => 'Фев';
+  @override
+  String get monthMar => 'Мар';
+  @override
+  String get monthApr => 'Апр';
+  @override
+  String get monthMay => 'Май';
+  @override
+  String get monthJun => 'Июн';
+  @override
+  String get monthJul => 'Июл';
+  @override
+  String get monthAug => 'Авг';
+  @override
+  String get monthSep => 'Сен';
+  @override
+  String get monthOct => 'Окт';
+  @override
+  String get monthNov => 'Ноя';
+  @override
+  String get monthDec => 'Дек';
+  @override
+  String get mealSummary => 'Сводка за прием пищи';
+  @override
+  String get mealRecipes => 'Рецепты в приеме пищи';
+  @override
+  String get addFromRecipes => 'Добавить из рецептов';
+  @override
+  String get nothingAddedYet => 'Еще ничего не добавлено';
+  @override
+  String get pressToAddFood => 'Нажмите "+", чтобы добавить продукт';
+  @override
+  String get deleteRecipeTooltip => 'Удалить рецепт';
+  @override
+  String get nutritionalValue => 'Пищевая ценность';
+  @override
+  String get nutritionalValuePerPortion => 'Пищевая ценность (на порцию)';
+  @override
+  String get nutritionalValuePer100g => 'Пищевая ценность (на 100г)';
+  @override
+  String get nutrientSugar => 'в т.ч. Сахар';
+  @override
+  String get nutrientFiber => 'в т.ч. Клетчатка';
+  @override
+  String get nutrientSaturatedFat => 'Насыщенные';
+  @override
+  String get nutrientPolyunsaturatedFat => 'Полиненасыщенные';
+  @override
+  String get nutrientMonounsaturatedFat => 'Мононенасыщенные';
+  @override
+  String get nutrientTransFat => 'Трансжиры';
+  @override
+  String get nutrientCholesterol => 'Холестерин';
+  @override
+  String get minerals => 'Минералы';
+  @override
+  String get nutrientSodium => 'Натрий';
+  @override
+  String get nutrientPotassium => 'Калий';
+  @override
+  String get nutrientCalcium => 'Кальций';
+  @override
+  String get nutrientIron => 'Железо';
+  @override
+  String get vitamins => 'Витамины';
+  @override
+  String get nutrientVitaminA => 'Витамин A';
+  @override
+  String get nutrientVitaminC => 'Витамин C';
+  @override
+  String get nutrientVitaminD => 'Витамин D';
+  @override
+  String get compositionTitle => 'Состав';
+  @override
+  String get addIngredientTooltip => 'Добавить ингредиент';
+  @override
+  String get mainInfoTitle => 'Основная информация';
+  @override
+  String get newRecipeTitle => 'Новый рецепт';
+  @override
+  String get editRecipeTitle => 'Редактировать рецепт';
+  @override
+  String get recipeNameLabel => 'Название рецепта';
+  @override
+  String get recipeShortDescLabel => 'Краткое описание';
+  @override
+  String get enterRecipeNameValidator => 'Введите название';
+  @override
+  String get calculateNutritionalValue => 'Рассчитать пищевую ценность';
+  @override
+  String get aiDisclaimer =>
+      'Нейросеть может ошибаться примерно на 10%. Проверьте значения перед сохранением.';
+  @override
+  String get autoBjuLabel => 'Авто БЖУ';
+  @override
+  String get bjuLabel => 'БЖУ';
+  @override
+  String get detailsLabel => 'Детализация';
+  @override
+  String get deleteRecipeButton => 'Удалить рецепт';
+  @override
+  String get fieldsUpdated => 'Поля обновлены';
+  @override
+  String get addIngredientsForAi => 'Добавьте ингредиенты для AI-подсчета';
+  @override
+  String get failedToGetCalculation => 'Не удалось получить расчет';
+  @override
+  String get addMoreToMeal => 'Добавить еще в прием пищи';
+  @override
+  String get addToMealTooltip => 'Добавить в прием пищи';
+  @override
+  String get editRecipeTooltip => 'Редактировать рецепт';
+  @override
+  String get recipeByDescriptionTitle => 'Рецепт по описанию';
+  @override
+  String get recipeByPhotoTitle => 'Рецепт по фото';
+  @override
+  String get instructionTitle => 'Инструкция';
+  @override
+  String get describeRecipeInstruction1 =>
+      '1. Подробно опишите блюдо и ингредиенты.';
+  @override
+  String get describeRecipeInstruction2 =>
+      '2. Нажмите кнопку генерации рецепта.';
+  @override
+  String get describeRecipeInstruction3 =>
+      '3. Откроется экран редактирования с заполненными полями.';
+  @override
+  String get describeRecipeInstruction4 =>
+      '4. Проверьте и при необходимости исправьте детали.';
+  @override
+  String get photoRecipeInstruction1 =>
+      '1. Сделайте фото блюда или выберите из галереи.';
+  @override
+  String get photoRecipeInstruction2 =>
+      '2. При желании добавьте краткое описание.';
+  @override
+  String get photoRecipeInstruction3 => '3. Нажмите кнопку генерации.';
+  @override
+  String get photoRecipeInstruction4 =>
+      '4. Откроется экран редактирования с заполненными полями.';
+  @override
+  String get aiDisclaimerMandatory =>
+      'Нейросеть может ошибаться примерно на 10%, обязательно проверьте данные.';
+  @override
+  String get dishDescriptionTitle => 'Описание блюда';
+  @override
+  String get dishPhotoTitle => 'Фото блюда';
+  @override
+  String get noPhotoAddedYet => 'Фото пока не добавлено';
+  @override
+  String get cameraButton => 'Камера';
+  @override
+  String get galleryButton => 'Галерея';
+  @override
+  String get generateAndOpenEditor => 'Сгенерировать и открыть редактор';
+  @override
+  String get generatingRecipe => 'Генерируем рецепт...';
+  @override
+  String get enterDishDescription => 'Введите описание блюда.';
+  @override
+  String get failedToCreateRecipeByDescription =>
+      'Не удалось создать рецепт по описанию.';
+  @override
+  String get failedToCreateRecipeByPhoto =>
+      'Не удалось создать рецепт по фото.';
+  @override
+  String get addPhotoFirst => 'Сначала добавьте фото блюда.';
+  @override
+  String get descriptionOptionalTitle => 'Описание (необязательно)';
+  @override
+  String get optionalLabel => 'Опционально';
+  @override
+  String get dishDescriptionHintPhoto =>
+      'Например: паста с курицей и сливочным соусом';
+  @override
+  String get dishDescriptionHintDescription =>
+      'Например: Куриная паста в сливочном соусе с чесноком и пармезаном. На 2 порции.';
+  @override
+  String get requiredFieldValidator => 'Поле не может быть пустым';
+  @override
+  String get invalidFormatValidator => 'Неверный формат';
+  @override
+  String get appLogsTitle => 'Логи приложения';
+  @override
+  String get noLogsAvailable => 'Логи отсутствуют';
 }

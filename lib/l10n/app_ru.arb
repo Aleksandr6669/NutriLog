@@ -145,5 +145,248 @@
   "activityModerateHint": "Регулярная активность несколько раз в неделю.",
   "activityActiveHint": "Частые тренировки и высокий средний уровень движения.",
   "activityVeryActiveHint": "Интенсивные нагрузки и спорт почти ежедневно.",
-  "appTagline": "Ваш путь к здоровью"
+  "appTagline": "Ваш путь к здоровью",
+  "unitKg": "кг",
+  "unitG": "г",
+  "unitMg": "мг",
+  "unitMcg": "мкг",
+  "unitL": "л",
+  "unitCm": "см",
+  "connections": "Подключения",
+  "messages": "Сообщения",
+  "applicationSection": "Приложение",
+  "loginAccount": "Вход в аккаунт",
+  "loginAccountSubtitle": "В разработке",
+  "loginButton": "Войти",
+  "waterReminderTitle": "Напоминание о воде",
+  "waterReminderSubtitle": "Время и количество рассчитываются автоматически по вашей дневной цели воды",
+  "mealRemindersTitle": "Напоминания о приёмах пищи",
+  "mealRemindersSubtitle": "Завтрак, обед и ужин в выбранное время",
+  "weightReminderTitle": "Напоминание о взвешивании",
+  "weightReminderSubtitle": "Включить ежедневное напоминание внести вес",
+  "weightReminderTimeTitle": "Время напоминания о взвешивании",
+  "noUpdateInfo": "Нет информации об обновлениях.",
+  "versionHistory": "История версий",
+  "versionWord": "Версия",
+  "dataStorageAndAi": "Данные, хранение и нейросети",
+  "settingsSubtitle": "Подключения и сообщения",
+  "failedToApplyNotificationSettings": "Не удалось применить настройки уведомлений. Подробнее: {error}",
+  "@failedToApplyNotificationSettings": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "generalGoalsInfo": "Этот раздел задает вашу главную стратегию:\nцелевой вес и формат цели (снижение, набор и т.д.).\nНа основе этих данных приложение подсказывает\nподходящий вектор питания и прогресса.",
+  "physicalParamsInfo": "Здесь указываются базовые физические параметры:\nпол, возраст, рост и текущий вес.\nЭти данные нужны для точного расчета\nнорм и персональных рекомендаций.",
+  "dailyGoalsInfo": "Здесь настраиваются дневные нормы:\nкалории, вода, шаги и БЖУ.\nИменно эти значения используются в дневнике\nдля контроля прогресса каждый день.",
+  "weightGoalHint": "Цель по весу (кг)",
+  "enterWeightGoalValidator": "Введите цель по весу",
+  "enterNameValidator": "Введите ваше имя",
+  "enterHeightValidator": "Введите ваш рост",
+  "enterWeightValidator": "Введите ваш вес",
+  "caloriesKcalLabel": "Калории (ккал)",
+  "waterMlLabel": "Вода (мл)",
+  "stepsLabel": "Шаги",
+  "proteinGLabel": "Белки (г)",
+  "carbsGLabel": "Углеводы (г)",
+  "fatGLabel": "Жиры (г)",
+  "failedToFillGoalsWithAi": "Не удалось заполнить цели через нейросеть.",
+  "analyticsTitle": "Аналитика",
+  "analyticsInfo": "Аналитика помогает увидеть общую картину\nпо питанию, воде, весу и активности за период.\nИспользуйте ее, чтобы вовремя корректировать цели\nи отслеживать устойчивый прогресс без перегруза.",
+  "caloriesDynamics": "Динамика калорий",
+  "weightDynamics": "Динамика веса",
+  "avgMacros": "Среднее БЖУ",
+  "progressTitle": "Прогресс",
+  "aiReport": "Отчет от AI",
+  "week": "Неделя",
+  "month": "Месяц",
+  "year": "Год",
+  "noData": "Нет данных",
+  "noDataForAnalysis": "Нет данных для анализа.",
+  "errorLoadingData": "Ошибка загрузки данных: {error}",
+  "@errorLoadingData": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "avgStepsText": "Среднее: {steps} шагов",
+  "@avgStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "latestStepsText": "Последнее: {steps} шагов",
+  "@latestStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "avgWeightText": "Среднее: {weight} кг",
+  "@avgWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "latestWeightText": "Последнее: {weight} кг",
+  "@latestWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "avgCaloriesText": "Среднее: {kcal} ккал",
+  "@avgCaloriesText": {
+    "placeholders": {
+      "kcal": { "type": "int" }
+    }
+  },
+  "workoutsCountText": "Тренировок: {count}",
+  "@workoutsCountText": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "avgWaterText": "Среднее: {liters} л",
+  "@avgWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "latestWaterText": "Последнее: {liters} л",
+  "@latestWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "activityTitle": "Активность",
+  "aiReportLoadingText": "Загрузка отчета от нейросети...",
+  "aiReportError": "Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.",
+  "aiReportAnalysis": "Анализ {period}",
+  "@aiReportAnalysis": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "aiReportDisclaimer": "Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.",
+  "periodOfWeek": "недели",
+  "periodOfMonth": "месяца",
+  "periodOfYear": "года",
+  "goalMoreThanLabel": "Цель > {value}",
+  "@goalMoreThanLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalKgLabel": "Цель {value} кг",
+  "@goalKgLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalLitersLabel": "Цель {value} л",
+  "@goalLitersLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalIntLabel": "Цель {value}",
+  "@goalIntLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "dayMon": "Пн",
+  "dayTue": "Вт",
+  "dayWed": "Ср",
+  "dayThu": "Чт",
+  "dayFri": "Пт",
+  "daySat": "Сб",
+  "daySun": "Вс",
+  "monthJan": "Янв",
+  "monthFeb": "Фев",
+  "monthMar": "Мар",
+  "monthApr": "Апр",
+  "monthMay": "Май",
+  "monthJun": "Июн",
+  "monthJul": "Июл",
+  "monthAug": "Авг",
+  "monthSep": "Сен",
+  "monthOct": "Окт",
+  "monthNov": "Ноя",
+  "monthDec": "Дек",
+  "mealSummary": "Сводка за прием пищи",
+  "mealRecipes": "Рецепты в приеме пищи",
+  "addFromRecipes": "Добавить из рецептов",
+  "nothingAddedYet": "Еще ничего не добавлено",
+  "pressToAddFood": "Нажмите \"+\", чтобы добавить продукт",
+  "deleteRecipeTooltip": "Удалить рецепт",
+  "nutritionalValue": "Пищевая ценность",
+  "nutritionalValuePerPortion": "Пищевая ценность (на порцию)",
+  "nutritionalValuePer100g": "Пищевая ценность (на 100г)",
+  "nutrientSugar": "в т.ч. Сахар",
+  "nutrientFiber": "в т.ч. Клетчатка",
+  "nutrientSaturatedFat": "Насыщенные",
+  "nutrientPolyunsaturatedFat": "Полиненасыщенные",
+  "nutrientMonounsaturatedFat": "Мононенасыщенные",
+  "nutrientTransFat": "Трансжиры",
+  "nutrientCholesterol": "Холестерин",
+  "minerals": "Минералы",
+  "nutrientSodium": "Натрий",
+  "nutrientPotassium": "Калий",
+  "nutrientCalcium": "Кальций",
+  "nutrientIron": "Железо",
+  "vitamins": "Витамины",
+  "nutrientVitaminA": "Витамин A",
+  "nutrientVitaminC": "Витамин C",
+  "nutrientVitaminD": "Витамин D",
+  "compositionTitle": "Состав",
+  "addIngredientTooltip": "Добавить ингредиент",
+  "mainInfoTitle": "Основная информация",
+  "newRecipeTitle": "Новый рецепт",
+  "editRecipeTitle": "Редактировать рецепт",
+  "recipeNameLabel": "Название рецепта",
+  "recipeShortDescLabel": "Краткое описание",
+  "enterRecipeNameValidator": "Введите название",
+  "calculateNutritionalValue": "Рассчитать пищевую ценность",
+  "aiDisclaimer": "Нейросеть может ошибаться примерно на 10%. Проверьте значения перед сохранением.",
+  "autoBjuLabel": "Авто БЖУ",
+  "bjuLabel": "БЖУ",
+  "detailsLabel": "Детализация",
+  "deleteRecipeButton": "Удалить рецепт",
+  "fieldsUpdated": "Поля обновлены",
+  "addIngredientsForAi": "Добавьте ингредиенты для AI-подсчета",
+  "failedToGetCalculation": "Не удалось получить расчет",
+  "addMoreToMeal": "Добавить еще в прием пищи",
+  "addToMealTooltip": "Добавить в прием пищи",
+  "editRecipeTooltip": "Редактировать рецепт",
+  "recipeByDescriptionTitle": "Рецепт по описанию",
+  "recipeByPhotoTitle": "Рецепт по фото",
+  "instructionTitle": "Инструкция",
+  "describeRecipeInstruction1": "1. Подробно опишите блюдо и ингредиенты.",
+  "describeRecipeInstruction2": "2. Нажмите кнопку генерации рецепта.",
+  "describeRecipeInstruction3": "3. Откроется экран редактирования с заполненными полями.",
+  "describeRecipeInstruction4": "4. Проверьте и при необходимости исправьте детали.",
+  "photoRecipeInstruction1": "1. Сделайте фото блюда или выберите из галереи.",
+  "photoRecipeInstruction2": "2. При желании добавьте краткое описание.",
+  "photoRecipeInstruction3": "3. Нажмите кнопку генерации.",
+  "photoRecipeInstruction4": "4. Откроется экран редактирования с заполненными полями.",
+  "aiDisclaimerMandatory": "Нейросеть может ошибаться примерно на 10%, обязательно проверьте данные.",
+  "dishDescriptionTitle": "Описание блюда",
+  "dishPhotoTitle": "Фото блюда",
+  "noPhotoAddedYet": "Фото пока не добавлено",
+  "cameraButton": "Камера",
+  "galleryButton": "Галерея",
+  "generateAndOpenEditor": "Сгенерировать и открыть редактор",
+  "generatingRecipe": "Генерируем рецепт...",
+  "enterDishDescription": "Введите описание блюда.",
+  "failedToCreateRecipeByDescription": "Не удалось создать рецепт по описанию.",
+  "failedToCreateRecipeByPhoto": "Не удалось создать рецепт по фото.",
+  "addPhotoFirst": "Сначала добавьте фото блюда.",
+  "descriptionOptionalTitle": "Описание (необязательно)",
+  "optionalLabel": "Опционально",
+  "dishDescriptionHintPhoto": "Например: паста с курицей и сливочным соусом",
+  "dishDescriptionHintDescription": "Например: Куриная паста в сливочном соусе с чесноком и пармезаном. На 2 порции.",
+  "requiredFieldValidator": "Поле не может быть пустым",
+  "invalidFormatValidator": "Неверный формат",
+  "appLogsTitle": "Логи приложения",
+  "noLogsAvailable": "Логи отсутствуют"
 }

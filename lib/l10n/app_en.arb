@@ -145,5 +145,248 @@
   "activityModerateHint": "Regular activity several times a week.",
   "activityActiveHint": "Frequent workouts and high average movement.",
   "activityVeryActiveHint": "Intense activity and sports almost every day.",
-  "appTagline": "Your path to health"
+  "appTagline": "Your path to health",
+  "unitKg": "kg",
+  "unitG": "g",
+  "unitMg": "mg",
+  "unitMcg": "mcg",
+  "unitL": "l",
+  "unitCm": "cm",
+  "connections": "Connections",
+  "messages": "Messages",
+  "applicationSection": "Application",
+  "loginAccount": "Sign in",
+  "loginAccountSubtitle": "In development",
+  "loginButton": "Sign In",
+  "waterReminderTitle": "Water reminder",
+  "waterReminderSubtitle": "Time and amount calculated automatically from your daily water goal",
+  "mealRemindersTitle": "Meal reminders",
+  "mealRemindersSubtitle": "Breakfast, lunch and dinner at selected time",
+  "weightReminderTitle": "Weight reminder",
+  "weightReminderSubtitle": "Enable daily reminder to log your weight",
+  "weightReminderTimeTitle": "Weight reminder time",
+  "noUpdateInfo": "No update information available.",
+  "versionHistory": "Version History",
+  "versionWord": "Version",
+  "dataStorageAndAi": "Data, storage and AI",
+  "settingsSubtitle": "Connections and messages",
+  "failedToApplyNotificationSettings": "Failed to apply notification settings. Details: {error}",
+  "@failedToApplyNotificationSettings": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "generalGoalsInfo": "This section sets your main strategy:\ntarget weight and goal type (lose, gain, etc.).\nBased on this data, the app suggests\nan appropriate nutrition and progress vector.",
+  "physicalParamsInfo": "Here you specify basic physical parameters:\ngender, age, height, and current weight.\nThis data is needed for accurate calculations\nand personalized recommendations.",
+  "dailyGoalsInfo": "Here daily targets are configured:\ncalories, water, steps and macros.\nThese values are used in the diary\nto track progress every day.",
+  "weightGoalHint": "Weight goal (kg)",
+  "enterWeightGoalValidator": "Enter weight goal",
+  "enterNameValidator": "Enter your name",
+  "enterHeightValidator": "Enter your height",
+  "enterWeightValidator": "Enter your weight",
+  "caloriesKcalLabel": "Calories (kcal)",
+  "waterMlLabel": "Water (ml)",
+  "stepsLabel": "Steps",
+  "proteinGLabel": "Protein (g)",
+  "carbsGLabel": "Carbs (g)",
+  "fatGLabel": "Fat (g)",
+  "failedToFillGoalsWithAi": "Failed to fill goals with AI.",
+  "analyticsTitle": "Analytics",
+  "analyticsInfo": "Analytics helps you see the big picture\nof nutrition, water, weight and activity over the period.\nUse it to adjust goals in time\nand track stable progress without overload.",
+  "caloriesDynamics": "Calorie dynamics",
+  "weightDynamics": "Weight dynamics",
+  "avgMacros": "Average macros",
+  "progressTitle": "Progress",
+  "aiReport": "AI Report",
+  "week": "Week",
+  "month": "Month",
+  "year": "Year",
+  "noData": "No data",
+  "noDataForAnalysis": "No data for analysis.",
+  "errorLoadingData": "Error loading data: {error}",
+  "@errorLoadingData": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "avgStepsText": "Avg: {steps} steps",
+  "@avgStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "latestStepsText": "Latest: {steps} steps",
+  "@latestStepsText": {
+    "placeholders": {
+      "steps": { "type": "int" }
+    }
+  },
+  "avgWeightText": "Avg: {weight} kg",
+  "@avgWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "latestWeightText": "Latest: {weight} kg",
+  "@latestWeightText": {
+    "placeholders": {
+      "weight": { "type": "String" }
+    }
+  },
+  "avgCaloriesText": "Avg: {kcal} kcal",
+  "@avgCaloriesText": {
+    "placeholders": {
+      "kcal": { "type": "int" }
+    }
+  },
+  "workoutsCountText": "Workouts: {count}",
+  "@workoutsCountText": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "avgWaterText": "Avg: {liters} l",
+  "@avgWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "latestWaterText": "Latest: {liters} l",
+  "@latestWaterText": {
+    "placeholders": {
+      "liters": { "type": "String" }
+    }
+  },
+  "activityTitle": "Activity",
+  "aiReportLoadingText": "Loading AI report...",
+  "aiReportError": "Failed to generate AI report. Please try again later.",
+  "aiReportAnalysis": "Analysis of {period}",
+  "@aiReportAnalysis": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "aiReportDisclaimer": "AI may be inaccurate by about 10%. Use the report as a guide.",
+  "periodOfWeek": "the week",
+  "periodOfMonth": "the month",
+  "periodOfYear": "the year",
+  "goalMoreThanLabel": "Goal > {value}",
+  "@goalMoreThanLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalKgLabel": "Goal {value} kg",
+  "@goalKgLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalLitersLabel": "Goal {value} l",
+  "@goalLitersLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "goalIntLabel": "Goal {value}",
+  "@goalIntLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+  "daySun": "Sun",
+  "monthJan": "Jan",
+  "monthFeb": "Feb",
+  "monthMar": "Mar",
+  "monthApr": "Apr",
+  "monthMay": "May",
+  "monthJun": "Jun",
+  "monthJul": "Jul",
+  "monthAug": "Aug",
+  "monthSep": "Sep",
+  "monthOct": "Oct",
+  "monthNov": "Nov",
+  "monthDec": "Dec",
+  "mealSummary": "Meal summary",
+  "mealRecipes": "Recipes in meal",
+  "addFromRecipes": "Add from recipes",
+  "nothingAddedYet": "Nothing added yet",
+  "pressToAddFood": "Press \"+\" to add food",
+  "deleteRecipeTooltip": "Delete recipe",
+  "nutritionalValue": "Nutritional value",
+  "nutritionalValuePerPortion": "Nutritional value (per portion)",
+  "nutritionalValuePer100g": "Nutritional value (per 100g)",
+  "nutrientSugar": "incl. Sugar",
+  "nutrientFiber": "incl. Fiber",
+  "nutrientSaturatedFat": "Saturated",
+  "nutrientPolyunsaturatedFat": "Polyunsaturated",
+  "nutrientMonounsaturatedFat": "Monounsaturated",
+  "nutrientTransFat": "Trans fats",
+  "nutrientCholesterol": "Cholesterol",
+  "minerals": "Minerals",
+  "nutrientSodium": "Sodium",
+  "nutrientPotassium": "Potassium",
+  "nutrientCalcium": "Calcium",
+  "nutrientIron": "Iron",
+  "vitamins": "Vitamins",
+  "nutrientVitaminA": "Vitamin A",
+  "nutrientVitaminC": "Vitamin C",
+  "nutrientVitaminD": "Vitamin D",
+  "compositionTitle": "Composition",
+  "addIngredientTooltip": "Add ingredient",
+  "mainInfoTitle": "Main information",
+  "newRecipeTitle": "New recipe",
+  "editRecipeTitle": "Edit recipe",
+  "recipeNameLabel": "Recipe name",
+  "recipeShortDescLabel": "Short description",
+  "enterRecipeNameValidator": "Enter recipe name",
+  "calculateNutritionalValue": "Calculate nutritional value",
+  "aiDisclaimer": "AI may be inaccurate by about 10%. Check values before saving.",
+  "autoBjuLabel": "Auto macros",
+  "bjuLabel": "Macros",
+  "detailsLabel": "Details",
+  "deleteRecipeButton": "Delete recipe",
+  "fieldsUpdated": "Fields updated",
+  "addIngredientsForAi": "Add ingredients for AI calculation",
+  "failedToGetCalculation": "Failed to get calculation",
+  "addMoreToMeal": "Add more to meal",
+  "addToMealTooltip": "Add to meal",
+  "editRecipeTooltip": "Edit recipe",
+  "recipeByDescriptionTitle": "Recipe by description",
+  "recipeByPhotoTitle": "Recipe by photo",
+  "instructionTitle": "Instruction",
+  "describeRecipeInstruction1": "1. Describe the dish and ingredients in detail.",
+  "describeRecipeInstruction2": "2. Press the recipe generation button.",
+  "describeRecipeInstruction3": "3. The editor will open with filled fields.",
+  "describeRecipeInstruction4": "4. Check and correct details if needed.",
+  "photoRecipeInstruction1": "1. Take a photo of the dish or select from gallery.",
+  "photoRecipeInstruction2": "2. Optionally add a brief description.",
+  "photoRecipeInstruction3": "3. Press the generate button.",
+  "photoRecipeInstruction4": "4. The editor will open with filled fields.",
+  "aiDisclaimerMandatory": "AI may be inaccurate by about 10%, always check the data.",
+  "dishDescriptionTitle": "Dish description",
+  "dishPhotoTitle": "Dish photo",
+  "noPhotoAddedYet": "No photo added yet",
+  "cameraButton": "Camera",
+  "galleryButton": "Gallery",
+  "generateAndOpenEditor": "Generate and open editor",
+  "generatingRecipe": "Generating recipe...",
+  "enterDishDescription": "Enter dish description.",
+  "failedToCreateRecipeByDescription": "Failed to create recipe from description.",
+  "failedToCreateRecipeByPhoto": "Failed to create recipe from photo.",
+  "addPhotoFirst": "Add a photo of the dish first.",
+  "descriptionOptionalTitle": "Description (optional)",
+  "optionalLabel": "Optional",
+  "dishDescriptionHintPhoto": "E.g.: pasta with chicken and cream sauce",
+  "dishDescriptionHintDescription": "E.g.: Chicken pasta in cream sauce with garlic and parmesan. For 2 servings.",
+  "requiredFieldValidator": "Field cannot be empty",
+  "invalidFormatValidator": "Invalid format",
+  "appLogsTitle": "App logs",
+  "noLogsAvailable": "No logs available"
 }
