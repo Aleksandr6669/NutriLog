@@ -356,6 +356,8 @@ class AppNotificationService {
   static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
     if (kIsWeb) return;
     final id = receivedAction.id;
+    debugPrint('NOTIFICATION_CLICKED: id=$id, payload=${receivedAction.payload}');
+    
     if (id != null) {
       // Уменьшаем счетчик на иконке при нажатии на конкретное уведомление
       AwesomeNotifications().decrementGlobalBadgeCounter();
@@ -364,16 +366,22 @@ class AppNotificationService {
     }
 
     if (id == _breakfastId) {
+      debugPrint('NAVIGATING_TO: /meal/breakfast');
       appRouter.push('/meal/breakfast');
     } else if (id == _lunchId) {
+      debugPrint('NAVIGATING_TO: /meal/lunch');
       appRouter.push('/meal/lunch');
     } else if (id == _dinnerId) {
+      debugPrint('NAVIGATING_TO: /meal/dinner');
       appRouter.push('/meal/dinner');
     } else if (id == 1200) {
+      debugPrint('NAVIGATING_TO: /weight');
       appRouter.push('/weight', extra: {'date': DateTime.now()});
     } else if (id != null && id >= _waterBaseId && id < _waterBaseId + _maxWaterReminders) {
+      debugPrint('NAVIGATING_TO: /home?scrollTo=water');
       appRouter.go('/home?scrollTo=water');
     } else {
+      debugPrint('NAVIGATING_TO: /home (default)');
       appRouter.go('/home');
     }
   }
