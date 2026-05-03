@@ -96,7 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _showManualStepsInput() async {
     final theme = Theme.of(context);
-    final currentSteps = context.read<DailyLogProvider>().currentLog?.steps ?? 0;
+    final currentSteps =
+        context.read<DailyLogProvider>().currentLog?.steps ?? 0;
     final controller = TextEditingController(
       text: currentSteps.toString(),
     );
@@ -157,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         autofocus: true,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.enterStepsCount,
+                          labelText:
+                              AppLocalizations.of(context)!.enterStepsCount,
                           hintText: '8500',
                           errorText: errorText,
                           filled: true,
@@ -172,8 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           final parsed = int.tryParse(controller.text.trim());
                           if (parsed == null || parsed < 0) {
                             setSheetState(() {
-                              errorText =
-                                  'Введите корректное число (0 или больше)';
+                              errorText = AppLocalizations.of(context)!
+                                  .enterCorrectNumber;
                             });
                             return;
                           }
@@ -186,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Отмена'),
+                              child: Text(AppLocalizations.of(context)!.cancel),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -197,8 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     int.tryParse(controller.text.trim());
                                 if (parsed == null || parsed < 0) {
                                   setSheetState(() {
-                                    errorText =
-                                        'Введите корректное число (0 или больше)';
+                                    errorText = AppLocalizations.of(context)!
+                                        .enterCorrectNumber;
                                   });
                                   return;
                                 }
@@ -224,7 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool _isLoggedDay(DateTime day) {
-    return context.read<DailyLogProvider>().loggedDates.any((d) => isSameDay(d, day));
+    return context
+        .read<DailyLogProvider>()
+        .loggedDates
+        .any((d) => isSameDay(d, day));
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -244,7 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
 
   void _toggleCalendarVisibility() {
     HapticFeedback.lightImpact();
@@ -274,18 +278,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (selected == today) return l10n.today;
     if (selected == yesterday) return l10n.yesterday;
-    return DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(date);
+    return DateFormat.yMMMMd(Localizations.localeOf(context).languageCode)
+        .format(date);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
         final userProfile = profileProvider.profile;
-        
+
         if (profileProvider.isLoading || userProfile == null) {
           return Scaffold(
             appBar: AppBar(),
@@ -351,7 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? const Center(child: CircularProgressIndicator())
                       : dailyLog == null
                           ? Center(
-                              child: Text(AppLocalizations.of(context)!.noDataForDate))
+                              child: Text(
+                                  AppLocalizations.of(context)!.noDataForDate))
                           : SingleChildScrollView(
                               controller: _scrollController,
                               padding: glassBodyPadding(
@@ -362,12 +368,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 children: [
                                   _CaloriesCard(
-                                      dailyLog: dailyLog,
-                                      profile: userProfile),
+                                      dailyLog: dailyLog, profile: userProfile),
                                   const SizedBox(height: 16),
                                   _Macronutrients(
-                                      dailyLog: dailyLog,
-                                      profile: userProfile),
+                                      dailyLog: dailyLog, profile: userProfile),
                                   const SizedBox(height: 24),
                                   _MealsSection(
                                     dailyLog: dailyLog,
@@ -655,8 +659,8 @@ class _Macronutrients extends StatelessWidget {
         Expanded(
             child: _MacronutrientCard(
                 name: l10n.carbs,
-                value: '${nutrients.carbs.toStringAsFixed(0)}г',
-                total: '${profile.carbsGoal}г',
+                value: '${nutrients.carbs.toStringAsFixed(0)}${l10n.grams}',
+                total: '${profile.carbsGoal}${l10n.grams}',
                 percentage: profile.carbsGoal > 0
                     ? nutrients.carbs / profile.carbsGoal
                     : 0,
@@ -665,8 +669,8 @@ class _Macronutrients extends StatelessWidget {
         Expanded(
             child: _MacronutrientCard(
                 name: l10n.protein,
-                value: '${nutrients.protein.toStringAsFixed(0)}г',
-                total: '${profile.proteinGoal}г',
+                value: '${nutrients.protein.toStringAsFixed(0)}${l10n.grams}',
+                total: '${profile.proteinGoal}${l10n.grams}',
                 percentage: profile.proteinGoal > 0
                     ? nutrients.protein / profile.proteinGoal
                     : 0,
@@ -675,8 +679,8 @@ class _Macronutrients extends StatelessWidget {
         Expanded(
             child: _MacronutrientCard(
                 name: l10n.fat,
-                value: '${nutrients.fat.toStringAsFixed(0)}г',
-                total: '${profile.fatGoal}г',
+                value: '${nutrients.fat.toStringAsFixed(0)}${l10n.grams}',
+                total: '${profile.fatGoal}${l10n.grams}',
                 percentage:
                     profile.fatGoal > 0 ? nutrients.fat / profile.fatGoal : 0,
                 color: Colors.blue)),
@@ -870,6 +874,7 @@ class _WaterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     const iconColor = Colors.blue;
     final liters = waterIntake / 1000;
     final goalLiters = waterGoal / 1000;
@@ -894,11 +899,11 @@ class _WaterCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Вода',
+                  Text(l10n.water,
                       style: theme.textTheme.titleMedium
                           ?.copyWith(color: theme.colorScheme.onSurface)),
                   const SizedBox(height: 2),
-                  Text('Цель: ${goalLiters.toStringAsFixed(1)} л',
+                  Text(l10n.waterGoalText(goalLiters.toStringAsFixed(1)),
                       style: theme.textTheme.bodyMedium?.copyWith(
                           fontSize: 11,
                           color: theme.textTheme.bodySmall?.color)),
@@ -906,7 +911,7 @@ class _WaterCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            Text('${liters.toStringAsFixed(2)} л',
+            Text(l10n.litersValue(liters.toStringAsFixed(2)),
                 style: theme.textTheme.titleMedium
                     ?.copyWith(color: theme.colorScheme.onSurface)),
             const SizedBox(width: 12),
@@ -969,14 +974,15 @@ class _ActivityWeightRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _ActionInfoCard(
-                title: 'Активность',
-                value: '${dailyLog.activityCalories} ккал',
+                title: l10n.activityLogTitle,
+                value: '${dailyLog.activityCalories} ${l10n.kcal}',
                 icon: Symbols.fitness_center,
                 iconColor: Colors.orange,
                 onTap: () async {
@@ -996,10 +1002,10 @@ class _ActivityWeightRow extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _ActionInfoCard(
-                title: 'Вес',
+                title: l10n.weight,
                 value: dailyLog.weight == null
-                    ? 'Не указан'
-                    : '${dailyLog.weight!.toStringAsFixed(1)} кг',
+                    ? l10n.notSet
+                    : '${dailyLog.weight!.toStringAsFixed(1)} ${l10n.weightUnit}',
                 icon: Symbols.monitor_weight,
                 iconColor: Colors.indigo,
                 onTap: () async {
@@ -1040,6 +1046,7 @@ class _StepsInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
@@ -1062,12 +1069,13 @@ class _StepsInfoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Шагомер',
+                    l10n.pedometerTitle,
                     style: theme.textTheme.bodyMedium
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 2),
-                  Text('$steps шагов', style: theme.textTheme.titleMedium),
+                  Text(l10n.stepsCountValue(steps),
+                      style: theme.textTheme.titleMedium),
                 ],
               ),
             ),
@@ -1075,7 +1083,7 @@ class _StepsInfoCard extends StatelessWidget {
               TextButton.icon(
                 onPressed: onManualInput,
                 icon: const Icon(Symbols.edit, size: 18),
-                label: const Text('Ввести'),
+                label: Text(l10n.enterValue),
               ),
           ],
         ),
@@ -1557,7 +1565,8 @@ class _MealCard extends StatelessWidget {
                               spreadRadius: 2,
                               offset: const Offset(0, 5))
                         ]),
-                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
+                    child:
+                        const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),
                 ),
               ],

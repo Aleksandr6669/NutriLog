@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/daily_log.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class EditActivityEntryScreen extends StatefulWidget {
   final ActivityEntry? entry;
@@ -56,17 +57,18 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.entry != null;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: Text(isEdit ? 'Редактировать активность' : 'Новая активность'),
+        title: Text(isEdit ? l10n.editActivity : l10n.newActivity),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save),
             onPressed: _save,
-            tooltip: 'Сохранить',
+            tooltip: l10n.save,
           ),
         ],
       ),
@@ -84,7 +86,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Иконка активности',
+                          l10n.activityIcon,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -134,13 +136,13 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       TextFormField(
                         controller: _nameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Название активности',
-                          prefixIcon: Icon(Symbols.fitness_center),
+                        decoration: InputDecoration(
+                          labelText: l10n.activityNameLabel,
+                          prefixIcon: const Icon(Symbols.fitness_center),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Введите название активности';
+                            return l10n.enterActivityName;
                           }
                           return null;
                         },
@@ -152,15 +154,15 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
-                          labelText: 'Сожженные калории',
-                          suffixText: 'ккал',
-                          prefixIcon: Icon(Symbols.local_fire_department),
+                        decoration: InputDecoration(
+                          labelText: l10n.burnedCaloriesLabel,
+                          suffixText: l10n.kcal,
+                          prefixIcon: const Icon(Symbols.local_fire_department),
                         ),
                         validator: (value) {
                           final calories = int.tryParse(value?.trim() ?? '');
                           if (calories == null || calories <= 0) {
-                            return 'Введите корректные калории';
+                            return l10n.enterCorrectCalories;
                           }
                           return null;
                         },

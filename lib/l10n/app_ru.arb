@@ -145,5 +145,221 @@
   "activityModerateHint": "Регулярная активность несколько раз в неделю.",
   "activityActiveHint": "Частые тренировки и высокий средний уровень движения.",
   "activityVeryActiveHint": "Интенсивные нагрузки и спорт почти ежедневно.",
-  "appTagline": "Ваш путь к здоровью"
+  "appTagline": "Ваш путь к здоровью",
+  "statsInfoText": "Аналитика помогает увидеть общую картину по питанию, воде, весу и активности за период. Используйте ее, чтобы вовремя корректировать цели и отслеживать устойчивый прогресс без перегруза.",
+  "statsCaloriesDynamics": "Динамика калорий",
+  "statsWeightDynamics": "Динамика веса",
+  "statsAvgMacros": "Среднее БЖУ",
+  "statsProgress": "Прогресс",
+  "statsAiReportTitle": "Отчет от AI",
+  "statsPeriodWeek": "Неделя",
+  "statsPeriodMonth": "Месяц",
+  "statsPeriodYear": "Год",
+  "statsNoData": "Нет данных",
+  "statsNoDataForAnalysis": "Нет данных для анализа.",
+  "statsNoDataToDisplay": "Нет данных для отображения",
+  "statsAnalysisFor": "Анализ {period}",
+  "@statsAnalysisFor": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "statsAiDisclaimer": "Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.",
+  "statsAiLoading": "Загрузка отчета от нейросети...",
+  "statsAiError": "Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.",
+  "statsPeriodLabelWeek": "недели",
+  "statsPeriodLabelMonth": "месяца",
+  "statsPeriodLabelYear": "года",
+  "statsErrorLoading": "Ошибка загрузки данных: {error}",
+  "@statsErrorLoading": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "dayMon": "Пн",
+  "dayTue": "Вт",
+  "dayWed": "Ср",
+  "dayThu": "Чт",
+  "dayFri": "Пт",
+  "daySat": "Сб",
+  "daySun": "Вс",
+  "monthJan": "Янв",
+  "monthFeb": "Фев",
+  "monthMar": "Мар",
+  "monthApr": "Апр",
+  "monthMayAbbr": "Май",
+  "monthJun": "Июн",
+  "monthJul": "Июл",
+  "monthAug": "Авг",
+  "monthSep": "Сен",
+  "monthOct": "Окт",
+  "monthNov": "Ноя",
+  "monthDec": "Дек",
+  "statsStepsAvg": "Среднее: {value} шагов",
+  "@statsStepsAvg": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsStepsLatest": "Последнее: {value} шагов",
+  "@statsStepsLatest": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWeightAvgKg": "Среднее: {value} кг",
+  "@statsWeightAvgKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWeightLatestKg": "Последнее: {value} кг",
+  "@statsWeightLatestKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsActivityAvgKcal": "Среднее: {value} ккал",
+  "@statsActivityAvgKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "statsWorkoutsCount": "Тренировок: {count}",
+  "@statsWorkoutsCount": {
+    "placeholders": { "count": { "type": "Object" } }
+  },
+  "statsWaterAvgL": "Среднее: {value} л",
+  "@statsWaterAvgL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsWaterLatestL": "Последнее: {value} л",
+  "@statsWaterLatestL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalWeightKg": "Цель: {value} кг",
+  "@statsGoalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "statsGoalKcal": "Цель: {value} ккал",
+  "@statsGoalKcal": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalAbove": "Цель > {value}",
+  "@goalAbove": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "goalWeightKg": "Цель {value} кг",
+  "@goalWeightKg": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalWaterL": "Цель {value} л",
+  "@goalWaterL": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalValue": "Цель {value}",
+  "@goalValue": {
+    "placeholders": { "value": { "type": "Object" } }
+  },
+  "recipeNameLabel": "Название рецепта",
+  "recipeDescriptionLabel": "Описание",
+  "recipeNutritionPer100g": "Пищевая ценность (на 100г)",
+  "fieldCannotBeEmpty": "Поле не может быть пустым",
+  "invalidFormat": "Неверный формат",
+  "grams": "г",
+  "liters": "л",
+  "connectionsSection": "Подключения",
+  "loginToAccount": "Вход в аккаунт",
+  "inDevelopment": "В разработке",
+  "signIn": "Войти",
+  "notificationMessagesSection": "Сообщения",
+  "waterReminderTitle": "Напоминание о воде",
+  "waterReminderSubtitle": "Время и количество рассчитываются автоматически по вашей дневной цели воды",
+  "mealRemindersTitle": "Напоминания о приёмах пищи",
+  "mealRemindersSubtitle": "Завтрак, обед и ужин в выбранное время",
+  "weightReminderTitle": "Напоминание о взвешивании",
+  "weightReminderSubtitle": "Включить ежедневное напоминание внести вес",
+  "weightReminderTimeTitle": "Время напоминания о взвешивании",
+  "appSettingsSection": "Приложение",
+  "changelogTitle": "История версий",
+  "userAgreementSubtitle": "Данные, хранение и нейросети",
+  "notificationSettingsError": "Не удалось применить настройки уведомлений. Подробнее: {error}",
+  "@notificationSettingsError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noUpdateInfo": "Нет информации об обновлениях.",
+  "connectionsAndMessages": "Подключения и сообщения",
+  "physicalParamsInfoText": "Здесь указываются базовые физические параметры:\nпол, возраст, рост и текущий вес.\nЭти данные нужны для точного расчета\nнорм и персональных рекомендаций.",
+  "currentWeightKg": "Текущий вес (кг)",
+  "generalGoalsInfoText": "Этот раздел задает вашу главную стратегию:\nцелевой вес и формат цели (снижение, набор и т.д.).\nНа основе этих данных приложение подсказывает\nподходящий вектор питания и прогресса.",
+  "weightGoalKg": "Цель по весу (кг)",
+  "dailyGoalsInfoText": "Здесь настраиваются дневные нормы:\nкалории, вода, шаги и БЖУ.\nИменно эти значения используются в дневнике\nдля контроля прогресса каждый день.",
+  "aiGoalsFailed": "Не удалось заполнить цели через нейросеть.",
+  "caloriesKcal": "Калории (ккал)",
+  "waterMl": "Вода (мл)",
+  "proteinG": "Белки (г)",
+  "carbsG": "Углеводы (г)",
+  "fatG": "Жиры (г)",
+  "addFromRecipes": "Добавить из рецептов",
+  "mealSummary": "Сводка за прием пищи",
+  "recipesInMeal": "Рецепты в приеме пищи",
+  "nothingAddedYet": "Еще ничего не добавлено",
+  "pressPlusToAddFood": "Нажмите \"+\", чтобы добавить продукт",
+  "removeRecipeTooltip": "Удалить рецепт",
+  "nutritionValue": "Пищевая ценность",
+  "minerals": "Минералы",
+  "sodium": "Натрий",
+  "potassium": "Калий",
+  "calcium": "Кальций",
+  "iron": "Железо",
+  "vitamins": "Витамины",
+  "vitaminA": "Витамин A",
+  "vitaminC": "Витамин C",
+  "vitaminD": "Витамин D",
+  "mg": "мг",
+  "mcg": "мкг",
+  "sugarSub": "в т.ч. Сахар",
+  "fiberSub": "в т.ч. Клетчатка",
+  "saturatedFatSub": "Насыщенные",
+  "polyunsaturatedFatSub": "Полиненасыщенные",
+  "monounsaturatedFatSub": "Мононенасыщенные",
+  "transFatSub": "Трансжиры",
+  "cholesterolSub": "Холестерин",
+  "versionLabel": "Версия {version}",
+  "@versionLabel": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "appLogs": "Логи приложения",
+  "noLogs": "Логи отсутствуют",
+  "weightUnit": "кг",
+  "editActivity": "Редактировать активность",
+  "newActivity": "Новая активность",
+  "activityIcon": "Иконка активности",
+  "activityNameLabel": "Название активности",
+  "burnedCaloriesLabel": "Сожженные калории",
+  "enterActivityName": "Введите название активности",
+  "enterCorrectCalories": "Введите корректные калории",
+  "activityLogTitle": "Активность",
+  "activityInfoText": "Здесь вы фиксируете все активности за выбранный день.\nЭти данные помогают точнее считать сожженные калории\nи влияют на суточный баланс в дневнике и аналитике.",
+  "totalBurned": "Всего сожжено",
+  "activityRecordsCount": "{count} записей",
+  "@activityRecordsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noActivities": "Пока нет активностей",
+  "deleteActivity": "Удалить активность",
+  "enterCorrectNumber": "Введите корректное число (0 или больше)",
+  "waterGoalText": "Цель: {value} л",
+  "@waterGoalText": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "litersValue": "{value} л",
+  "@litersValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "notSet": "Не указан",
+  "pedometerTitle": "Шагомер",
+  "stepsCountValue": "{count} шагов",
+  "@stepsCountValue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "enterValue": "Ввести",
+  "kgValue": "{value} кг",
+  "@kgValue": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "kcalValue": "{value} ккал",
+  "@kcalValue": {
+    "placeholders": { "value": { "type": "String" } }
+  }
 }

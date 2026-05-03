@@ -198,10 +198,11 @@ class _WeightEntryScreenState extends State<WeightEntryScreen> {
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
                         ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '0.0',
-                      suffixText: 'кг',
-                      suffixStyle: TextStyle(fontSize: 20, color: Colors.grey),
+                      suffixText: AppLocalizations.of(context)!.weightUnit,
+                      suffixStyle:
+                          const TextStyle(fontSize: 20, color: Colors.grey),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                     ),

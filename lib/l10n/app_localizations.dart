@@ -975,6 +975,846 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your path to health'**
   String get appTagline;
+
+  /// No description provided for @statsInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics helps you see the big picture of your nutrition, water, weight, and activity over a period. Use it to timely adjust your goals and track steady progress without overload.'**
+  String get statsInfoText;
+
+  /// No description provided for @statsCaloriesDynamics.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie Trend'**
+  String get statsCaloriesDynamics;
+
+  /// No description provided for @statsWeightDynamics.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Trend'**
+  String get statsWeightDynamics;
+
+  /// No description provided for @statsAvgMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Macros'**
+  String get statsAvgMacros;
+
+  /// No description provided for @statsProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get statsProgress;
+
+  /// No description provided for @statsAiReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Report'**
+  String get statsAiReportTitle;
+
+  /// No description provided for @statsPeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get statsPeriodWeek;
+
+  /// No description provided for @statsPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get statsPeriodMonth;
+
+  /// No description provided for @statsPeriodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get statsPeriodYear;
+
+  /// No description provided for @statsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get statsNoData;
+
+  /// No description provided for @statsNoDataForAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for analysis.'**
+  String get statsNoDataForAnalysis;
+
+  /// No description provided for @statsNoDataToDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'No data to display'**
+  String get statsNoDataToDisplay;
+
+  /// No description provided for @statsAnalysisFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis for {period}'**
+  String statsAnalysisFor(String period);
+
+  /// No description provided for @statsAiDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'AI may be off by ~10%. Use the report as a reference.'**
+  String get statsAiDisclaimer;
+
+  /// No description provided for @statsAiLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading AI report...'**
+  String get statsAiLoading;
+
+  /// No description provided for @statsAiError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate AI report. Please try again later.'**
+  String get statsAiError;
+
+  /// No description provided for @statsPeriodLabelWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'the week'**
+  String get statsPeriodLabelWeek;
+
+  /// No description provided for @statsPeriodLabelMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'the month'**
+  String get statsPeriodLabelMonth;
+
+  /// No description provided for @statsPeriodLabelYear.
+  ///
+  /// In en, this message translates to:
+  /// **'the year'**
+  String get statsPeriodLabelYear;
+
+  /// No description provided for @statsErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading data: {error}'**
+  String statsErrorLoading(Object error);
+
+  /// No description provided for @dayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get dayMon;
+
+  /// No description provided for @dayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get dayTue;
+
+  /// No description provided for @dayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get dayWed;
+
+  /// No description provided for @dayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get dayThu;
+
+  /// No description provided for @dayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get dayFri;
+
+  /// No description provided for @daySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get daySat;
+
+  /// No description provided for @daySun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get daySun;
+
+  /// No description provided for @monthJan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get monthJan;
+
+  /// No description provided for @monthFeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get monthFeb;
+
+  /// No description provided for @monthMar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get monthMar;
+
+  /// No description provided for @monthApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get monthApr;
+
+  /// No description provided for @monthMayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get monthMayAbbr;
+
+  /// No description provided for @monthJun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get monthJun;
+
+  /// No description provided for @monthJul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get monthJul;
+
+  /// No description provided for @monthAug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get monthAug;
+
+  /// No description provided for @monthSep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get monthSep;
+
+  /// No description provided for @monthOct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get monthOct;
+
+  /// No description provided for @monthNov.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get monthNov;
+
+  /// No description provided for @monthDec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get monthDec;
+
+  /// No description provided for @statsStepsAvg.
+  ///
+  /// In en, this message translates to:
+  /// **'Average: {value} steps'**
+  String statsStepsAvg(Object value);
+
+  /// No description provided for @statsStepsLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {value} steps'**
+  String statsStepsLatest(Object value);
+
+  /// No description provided for @statsWeightAvgKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Average: {value} kg'**
+  String statsWeightAvgKg(String value);
+
+  /// No description provided for @statsWeightLatestKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {value} kg'**
+  String statsWeightLatestKg(String value);
+
+  /// No description provided for @statsActivityAvgKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'Average: {value} kcal'**
+  String statsActivityAvgKcal(Object value);
+
+  /// No description provided for @statsWorkoutsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts: {count}'**
+  String statsWorkoutsCount(Object count);
+
+  /// No description provided for @statsWaterAvgL.
+  ///
+  /// In en, this message translates to:
+  /// **'Average: {value} L'**
+  String statsWaterAvgL(String value);
+
+  /// No description provided for @statsWaterLatestL.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {value} L'**
+  String statsWaterLatestL(String value);
+
+  /// No description provided for @statsGoalWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value} kg'**
+  String statsGoalWeightKg(String value);
+
+  /// No description provided for @statsGoalKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value} kcal'**
+  String statsGoalKcal(Object value);
+
+  /// No description provided for @goalAbove.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal > {value}'**
+  String goalAbove(Object value);
+
+  /// No description provided for @goalWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value} kg'**
+  String goalWeightKg(String value);
+
+  /// No description provided for @goalWaterL.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value} L'**
+  String goalWaterL(String value);
+
+  /// No description provided for @goalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value}'**
+  String goalValue(Object value);
+
+  /// No description provided for @recipeNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe name'**
+  String get recipeNameLabel;
+
+  /// No description provided for @recipeDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get recipeDescriptionLabel;
+
+  /// No description provided for @recipeNutritionPer100g.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition (per 100g)'**
+  String get recipeNutritionPer100g;
+
+  /// No description provided for @fieldCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Field cannot be empty'**
+  String get fieldCannotBeEmpty;
+
+  /// No description provided for @invalidFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid format'**
+  String get invalidFormat;
+
+  /// No description provided for @grams.
+  ///
+  /// In en, this message translates to:
+  /// **'g'**
+  String get grams;
+
+  /// No description provided for @liters.
+  ///
+  /// In en, this message translates to:
+  /// **'l'**
+  String get liters;
+
+  /// No description provided for @connectionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connectionsSection;
+
+  /// No description provided for @loginToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get loginToAccount;
+
+  /// No description provided for @inDevelopment.
+  ///
+  /// In en, this message translates to:
+  /// **'In development'**
+  String get inDevelopment;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// No description provided for @notificationMessagesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationMessagesSection;
+
+  /// No description provided for @waterReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Water reminder'**
+  String get waterReminderTitle;
+
+  /// No description provided for @waterReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time and amount are calculated automatically based on your daily water goal'**
+  String get waterReminderSubtitle;
+
+  /// No description provided for @mealRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal reminders'**
+  String get mealRemindersTitle;
+
+  /// No description provided for @mealRemindersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast, lunch and dinner at the chosen time'**
+  String get mealRemindersSubtitle;
+
+  /// No description provided for @weightReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weigh-in reminder'**
+  String get weightReminderTitle;
+
+  /// No description provided for @weightReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable daily reminder to log weight'**
+  String get weightReminderSubtitle;
+
+  /// No description provided for @weightReminderTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weigh-in reminder time'**
+  String get weightReminderTimeTitle;
+
+  /// No description provided for @appSettingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get appSettingsSection;
+
+  /// No description provided for @changelogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Version history'**
+  String get changelogTitle;
+
+  /// No description provided for @userAgreementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data, storage and AI'**
+  String get userAgreementSubtitle;
+
+  /// No description provided for @notificationSettingsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply notification settings. Details: {error}'**
+  String notificationSettingsError(Object error);
+
+  /// No description provided for @noUpdateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'No update information available.'**
+  String get noUpdateInfo;
+
+  /// No description provided for @connectionsAndMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections and notifications'**
+  String get connectionsAndMessages;
+
+  /// No description provided for @physicalParamsInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your basic physical parameters:\ngender, age, height and current weight.\nThis data is needed for accurate calculations\nand personalized recommendations.'**
+  String get physicalParamsInfoText;
+
+  /// No description provided for @currentWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Current weight (kg)'**
+  String get currentWeightKg;
+
+  /// No description provided for @generalGoalsInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'This section defines your main strategy:\ntarget weight and goal type (loss, gain, etc.).\nBased on this data, the app suggests\nthe appropriate nutrition direction.'**
+  String get generalGoalsInfoText;
+
+  /// No description provided for @weightGoalKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight goal (kg)'**
+  String get weightGoalKg;
+
+  /// No description provided for @dailyGoalsInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your daily targets:\ncalories, water, steps and macros.\nThese values are used in the diary\nto track your daily progress.'**
+  String get dailyGoalsInfoText;
+
+  /// No description provided for @aiGoalsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fill goals with AI.'**
+  String get aiGoalsFailed;
+
+  /// No description provided for @caloriesKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories (kcal)'**
+  String get caloriesKcal;
+
+  /// No description provided for @waterMl.
+  ///
+  /// In en, this message translates to:
+  /// **'Water (ml)'**
+  String get waterMl;
+
+  /// No description provided for @proteinG.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein (g)'**
+  String get proteinG;
+
+  /// No description provided for @carbsG.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs (g)'**
+  String get carbsG;
+
+  /// No description provided for @fatG.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat (g)'**
+  String get fatG;
+
+  /// No description provided for @addFromRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from recipes'**
+  String get addFromRecipes;
+
+  /// No description provided for @mealSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal summary'**
+  String get mealSummary;
+
+  /// No description provided for @recipesInMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipes in meal'**
+  String get recipesInMeal;
+
+  /// No description provided for @nothingAddedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing added yet'**
+  String get nothingAddedYet;
+
+  /// No description provided for @pressPlusToAddFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \"+\" to add a food item'**
+  String get pressPlusToAddFood;
+
+  /// No description provided for @removeRecipeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove recipe'**
+  String get removeRecipeTooltip;
+
+  /// No description provided for @nutritionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition facts'**
+  String get nutritionValue;
+
+  /// No description provided for @minerals.
+  ///
+  /// In en, this message translates to:
+  /// **'Minerals'**
+  String get minerals;
+
+  /// No description provided for @sodium.
+  ///
+  /// In en, this message translates to:
+  /// **'Sodium'**
+  String get sodium;
+
+  /// No description provided for @potassium.
+  ///
+  /// In en, this message translates to:
+  /// **'Potassium'**
+  String get potassium;
+
+  /// No description provided for @calcium.
+  ///
+  /// In en, this message translates to:
+  /// **'Calcium'**
+  String get calcium;
+
+  /// No description provided for @iron.
+  ///
+  /// In en, this message translates to:
+  /// **'Iron'**
+  String get iron;
+
+  /// No description provided for @vitamins.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamins'**
+  String get vitamins;
+
+  /// No description provided for @vitaminA.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin A'**
+  String get vitaminA;
+
+  /// No description provided for @vitaminC.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin C'**
+  String get vitaminC;
+
+  /// No description provided for @vitaminD.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin D'**
+  String get vitaminD;
+
+  /// No description provided for @mg.
+  ///
+  /// In en, this message translates to:
+  /// **'mg'**
+  String get mg;
+
+  /// No description provided for @mcg.
+  ///
+  /// In en, this message translates to:
+  /// **'mcg'**
+  String get mcg;
+
+  /// No description provided for @sugarSub.
+  ///
+  /// In en, this message translates to:
+  /// **'incl. Sugar'**
+  String get sugarSub;
+
+  /// No description provided for @fiberSub.
+  ///
+  /// In en, this message translates to:
+  /// **'incl. Fiber'**
+  String get fiberSub;
+
+  /// No description provided for @saturatedFatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturated'**
+  String get saturatedFatSub;
+
+  /// No description provided for @polyunsaturatedFatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Polyunsaturated'**
+  String get polyunsaturatedFatSub;
+
+  /// No description provided for @monounsaturatedFatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Monounsaturated'**
+  String get monounsaturatedFatSub;
+
+  /// No description provided for @transFatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Trans fat'**
+  String get transFatSub;
+
+  /// No description provided for @cholesterolSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Cholesterol'**
+  String get cholesterolSub;
+
+  /// No description provided for @versionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String versionLabel(String version);
+
+  /// No description provided for @appLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'App logs'**
+  String get appLogs;
+
+  /// No description provided for @noLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs available'**
+  String get noLogs;
+
+  /// No description provided for @weightUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get weightUnit;
+
+  /// No description provided for @editActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit activity'**
+  String get editActivity;
+
+  /// No description provided for @newActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'New activity'**
+  String get newActivity;
+
+  /// No description provided for @activityIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity icon'**
+  String get activityIcon;
+
+  /// No description provided for @activityNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity name'**
+  String get activityNameLabel;
+
+  /// No description provided for @burnedCaloriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories burned'**
+  String get burnedCaloriesLabel;
+
+  /// No description provided for @enterActivityName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter activity name'**
+  String get enterActivityName;
+
+  /// No description provided for @enterCorrectCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid calories'**
+  String get enterCorrectCalories;
+
+  /// No description provided for @activityLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activityLogTitle;
+
+  /// No description provided for @activityInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Here you log all activities for the selected day.\nThis data helps calculate burned calories more accurately\nand affects the daily balance in the diary and analytics.'**
+  String get activityInfoText;
+
+  /// No description provided for @totalBurned.
+  ///
+  /// In en, this message translates to:
+  /// **'Total burned'**
+  String get totalBurned;
+
+  /// No description provided for @activityRecordsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} records'**
+  String activityRecordsCount(int count);
+
+  /// No description provided for @noActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'No activities yet'**
+  String get noActivities;
+
+  /// No description provided for @deleteActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete activity'**
+  String get deleteActivity;
+
+  /// No description provided for @enterCorrectNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number (0 or more)'**
+  String get enterCorrectNumber;
+
+  /// No description provided for @waterGoalText.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {value} L'**
+  String waterGoalText(String value);
+
+  /// No description provided for @litersValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} L'**
+  String litersValue(String value);
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @pedometerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pedometer'**
+  String get pedometerTitle;
+
+  /// No description provided for @stepsCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} steps'**
+  String stepsCountValue(int count);
+
+  /// No description provided for @enterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get enterValue;
+
+  /// No description provided for @kgValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kg'**
+  String kgValue(String value);
+
+  /// No description provided for @kcalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kcal'**
+  String kcalValue(String value);
 }
 
 class _AppLocalizationsDelegate

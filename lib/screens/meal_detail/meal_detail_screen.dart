@@ -11,6 +11,7 @@ import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/daily_log_provider.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealName;
@@ -61,8 +62,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (!mounted) return;
 
     setState(() {
-      _foodItems =
-          List<FoodItem>.from(provider.currentLog?.meals[widget.mealName] ?? []);
+      _foodItems = List<FoodItem>.from(
+          provider.currentLog?.meals[widget.mealName] ?? []);
       _hasChanges = true;
     });
   }
@@ -70,7 +71,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   Future<void> _removeFoodItemAt(int index) async {
     HapticFeedback.mediumImpact();
     final provider = context.read<DailyLogProvider>();
-    
+
     await _dailyLogService.removeFoodItemFromMeal(
       widget.date,
       widget.mealName,
@@ -82,8 +83,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (!mounted) return;
 
     setState(() {
-      _foodItems =
-          List<FoodItem>.from(provider.currentLog?.meals[widget.mealName] ?? []);
+      _foodItems = List<FoodItem>.from(
+          provider.currentLog?.meals[widget.mealName] ?? []);
       _hasChanges = true;
     });
   }
@@ -140,6 +141,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       NutritionalInfo.zero,
       (sum, item) => sum + item.nutrients,
     );
+    final l10n = AppLocalizations.of(context)!;
 
     return PopScope(
       canPop: false,
@@ -160,7 +162,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             IconButton(
               icon: const Icon(Symbols.add_circle_outline),
               onPressed: _addFromRecipes,
-              tooltip: 'Добавить из рецептов',
+              tooltip: l10n.addFromRecipes,
             ),
             const SizedBox(width: 8),
           ],
@@ -195,6 +197,7 @@ class _MealSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     // Mock goals for demonstration
     const double proteinGoal = 50;
     const double carbsGoal = 100;
@@ -215,31 +218,31 @@ class _MealSummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            Text('Сводка за прием пищи', style: theme.textTheme.headlineSmall),
+            Text(l10n.mealSummary, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                     child: _MacronutrientCard(
-                        name: 'Углеводы',
-                        value: '${totalNutrients.carbs.round()}г',
-                        total: '${carbsGoal.round()}г',
+                        name: l10n.carbs,
+                        value: '${totalNutrients.carbs.round()}${l10n.grams}',
+                        total: '${carbsGoal.round()}${l10n.grams}',
                         percentage: carbsPercent,
                         color: AppColors.primary)),
                 const SizedBox(width: 12),
                 Expanded(
                     child: _MacronutrientCard(
-                        name: 'Белки',
-                        value: '${totalNutrients.protein.round()}г',
-                        total: '${proteinGoal.round()}г',
+                        name: l10n.protein,
+                        value: '${totalNutrients.protein.round()}${l10n.grams}',
+                        total: '${proteinGoal.round()}${l10n.grams}',
                         percentage: proteinPercent,
                         color: Colors.orange)),
                 const SizedBox(width: 12),
                 Expanded(
                     child: _MacronutrientCard(
-                        name: 'Жиры',
-                        value: '${totalNutrients.fat.round()}г',
-                        total: '${fatGoal.round()}г',
+                        name: l10n.fat,
+                        value: '${totalNutrients.fat.round()}${l10n.grams}',
+                        total: '${fatGoal.round()}${l10n.grams}',
                         percentage: fatPercent,
                         color: Colors.blue)),
               ],
@@ -320,10 +323,11 @@ class _FoodItemsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Рецепты в приеме пищи', style: theme.textTheme.headlineSmall),
+        Text(l10n.recipesInMeal, style: theme.textTheme.headlineSmall),
         const SizedBox(height: 8),
         foodItems.isEmpty
             ? _buildEmptyState(context)
@@ -337,7 +341,8 @@ class _FoodItemsList extends StatelessWidget {
                   final originalIndex = foodItems.length - 1 - index;
                   final item = foodItems[originalIndex];
                   return Dismissible(
-                    key: ValueKey('${item.name}_${item.description}_$originalIndex'),
+                    key: ValueKey(
+                        '${item.name}_${item.description}_$originalIndex'),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       decoration: BoxDecoration(
@@ -370,6 +375,7 @@ class _FoodItemsList extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -377,9 +383,9 @@ class _FoodItemsList extends StatelessWidget {
           children: [
             Icon(Symbols.fastfood, size: 60, color: theme.dividerColor),
             const SizedBox(height: 16),
-            Text('Еще ничего не добавлено', style: theme.textTheme.titleMedium),
+            Text(l10n.nothingAddedYet, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
-            Text('Нажмите "+", чтобы добавить продукт',
+            Text(l10n.pressPlusToAddFood,
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: theme.textTheme.bodySmall?.color)),
           ],
@@ -451,7 +457,7 @@ class _FoodListItem extends StatelessWidget {
                     onPressed: onDeleteTap,
                     icon: const Icon(Symbols.delete_outline),
                     color: theme.colorScheme.primary,
-                    tooltip: 'Удалить рецепт',
+                    tooltip: AppLocalizations.of(context)!.removeRecipeTooltip,
                     visualDensity: VisualDensity.compact,
                   ),
                 ],
@@ -472,10 +478,11 @@ class _NutritionDetailsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Пищевая ценность', style: theme.textTheme.headlineSmall),
+        Text(l10n.nutritionValue, style: theme.textTheme.headlineSmall),
         const SizedBox(height: 16),
         Card(
             shape: RoundedRectangleBorder(
@@ -484,56 +491,56 @@ class _NutritionDetailsList extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _buildDetailRow(
-                      theme, 'Калории', '${totalNutrients.calories} ккал'),
+                  _buildDetailRow(theme, l10n.calories,
+                      '${totalNutrients.calories} ${l10n.kcal}'),
                   _buildDivider(),
-                  _buildDetailRow(theme, 'Белки',
-                      '${totalNutrients.protein.toStringAsFixed(1)} г'),
-                  _buildDetailRow(theme, 'Углеводы',
-                      '${totalNutrients.carbs.toStringAsFixed(1)} г',
+                  _buildDetailRow(theme, l10n.protein,
+                      '${totalNutrients.protein.toStringAsFixed(1)} ${l10n.grams}'),
+                  _buildDetailRow(theme, l10n.carbs,
+                      '${totalNutrients.carbs.toStringAsFixed(1)} ${l10n.grams}',
                       isSub: true),
-                  _buildDetailRow(theme, '   в т.ч. Сахар',
-                      '${totalNutrients.sugar.toStringAsFixed(1)} г',
+                  _buildDetailRow(theme, '   ${l10n.sugarSub}',
+                      '${totalNutrients.sugar.toStringAsFixed(1)} ${l10n.grams}',
                       isSub: true),
-                  _buildDetailRow(theme, '   в т.ч. Клетчатка',
-                      '${totalNutrients.fiber.toStringAsFixed(1)} г',
-                      isSub: true),
-                  _buildDivider(),
-                  _buildDetailRow(theme, 'Жиры',
-                      '${totalNutrients.fat.toStringAsFixed(1)} г'),
-                  _buildDetailRow(theme, '   Насыщенные',
-                      '${totalNutrients.saturatedFat.toStringAsFixed(1)} г',
-                      isSub: true),
-                  _buildDetailRow(theme, '   Полиненасыщенные',
-                      '${totalNutrients.polyunsaturatedFat.toStringAsFixed(1)} г',
-                      isSub: true),
-                  _buildDetailRow(theme, '   Мононенасыщенные',
-                      '${totalNutrients.monounsaturatedFat.toStringAsFixed(1)} г',
-                      isSub: true),
-                  _buildDetailRow(theme, '   Трансжиры',
-                      '${totalNutrients.transFat.toStringAsFixed(1)} г',
-                      isSub: true),
-                  _buildDetailRow(theme, '   Холестерин',
-                      '${totalNutrients.cholesterol.toStringAsFixed(0)} мг',
+                  _buildDetailRow(theme, '   ${l10n.fiberSub}',
+                      '${totalNutrients.fiber.toStringAsFixed(1)} ${l10n.grams}',
                       isSub: true),
                   _buildDivider(),
-                  _buildCategoryTitle(theme, 'Минералы'),
-                  _buildDetailRow(theme, 'Натрий',
-                      '${totalNutrients.sodium.toStringAsFixed(0)} мг'),
-                  _buildDetailRow(theme, 'Калий',
-                      '${totalNutrients.potassium.toStringAsFixed(0)} мг'),
-                  _buildDetailRow(theme, 'Кальций',
-                      '${totalNutrients.calcium.toStringAsFixed(1)} мг'),
-                  _buildDetailRow(theme, 'Железо',
-                      '${totalNutrients.iron.toStringAsFixed(1)} мг'),
+                  _buildDetailRow(theme, l10n.fat,
+                      '${totalNutrients.fat.toStringAsFixed(1)} ${l10n.grams}'),
+                  _buildDetailRow(theme, '   ${l10n.saturatedFatSub}',
+                      '${totalNutrients.saturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                      isSub: true),
+                  _buildDetailRow(theme, '   ${l10n.polyunsaturatedFatSub}',
+                      '${totalNutrients.polyunsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                      isSub: true),
+                  _buildDetailRow(theme, '   ${l10n.monounsaturatedFatSub}',
+                      '${totalNutrients.monounsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                      isSub: true),
+                  _buildDetailRow(theme, '   ${l10n.transFatSub}',
+                      '${totalNutrients.transFat.toStringAsFixed(1)} ${l10n.grams}',
+                      isSub: true),
+                  _buildDetailRow(theme, '   ${l10n.cholesterolSub}',
+                      '${totalNutrients.cholesterol.toStringAsFixed(0)} ${l10n.mg}',
+                      isSub: true),
                   _buildDivider(),
-                  _buildCategoryTitle(theme, 'Витамины'),
-                  _buildDetailRow(theme, 'Витамин A',
-                      '${totalNutrients.vitaminA.toStringAsFixed(1)} мкг'),
-                  _buildDetailRow(theme, 'Витамин C',
-                      '${totalNutrients.vitaminC.toStringAsFixed(1)} мг'),
-                  _buildDetailRow(theme, 'Витамин D',
-                      '${totalNutrients.vitaminD.toStringAsFixed(1)} мкг'),
+                  _buildCategoryTitle(theme, l10n.minerals),
+                  _buildDetailRow(theme, l10n.sodium,
+                      '${totalNutrients.sodium.toStringAsFixed(0)} ${l10n.mg}'),
+                  _buildDetailRow(theme, l10n.potassium,
+                      '${totalNutrients.potassium.toStringAsFixed(0)} ${l10n.mg}'),
+                  _buildDetailRow(theme, l10n.calcium,
+                      '${totalNutrients.calcium.toStringAsFixed(1)} ${l10n.mg}'),
+                  _buildDetailRow(theme, l10n.iron,
+                      '${totalNutrients.iron.toStringAsFixed(1)} ${l10n.mg}'),
+                  _buildDivider(),
+                  _buildCategoryTitle(theme, l10n.vitamins),
+                  _buildDetailRow(theme, l10n.vitaminA,
+                      '${totalNutrients.vitaminA.toStringAsFixed(1)} ${l10n.mcg}'),
+                  _buildDetailRow(theme, l10n.vitaminC,
+                      '${totalNutrients.vitaminC.toStringAsFixed(1)} ${l10n.mg}'),
+                  _buildDetailRow(theme, l10n.vitaminD,
+                      '${totalNutrients.vitaminD.toStringAsFixed(1)} ${l10n.mcg}'),
                 ],
               ),
             )),

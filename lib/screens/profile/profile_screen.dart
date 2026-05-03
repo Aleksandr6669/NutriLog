@@ -58,7 +58,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     context.read<ProfileProvider>().refreshProfile();
   }
 
-
   String _avatarKeyFromProfile(UserProfile profile) {
     final value = profile.avatarImagePath;
     if (value == null || value.isEmpty) return _defaultAvatarKey;
@@ -181,11 +180,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildProfileHeader(theme, profile),
           const SizedBox(height: 24),
           _buildSectionCard(
+            context: context,
             theme: theme,
             title: l10n.physicalParams,
             icon: Symbols.accessibility_new,
             onEdit: () async {
-              final result = await context.push('/profile/physical', extra: {'profile': profile});
+              final result = await context
+                  .push('/profile/physical', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
@@ -194,41 +195,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildInfoRow(theme, l10n.age, '${profile.age} ${l10n.yearsOld}'),
               _buildInfoRow(theme, l10n.height, '${profile.height} см'),
               _buildInfoRow(theme, l10n.weight, '${profile.weight} кг'),
-              _buildInfoRow(theme, l10n.gender, profile.gender.localizedLabel(context)),
+              _buildInfoRow(
+                  theme, l10n.gender, profile.gender.localizedLabel(context)),
             ],
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
+            context: context,
             theme: theme,
             title: l10n.generalGoals,
             icon: Symbols.flag,
             onEdit: () async {
-              final result = await context.push('/profile/general_goals', extra: {'profile': profile});
+              final result = await context
+                  .push('/profile/general_goals', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
               _buildInfoRow(theme, l10n.weightGoalTitle, '$weightGoal кг'),
-              _buildInfoRow(theme, l10n.goalTypeTitle, profile.goalType.localizedLabel(context)),
+              _buildInfoRow(theme, l10n.goalTypeTitle,
+                  profile.goalType.localizedLabel(context)),
             ],
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
+            context: context,
             theme: theme,
             title: l10n.dailyGoalsTitle,
             icon: Symbols.track_changes,
             onEdit: () async {
-              final result = await context.push('/profile/daily_goals', extra: {'profile': profile});
+              final result = await context
+                  .push('/profile/daily_goals', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
-              _buildInfoRow(theme, l10n.calories, '${profile.calorieGoal} ${l10n.kcal}'),
               _buildInfoRow(
-                  theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
-              _buildInfoRow(theme, l10n.steps, '${profile.stepsGoal} ${l10n.steps}'),
+                  theme, l10n.calories, '${profile.calorieGoal} ${l10n.kcal}'),
+              _buildInfoRow(
+                  theme, l10n.water, '${waterGoalLiters.toStringAsFixed(1)} ${l10n.liters}'),
+              _buildInfoRow(
+                  theme, l10n.steps, '${profile.stepsGoal} ${l10n.steps}'),
               const Divider(height: 16),
-              _buildInfoRow(theme, l10n.protein, '${profile.proteinGoal} г'),
-              _buildInfoRow(theme, l10n.carbs, '${profile.carbsGoal} г'),
-              _buildInfoRow(theme, l10n.fat, '${profile.fatGoal} г'),
+              _buildInfoRow(theme, l10n.protein, '${profile.proteinGoal} ${l10n.grams}'),
+              _buildInfoRow(theme, l10n.carbs, '${profile.carbsGoal} ${l10n.grams}'),
+              _buildInfoRow(theme, l10n.fat, '${profile.fatGoal} ${l10n.grams}'),
             ],
           ),
           const SizedBox(height: 16),
@@ -244,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: ListTile(
         leading: const Icon(Symbols.settings),
         title: Text(l10n.settings),
-        subtitle: const Text('Подключения и сообщения'),
+        subtitle: Text(l10n.connectionsAndMessages),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () => context.push('/profile/connections'),
       ),
@@ -261,11 +270,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final newName = _nameController.text.trim();
     setState(() => _isEditingName = false);
     if (newName.isEmpty) return;
-    
+
     final provider = context.read<ProfileProvider>();
     final currentProfile = provider.profile;
     if (currentProfile == null || newName == currentProfile.name) return;
-    
+
     final updated = currentProfile.copyWith(name: newName);
     await provider.updateProfile(updated);
   }
@@ -321,12 +330,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required ThemeData theme,
     required String title,
     required IconData icon,
     required List<Widget> children,
     required VoidCallback onEdit,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -342,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 IconButton(
                   onPressed: onEdit,
                   icon: const Icon(Symbols.edit, size: 20),
-                  tooltip: 'Редактировать',
+                  tooltip: l10n.edit,
                 )
               ],
             ),

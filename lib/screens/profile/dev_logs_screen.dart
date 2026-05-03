@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class DevLogsScreen extends StatelessWidget {
   final List<String> logs;
@@ -6,10 +7,11 @@ class DevLogsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Логи приложения')),
+      appBar: AppBar(title: Text(l10n.appLogs)),
       body: logs.isEmpty
-          ? const Center(child: Text('Логи отсутствуют'))
+          ? Center(child: Text(l10n.noLogs))
           : ListView.builder(
               itemCount: logs.length,
               itemBuilder: (context, index) => Padding(
