@@ -946,4 +946,34 @@ class AppLocalizationsUk extends AppLocalizations {
   String kcalValue(String value) {
     return '$value ккал';
   }
+
+  @override
+  String get ingredients => 'Склад';
+
+  @override
+  String get nutritionValuePerPortion => 'Харчова цінність (на порцію)';
+
+  @override
+  String get mainNutrients => 'Основні';
+
+  @override
+  String get addOneMoreToMeal => 'Додати ще у прийом їжі';
+
+  @override
+  String get editRecipeTooltip => 'Редагувати рецепт';
+
+  @override
+  String get recommendedShort => 'Реком';
+
+  @override
+  String get clearSearchTooltip => 'Очистити пошук';
+
+  @override
+  String get deselect => 'Зняти вибір';
+
+  @override
+  String get addMore => 'Додати ще';
+
+  @override
+  String get add => 'Додати';
 }

@@ -361,5 +361,15 @@
   "kcalValue": "{value} ккал",
   "@kcalValue": {
     "placeholders": { "value": { "type": "String" } }
-  }
+  },
+  "ingredients": "Склад",
+  "nutritionValuePerPortion": "Харчова цінність (на порцію)",
+  "mainNutrients": "Основні",
+  "addOneMoreToMeal": "Додати ще у прийом їжі",
+  "editRecipeTooltip": "Редагувати рецепт",
+  "recommendedShort": "Реком",
+  "clearSearchTooltip": "Очистити пошук",
+  "deselect": "Зняти вибір",
+  "addMore": "Додати ще",
+  "add": "Додати"
 }

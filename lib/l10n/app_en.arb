@@ -361,5 +361,15 @@
   "kcalValue": "{value} kcal",
   "@kcalValue": {
     "placeholders": { "value": { "type": "String" } }
-  }
+  },
+  "ingredients": "Ingredients",
+  "nutritionValuePerPortion": "Nutrition facts (per portion)",
+  "mainNutrients": "Main Nutrients",
+  "addOneMoreToMeal": "Add one more to meal",
+  "editRecipeTooltip": "Edit recipe",
+  "recommendedShort": "Rec",
+  "clearSearchTooltip": "Clear search",
+  "deselect": "Deselect",
+  "addMore": "Add more",
+  "add": "Add"
 }

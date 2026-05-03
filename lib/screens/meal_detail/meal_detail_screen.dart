@@ -14,13 +14,13 @@ import 'package:nutri_log/providers/daily_log_provider.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 
 class MealDetailScreen extends StatefulWidget {
-  final String mealName;
+  final String mealKey;
   final List<FoodItem> items;
   final DateTime date;
 
   const MealDetailScreen({
     super.key,
-    required this.mealName,
+    required this.mealKey,
     required this.items,
     required this.date,
   });
@@ -49,11 +49,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     );
 
     if (selectedRecipes == null || selectedRecipes.isEmpty) return;
-
+    if (!mounted) return;
     final provider = context.read<DailyLogProvider>();
     await _dailyLogService.addRecipesToMeal(
       widget.date,
-      widget.mealName,
+      widget.mealKey,
       selectedRecipes,
     );
 
@@ -63,7 +63,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     setState(() {
       _foodItems = List<FoodItem>.from(
-          provider.currentLog?.meals[widget.mealName] ?? []);
+          provider.currentLog?.meals[widget.mealKey] ?? []);
       _hasChanges = true;
     });
   }
@@ -74,7 +74,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     await _dailyLogService.removeFoodItemFromMeal(
       widget.date,
-      widget.mealName,
+      widget.mealKey,
       index,
     );
 
@@ -84,14 +84,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     setState(() {
       _foodItems = List<FoodItem>.from(
-          provider.currentLog?.meals[widget.mealName] ?? []);
+          provider.currentLog?.meals[widget.mealKey] ?? []);
       _hasChanges = true;
     });
   }
 
-  void _saveChanges() {
-    Navigator.of(context).pop(true);
-  }
 
   Future<void> _openFoodItemAsRecipeDetail(FoodItem item) async {
     final recipe = _toSavedRecipeSnapshot(item);
@@ -142,6 +139,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       (sum, item) => sum + item.nutrients,
     );
     final l10n = AppLocalizations.of(context)!;
+    final mealName = switch (widget.mealKey) {
+      'breakfast' => l10n.breakfast,
+      'lunch' => l10n.lunch,
+      'dinner' => l10n.dinner,
+      'snacks' => l10n.snacks,
+      _ => l10n.meals,
+    };
 
     return PopScope(
       canPop: false,
@@ -152,7 +156,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: buildGlassAppBar(
-          title: Text(widget.mealName),
+          title: Text(mealName),
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new),
@@ -409,6 +413,7 @@ class _FoodListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -449,7 +454,7 @@ class _FoodListItem extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${item.nutrients.calories} ккал',
+                  Text('${item.nutrients.calories} ${l10n.kcal}',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),

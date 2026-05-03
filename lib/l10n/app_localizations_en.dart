@@ -944,4 +944,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String kcalValue(String value) {
     return '$value kcal';
   }
+
+  @override
+  String get ingredients => 'Ingredients';
+
+  @override
+  String get nutritionValuePerPortion => 'Nutrition facts (per portion)';
+
+  @override
+  String get mainNutrients => 'Main Nutrients';
+
+  @override
+  String get addOneMoreToMeal => 'Add one more to meal';
+
+  @override
+  String get editRecipeTooltip => 'Edit recipe';
+
+  @override
+  String get recommendedShort => 'Rec';
+
+  @override
+  String get clearSearchTooltip => 'Clear search';
+
+  @override
+  String get deselect => 'Deselect';
+
+  @override
+  String get addMore => 'Add more';
+
+  @override
+  String get add => 'Add';
 }

@@ -946,4 +946,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String kcalValue(String value) {
     return '$value ккал';
   }
+
+  @override
+  String get ingredients => 'Состав';
+
+  @override
+  String get nutritionValuePerPortion => 'Пищевая ценность (на порцию)';
+
+  @override
+  String get mainNutrients => 'Основные';
+
+  @override
+  String get addOneMoreToMeal => 'Добавить еще в прием пищи';
+
+  @override
+  String get editRecipeTooltip => 'Редактировать рецепт';
+
+  @override
+  String get recommendedShort => 'Реком';
+
+  @override
+  String get clearSearchTooltip => 'Очистить поиск';
+
+  @override
+  String get deselect => 'Снять выбор';
+
+  @override
+  String get addMore => 'Добавить еще';
+
+  @override
+  String get add => 'Добавить';
 }

@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
+    android:padding="12dp"
     android:background="@drawable/bg_card_widget"
-    android:padding="0dp"
     android:gravity="center">
 
     <!-- Left Column: Calories -->
@@ -111,7 +111,7 @@
         <!-- Carbs -->
         <LinearLayout
             android:layout_width="match_parent"
-                android:orientation="horizontal"
+            android:orientation="horizontal"
             android:gravity="center"
             android:layout_marginTop="8dp">
             <TextView

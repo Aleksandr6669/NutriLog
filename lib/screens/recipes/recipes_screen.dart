@@ -643,7 +643,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: Icon(Symbols.close, color: Colors.grey.shade600),
-                  tooltip: 'Очистить поиск',
+                  tooltip: AppLocalizations.of(context)!.clearSearchTooltip,
                   onPressed: () {
                     _searchController.clear();
                     _filterRecipes();
@@ -914,8 +914,12 @@ class _RecipeListItem extends StatelessWidget {
                   ),
                   onPressed: onActionTap,
                   tooltip: isDeleteMode
-                      ? (isDeleteSelected ? 'Снять выбор' : 'Выбрать')
-                      : (isSelected ? 'Добавить еще' : 'Добавить'),
+                      ? (isDeleteSelected
+                          ? AppLocalizations.of(context)!.deselect
+                          : AppLocalizations.of(context)!.select)
+                      : (isSelected
+                          ? AppLocalizations.of(context)!.addMore
+                          : AppLocalizations.of(context)!.add),
                 ),
             ],
           ),
