@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_log/styles/app_colors.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class WhatsNewScreen extends StatelessWidget {
   final String version;
@@ -19,7 +20,7 @@ class WhatsNewScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Новинки'),
+        title: Text(AppLocalizations.of(context)!.whatsNew),
         automaticallyImplyLeading: true,
       ),
       body: SafeArea(
@@ -29,7 +30,7 @@ class WhatsNewScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Версия $version',
+                '${AppLocalizations.of(context)!.version} $version',
                 style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
@@ -59,7 +60,7 @@ class WhatsNewScreen extends StatelessWidget {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: const Text('Ознакомлен'),
+                  child: Text(AppLocalizations.of(context)!.acknowledged),
                 ),
               ),
             ],

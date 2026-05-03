@@ -7,8 +7,7 @@ import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
-import 'package:nutri_log/services/app_startup_service.dart';
-import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -90,8 +89,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : Colors.grey.shade700;
         return AlertDialog(
           backgroundColor: canvasColor,
-          title: const Text('Выберите аватар',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(AppLocalizations.of(context)!.chooseAvatar,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: double.maxFinite,
             child: GridView.builder(
@@ -163,6 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileContent(BuildContext context, UserProfile profile) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final waterGoalLiters = profile.waterGoal / 1000.0;
     final weightGoal =
         profile.weightGoal.truncateToDouble() == profile.weightGoal
@@ -182,67 +182,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 24),
           _buildSectionCard(
             theme: theme,
-            title: 'Физические параметры',
+            title: l10n.physicalParams,
             icon: Symbols.accessibility_new,
             onEdit: () async {
               final result = await context.push('/profile/physical', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
-              _buildInfoRow(theme, 'Дата рождения',
+              _buildInfoRow(theme, l10n.birthDate,
                   '${profile.birthDate.day.toString().padLeft(2, '0')}.${profile.birthDate.month.toString().padLeft(2, '0')}.${profile.birthDate.year}'),
-              _buildInfoRow(theme, 'Возраст', '${profile.age} лет'),
-              _buildInfoRow(theme, 'Рост', '${profile.height} см'),
-              _buildInfoRow(theme, 'Вес', '${profile.weight} кг'),
-              _buildInfoRow(theme, 'Пол', profile.gender.ruLabel),
+              _buildInfoRow(theme, l10n.age, '${profile.age} ${l10n.yearsOld}'),
+              _buildInfoRow(theme, l10n.height, '${profile.height} см'),
+              _buildInfoRow(theme, l10n.weight, '${profile.weight} кг'),
+              _buildInfoRow(theme, l10n.gender, profile.gender.localizedLabel(context)),
             ],
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
             theme: theme,
-            title: 'Общие цели',
+            title: l10n.generalGoals,
             icon: Symbols.flag,
             onEdit: () async {
               final result = await context.push('/profile/general_goals', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
-              _buildInfoRow(theme, 'Цель по весу', '$weightGoal кг'),
-              _buildInfoRow(theme, 'Тип цели', profile.goalType.ruLabel),
+              _buildInfoRow(theme, l10n.weightGoalTitle, '$weightGoal кг'),
+              _buildInfoRow(theme, l10n.goalTypeTitle, profile.goalType.localizedLabel(context)),
             ],
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
             theme: theme,
-            title: 'Дневные цели',
+            title: l10n.dailyGoalsTitle,
             icon: Symbols.track_changes,
             onEdit: () async {
               final result = await context.push('/profile/daily_goals', extra: {'profile': profile});
               if (result == true) _refreshProfile();
             },
             children: [
-              _buildInfoRow(theme, 'Калории', '${profile.calorieGoal} ккал'),
+              _buildInfoRow(theme, l10n.calories, '${profile.calorieGoal} ${l10n.kcal}'),
               _buildInfoRow(
                   theme, 'Вода', '${waterGoalLiters.toStringAsFixed(1)} л'),
-              _buildInfoRow(theme, 'Шаги', '${profile.stepsGoal} шагов'),
+              _buildInfoRow(theme, l10n.steps, '${profile.stepsGoal} ${l10n.steps}'),
               const Divider(height: 16),
-              _buildInfoRow(theme, 'Белки', '${profile.proteinGoal} г'),
-              _buildInfoRow(theme, 'Углеводы', '${profile.carbsGoal} г'),
-              _buildInfoRow(theme, 'Жиры', '${profile.fatGoal} г'),
+              _buildInfoRow(theme, l10n.protein, '${profile.proteinGoal} г'),
+              _buildInfoRow(theme, l10n.carbs, '${profile.carbsGoal} г'),
+              _buildInfoRow(theme, l10n.fat, '${profile.fatGoal} г'),
             ],
           ),
           const SizedBox(height: 16),
-          _buildSimpleSettingsMenuCard(theme),
+          _buildSimpleSettingsMenuCard(context, theme),
         ],
       ),
     );
   }
 
-  Widget _buildSimpleSettingsMenuCard(ThemeData theme) {
+  Widget _buildSimpleSettingsMenuCard(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Symbols.settings),
-        title: const Text('Настройки'),
+        title: Text(l10n.settings),
         subtitle: const Text('Подключения и сообщения'),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () => context.push('/profile/connections'),

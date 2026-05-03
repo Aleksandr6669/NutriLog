@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'dart:ui';
 import 'services/app_notification_service.dart';
 import 'services/notification_settings_service.dart';
@@ -27,6 +28,7 @@ import 'services/profile_service.dart';
 import 'services/home_widget_service.dart';
 import 'providers/profile_provider.dart';
 import 'providers/daily_log_provider.dart';
+import 'providers/locale_provider.dart';
 import 'services/health_steps_service.dart';
 import 'models/daily_log.dart';
 import 'package:home_widget/home_widget.dart';
@@ -78,7 +80,7 @@ void _reportFatalAppError(String title, Object error,
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize HomeWidget App Group for iOS
   if (!kIsWeb && Platform.isIOS) {
     try {
@@ -91,7 +93,7 @@ void main() async {
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: AppNotificationService.onActionReceivedMethod,
     );
-    
+
     // Слушаем нажатия на виджеты (Android/iOS)
     HomeWidget.widgetClicked.listen((Uri? uri) {
       if (uri != null) {
@@ -151,12 +153,15 @@ void main() async {
     () => runApp(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => LocaleProvider()),
           ChangeNotifierProvider(create: (_) => DailyLogProvider()),
-          ChangeNotifierProvider(create: (_) => ProfileProvider()..loadProfile()),
+          ChangeNotifierProvider(
+              create: (_) => ProfileProvider()..loadProfile()),
           Provider<DailyLogService>(create: (_) => DailyLogService()),
           Provider<ProfileService>(create: (_) => ProfileService()),
           Provider<HealthStepsService>(create: (_) => HealthStepsService()),
-          Provider<HomeWidgetSyncService>(create: (_) => HomeWidgetSyncService()),
+          Provider<HomeWidgetSyncService>(
+              create: (_) => HomeWidgetSyncService()),
         ],
         child: const MyApp(),
       ),
@@ -194,6 +199,8 @@ Future<void> _bootstrapServices() async {
 
   try {
     await initializeDateFormatting('ru_RU', null);
+    await initializeDateFormatting('uk_UA', null);
+    await initializeDateFormatting('en_US', null);
   } catch (_) {
     // Не блокируем запуск приложения из-за локализации дат.
     _reportStartupWarning(
@@ -206,28 +213,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
+
     return MaterialApp.router(
       routerConfig: appRouter,
       title: 'NutriLog',
       theme: _buildTheme(Brightness.light),
       debugShowCheckedModeBanner: false,
-      locale: const Locale('ru', 'RU'),
+      locale: localeProvider.locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('ru', 'RU'),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
         final content = child ?? const SizedBox.shrink();
         return GestureDetector(
           onTap: () {
             // Скрываем клавиатуру при тапе в любое место, где нет ввода текста
             final currentFocus = FocusScope.of(context);
-            if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+            if (!currentFocus.hasPrimaryFocus &&
+                currentFocus.focusedChild != null) {
               FocusManager.instance.primaryFocus?.unfocus();
             }
           },
@@ -337,10 +345,13 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
     // После загрузки состояния — принудительно обновляем виджеты (если не web)
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       try {
-        final dailyLog = context.read<DailyLogProvider>().currentLog ?? DailyLog.empty(DateTime.now());
+        final dailyLog = context.read<DailyLogProvider>().currentLog ??
+            DailyLog.empty(DateTime.now());
         final profile = context.read<ProfileProvider>().profile;
         if (profile != null) {
-          context.read<HomeWidgetSyncService>().syncDailyData(log: dailyLog, profile: profile);
+          context
+              .read<HomeWidgetSyncService>()
+              .syncDailyData(log: dailyLog, profile: profile);
         }
       } catch (e) {
         debugPrint('WIDGET_SYNC_ERROR: $e');
@@ -408,11 +419,12 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
         // Если текущий путь не '/', значит навигация уже произошла.
         final router = GoRouter.of(context);
         final currentPath = router.routeInformationProvider.value.uri.path;
-        
+
         if (currentPath == '/') {
           context.go('/home');
         } else {
-          debugPrint('BOOTSTRAP: Navigation already occurred to $currentPath, skipping redirect to /home');
+          debugPrint(
+              'BOOTSTRAP: Navigation already occurred to $currentPath, skipping redirect to /home');
         }
       }
     });
@@ -500,7 +512,7 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Ваш путь к здоровью',
+                      AppLocalizations.of(context)?.appTagline ?? 'NutriLog',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: AppColors.subtleTextLight,
                         letterSpacing: 0.5,
@@ -539,7 +551,8 @@ class MainScreenShell extends StatefulWidget {
   State<MainScreenShell> createState() => _MainScreenShellState();
 }
 
-class _MainScreenShellState extends State<MainScreenShell> with WidgetsBindingObserver {
+class _MainScreenShellState extends State<MainScreenShell>
+    with WidgetsBindingObserver {
   static const SystemUiOverlayStyle _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -836,25 +849,25 @@ class _BottomNavBar extends StatelessWidget {
               children: [
                 _NavItem(
                   icon: Symbols.menu_book,
-                  label: 'Дневник',
+                  label: AppLocalizations.of(context)!.diary,
                   isSelected: currentIndex == 0,
                   onTap: () => onTap(0),
                 ),
                 _NavItem(
                   icon: Symbols.receipt_long,
-                  label: 'Рецепты',
+                  label: AppLocalizations.of(context)!.recipes,
                   isSelected: currentIndex == 1,
                   onTap: () => onTap(1),
                 ),
                 _NavItem(
                   icon: Symbols.analytics,
-                  label: 'Анализ',
+                  label: AppLocalizations.of(context)!.analysis,
                   isSelected: currentIndex == 2,
                   onTap: () => onTap(2),
                 ),
                 _NavItem(
                   icon: Symbols.person,
-                  label: 'Профиль',
+                  label: AppLocalizations.of(context)!.profile,
                   isSelected: currentIndex == 3,
                   onTap: () => onTap(3),
                 ),

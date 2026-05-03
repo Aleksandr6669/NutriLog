@@ -1,0 +1,3910 @@
+{
+  "builtin_001": {
+    "en": {
+      "name": "Oatmeal with Milk",
+      "description": "Classic everyday breakfast",
+      "ingredients": [
+        {
+          "name": "Rolled oats",
+          "unit": "g"
+        },
+        {
+          "name": "Milk 2.5%",
+          "unit": "ml"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Mix milk and water.",
+        "Add oats and cook for 5-7 minutes.",
+        "Serve warm."
+      ]
+    },
+    "uk": {
+      "name": "Вівсянка на молоці",
+      "description": "Класичний повсякденний сніданок",
+      "ingredients": [
+        {
+          "name": "Вівсяні пластівці",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Змішайте молоко і воду.",
+        "Додайте пластівці та варіть 5-7 хвилин.",
+        "Подавайте теплою."
+      ]
+    },
+    "ru": {
+      "name": "Овсянка на молоке",
+      "description": "Классический повседневный завтрак",
+      "ingredients": [
+        {
+          "name": "Овсяные хлопья",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Смешайте молоко и воду.",
+        "Добавьте хлопья и варите 5-7 минут.",
+        "Подавайте теплой."
+      ]
+    }
+  },
+  "builtin_002": {
+    "en": {
+      "name": "Two-Egg Omelette",
+      "description": "Quick protein breakfast",
+      "ingredients": [
+        {
+          "name": "Eggs",
+          "unit": "pcs"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        },
+        {
+          "name": "Salt",
+          "unit": "pinch"
+        }
+      ],
+      "instructions": [
+        "Beat eggs with milk.",
+        "Pour into heated pan.",
+        "Cook for 3-4 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Омлет із 2 яєць",
+      "description": "Швидкий білковий сніданок",
+      "ingredients": [
+        {
+          "name": "Яйця",
+          "unit": "шт"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Сіль",
+          "unit": "щіпка"
+        }
+      ],
+      "instructions": [
+        "Збийте яйця з молоком.",
+        "Вилийте на розігріту сковороду.",
+        "Готуйте 3-4 хвилини."
+      ]
+    },
+    "ru": {
+      "name": "Омлет из 2 яиц",
+      "description": "Быстрый белковый завтрак",
+      "ingredients": [
+        {
+          "name": "Яйца",
+          "unit": "шт"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Соль",
+          "unit": "щеп"
+        }
+      ],
+      "instructions": [
+        "Взбейте яйца с молоком.",
+        "Вылейте на разогретую сковороду.",
+        "Готовьте 3-4 минуты."
+      ]
+    }
+  },
+  "builtin_003": {
+    "en": {
+      "name": "Buckwheat with Chicken",
+      "description": "Everyday lunch",
+      "ingredients": [
+        {
+          "name": "Buckwheat",
+          "unit": "g"
+        },
+        {
+          "name": "Chicken breast",
+          "unit": "g"
+        },
+        {
+          "name": "Olive oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook buckwheat until done.",
+        "Fry or stew the chicken.",
+        "Serve together."
+      ]
+    },
+    "uk": {
+      "name": "Гречка з куркою",
+      "description": "Повсякденний обід",
+      "ingredients": [
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Куряче філе",
+          "unit": "г"
+        },
+        {
+          "name": "Оливкова олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть гречку до готовності.",
+        "Курку обсмажте або потушкуйте.",
+        "Подавайте разом."
+      ]
+    },
+    "ru": {
+      "name": "Гречка с курицей",
+      "description": "Повседневный обед",
+      "ingredients": [
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Куриная грудка",
+          "unit": "г"
+        },
+        {
+          "name": "Оливковое масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите гречку до готовности.",
+        "Курицу обжарьте/потушите.",
+        "Подавайте вместе."
+      ]
+    }
+  },
+  "builtin_004": {
+    "en": {
+      "name": "Rice with Vegetables",
+      "description": "Light everyday side dish",
+      "ingredients": [
+        {
+          "name": "Rice",
+          "unit": "g"
+        },
+        {
+          "name": "Vegetable mix",
+          "unit": "g"
+        },
+        {
+          "name": "Vegetable oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook rice.",
+        "Stew vegetables in a pan.",
+        "Mix and heat for 2 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Рис з овочами",
+      "description": "Легкий гарнір на кожен день",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Овочева суміш",
+          "unit": "г"
+        },
+        {
+          "name": "Рослинна олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть рис.",
+        "Овочі потушкуйте на сковороді.",
+        "Змішайте та прогрійте 2 хвилини."
+      ]
+    },
+    "ru": {
+      "name": "Рис с овощами",
+      "description": "Легкий гарнир на каждый день",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Овощная смесь",
+          "unit": "г"
+        },
+        {
+          "name": "Растительное масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите рис.",
+        "Овощи потушите на сковороде.",
+        "Смешайте и прогрейте 2 минуты."
+      ]
+    }
+  },
+  "builtin_005": {
+    "en": {
+      "name": "Chicken Soup",
+      "description": "Homemade soup for lunch",
+      "ingredients": [
+        {
+          "name": "Chicken fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Carrot",
+          "unit": "g"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Make chicken broth.",
+        "Add vegetables and cook until soft.",
+        "Season to taste."
+      ]
+    },
+    "uk": {
+      "name": "Курячий суп",
+      "description": "Домашній суп на обід",
+      "ingredients": [
+        {
+          "name": "Куряче філе",
+          "unit": "г"
+        },
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Морква",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Зваріть курячий бульйон.",
+        "Додайте овочі та варіть до м'якості.",
+        "Посоліть за смаком."
+      ]
+    },
+    "ru": {
+      "name": "Куриный суп",
+      "description": "Домашний суп на обед",
+      "ingredients": [
+        {
+          "name": "Куриное филе",
+          "unit": "г"
+        },
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Морковь",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Сварите куриный бульон.",
+        "Добавьте овощи и варите до мягкости.",
+        "Посолите по вкусу."
+      ]
+    }
+  },
+  "builtin_006": {
+    "en": {
+      "name": "Homemade Borscht",
+      "description": "Popular beet soup",
+      "ingredients": [
+        {
+          "name": "Beet",
+          "unit": "g"
+        },
+        {
+          "name": "Cabbage",
+          "unit": "g"
+        },
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Meat",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Prepare broth.",
+        "Add vegetables one by one.",
+        "Simmer until done."
+      ]
+    },
+    "uk": {
+      "name": "Домашній борщ",
+      "description": "Популярний суп із буряком",
+      "ingredients": [
+        {
+          "name": "Буряк",
+          "unit": "г"
+        },
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "М'ясо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Підготуйте бульйон.",
+        "Додайте овочі по черзі.",
+        "Томіть до готовності."
+      ]
+    },
+    "ru": {
+      "name": "Борщ домашний",
+      "description": "Популярный суп со свеклой",
+      "ingredients": [
+        {
+          "name": "Свекла",
+          "unit": "г"
+        },
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Мясо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Подготовьте бульон.",
+        "Добавьте овощи по очереди.",
+        "Томите до готовности."
+      ]
+    }
+  },
+  "builtin_007": {
+    "en": {
+      "name": "Pasta with Tomato Sauce",
+      "description": "Quick dinner dish",
+      "ingredients": [
+        {
+          "name": "Pasta",
+          "unit": "g"
+        },
+        {
+          "name": "Tomato sauce",
+          "unit": "g"
+        },
+        {
+          "name": "Cheese",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Cook pasta al dente.",
+        "Heat the sauce.",
+        "Mix and sprinkle with cheese."
+      ]
+    },
+    "uk": {
+      "name": "Паста з томатним соусом",
+      "description": "Швидка страва на вечерю",
+      "ingredients": [
+        {
+          "name": "Паста",
+          "unit": "г"
+        },
+        {
+          "name": "Томатний соус",
+          "unit": "г"
+        },
+        {
+          "name": "Сир",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Відваріть пасту аль денте.",
+        "Прогрійте соус.",
+        "Змішайте та посипте сиром."
+      ]
+    },
+    "ru": {
+      "name": "Паста с томатным соусом",
+      "description": "Быстрое блюдо на ужин",
+      "ingredients": [
+        {
+          "name": "Паста",
+          "unit": "г"
+        },
+        {
+          "name": "Томатный соус",
+          "unit": "г"
+        },
+        {
+          "name": "Сыр",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Отварите пасту аль денте.",
+        "Прогрейте соус.",
+        "Смешайте и посыпьте сыром."
+      ]
+    }
+  },
+  "builtin_008": {
+    "en": {
+      "name": "Mashed Potato with Cutlet",
+      "description": "Classic homemade dinner",
+      "ingredients": [
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        },
+        {
+          "name": "Meat cutlet",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Make mashed potato.",
+        "Fry or bake the cutlet.",
+        "Serve hot."
+      ]
+    },
+    "uk": {
+      "name": "Картопляне пюре з котлетою",
+      "description": "Класична домашня вечеря",
+      "ingredients": [
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "М'ясна котлета",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Зробіть пюре з картоплі.",
+        "Котлету обсмажте або запечіть.",
+        "Подавайте гарячим."
+      ]
+    },
+    "ru": {
+      "name": "Картофельное пюре с котлетой",
+      "description": "Классический домашний ужин",
+      "ingredients": [
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Котлета мясная",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сделайте пюре из картофеля.",
+        "Котлету обжарьте/запеките.",
+        "Подавайте горячим."
+      ]
+    }
+  },
+  "builtin_009": {
+    "en": {
+      "name": "Cucumber and Tomato Salad",
+      "description": "Light fresh salad",
+      "ingredients": [
+        {
+          "name": "Cucumber",
+          "unit": "g"
+        },
+        {
+          "name": "Tomato",
+          "unit": "g"
+        },
+        {
+          "name": "Oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Chop the vegetables.",
+        "Add salt and oil.",
+        "Mix before serving."
+      ]
+    },
+    "uk": {
+      "name": "Салат з огірків і помідорів",
+      "description": "Легкий свіжий салат",
+      "ingredients": [
+        {
+          "name": "Огірок",
+          "unit": "г"
+        },
+        {
+          "name": "Помідор",
+          "unit": "г"
+        },
+        {
+          "name": "Олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Наріжте овочі.",
+        "Додайте сіль та олію.",
+        "Перемішайте перед подачею."
+      ]
+    },
+    "ru": {
+      "name": "Салат из огурцов и помидоров",
+      "description": "Легкий свежий салат",
+      "ingredients": [
+        {
+          "name": "Огурец",
+          "unit": "г"
+        },
+        {
+          "name": "Помидор",
+          "unit": "г"
+        },
+        {
+          "name": "Масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Нарежьте овощи.",
+        "Добавьте соль и масло.",
+        "Перемешайте перед подачей."
+      ]
+    }
+  },
+  "builtin_010": {
+    "en": {
+      "name": "Cottage Cheese 5%",
+      "description": "Simple protein snack",
+      "ingredients": [
+        {
+          "name": "Cottage cheese 5%",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Ready to eat."
+      ]
+    },
+    "uk": {
+      "name": "Сир кисломолочний 5%",
+      "description": "Простий білковий перекус",
+      "ingredients": [
+        {
+          "name": "Сир кисломолочний 5%",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Готово до вживання."
+      ]
+    },
+    "ru": {
+      "name": "Творог 5%",
+      "description": "Простой белковый перекус",
+      "ingredients": [
+        {
+          "name": "Творог 5%",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Готово к употреблению."
+      ]
+    }
+  },
+  "builtin_011": {
+    "en": {
+      "name": "Apple",
+      "description": "Fruit snack",
+      "ingredients": [
+        {
+          "name": "Apple",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash and eat fresh."
+      ]
+    },
+    "uk": {
+      "name": "Яблуко",
+      "description": "Фрукт для перекусу",
+      "ingredients": [
+        {
+          "name": "Яблуко",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте та їжте свіжим."
+      ]
+    },
+    "ru": {
+      "name": "Яблоко",
+      "description": "Фрукт для перекуса",
+      "ingredients": [
+        {
+          "name": "Яблоко",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте и ешьте свежим."
+      ]
+    }
+  },
+  "builtin_012": {
+    "en": {
+      "name": "Banana",
+      "description": "Quick carb snack",
+      "ingredients": [
+        {
+          "name": "Banana",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Peel before eating."
+      ]
+    },
+    "uk": {
+      "name": "Банан",
+      "description": "Швидкий вуглеводний перекус",
+      "ingredients": [
+        {
+          "name": "Банан",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистіть від шкірки перед вживанням."
+      ]
+    },
+    "ru": {
+      "name": "Банан",
+      "description": "Быстрый углеводный перекус",
+      "ingredients": [
+        {
+          "name": "Банан",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистите от кожуры перед употреблением."
+      ]
+    }
+  },
+  "builtin_013": {
+    "en": {
+      "name": "Orange",
+      "description": "Juicy citrus fruit",
+      "ingredients": [
+        {
+          "name": "Orange",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Peel and separate into segments."
+      ]
+    },
+    "uk": {
+      "name": "Апельсин",
+      "description": "Соковитий цитрус",
+      "ingredients": [
+        {
+          "name": "Апельсин",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистіть, розділіть на часточки."
+      ]
+    },
+    "ru": {
+      "name": "Апельсин",
+      "description": "Сочный цитрус",
+      "ingredients": [
+        {
+          "name": "Апельсин",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистите, разделите на дольки."
+      ]
+    }
+  },
+  "builtin_014": {
+    "en": {
+      "name": "Pear",
+      "description": "Sweet fruit",
+      "ingredients": [
+        {
+          "name": "Pear",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash before eating."
+      ]
+    },
+    "uk": {
+      "name": "Груша",
+      "description": "Солодкий фрукт",
+      "ingredients": [
+        {
+          "name": "Груша",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте перед вживанням."
+      ]
+    },
+    "ru": {
+      "name": "Груша",
+      "description": "Сладкий фрукт",
+      "ingredients": [
+        {
+          "name": "Груша",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте перед употреблением."
+      ]
+    }
+  },
+  "builtin_015": {
+    "en": {
+      "name": "Kiwi",
+      "description": "Fruit with bright flavor",
+      "ingredients": [
+        {
+          "name": "Kiwi",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Peel and slice."
+      ]
+    },
+    "uk": {
+      "name": "Ківі",
+      "description": "Фрукт з яскравим смаком",
+      "ingredients": [
+        {
+          "name": "Ківі",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистіть шкірку та наріжте."
+      ]
+    },
+    "ru": {
+      "name": "Киви",
+      "description": "Фрукт с ярким вкусом",
+      "ingredients": [
+        {
+          "name": "Киви",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистите кожуру и нарежьте."
+      ]
+    }
+  },
+  "builtin_016": {
+    "en": {
+      "name": "Grapes",
+      "description": "Sweet berries",
+      "ingredients": [
+        {
+          "name": "Grapes",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Rinse and remove stems."
+      ]
+    },
+    "uk": {
+      "name": "Виноград",
+      "description": "Солодкі ягоди",
+      "ingredients": [
+        {
+          "name": "Виноград",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Промийте, видаліть гілочки."
+      ]
+    },
+    "ru": {
+      "name": "Виноград",
+      "description": "Сладкие ягоды",
+      "ingredients": [
+        {
+          "name": "Виноград",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Промойте, удалите веточки."
+      ]
+    }
+  },
+  "builtin_017": {
+    "en": {
+      "name": "Strawberries",
+      "description": "Fresh berries",
+      "ingredients": [
+        {
+          "name": "Strawberries",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash berries and remove stems."
+      ]
+    },
+    "uk": {
+      "name": "Полуниця",
+      "description": "Свіжа ягода",
+      "ingredients": [
+        {
+          "name": "Полуниця",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте ягоди та видаліть хвостики."
+      ]
+    },
+    "ru": {
+      "name": "Клубника",
+      "description": "Свежая ягода",
+      "ingredients": [
+        {
+          "name": "Клубника",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте ягоды и удалите хвостики."
+      ]
+    }
+  },
+  "builtin_018": {
+    "en": {
+      "name": "Blueberries",
+      "description": "Berries for snacking",
+      "ingredients": [
+        {
+          "name": "Blueberries",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Rinse and serve chilled."
+      ]
+    },
+    "uk": {
+      "name": "Чорниця",
+      "description": "Ягоди для перекусу",
+      "ingredients": [
+        {
+          "name": "Чорниця",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Промийте та подавайте охолодженою."
+      ]
+    },
+    "ru": {
+      "name": "Черника",
+      "description": "Ягоды для перекуса",
+      "ingredients": [
+        {
+          "name": "Черника",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Промойте и подавайте охлажденной."
+      ]
+    }
+  },
+  "builtin_019": {
+    "en": {
+      "name": "Cucumber",
+      "description": "Fresh vegetable",
+      "ingredients": [
+        {
+          "name": "Cucumber",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash and slice as desired."
+      ]
+    },
+    "uk": {
+      "name": "Огірок",
+      "description": "Свіжий овоч",
+      "ingredients": [
+        {
+          "name": "Огірок",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте та наріжте за бажанням."
+      ]
+    },
+    "ru": {
+      "name": "Огурец",
+      "description": "Свежий овощ",
+      "ingredients": [
+        {
+          "name": "Огурец",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте и нарежьте по желанию."
+      ]
+    }
+  },
+  "builtin_020": {
+    "en": {
+      "name": "Tomato",
+      "description": "Juicy vegetable",
+      "ingredients": [
+        {
+          "name": "Tomato",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash and slice."
+      ]
+    },
+    "uk": {
+      "name": "Помідор",
+      "description": "Соковитий овоч",
+      "ingredients": [
+        {
+          "name": "Помідор",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте та наріжте."
+      ]
+    },
+    "ru": {
+      "name": "Помидор",
+      "description": "Сочный овощ",
+      "ingredients": [
+        {
+          "name": "Помидор",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте и нарежьте."
+      ]
+    }
+  },
+  "builtin_021": {
+    "en": {
+      "name": "Carrot",
+      "description": "Crunchy vegetable",
+      "ingredients": [
+        {
+          "name": "Carrot",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Wash, peel and eat fresh."
+      ]
+    },
+    "uk": {
+      "name": "Морква",
+      "description": "Хрустка овочева",
+      "ingredients": [
+        {
+          "name": "Морква",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помийте, очистіть та їжте свіжою."
+      ]
+    },
+    "ru": {
+      "name": "Морковь",
+      "description": "Хрустящий овощ",
+      "ingredients": [
+        {
+          "name": "Морковь",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Помойте, очистите и ешьте свежей."
+      ]
+    }
+  },
+  "builtin_022": {
+    "en": {
+      "name": "Steamed Broccoli",
+      "description": "Vegetable side dish",
+      "ingredients": [
+        {
+          "name": "Broccoli",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Separate into florets.",
+        "Steam for 6-8 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Броколі на пару",
+      "description": "Овочевий гарнір",
+      "ingredients": [
+        {
+          "name": "Броколі",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Розділіть на суцвіття.",
+        "Готуйте на пару 6-8 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Брокколи на пару",
+      "description": "Гарнир из овощей",
+      "ingredients": [
+        {
+          "name": "Брокколи",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Разделите на соцветия.",
+        "Готовьте на пару 6-8 минут."
+      ]
+    }
+  },
+  "builtin_023": {
+    "en": {
+      "name": "Avocado",
+      "description": "Healthy fats",
+      "ingredients": [
+        {
+          "name": "Avocado",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Peel and slice."
+      ]
+    },
+    "uk": {
+      "name": "Авокадо",
+      "description": "Корисні жири",
+      "ingredients": [
+        {
+          "name": "Авокадо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистіть від шкірки та наріжте."
+      ]
+    },
+    "ru": {
+      "name": "Авокадо",
+      "description": "Полезные жиры",
+      "ingredients": [
+        {
+          "name": "Авокадо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Очистите от кожуры и нарежьте."
+      ]
+    }
+  },
+  "builtin_024": {
+    "en": {
+      "name": "Kefir 1%",
+      "description": "Fermented milk drink",
+      "ingredients": [
+        {
+          "name": "Kefir 1%",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Serve chilled."
+      ]
+    },
+    "uk": {
+      "name": "Кефір 1%",
+      "description": "Кисломолочний напій",
+      "ingredients": [
+        {
+          "name": "Кефір 1%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Подавайте охолодженим."
+      ]
+    },
+    "ru": {
+      "name": "Кефир 1%",
+      "description": "Кисломолочный напиток",
+      "ingredients": [
+        {
+          "name": "Кефир 1%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Подавайте охлажденным."
+      ]
+    }
+  },
+  "builtin_025": {
+    "en": {
+      "name": "Milk 2.5%",
+      "description": "Basic dairy product",
+      "ingredients": [
+        {
+          "name": "Milk 2.5%",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Ready to drink."
+      ]
+    },
+    "uk": {
+      "name": "Молоко 2.5%",
+      "description": "Базовий молочний продукт",
+      "ingredients": [
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Готово до вживання."
+      ]
+    },
+    "ru": {
+      "name": "Молоко 2.5%",
+      "description": "Базовый молочный продукт",
+      "ingredients": [
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Готово к употреблению."
+      ]
+    }
+  },
+  "builtin_026": {
+    "en": {
+      "name": "Plain Yogurt",
+      "description": "No additives",
+      "ingredients": [
+        {
+          "name": "Plain yogurt",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Eat chilled."
+      ]
+    },
+    "uk": {
+      "name": "Йогурт натуральний",
+      "description": "Без добавок",
+      "ingredients": [
+        {
+          "name": "Йогурт натуральний",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Вживайте охолодженим."
+      ]
+    },
+    "ru": {
+      "name": "Йогурт натуральный",
+      "description": "Без добавок",
+      "ingredients": [
+        {
+          "name": "Йогурт натуральный",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Употребляйте охлажденным."
+      ]
+    }
+  },
+  "builtin_027": {
+    "en": {
+      "name": "Cottage Cheese Pancakes",
+      "description": "Homemade breakfast dish",
+      "ingredients": [
+        {
+          "name": "Cottage cheese",
+          "unit": "g"
+        },
+        {
+          "name": "Egg",
+          "unit": "pcs"
+        },
+        {
+          "name": "Flour",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Mix ingredients.",
+        "Shape into patties.",
+        "Fry until golden."
+      ]
+    },
+    "uk": {
+      "name": "Сирники",
+      "description": "Домашня страва до сніданку",
+      "ingredients": [
+        {
+          "name": "Сир кисломолочний",
+          "unit": "г"
+        },
+        {
+          "name": "Яйце",
+          "unit": "шт"
+        },
+        {
+          "name": "Борошно",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Змішайте інгредієнти.",
+        "Сформуйте сирники.",
+        "Обсмажте до золотистої скоринки."
+      ]
+    },
+    "ru": {
+      "name": "Сырники",
+      "description": "Домашнее блюдо к завтраку",
+      "ingredients": [
+        {
+          "name": "Творог",
+          "unit": "г"
+        },
+        {
+          "name": "Яйцо",
+          "unit": "шт"
+        },
+        {
+          "name": "Мука",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Смешайте ингредиенты.",
+        "Сформируйте сырники.",
+        "Обжарьте до золотистой корочки."
+      ]
+    }
+  },
+  "builtin_028": {
+    "en": {
+      "name": "Greek Yogurt with Honey",
+      "description": "Light protein snack",
+      "ingredients": [
+        {
+          "name": "Greek yogurt",
+          "unit": "g"
+        },
+        {
+          "name": "Honey",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Add honey to yogurt.",
+        "Mix before serving."
+      ]
+    },
+    "uk": {
+      "name": "Грецький йогурт з медом",
+      "description": "Легкий білковий перекус",
+      "ingredients": [
+        {
+          "name": "Грецький йогурт",
+          "unit": "г"
+        },
+        {
+          "name": "Мед",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Додайте мед у йогурт.",
+        "Перемішайте перед подачею."
+      ]
+    },
+    "ru": {
+      "name": "Греческий йогурт с медом",
+      "description": "Легкий белковый перекус",
+      "ingredients": [
+        {
+          "name": "Греческий йогурт",
+          "unit": "г"
+        },
+        {
+          "name": "Мед",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Добавьте мед в йогурт.",
+        "Перемешайте перед подачей."
+      ]
+    }
+  },
+  "builtin_029": {
+    "en": {
+      "name": "Cheese Sandwich",
+      "description": "Simple snack",
+      "ingredients": [
+        {
+          "name": "Whole grain bread",
+          "unit": "g"
+        },
+        {
+          "name": "Cheese",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Make the sandwich.",
+        "Optionally heat for 1-2 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Бутерброд із сиром",
+      "description": "Простий перекус",
+      "ingredients": [
+        {
+          "name": "Хліб цільнозерновий",
+          "unit": "г"
+        },
+        {
+          "name": "Сир",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Зберіть бутерброд.",
+        "За бажанням підігрійте 1-2 хвилини."
+      ]
+    },
+    "ru": {
+      "name": "Бутерброд с сыром",
+      "description": "Простой перекус",
+      "ingredients": [
+        {
+          "name": "Хлеб цельнозерновой",
+          "unit": "г"
+        },
+        {
+          "name": "Сыр",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Соберите бутерброд.",
+        "По желанию подогрейте 1-2 минуты."
+      ]
+    }
+  },
+  "builtin_030": {
+    "en": {
+      "name": "Turkey Sandwich",
+      "description": "Filling snack",
+      "ingredients": [
+        {
+          "name": "Bread",
+          "unit": "g"
+        },
+        {
+          "name": "Turkey fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Lettuce leaf",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Place filling between bread slices.",
+        "Cut in half."
+      ]
+    },
+    "uk": {
+      "name": "Сендвіч з індичкою",
+      "description": "Ситний перекус",
+      "ingredients": [
+        {
+          "name": "Хліб",
+          "unit": "г"
+        },
+        {
+          "name": "Філе індички",
+          "unit": "г"
+        },
+        {
+          "name": "Лист салату",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Викладіть начинку між скибками хліба.",
+        "Розріжте навпіл."
+      ]
+    },
+    "ru": {
+      "name": "Сэндвич с индейкой",
+      "description": "Сытный перекус",
+      "ingredients": [
+        {
+          "name": "Хлеб",
+          "unit": "г"
+        },
+        {
+          "name": "Филе индейки",
+          "unit": "г"
+        },
+        {
+          "name": "Лист салата",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Выложите начинку между ломтиками хлеба.",
+        "Разрежьте пополам."
+      ]
+    }
+  },
+  "builtin_031": {
+    "en": {
+      "name": "Chicken Pilaf",
+      "description": "Popular homemade dish",
+      "ingredients": [
+        {
+          "name": "Rice",
+          "unit": "g"
+        },
+        {
+          "name": "Chicken",
+          "unit": "g"
+        },
+        {
+          "name": "Carrot",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Fry meat and vegetables.",
+        "Add rice and water.",
+        "Simmer until done."
+      ]
+    },
+    "uk": {
+      "name": "Плов з куркою",
+      "description": "Популярна домашня страва",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Курка",
+          "unit": "г"
+        },
+        {
+          "name": "Морква",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Обсмажте м'ясо та овочі.",
+        "Додайте рис та воду.",
+        "Томіть до готовності."
+      ]
+    },
+    "ru": {
+      "name": "Плов с курицей",
+      "description": "Популярное домашнее блюдо",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Курица",
+          "unit": "г"
+        },
+        {
+          "name": "Морковь",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Обжарьте мясо и овощи.",
+        "Добавьте рис и воду.",
+        "Томите до готовности."
+      ]
+    }
+  },
+  "builtin_032": {
+    "en": {
+      "name": "Meatballs with Rice",
+      "description": "Homemade lunch",
+      "ingredients": [
+        {
+          "name": "Ground meat",
+          "unit": "g"
+        },
+        {
+          "name": "Rice",
+          "unit": "g"
+        },
+        {
+          "name": "Tomato sauce",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Shape the meatballs.",
+        "Stew in sauce for 20 minutes.",
+        "Serve with side dish."
+      ]
+    },
+    "uk": {
+      "name": "Тефтелі з рисом",
+      "description": "Домашній обід",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Томатний соус",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформуйте тефтелі.",
+        "Тушкуйте в соусі 20 хвилин.",
+        "Подавайте з гарніром."
+      ]
+    },
+    "ru": {
+      "name": "Тефтели с рисом",
+      "description": "Домашний обед",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Томатный соус",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформируйте тефтели.",
+        "Тушите в соусе 20 минут.",
+        "Подавайте с гарниром."
+      ]
+    }
+  },
+  "builtin_033": {
+    "en": {
+      "name": "Braised Cabbage",
+      "description": "Vegetable side dish",
+      "ingredients": [
+        {
+          "name": "Cabbage",
+          "unit": "g"
+        },
+        {
+          "name": "Carrot",
+          "unit": "g"
+        },
+        {
+          "name": "Oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Shred the vegetables.",
+        "Braise over low heat for 20-25 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Тушкована капуста",
+      "description": "Овочевий гарнір",
+      "ingredients": [
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Морква",
+          "unit": "г"
+        },
+        {
+          "name": "Олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Нашаткуйте овочі.",
+        "Тушкуйте на повільному вогні 20-25 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Тушеная капуста",
+      "description": "Овощной гарнир",
+      "ingredients": [
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Морковь",
+          "unit": "г"
+        },
+        {
+          "name": "Масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Нашинкуйте овощи.",
+        "Тушите на медленном огне 20-25 минут."
+      ]
+    }
+  },
+  "builtin_034": {
+    "en": {
+      "name": "Baked Zucchini",
+      "description": "Light vegetable dish",
+      "ingredients": [
+        {
+          "name": "Zucchini",
+          "unit": "g"
+        },
+        {
+          "name": "Olive oil",
+          "unit": "ml"
+        },
+        {
+          "name": "Salt",
+          "unit": "pinch"
+        }
+      ],
+      "instructions": [
+        "Slice zucchini into rounds.",
+        "Drizzle with oil.",
+        "Bake for 15-20 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Кабачки запечені",
+      "description": "Легка овочева страва",
+      "ingredients": [
+        {
+          "name": "Кабачок",
+          "unit": "г"
+        },
+        {
+          "name": "Оливкова олія",
+          "unit": "мл"
+        },
+        {
+          "name": "Сіль",
+          "unit": "щіпка"
+        }
+      ],
+      "instructions": [
+        "Наріжте кабачок кільцями.",
+        "Збризніть олією.",
+        "Запікайте 15-20 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Кабачки запеченные",
+      "description": "Легкое овощное блюдо",
+      "ingredients": [
+        {
+          "name": "Кабачок",
+          "unit": "г"
+        },
+        {
+          "name": "Оливковое масло",
+          "unit": "мл"
+        },
+        {
+          "name": "Соль",
+          "unit": "щеп"
+        }
+      ],
+      "instructions": [
+        "Нарежьте кабачок кольцами.",
+        "Сбрызните маслом.",
+        "Запекайте 15-20 минут."
+      ]
+    }
+  },
+  "builtin_035": {
+    "en": {
+      "name": "Fish Cakes",
+      "description": "Protein dish",
+      "ingredients": [
+        {
+          "name": "White fish fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        },
+        {
+          "name": "Egg",
+          "unit": "pcs"
+        }
+      ],
+      "instructions": [
+        "Mince the fish.",
+        "Shape into patties.",
+        "Fry or bake."
+      ]
+    },
+    "uk": {
+      "name": "Рибні котлети",
+      "description": "Білкова страва",
+      "ingredients": [
+        {
+          "name": "Філе білої риби",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        },
+        {
+          "name": "Яйце",
+          "unit": "шт"
+        }
+      ],
+      "instructions": [
+        "Зробіть фарш з риби.",
+        "Сформуйте котлети.",
+        "Обсмажте або запечіть."
+      ]
+    },
+    "ru": {
+      "name": "Рыбные котлеты",
+      "description": "Белковое блюдо",
+      "ingredients": [
+        {
+          "name": "Филе белой рыбы",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        },
+        {
+          "name": "Яйцо",
+          "unit": "шт"
+        }
+      ],
+      "instructions": [
+        "Сделайте фарш из рыбы.",
+        "Сформируйте котлеты.",
+        "Обжарьте или запеките."
+      ]
+    }
+  },
+  "builtin_036": {
+    "en": {
+      "name": "Baked Salmon",
+      "description": "Fish with healthy fats",
+      "ingredients": [
+        {
+          "name": "Salmon fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Lemon",
+          "unit": "g"
+        },
+        {
+          "name": "Salt",
+          "unit": "pinch"
+        }
+      ],
+      "instructions": [
+        "Season the fish.",
+        "Bake for 15-18 minutes at 190°C."
+      ]
+    },
+    "uk": {
+      "name": "Лосось запечений",
+      "description": "Риба з корисними жирами",
+      "ingredients": [
+        {
+          "name": "Філе лосося",
+          "unit": "г"
+        },
+        {
+          "name": "Лимон",
+          "unit": "г"
+        },
+        {
+          "name": "Сіль",
+          "unit": "щіпка"
+        }
+      ],
+      "instructions": [
+        "Приправте рибу.",
+        "Запікайте 15-18 хвилин при 190°C."
+      ]
+    },
+    "ru": {
+      "name": "Лосось запеченный",
+      "description": "Рыба с полезными жирами",
+      "ingredients": [
+        {
+          "name": "Филе лосося",
+          "unit": "г"
+        },
+        {
+          "name": "Лимон",
+          "unit": "г"
+        },
+        {
+          "name": "Соль",
+          "unit": "щеп"
+        }
+      ],
+      "instructions": [
+        "Приправьте рыбу.",
+        "Запекайте 15-18 минут при 190C."
+      ]
+    }
+  },
+  "builtin_037": {
+    "en": {
+      "name": "Tuna with Salad",
+      "description": "Light protein dinner",
+      "ingredients": [
+        {
+          "name": "Canned tuna",
+          "unit": "g"
+        },
+        {
+          "name": "Lettuce leaves",
+          "unit": "g"
+        },
+        {
+          "name": "Cucumber",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Drain liquid from tuna.",
+        "Mix with vegetables."
+      ]
+    },
+    "uk": {
+      "name": "Тунець із салатом",
+      "description": "Легка білкова вечеря",
+      "ingredients": [
+        {
+          "name": "Тунець консервований",
+          "unit": "г"
+        },
+        {
+          "name": "Листя салату",
+          "unit": "г"
+        },
+        {
+          "name": "Огірок",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Злийте рідину з тунця.",
+        "Змішайте з овочами."
+      ]
+    },
+    "ru": {
+      "name": "Тунец с салатом",
+      "description": "Легкий белковый ужин",
+      "ingredients": [
+        {
+          "name": "Тунец консервированный",
+          "unit": "г"
+        },
+        {
+          "name": "Листья салата",
+          "unit": "г"
+        },
+        {
+          "name": "Огурец",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Слейте жидкость с тунца.",
+        "Смешайте с овощами."
+      ]
+    }
+  },
+  "builtin_038": {
+    "en": {
+      "name": "Homemade Oat Cookies",
+      "description": "Sweet snack",
+      "ingredients": [
+        {
+          "name": "Rolled oats",
+          "unit": "g"
+        },
+        {
+          "name": "Banana",
+          "unit": "g"
+        },
+        {
+          "name": "Honey",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Mix ingredients.",
+        "Shape cookies.",
+        "Bake for 12-15 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Вівсяне печиво домашнє",
+      "description": "Солодкий перекус",
+      "ingredients": [
+        {
+          "name": "Вівсяні пластівці",
+          "unit": "г"
+        },
+        {
+          "name": "Банан",
+          "unit": "г"
+        },
+        {
+          "name": "Мед",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Змішайте інгредієнти.",
+        "Сформуйте печиво.",
+        "Запікайте 12-15 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Овсяное печенье домашнее",
+      "description": "Сладкий перекус",
+      "ingredients": [
+        {
+          "name": "Овсяные хлопья",
+          "unit": "г"
+        },
+        {
+          "name": "Банан",
+          "unit": "г"
+        },
+        {
+          "name": "Мед",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Смешайте ингредиенты.",
+        "Сформируйте печенье.",
+        "Запекайте 12-15 минут."
+      ]
+    }
+  },
+  "builtin_039": {
+    "en": {
+      "name": "Coffee with Milk",
+      "description": "Popular drink",
+      "ingredients": [
+        {
+          "name": "Coffee",
+          "unit": "ml"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Brew coffee.",
+        "Add warm milk."
+      ]
+    },
+    "uk": {
+      "name": "Кава з молоком",
+      "description": "Популярний напій",
+      "ingredients": [
+        {
+          "name": "Кава",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Зваріть каву.",
+        "Додайте тепле молоко."
+      ]
+    },
+    "ru": {
+      "name": "Кофе с молоком",
+      "description": "Популярный напиток",
+      "ingredients": [
+        {
+          "name": "Кофе",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Сварите кофе.",
+        "Добавьте теплое молоко."
+      ]
+    }
+  },
+  "builtin_040": {
+    "en": {
+      "name": "Hot Cocoa with Milk",
+      "description": "Warm drink",
+      "ingredients": [
+        {
+          "name": "Milk",
+          "unit": "ml"
+        },
+        {
+          "name": "Cocoa powder",
+          "unit": "g"
+        },
+        {
+          "name": "Sugar",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Heat the milk.",
+        "Add cocoa and sugar.",
+        "Stir until smooth."
+      ]
+    },
+    "uk": {
+      "name": "Какао на молоці",
+      "description": "Теплий напій",
+      "ingredients": [
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Какао-порошок",
+          "unit": "г"
+        },
+        {
+          "name": "Цукор",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Підігрійте молоко.",
+        "Додайте какао та цукор.",
+        "Перемішайте до однорідності."
+      ]
+    },
+    "ru": {
+      "name": "Какао на молоке",
+      "description": "Теплый напиток",
+      "ingredients": [
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Какао-порошок",
+          "unit": "г"
+        },
+        {
+          "name": "Сахар",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Подогрейте молоко.",
+        "Добавьте какао и сахар.",
+        "Перемешайте до однородности."
+      ]
+    }
+  },
+  "builtin_041": {
+    "en": {
+      "name": "Espresso",
+      "description": "Strong black coffee",
+      "ingredients": [
+        {
+          "name": "Espresso",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Prepare in coffee machine or moka pot."
+      ]
+    },
+    "uk": {
+      "name": "Еспресо",
+      "description": "Міцна чорна кава",
+      "ingredients": [
+        {
+          "name": "Кава еспресо",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Приготуйте в кавомашині або турці."
+      ]
+    },
+    "ru": {
+      "name": "Эспрессо",
+      "description": "Крепкий черный кофе",
+      "ingredients": [
+        {
+          "name": "Кофе эспрессо",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Приготовьте в кофемашине или турке."
+      ]
+    }
+  },
+  "builtin_042": {
+    "en": {
+      "name": "Americano",
+      "description": "Black coffee with water",
+      "ingredients": [
+        {
+          "name": "Espresso",
+          "unit": "ml"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Make espresso.",
+        "Add hot water."
+      ]
+    },
+    "uk": {
+      "name": "Американо",
+      "description": "Чорна кава з водою",
+      "ingredients": [
+        {
+          "name": "Еспресо",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Зробіть еспресо.",
+        "Додайте гарячу воду."
+      ]
+    },
+    "ru": {
+      "name": "Американо",
+      "description": "Черный кофе с водой",
+      "ingredients": [
+        {
+          "name": "Эспрессо",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Сделайте эспрессо.",
+        "Добавьте горячую воду."
+      ]
+    }
+  },
+  "builtin_043": {
+    "en": {
+      "name": "Cappuccino",
+      "description": "Coffee with milk foam",
+      "ingredients": [
+        {
+          "name": "Espresso",
+          "unit": "ml"
+        },
+        {
+          "name": "Milk 2.5%",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Make espresso.",
+        "Froth and add milk."
+      ]
+    },
+    "uk": {
+      "name": "Капучино",
+      "description": "Кава з молочною пінкою",
+      "ingredients": [
+        {
+          "name": "Еспресо",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Приготуйте еспресо.",
+        "Збийте та додайте молоко."
+      ]
+    },
+    "ru": {
+      "name": "Капучино",
+      "description": "Кофе с молочной пеной",
+      "ingredients": [
+        {
+          "name": "Эспрессо",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Приготовьте эспрессо.",
+        "Взбейте и добавьте молоко."
+      ]
+    }
+  },
+  "builtin_044": {
+    "en": {
+      "name": "Latte",
+      "description": "Smooth coffee with milk",
+      "ingredients": [
+        {
+          "name": "Espresso",
+          "unit": "ml"
+        },
+        {
+          "name": "Milk 2.5%",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Brew espresso.",
+        "Add warm milk."
+      ]
+    },
+    "uk": {
+      "name": "Латте",
+      "description": "М'яка кава з молоком",
+      "ingredients": [
+        {
+          "name": "Еспресо",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Зваріть еспресо.",
+        "Додайте підігріте молоко."
+      ]
+    },
+    "ru": {
+      "name": "Латте",
+      "description": "Мягкий кофе с молоком",
+      "ingredients": [
+        {
+          "name": "Эспрессо",
+          "unit": "мл"
+        },
+        {
+          "name": "Молоко 2.5%",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Сварите эспрессо.",
+        "Добавьте подогретое молоко."
+      ]
+    }
+  },
+  "builtin_045": {
+    "en": {
+      "name": "Black Tea",
+      "description": "Classic hot tea",
+      "ingredients": [
+        {
+          "name": "Black tea",
+          "unit": "g"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Pour hot water over tea.",
+        "Steep for 3-5 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Чорний чай",
+      "description": "Класичний гарячий чай",
+      "ingredients": [
+        {
+          "name": "Чорний чай",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Залийте чай гарячою водою.",
+        "Настоюйте 3-5 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Черный чай",
+      "description": "Классический горячий чай",
+      "ingredients": [
+        {
+          "name": "Черный чай",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Залейте чай горячей водой.",
+        "Настаивайте 3-5 минут."
+      ]
+    }
+  },
+  "builtin_046": {
+    "en": {
+      "name": "Green Tea",
+      "description": "Light refreshing tea",
+      "ingredients": [
+        {
+          "name": "Green tea",
+          "unit": "g"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Steep with 80-85°C water.",
+        "Brew for 2-3 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Зелений чай",
+      "description": "Легкий бадьорий чай",
+      "ingredients": [
+        {
+          "name": "Зелений чай",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Заваріть водою 80-85°C.",
+        "Настоюйте 2-3 хвилини."
+      ]
+    },
+    "ru": {
+      "name": "Зеленый чай",
+      "description": "Легкий бодрящий чай",
+      "ingredients": [
+        {
+          "name": "Зеленый чай",
+          "unit": "г"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Заварите водой 80-85C.",
+        "Настаивайте 2-3 минуты."
+      ]
+    }
+  },
+  "builtin_047": {
+    "en": {
+      "name": "Chicken with Rice",
+      "description": "Everyday main course",
+      "ingredients": [
+        {
+          "name": "Chicken breast",
+          "unit": "g"
+        },
+        {
+          "name": "Rice",
+          "unit": "g"
+        },
+        {
+          "name": "Oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook rice.",
+        "Prepare chicken in a pan.",
+        "Serve together."
+      ]
+    },
+    "uk": {
+      "name": "Курка з рисом",
+      "description": "Повсякденна друга страва",
+      "ingredients": [
+        {
+          "name": "Куряче філе",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть рис.",
+        "Курку приготуйте на сковороді.",
+        "Подавайте разом."
+      ]
+    },
+    "ru": {
+      "name": "Курица с рисом",
+      "description": "Повседневное второе блюдо",
+      "ingredients": [
+        {
+          "name": "Куриная грудка",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите рис.",
+        "Курицу приготовьте на сковороде.",
+        "Подавайте вместе."
+      ]
+    }
+  },
+  "builtin_048": {
+    "en": {
+      "name": "Chicken Meatballs with Buckwheat",
+      "description": "Homemade lunch",
+      "ingredients": [
+        {
+          "name": "Chicken mince",
+          "unit": "g"
+        },
+        {
+          "name": "Buckwheat",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Shape meatballs.",
+        "Stew for 20 minutes.",
+        "Serve with buckwheat."
+      ]
+    },
+    "uk": {
+      "name": "Курячі тефтелі з гречкою",
+      "description": "Домашній обід",
+      "ingredients": [
+        {
+          "name": "Курячий фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформуйте тефтелі.",
+        "Потушкуйте 20 хвилин.",
+        "Подавайте з гречкою."
+      ]
+    },
+    "ru": {
+      "name": "Куриные тефтели с гречкой",
+      "description": "Домашний обед",
+      "ingredients": [
+        {
+          "name": "Фарш куриный",
+          "unit": "г"
+        },
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформируйте тефтели.",
+        "Потушите 20 минут.",
+        "Подавайте с гречкой."
+      ]
+    }
+  },
+  "builtin_049": {
+    "en": {
+      "name": "Braised Beef with Vegetables",
+      "description": "Hearty hot dish",
+      "ingredients": [
+        {
+          "name": "Beef",
+          "unit": "g"
+        },
+        {
+          "name": "Carrot",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Sear the meat.",
+        "Add vegetables and water.",
+        "Braise until tender."
+      ]
+    },
+    "uk": {
+      "name": "Яловичина тушкована з овочами",
+      "description": "Ситна гаряча страва",
+      "ingredients": [
+        {
+          "name": "Яловичина",
+          "unit": "г"
+        },
+        {
+          "name": "Морква",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Обсмажте м'ясо.",
+        "Додайте овочі та трохи води.",
+        "Тушкуйте до м'якості."
+      ]
+    },
+    "ru": {
+      "name": "Говядина тушеная с овощами",
+      "description": "Сытное горячее блюдо",
+      "ingredients": [
+        {
+          "name": "Говядина",
+          "unit": "г"
+        },
+        {
+          "name": "Морковь",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Обжарьте мясо.",
+        "Добавьте овощи и немного воды.",
+        "Тушите до мягкости."
+      ]
+    }
+  },
+  "builtin_050": {
+    "en": {
+      "name": "Turkey with Bulgur",
+      "description": "Light protein dinner",
+      "ingredients": [
+        {
+          "name": "Turkey fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Bulgur",
+          "unit": "g"
+        },
+        {
+          "name": "Olive oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook bulgur.",
+        "Fry turkey until done.",
+        "Serve hot."
+      ]
+    },
+    "uk": {
+      "name": "Індичка з булгуром",
+      "description": "Легка білкова вечеря",
+      "ingredients": [
+        {
+          "name": "Філе індички",
+          "unit": "г"
+        },
+        {
+          "name": "Булгур",
+          "unit": "г"
+        },
+        {
+          "name": "Оливкова олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть булгур.",
+        "Індичку обсмажте до готовності.",
+        "Подавайте гарячим."
+      ]
+    },
+    "ru": {
+      "name": "Индейка с булгуром",
+      "description": "Легкий белковый ужин",
+      "ingredients": [
+        {
+          "name": "Филе индейки",
+          "unit": "г"
+        },
+        {
+          "name": "Булгур",
+          "unit": "г"
+        },
+        {
+          "name": "Оливковое масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите булгур.",
+        "Индейку обжарьте до готовности.",
+        "Подавайте горячим."
+      ]
+    }
+  },
+  "builtin_051": {
+    "en": {
+      "name": "Pumpkin Cream Soup",
+      "description": "Light vegetable soup",
+      "ingredients": [
+        {
+          "name": "Pumpkin",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        },
+        {
+          "name": "Cream",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Boil pumpkin with onion.",
+        "Blend until smooth.",
+        "Add cream and heat."
+      ]
+    },
+    "uk": {
+      "name": "Крем-суп з гарбуза",
+      "description": "Легкий овочевий суп",
+      "ingredients": [
+        {
+          "name": "Гарбуз",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        },
+        {
+          "name": "Вершки",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть гарбуз з цибулею.",
+        "Пробийте блендером.",
+        "Додайте вершки та прогрійте."
+      ]
+    },
+    "ru": {
+      "name": "Суп-пюре из тыквы",
+      "description": "Легкий овощной суп",
+      "ingredients": [
+        {
+          "name": "Тыква",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        },
+        {
+          "name": "Сливки",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите тыкву с луком.",
+        "Пробейте блендером.",
+        "Добавьте сливки и прогрейте."
+      ]
+    }
+  },
+  "builtin_052": {
+    "en": {
+      "name": "Meatballs in Tomato Sauce",
+      "description": "Versatile main course",
+      "ingredients": [
+        {
+          "name": "Ground meat",
+          "unit": "g"
+        },
+        {
+          "name": "Tomato sauce",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Shape meatballs.",
+        "Fry and stew in sauce for 20 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Фрикадельки в томатному соусі",
+      "description": "Універсальна друга страва",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Томатний соус",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформуйте фрикадельки.",
+        "Обсмажте та тушкуйте в соусі 20 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Фрикадельки в томатном соусе",
+      "description": "Универсальное второе блюдо",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Томатный соус",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сформируйте фрикадельки.",
+        "Обжарьте и тушите в соусе 20 минут."
+      ]
+    }
+  },
+  "builtin_053": {
+    "en": {
+      "name": "Vegetable Stew",
+      "description": "Vegetable dish for every day",
+      "ingredients": [
+        {
+          "name": "Zucchini",
+          "unit": "g"
+        },
+        {
+          "name": "Eggplant",
+          "unit": "g"
+        },
+        {
+          "name": "Tomato",
+          "unit": "g"
+        },
+        {
+          "name": "Oil",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Chop the vegetables.",
+        "Stew covered for 20 minutes."
+      ]
+    },
+    "uk": {
+      "name": "Рагу овочеве",
+      "description": "Овочева страва на кожен день",
+      "ingredients": [
+        {
+          "name": "Кабачок",
+          "unit": "г"
+        },
+        {
+          "name": "Баклажан",
+          "unit": "г"
+        },
+        {
+          "name": "Помідор",
+          "unit": "г"
+        },
+        {
+          "name": "Олія",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Наріжте овочі.",
+        "Тушкуйте під кришкою 20 хвилин."
+      ]
+    },
+    "ru": {
+      "name": "Рагу овощное",
+      "description": "Овощное блюдо на каждый день",
+      "ingredients": [
+        {
+          "name": "Кабачок",
+          "unit": "г"
+        },
+        {
+          "name": "Баклажан",
+          "unit": "г"
+        },
+        {
+          "name": "Помидор",
+          "unit": "г"
+        },
+        {
+          "name": "Масло",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Нарежьте овощи.",
+        "Тушите под крышкой 20 минут."
+      ]
+    }
+  },
+  "builtin_054": {
+    "en": {
+      "name": "Lazy Cabbage Rolls",
+      "description": "Homemade classic",
+      "ingredients": [
+        {
+          "name": "Ground meat",
+          "unit": "g"
+        },
+        {
+          "name": "Cabbage",
+          "unit": "g"
+        },
+        {
+          "name": "Rice",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Mix meat, rice and cabbage.",
+        "Stew until done in sauce."
+      ]
+    },
+    "uk": {
+      "name": "Голубці ліниві",
+      "description": "Домашня класика",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Змішайте фарш, рис та капусту.",
+        "Тушкуйте до готовності в соусі."
+      ]
+    },
+    "ru": {
+      "name": "Голубцы ленивые",
+      "description": "Домашняя классика",
+      "ingredients": [
+        {
+          "name": "Фарш",
+          "unit": "г"
+        },
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Рис",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Смешайте фарш, рис и капусту.",
+        "Тушите до готовности в соусе."
+      ]
+    }
+  },
+  "builtin_055": {
+    "en": {
+      "name": "Potato and Chicken Casserole",
+      "description": "Hearty oven dish",
+      "ingredients": [
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Chicken fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Sour cream",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Layer ingredients.",
+        "Bake for 35-40 minutes at 180°C."
+      ]
+    },
+    "uk": {
+      "name": "Запіканка картопляна з куркою",
+      "description": "Ситна страва з духовки",
+      "ingredients": [
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Куряче філе",
+          "unit": "г"
+        },
+        {
+          "name": "Сметана",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Наріжте інгредієнти шарами.",
+        "Запікайте 35-40 хвилин при 180°C."
+      ]
+    },
+    "ru": {
+      "name": "Запеканка картофельная с курицей",
+      "description": "Сытное блюдо из духовки",
+      "ingredients": [
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Куриное филе",
+          "unit": "г"
+        },
+        {
+          "name": "Сметана",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Нарежьте ингредиенты слоями.",
+        "Запекайте 35-40 минут при 180C."
+      ]
+    }
+  },
+  "builtin_056": {
+    "en": {
+      "name": "Millet Porridge with Pumpkin",
+      "description": "Warm breakfast",
+      "ingredients": [
+        {
+          "name": "Millet",
+          "unit": "g"
+        },
+        {
+          "name": "Pumpkin",
+          "unit": "g"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook millet.",
+        "Add pumpkin and milk.",
+        "Simmer until soft."
+      ]
+    },
+    "uk": {
+      "name": "Пшоняна каша з гарбузом",
+      "description": "Теплий сніданок",
+      "ingredients": [
+        {
+          "name": "Пшоно",
+          "unit": "г"
+        },
+        {
+          "name": "Гарбуз",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть пшоно.",
+        "Додайте гарбуз та молоко.",
+        "Томіть до м'якості."
+      ]
+    },
+    "ru": {
+      "name": "Пшенная каша с тыквой",
+      "description": "Теплый завтрак",
+      "ingredients": [
+        {
+          "name": "Пшено",
+          "unit": "г"
+        },
+        {
+          "name": "Тыква",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите пшено.",
+        "Добавьте тыкву и молоко.",
+        "Томите до мягкости."
+      ]
+    }
+  },
+  "builtin_057": {
+    "en": {
+      "name": "Rice Porridge",
+      "description": "Classic milk porridge",
+      "ingredients": [
+        {
+          "name": "Rice",
+          "unit": "g"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        },
+        {
+          "name": "Water",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook rice until soft.",
+        "Add milk and heat."
+      ]
+    },
+    "uk": {
+      "name": "Рисова каша",
+      "description": "Класична молочна каша",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Зваріть рис до м'якості.",
+        "Додайте молоко та прогрійте."
+      ]
+    },
+    "ru": {
+      "name": "Рисовая каша",
+      "description": "Классическая молочная каша",
+      "ingredients": [
+        {
+          "name": "Рис",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Вода",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Сварите рис до мягкости.",
+        "Добавьте молоко и прогрейте."
+      ]
+    }
+  },
+  "builtin_058": {
+    "en": {
+      "name": "Buckwheat with Mushrooms",
+      "description": "Meat-free dish",
+      "ingredients": [
+        {
+          "name": "Buckwheat",
+          "unit": "g"
+        },
+        {
+          "name": "Champignons",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Cook buckwheat.",
+        "Fry mushrooms with onion.",
+        "Mix before serving."
+      ]
+    },
+    "uk": {
+      "name": "Гречка з грибами",
+      "description": "Пісна страва",
+      "ingredients": [
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Шампіньйони",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Відваріть гречку.",
+        "Обсмажте гриби з цибулею.",
+        "Змішайте перед подачею."
+      ]
+    },
+    "ru": {
+      "name": "Гречка с грибами",
+      "description": "Постное блюдо",
+      "ingredients": [
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Шампиньоны",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Отварите гречку.",
+        "Обжарьте грибы с луком.",
+        "Смешайте перед подачей."
+      ]
+    }
+  },
+  "builtin_059": {
+    "en": {
+      "name": "Creamy Chicken Pasta",
+      "description": "Creamy pasta",
+      "ingredients": [
+        {
+          "name": "Pasta",
+          "unit": "g"
+        },
+        {
+          "name": "Chicken fillet",
+          "unit": "g"
+        },
+        {
+          "name": "Cream",
+          "unit": "ml"
+        }
+      ],
+      "instructions": [
+        "Cook pasta.",
+        "Fry chicken.",
+        "Add cream and mix with pasta."
+      ]
+    },
+    "uk": {
+      "name": "Паста з куркою та вершками",
+      "description": "Вершкова паста",
+      "ingredients": [
+        {
+          "name": "Паста",
+          "unit": "г"
+        },
+        {
+          "name": "Куряче філе",
+          "unit": "г"
+        },
+        {
+          "name": "Вершки",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Відваріть пасту.",
+        "Курку обсмажте.",
+        "Додайте вершки та змішайте з пастою."
+      ]
+    },
+    "ru": {
+      "name": "Паста с курицей и сливками",
+      "description": "Сливочная паста",
+      "ingredients": [
+        {
+          "name": "Паста",
+          "unit": "г"
+        },
+        {
+          "name": "Куриное филе",
+          "unit": "г"
+        },
+        {
+          "name": "Сливки",
+          "unit": "мл"
+        }
+      ],
+      "instructions": [
+        "Отварите пасту.",
+        "Курицу обжарьте.",
+        "Добавьте сливки и смешайте с пастой."
+      ]
+    }
+  },
+  "builtin_060": {
+    "en": {
+      "name": "Mash with Fish Cake",
+      "description": "Simple dinner",
+      "ingredients": [
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Milk",
+          "unit": "ml"
+        },
+        {
+          "name": "Fish cake",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Make mashed potato.",
+        "Prepare the fish cake.",
+        "Serve hot."
+      ]
+    },
+    "uk": {
+      "name": "Пюре з рибною котлетою",
+      "description": "Проста вечеря",
+      "ingredients": [
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Рибна котлета",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Зробіть картопляне пюре.",
+        "Приготуйте котлету.",
+        "Подавайте гарячим."
+      ]
+    },
+    "ru": {
+      "name": "Пюре с рыбной котлетой",
+      "description": "Простой ужин",
+      "ingredients": [
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Молоко",
+          "unit": "мл"
+        },
+        {
+          "name": "Рыбная котлета",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сделайте картофельное пюре.",
+        "Приготовьте котлету.",
+        "Подавайте горячим."
+      ]
+    }
+  },
+  "builtin_061": {
+    "en": {
+      "name": "Rassolnik Soup",
+      "description": "Soup with barley and pickles",
+      "ingredients": [
+        {
+          "name": "Pearl barley",
+          "unit": "g"
+        },
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Pickled cucumber",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Make broth.",
+        "Add barley and vegetables.",
+        "Simmer until done."
+      ]
+    },
+    "uk": {
+      "name": "Розсольник",
+      "description": "Суп з перловкою та огірком",
+      "ingredients": [
+        {
+          "name": "Перловка",
+          "unit": "г"
+        },
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Огірок солоний",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Зваріть бульйон.",
+        "Додайте перловку та овочі.",
+        "Томіть до готовності."
+      ]
+    },
+    "ru": {
+      "name": "Рассольник",
+      "description": "Суп с перловкой и огурцом",
+      "ingredients": [
+        {
+          "name": "Перловка",
+          "unit": "г"
+        },
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Огурец соленый",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Сварите бульон.",
+        "Добавьте перловку и овощи.",
+        "Томите до готовности."
+      ]
+    }
+  },
+  "builtin_062": {
+    "en": {
+      "name": "Fresh Cabbage Soup",
+      "description": "Classic shchi soup",
+      "ingredients": [
+        {
+          "name": "Cabbage",
+          "unit": "g"
+        },
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Meat",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Prepare broth.",
+        "Add vegetables.",
+        "Cook until done."
+      ]
+    },
+    "uk": {
+      "name": "Щі зі свіжої капусти",
+      "description": "Класичний суп",
+      "ingredients": [
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "М'ясо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Підготуйте бульйон.",
+        "Додайте овочі.",
+        "Варіть до готовності."
+      ]
+    },
+    "ru": {
+      "name": "Щи из свежей капусты",
+      "description": "Классический суп",
+      "ingredients": [
+        {
+          "name": "Капуста",
+          "unit": "г"
+        },
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Мясо",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Подготовьте бульон.",
+        "Добавьте овощи.",
+        "Варите до готовности."
+      ]
+    }
+  },
+  "builtin_063": {
+    "en": {
+      "name": "Baked Chicken with Potato",
+      "description": "Oven dinner",
+      "ingredients": [
+        {
+          "name": "Chicken thighs",
+          "unit": "g"
+        },
+        {
+          "name": "Potato",
+          "unit": "g"
+        },
+        {
+          "name": "Spices",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Marinate chicken.",
+        "Arrange with potato on baking tray.",
+        "Bake for 40 minutes at 190°C."
+      ]
+    },
+    "uk": {
+      "name": "Курка запечена з картоплею",
+      "description": "Вечеря в духовці",
+      "ingredients": [
+        {
+          "name": "Курячі стегна",
+          "unit": "г"
+        },
+        {
+          "name": "Картопля",
+          "unit": "г"
+        },
+        {
+          "name": "Спеції",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Замаринуйте курку.",
+        "Викладіть з картоплею на деко.",
+        "Запікайте 40 хвилин при 190°C."
+      ]
+    },
+    "ru": {
+      "name": "Курица запеченная с картофелем",
+      "description": "Ужин в духовке",
+      "ingredients": [
+        {
+          "name": "Куриные бедра",
+          "unit": "г"
+        },
+        {
+          "name": "Картофель",
+          "unit": "г"
+        },
+        {
+          "name": "Специи",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Замаринуйте курицу.",
+        "Выложите с картофелем на противень.",
+        "Запекайте 40 минут при 190C."
+      ]
+    }
+  },
+  "builtin_064": {
+    "en": {
+      "name": "Chicken Liver with Buckwheat",
+      "description": "Budget hot dish",
+      "ingredients": [
+        {
+          "name": "Chicken liver",
+          "unit": "g"
+        },
+        {
+          "name": "Buckwheat",
+          "unit": "g"
+        },
+        {
+          "name": "Onion",
+          "unit": "g"
+        }
+      ],
+      "instructions": [
+        "Cook buckwheat.",
+        "Fry liver with onion.",
+        "Serve together."
+      ]
+    },
+    "uk": {
+      "name": "Куряча печінка з гречкою",
+      "description": "Бюджетна гаряча страва",
+      "ingredients": [
+        {
+          "name": "Куряча печінка",
+          "unit": "г"
+        },
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Цибуля",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Відваріть гречку.",
+        "Печінку обсмажте з цибулею.",
+        "Подавайте разом."
+      ]
+    },
+    "ru": {
+      "name": "Печень куриная с гречкой",
+      "description": "Бюджетное горячее блюдо",
+      "ingredients": [
+        {
+          "name": "Печень куриная",
+          "unit": "г"
+        },
+        {
+          "name": "Гречка",
+          "unit": "г"
+        },
+        {
+          "name": "Лук",
+          "unit": "г"
+        }
+      ],
+      "instructions": [
+        "Отварите гречку.",
+        "Печень обжарьте с луком.",
+        "Подавайте вместе."
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
 
@@ -64,24 +65,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _loadInitialData() async {
     final profileProvider = context.read<ProfileProvider>();
     await profileProvider.loadProfile();
-    final profile = profileProvider.profile ?? await _profileService.loadProfile();
+    final profile =
+        profileProvider.profile ?? await _profileService.loadProfile();
     if (!mounted) return;
 
     _initialProfile = profile;
 
     setState(() {
-      _nameController.text = profile.name.isNotEmpty ? profile.name : 'Пользователь';
+      _nameController.text = profile.name.isNotEmpty
+          ? profile.name
+          : AppLocalizations.of(context)!.userDefaultName;
       _gender = profile.gender;
-      
+
       if (profile.birthDate.year > 1900) {
         _birthDate = profile.birthDate;
       } else {
         _birthDate = DateTime(1997, 6, 15);
       }
 
-      _heightController.text = profile.height > 0 ? profile.height.toString() : '170';
-      _weightController.text = profile.weight > 0 ? profile.weight.toString() : '70.0';
-      _weightGoalController.text = profile.weightGoal > 0 ? profile.weightGoal.toString() : '65.0';
+      _heightController.text =
+          profile.height > 0 ? profile.height.toString() : '170';
+      _weightController.text =
+          profile.weight > 0 ? profile.weight.toString() : '70.0';
+      _weightGoalController.text =
+          profile.weightGoal > 0 ? profile.weightGoal.toString() : '65.0';
 
       _goalType = profile.goalType;
       _activityFrequency = profile.activityFrequency;
@@ -93,12 +100,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _aiContextController.text = profile.aiContext;
       }
 
-      _calorieGoalController.text = profile.calorieGoal > 0 ? profile.calorieGoal.toString() : '1800';
-      _proteinGoalController.text = profile.proteinGoal > 0 ? profile.proteinGoal.toString() : '120';
-      _fatGoalController.text = profile.fatGoal > 0 ? profile.fatGoal.toString() : '60';
-      _carbsGoalController.text = profile.carbsGoal > 0 ? profile.carbsGoal.toString() : '195';
-      _waterGoalController.text = profile.waterGoal > 0 ? profile.waterGoal.toString() : '2000';
-      _stepsGoalController.text = profile.stepsGoal > 0 ? profile.stepsGoal.toString() : '10000';
+      _calorieGoalController.text =
+          profile.calorieGoal > 0 ? profile.calorieGoal.toString() : '1800';
+      _proteinGoalController.text =
+          profile.proteinGoal > 0 ? profile.proteinGoal.toString() : '120';
+      _fatGoalController.text =
+          profile.fatGoal > 0 ? profile.fatGoal.toString() : '60';
+      _carbsGoalController.text =
+          profile.carbsGoal > 0 ? profile.carbsGoal.toString() : '195';
+      _waterGoalController.text =
+          profile.waterGoal > 0 ? profile.waterGoal.toString() : '2000';
+      _stepsGoalController.text =
+          profile.stepsGoal > 0 ? profile.stepsGoal.toString() : '10000';
 
       _isLoadingData = false;
     });
@@ -128,10 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       initialDate: _birthDate,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      locale: const Locale('ru', 'RU'),
-      helpText: 'Дата рождения',
-      cancelText: 'Отмена',
-      confirmText: 'Выбрать',
+      locale: Localizations.localeOf(context),
     );
     if (picked != null) {
       setState(() => _birthDate = picked);
@@ -227,7 +237,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final profileDraft = UserProfile(
         name: _nameController.text.trim().isEmpty
-            ? 'Гость'
+            ? AppLocalizations.of(context)!.guest
             : _nameController.text.trim(),
         gender: _gender,
         birthDate: _birthDate,
@@ -273,23 +283,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  String? _requiredValidator(String? value,
-      {String message = 'Обязательное поле'}) {
-    if (value == null || value.trim().isEmpty) return message;
+  String? _requiredValidator(String? value, {String? message}) {
+    final resolvedMessage =
+        message ?? AppLocalizations.of(context)!.requiredField;
+    if (value == null || value.trim().isEmpty) return resolvedMessage;
     return null;
   }
 
   String? _positiveIntValidator(String? value, String emptyMessage) {
     if (value == null || value.trim().isEmpty) return emptyMessage;
     final parsed = int.tryParse(value.trim());
-    if (parsed == null || parsed <= 0) return 'Введите число больше 0';
+    if (parsed == null || parsed <= 0) {
+      return AppLocalizations.of(context)!.enterNumberGreaterThanZero;
+    }
     return null;
   }
 
   String? _positiveDoubleValidator(String? value, String emptyMessage) {
     if (value == null || value.trim().isEmpty) return emptyMessage;
     final parsed = _tryParseDouble(value.trim());
-    if (parsed == null || parsed <= 0) return 'Введите число больше 0';
+    if (parsed == null || parsed <= 0) {
+      return AppLocalizations.of(context)!.enterNumberGreaterThanZero;
+    }
     return null;
   }
 
@@ -315,6 +330,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoadingData) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -322,14 +338,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     final stepTitle = switch (_currentStep) {
-      0 => 'Физические параметры',
-      1 => 'Общие цели',
-      _ => 'Дневные цели',
+      0 => l10n.physicalParams,
+      1 => l10n.generalGoals,
+      _ => l10n.dailyGoalsTitle,
     };
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Первичная настройка ${_currentStep + 1}/$_totalSteps'),
+        title: Text('${l10n.settings} ${_currentStep + 1}/$_totalSteps'),
       ),
       body: SafeArea(
         child: Column(
@@ -380,7 +396,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _saving ? null : _prevStep,
                         icon: const Icon(Symbols.arrow_back),
-                        label: const Text('Назад'),
+                        label: Text(l10n.back),
                       ),
                     )
                   else
@@ -412,8 +428,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                       label: Text(
                         _currentStep == _totalSteps - 1
-                            ? 'Сохранить и продолжить'
-                            : 'Далее',
+                            ? l10n.saveAndContinue
+                            : l10n.next,
                       ),
                     ),
                   ),
@@ -427,6 +443,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPhysicalStep(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final birthDateText =
         '${_birthDate.day.toString().padLeft(2, '0')}.${_birthDate.month.toString().padLeft(2, '0')}.${_birthDate.year}';
@@ -438,14 +455,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _buildInfoCard(
             theme,
-            'Здесь указываются базовые физические параметры: пол, возраст, рост и текущий вес. Эти данные нужны для персональных расчетов.',
+            l10n.onboardingPhysicalInfo,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _nameController,
             validator: (v) =>
-                _requiredValidator(v, message: 'Введите ваше имя'),
-            decoration: AppStyles.inputDecoration('Имя', Symbols.person),
+                _requiredValidator(v, message: l10n.enterYourName),
+            decoration: AppStyles.inputDecoration(l10n.name, Symbols.person),
           ),
           const SizedBox(height: 16),
           _buildGenderSelector(theme),
@@ -455,7 +472,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onTap: _pickBirthDate,
             child: InputDecorator(
               decoration:
-                  AppStyles.inputDecoration('Дата рождения', Symbols.cake),
+                  AppStyles.inputDecoration(l10n.birthDate, Symbols.cake),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -464,7 +481,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    '${_calcAge(_birthDate)} лет',
+                    '${_calcAge(_birthDate)} ${l10n.yearsOld}',
                     style: TextStyle(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,
@@ -479,8 +496,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _heightController,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (v) => _positiveIntValidator(v, 'Введите ваш рост'),
-            decoration: AppStyles.inputDecoration('Рост (см)', Symbols.height),
+            validator: (v) => _positiveIntValidator(v, l10n.enterYourHeight),
+            decoration:
+                AppStyles.inputDecoration(l10n.heightCm, Symbols.height),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -489,9 +507,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d{0,1}')),
             ],
-            validator: (v) => _positiveDoubleValidator(v, 'Введите ваш вес'),
+            validator: (v) => _positiveDoubleValidator(v, l10n.enterYourWeight),
             decoration:
-                AppStyles.inputDecoration('Текущий вес (кг)', Symbols.weight),
+                AppStyles.inputDecoration(l10n.weightKg, Symbols.weight),
           ),
         ],
       ),
@@ -499,6 +517,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildGeneralGoalsStep(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Form(
@@ -508,7 +527,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _buildInfoCard(
             theme,
-            'Задайте стратегию прогресса: целевой вес, тип цели и ваш спортивный режим. Эти данные передаются нейросети для более точных дневных норм.',
+            l10n.onboardingGeneralInfo,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -517,10 +536,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d{0,1}')),
             ],
-            validator: (v) =>
-                _positiveDoubleValidator(v, 'Введите цель по весу'),
-            decoration:
-                AppStyles.inputDecoration('Цель по весу (кг)', Symbols.flag),
+            validator: (v) => _positiveDoubleValidator(v, l10n.enterWeightGoal),
+            decoration: AppStyles.inputDecoration(
+                '${l10n.weightGoalTitle} (кг)', Symbols.flag),
           ),
           const SizedBox(height: 16),
           _buildGoalTypeSelector(theme),
@@ -531,10 +549,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _activityTypesController,
             maxLines: 2,
             decoration: AppStyles.inputDecoration(
-              'Каким спортом/активностью занимаетесь',
+              l10n.sportsActivities,
               Symbols.fitness_center,
             ).copyWith(
-              hintText: 'Можно оставить пустым',
+              hintText: l10n.canBeLeftEmpty,
             ),
           ),
           const SizedBox(height: 16),
@@ -542,11 +560,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _aiContextController,
             maxLines: 3,
             decoration: AppStyles.inputDecoration(
-              'Дополнительно для нейросети',
+              l10n.additionalForAi,
               Symbols.psychology,
             ).copyWith(
-              hintText:
-                  'Например: сидячая работа, ранние тренировки, ограничения в еде. Можно оставить пустым.',
+              hintText: l10n.additionalForAiHint,
             ),
           ),
         ],
@@ -555,6 +572,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildDailyGoalsStep(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Form(
@@ -564,7 +582,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _buildInfoCard(
             theme,
-            'Здесь задаются дневные нормы: калории, вода, шаги и БЖУ. Затем их можно скорректировать в профиле.',
+            l10n.onboardingDailyInfo,
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -580,8 +598,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   : const Icon(Symbols.auto_awesome),
               label: Text(
                 _isAiFillingDailyGoals
-                    ? 'Нейросеть рассчитывает цели...'
-                    : 'Рассчитать дневные цели нейросетью',
+                    ? l10n.aiCalculatingGoals
+                    : l10n.aiCalculateGoals,
               ),
             ),
           ),
@@ -596,52 +614,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: Colors.orange.withValues(alpha: 0.28),
               ),
             ),
-            child: const Text(
-              'Нейросеть рассчитывает цели по вашим параметрам. Рекомендуется проверить значения перед сохранением.',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            child: Text(
+              l10n.aiGoalsNotice,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(height: 16),
           _buildDailyGoalField(
             controller: _calorieGoalController,
-            label: 'Калории (ккал)',
+            label: '${l10n.calories} (${l10n.kcal})',
             icon: Symbols.local_fire_department,
-            emptyMessage: 'Введите цель по калориям',
+            emptyMessage: l10n.enterCalorieGoal,
           ),
           const SizedBox(height: 16),
           _buildDailyGoalField(
             controller: _waterGoalController,
-            label: 'Вода (мл)',
+            label: '${l10n.water} (мл)',
             icon: Symbols.water_drop,
-            emptyMessage: 'Введите цель по воде',
+            emptyMessage: l10n.enterWaterGoal,
           ),
           const SizedBox(height: 16),
           _buildDailyGoalField(
             controller: _stepsGoalController,
-            label: 'Шаги',
+            label: l10n.steps,
             icon: Symbols.directions_walk,
-            emptyMessage: 'Введите цель по шагам',
+            emptyMessage: l10n.enterStepsGoal,
           ),
           const Divider(height: 32),
           _buildDailyGoalField(
             controller: _proteinGoalController,
-            label: 'Белки (г)',
+            label: '${l10n.protein} (г)',
             icon: Symbols.egg,
-            emptyMessage: 'Введите цель по белкам',
+            emptyMessage: l10n.enterProteinGoal,
           ),
           const SizedBox(height: 16),
           _buildDailyGoalField(
             controller: _carbsGoalController,
-            label: 'Углеводы (г)',
+            label: '${l10n.carbs} (г)',
             icon: Symbols.bakery_dining,
-            emptyMessage: 'Введите цель по углеводам',
+            emptyMessage: l10n.enterCarbsGoal,
           ),
           const SizedBox(height: 16),
           _buildDailyGoalField(
             controller: _fatGoalController,
-            label: 'Жиры (г)',
+            label: '${l10n.fat} (г)',
             icon: Symbols.oil_barrel,
-            emptyMessage: 'Введите цель по жирам',
+            emptyMessage: l10n.enterFatGoal,
           ),
         ],
       ),
@@ -689,11 +707,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildGenderSelector(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Пол',
+          l10n.gender,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.hintColor,
             fontWeight: FontWeight.bold,
@@ -704,7 +723,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             _buildChoiceChip(
               theme: theme,
-              title: 'Мужской',
+              title: l10n.male,
               icon: Symbols.male,
               selected: _gender == Gender.male,
               onTap: () => setState(() => _gender = Gender.male),
@@ -712,7 +731,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(width: 12),
             _buildChoiceChip(
               theme: theme,
-              title: 'Женский',
+              title: l10n.female,
               icon: Symbols.female,
               selected: _gender == Gender.female,
               onTap: () => setState(() => _gender = Gender.female),
@@ -724,6 +743,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildGoalTypeSelector(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -732,7 +752,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Icon(Symbols.track_changes, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Тип цели',
+              l10n.goalTypeTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -747,8 +767,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               theme: theme,
               selected: _goalType == goal,
               icon: _goalTypeIcon(goal),
-              title: goal.ruLabel,
-              subtitle: goal.ruHint,
+              title: goal.localizedLabel(context),
+              subtitle: goal.localizedHint(context),
               onTap: () => setState(() => _goalType = goal),
             ),
           ),
@@ -758,6 +778,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildActivityFrequencySelector(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -766,7 +787,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Icon(Symbols.fitness_center, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Частота активности',
+              l10n.activityFrequencyTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -781,8 +802,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               theme: theme,
               selected: _activityFrequency == frequency,
               icon: _activityFrequencyIcon(frequency),
-              title: frequency.ruLabel,
-              subtitle: frequency.ruHint,
+              title: frequency.localizedLabel(context),
+              subtitle: frequency.localizedHint(context),
               onTap: () => setState(() => _activityFrequency = frequency),
             ),
           ),

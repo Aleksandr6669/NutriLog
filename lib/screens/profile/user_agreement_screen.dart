@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 class UserAgreementScreen extends StatefulWidget {
   final bool showAcceptButton;
@@ -35,30 +36,30 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('Пользовательское соглашение'),
+        title: Text(AppLocalizations.of(context)!.userAgreement),
       ),
       body: ListView(
         padding: glassBodyPadding(context, top: 16, bottom: 40),
         children: [
           _buildSection(
             theme,
-            '1. Сбор и использование данных',
-            'NutriLog собирает данные о вашем питании, весе, физических параметрах и целях, чтобы предоставлять персонализированные расчеты КБЖУ и рекомендации. Ваши данные используются исключительно для функционирования приложения и улучшения вашего опыта.',
+            AppLocalizations.of(context)!.agreementSection1Title,
+            AppLocalizations.of(context)!.agreementSection1Content,
           ),
           _buildSection(
             theme,
-            '2. Хранение данных',
-            'Все ваши данные (дневник питания, рецепты, антропометрические данные) хранятся непосредственно в памяти приложения на вашем устройстве или в вашем личном аккаунте NutriLog. Мы не передаем вашу личную информацию третьим лицам без вашего явного согласия.',
+            AppLocalizations.of(context)!.agreementSection2Title,
+            AppLocalizations.of(context)!.agreementSection2Content,
           ),
           _buildSection(
             theme,
-            '3. Использование нейросетевых технологий',
-            'Приложение использует современные технологии нейронных сетей для анализа ваших приемов пищи, автоматического распознавания продуктов по описанию или фото, а также для помощи в составлении рациона и создании рецептов. Обработка данных происходит анонимно.',
+            AppLocalizations.of(context)!.agreementSection3Title,
+            AppLocalizations.of(context)!.agreementSection3Content,
           ),
           _buildSection(
             theme,
-            '4. Ответственность',
-            'Приложение является инструментом для мониторинга питания и не заменяет консультацию врача или профессионального диетолога. Все расчеты носят рекомендательный характер.',
+            AppLocalizations.of(context)!.agreementSection4Title,
+            AppLocalizations.of(context)!.agreementSection4Content,
           ),
           const SizedBox(height: 24),
           
@@ -72,9 +73,9 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
                     });
                   }
                 : null, // Отключаем изменение, если смотрим через настройки
-            title: const Text(
-              'Я ознакомлен и принимаю условия пользовательского соглашения',
-              style: TextStyle(fontSize: 14),
+            title: Text(
+              AppLocalizations.of(context)!.agreementCheckboxText,
+              style: const TextStyle(fontSize: 14),
             ),
             controlAffinity: ListTileControlAffinity.leading,
             activeColor: theme.colorScheme.primary,
@@ -83,7 +84,7 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
           
           const SizedBox(height: 20),
           Text(
-            'Продолжая использовать приложение, вы соглашаетесь с данными условиями.',
+            AppLocalizations.of(context)!.agreementContinueText,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.hintColor,
               fontStyle: FontStyle.italic,
@@ -102,9 +103,9 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Принимаю условия',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.agreementAcceptButton,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

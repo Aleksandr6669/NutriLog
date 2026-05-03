@@ -3,7 +3,7 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), calories: "0", protein: "0", fat: "0", carbs: "0", water: "0.0 Л")
+        SimpleEntry(date: Date(), calories: "0", protein: "0", fat: "0", carbs: "0", water: "0.0")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -23,7 +23,7 @@ struct Provider: TimelineProvider {
         let protein = userDefaults?.string(forKey: "proteins") ?? "0"
         let fat = userDefaults?.string(forKey: "fats") ?? "0"
         let carbs = userDefaults?.string(forKey: "carbs") ?? "0"
-        let water = userDefaults?.string(forKey: "water") ?? "0.0 Л"
+        let water = userDefaults?.string(forKey: "water") ?? "0.0"
         
         return SimpleEntry(
             date: Date(),
@@ -56,7 +56,7 @@ struct NutriLogWidgetEntryView : View {
                 HStack(spacing: 16) {
                     // Left Column (Calories)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("КАЛОРИИ")
+                        Text(LocalizedStringKey("widget.calories.title"))
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color(hex: "00C753"))
                         
@@ -64,7 +64,7 @@ struct NutriLogWidgetEntryView : View {
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(Color.primary)
                             
-                        Text("за сегодня")
+                        Text(LocalizedStringKey("widget.today"))
                             .font(.system(size: 10))
                             .foregroundColor(Color.secondary)
                     }
@@ -73,9 +73,9 @@ struct NutriLogWidgetEntryView : View {
                     Divider()
                     
                     VStack(spacing: 16) {
-                        MediumMacroView(label: "Белки", value: "\(entry.protein)", color: Color(hex: "00C753"))
-                        MediumMacroView(label: "Жиры", value: "\(entry.fat)", color: Color(hex: "00C753"))
-                        MediumMacroView(label: "Углев", value: "\(entry.carbs)", color: Color(hex: "00C753"))
+                        MediumMacroView(label: NSLocalizedString("widget.protein", comment: ""), value: "\(entry.protein)", color: Color(hex: "00C753"))
+                        MediumMacroView(label: NSLocalizedString("widget.fat", comment: ""), value: "\(entry.fat)", color: Color(hex: "00C753"))
+                        MediumMacroView(label: NSLocalizedString("widget.carbs.short", comment: ""), value: "\(entry.carbs)", color: Color(hex: "00C753"))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -85,7 +85,7 @@ struct NutriLogWidgetEntryView : View {
                 VStack(spacing: 8) {
                     // Header
                     HStack {
-                        Text("КАЛОРИИ")
+                        Text(LocalizedStringKey("widget.calories.title"))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(Color(hex: "00C753"))
                         Spacer()
@@ -103,9 +103,9 @@ struct NutriLogWidgetEntryView : View {
                     
                     // Macros Row
                     HStack(spacing: 0) {
-                        MacroView(label: "Б", value: entry.protein, color: Color(hex: "00C753"))
-                        MacroView(label: "Ж", value: entry.fat, color: Color(hex: "00C753"))
-                        MacroView(label: "У", value: entry.carbs, color: Color(hex: "00C753"))
+                        MacroView(label: NSLocalizedString("widget.macro.protein.short", comment: ""), value: entry.protein, color: Color(hex: "00C753"))
+                        MacroView(label: NSLocalizedString("widget.macro.fat.short", comment: ""), value: entry.fat, color: Color(hex: "00C753"))
+                        MacroView(label: NSLocalizedString("widget.macro.carbs.short", comment: ""), value: entry.carbs, color: Color(hex: "00C753"))
                     }
                     .padding(6)
                     .background(Color.secondary.opacity(0.2))
@@ -167,8 +167,8 @@ struct NutriLogWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("NutriLog Дневник")
-        .description("Ваши калории и БЖУ на сегодня.")
+        .configurationDisplayName(LocalizedStringKey("widget.diary.display_name"))
+        .description(LocalizedStringKey("widget.diary.description"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -180,7 +180,7 @@ struct NutriLogWaterWidgetEntryView : View {
     var body: some View {
         ZStack {
             VStack(spacing: 8) {
-                Text("ВОДА")
+                Text(LocalizedStringKey("widget.water.title"))
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(Color(hex: "00C753"))
                 
@@ -207,8 +207,8 @@ struct NutriLogWaterWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("NutriLog Вода")
-        .description("Ваш баланс воды на сегодня.")
+        .configurationDisplayName(LocalizedStringKey("widget.water.display_name"))
+        .description(LocalizedStringKey("widget.water.description"))
         .supportedFamilies([.systemSmall])
     }
 }

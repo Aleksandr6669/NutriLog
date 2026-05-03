@@ -44,11 +44,20 @@ class RecipeLoader {
     'restaurant_menu': Symbols.restaurant_menu,
   };
 
-  static Future<List<Recipe>> loadRecipesFromAssets() async {
+  static Future<List<Recipe>> loadRecipesFromAssets(
+      {String locale = 'ru'}) async {
     final String response =
         await rootBundle.loadString('assets/data/recipes.json');
-    // JSON верхнего уровня - это список, а не объект с ключом 'recipes'
-    final List<dynamic> data = await json.decode(response);
+    final List<dynamic> data = json.decode(response);
+
+    // Загружаем i18n-переводы для всех языков
+    Map<String, dynamic> i18n = {};
+    try {
+      final String i18nRaw =
+          await rootBundle.loadString('assets/data/recipes_i18n.json');
+      i18n = json.decode(i18nRaw) as Map<String, dynamic>;
+    } catch (_) {}
+
     return data.asMap().entries.map((entry) {
       final index = entry.key;
       final source = entry.value as Map<String, dynamic>;
@@ -57,6 +66,38 @@ class RecipeLoader {
       if (rawId.isEmpty) {
         normalized['id'] = 'builtin_$index';
       }
+
+      // Применяем перевод если есть
+      final id = normalized['id'] as String;
+      final translation =
+          (i18n[id] as Map<String, dynamic>?)?[locale] as Map<String, dynamic>?;
+      if (translation != null) {
+        if (translation['name'] != null)
+          normalized['name'] = translation['name'];
+        if (translation['description'] != null)
+          normalized['description'] = translation['description'];
+
+        // Переводим ингредиенты: заменяем name и unit, quantity оставляем из оригинала
+        final transIngredients = translation['ingredients'] as List<dynamic>?;
+        final origIngredients = normalized['ingredients'] as List<dynamic>?;
+        if (transIngredients != null &&
+            origIngredients != null &&
+            transIngredients.length == origIngredients.length) {
+          normalized['ingredients'] =
+              List.generate(transIngredients.length, (i) {
+            final orig = Map<String, dynamic>.from(origIngredients[i] as Map);
+            final trans = transIngredients[i] as Map<String, dynamic>;
+            if (trans['name'] != null) orig['name'] = trans['name'];
+            if (trans['unit'] != null) orig['unit'] = trans['unit'];
+            return orig;
+          });
+        }
+
+        if (translation['instructions'] != null) {
+          normalized['instructions'] = translation['instructions'];
+        }
+      }
+
       return Recipe.fromJson(normalized);
     }).toList();
   }

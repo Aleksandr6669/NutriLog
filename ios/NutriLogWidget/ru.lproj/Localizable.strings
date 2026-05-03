@@ -1,0 +1,13 @@
+"widget.calories.title" = "КАЛОРИИ";
+"widget.today" = "за сегодня";
+"widget.protein" = "Белки";
+"widget.fat" = "Жиры";
+"widget.carbs.short" = "Углев";
+"widget.macro.protein.short" = "Б";
+"widget.macro.fat.short" = "Ж";
+"widget.macro.carbs.short" = "У";
+"widget.diary.display_name" = "NutriLog Дневник";
+"widget.diary.description" = "Ваши калории и БЖУ на сегодня.";
+"widget.water.title" = "ВОДА";
+"widget.water.display_name" = "NutriLog Вода";
+"widget.water.description" = "Ваш баланс воды на сегодня.";

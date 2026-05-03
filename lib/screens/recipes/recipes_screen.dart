@@ -11,6 +11,7 @@ import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'fab_menu_item.dart';
+import '../../l10n/app_localizations.dart';
 
 class RecipesScreen extends StatefulWidget {
   final bool selectionMode;
@@ -39,6 +40,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final List<String> _selectedOrder = [];
   final Set<String> _selectedRecipeIdsForDelete = <String>{};
   bool _showFabMenu = false;
+  String _locale = 'ru';
 
   @override
   void initState() {
@@ -47,8 +49,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
       for (final id in widget.initialSelectedRecipeIds) id: 1,
     };
     _selectedOrder.addAll(widget.initialSelectedRecipeIds);
-    _loadAllRecipes();
     _searchController.addListener(_filterRecipes);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newLocale = Localizations.localeOf(context).languageCode;
+    if (newLocale != _locale || _allRecipes.isEmpty) {
+      _locale = newLocale;
+      _loadAllRecipes();
+    }
   }
 
   void _addRecipeSelection(Recipe recipe) {
@@ -56,7 +67,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     setState(() {
       _selectedRecipeCounts[recipe.id] =
           (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
-      
+
       // Перемещаем в начало, так как это последнее добавленное/измененное
       _selectedOrder.remove(recipe.id);
       _selectedOrder.insert(0, recipe.id);
@@ -81,7 +92,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Future<void> _openRecipeDetail(Recipe recipe) async {
     HapticFeedback.selectionClick();
     if (!widget.selectionMode) {
-      await _navigateAndRefreshRoute('/recipe_detail', extra: {'recipe': recipe});
+      await _navigateAndRefreshRoute('/recipe_detail',
+          extra: {'recipe': recipe});
       return;
     }
 
@@ -108,9 +120,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
     // чтобы при добавлении в общий список и последующем реверсе в UI
     // новые элементы оказались сверху.
     for (final id in _selectedOrder.reversed) {
-      final recipe = _allRecipes.firstWhere((r) => r.id == id, orElse: () => Recipe.empty());
+      final recipe = _allRecipes.firstWhere((r) => r.id == id,
+          orElse: () => Recipe.empty());
       if (recipe.id.isEmpty) continue;
-      
+
       final count = _selectedRecipeCounts[recipe.id] ?? 0;
       for (var i = 0; i < count; i++) {
         selectedRecipes.add(recipe);
@@ -125,7 +138,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
 
     final selectedRecipes = _selectedOrder
-        .map((id) => _allRecipes.firstWhere((r) => r.id == id, orElse: () => Recipe.empty()))
+        .map((id) => _allRecipes.firstWhere((r) => r.id == id,
+            orElse: () => Recipe.empty()))
         .where((r) => r.id.isNotEmpty)
         .toList();
     final totalSelected =
@@ -172,7 +186,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   color: iconColor,
                   visualDensity: VisualDensity.compact,
                   onPressed: () => _removeRecipeSelection(recipe),
-                  tooltip: 'Убрать одну порцию',
+                  tooltip: AppLocalizations.of(context)!.removeOnePortion,
                 ),
               ],
             ),
@@ -194,7 +208,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Добавлено: $totalSelected',
+              '${AppLocalizations.of(context)!.added}: $totalSelected',
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary,
@@ -244,8 +258,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       const SizedBox(width: 5),
                       Text(
                         _selectedRecipesCollapsed
-                            ? 'Показать все (${selectedRecipes.length})'
-                            : 'Свернуть',
+                            ? '${AppLocalizations.of(context)!.showAll} (${selectedRecipes.length})'
+                            : AppLocalizations.of(context)!.collapse,
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
@@ -263,7 +277,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   Future<void> _loadAllRecipes() async {
     setState(() => _isLoading = true);
-    final defaultRecipes = await RecipeLoader.loadRecipesFromAssets();
+    final defaultRecipes =
+        await RecipeLoader.loadRecipesFromAssets(locale: _locale);
     final userRecipes = await _recipeService.loadUserRecipes();
 
     for (var recipe in userRecipes) {
@@ -298,14 +313,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
   }
 
-  Future<void> _navigateAndRefresh(Widget screen) async {
-    final result = await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => screen));
-    if (result == true) {
-      _loadAllRecipes();
-    }
-  }
-
   Future<void> _editRecipe(Recipe recipe) async {
     await _navigateAndRefreshRoute('/recipe/edit', extra: {'recipe': recipe});
   }
@@ -331,10 +338,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     HapticFeedback.lightImpact();
     if (!recipe.isUserRecipe) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Встроенные рецепты удалять нельзя.'),
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.builtinRecipesCannotBeDeleted),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(top: 0, left: 16, right: 16),
+          margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
         ),
       );
       return;
@@ -421,7 +429,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
             forceMaterialTransparency: true,
             flexibleSpace: const GlassAppBarBackground(),
             title: Text(
-              widget.selectionMode ? 'Добавить в прием пищи' : 'Мои рецепты',
+              widget.selectionMode
+                  ? AppLocalizations.of(context)!.addToMeal
+                  : AppLocalizations.of(context)!.myRecipes,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             actions: [
@@ -429,7 +439,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 IconButton(
                   icon: const Icon(Symbols.check_circle, size: 28),
                   onPressed: _finishSelection,
-                  tooltip: 'Готово',
+                  tooltip: AppLocalizations.of(context)!.ready,
                 )
               else
                 IconButton(
@@ -440,7 +450,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         : Icons.check_box_outlined,
                     size: 28,
                   ),
-                  tooltip: _isDeleteSelectionMode ? 'Отмена выбора' : 'Выбрать',
+                  tooltip: _isDeleteSelectionMode
+                      ? AppLocalizations.of(context)!.cancelSelection
+                      : AppLocalizations.of(context)!.select,
                 ),
             ],
           ),
@@ -459,7 +471,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Выбрано: ${_selectedRecipeIdsForDelete.length}',
+                              '${AppLocalizations.of(context)!.selected}: ${_selectedRecipeIdsForDelete.length}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primary,
@@ -504,77 +516,79 @@ class _RecipesScreenState extends State<RecipesScreen> {
             child: _isDeleteSelectionMode
                 ? _buildDeleteFab()
                 : Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (_showFabMenu) ...[
-                  FabMenuItem(
-                    key: UniqueKey(),
-                    icon: Symbols.photo_camera,
-                    label: 'По фото блюда',
-                    onTap: () async {
-                      setState(() => _showFabMenu = false);
-                      await _navigateAndRefreshRoute('/recipe/create_photo');
-                    },
-                    delay: const Duration(milliseconds: 200),
-                  ),
-                  const SizedBox(height: 12),
-                  FabMenuItem(
-                    key: UniqueKey(),
-                    icon: Symbols.edit_note,
-                    label: 'По описанию',
-                    onTap: () async {
-                      setState(() => _showFabMenu = false);
-                      await _navigateAndRefreshRoute('/recipe/create_description');
-                    },
-                    delay: const Duration(milliseconds: 100),
-                  ),
-                  const SizedBox(height: 12),
-                  FabMenuItem(
-                    key: UniqueKey(),
-                    icon: Symbols.draw,
-                    label: 'Вручную',
-                    onTap: () async {
-                      setState(() => _showFabMenu = false);
-                      await _navigateAndRefreshRoute('/recipe/edit');
-                    },
-                    delay: const Duration(milliseconds: 0),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() => _showFabMenu = !_showFabMenu);
-                  },
-                  child: AnimatedRotation(
-                    turns: _showFabMenu ? 0.125 : 0.0,
-                    duration: const Duration(milliseconds: 220),
-                    child: Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withAlpha(100),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 6),
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (_showFabMenu) ...[
+                        FabMenuItem(
+                          key: UniqueKey(),
+                          icon: Symbols.photo_camera,
+                          label: AppLocalizations.of(context)!.byPhoto,
+                          onTap: () async {
+                            setState(() => _showFabMenu = false);
+                            await _navigateAndRefreshRoute(
+                                '/recipe/create_photo');
+                          },
+                          delay: const Duration(milliseconds: 200),
+                        ),
+                        const SizedBox(height: 12),
+                        FabMenuItem(
+                          key: UniqueKey(),
+                          icon: Symbols.edit_note,
+                          label: AppLocalizations.of(context)!.byDescription,
+                          onTap: () async {
+                            setState(() => _showFabMenu = false);
+                            await _navigateAndRefreshRoute(
+                                '/recipe/create_description');
+                          },
+                          delay: const Duration(milliseconds: 100),
+                        ),
+                        const SizedBox(height: 12),
+                        FabMenuItem(
+                          key: UniqueKey(),
+                          icon: Symbols.draw,
+                          label: AppLocalizations.of(context)!.manually,
+                          onTap: () async {
+                            setState(() => _showFabMenu = false);
+                            await _navigateAndRefreshRoute('/recipe/edit');
+                          },
+                          delay: const Duration(milliseconds: 0),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() => _showFabMenu = !_showFabMenu);
+                        },
+                        child: AnimatedRotation(
+                          turns: _showFabMenu ? 0.125 : 0.0,
+                          duration: const Duration(milliseconds: 220),
+                          child: Container(
+                            width: 58,
+                            height: 58,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withAlpha(100),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Symbols.add,
+                              color: Colors.white,
+                              size: 30,
+                              weight: 700,
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                      child: const Icon(
-                        Symbols.add,
-                        color: Colors.white,
-                        size: 30,
-                        weight: 700,
-                      ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
       ],
     );
@@ -624,7 +638,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Найти рецепт...',
+          hintText: AppLocalizations.of(context)!.searchRecipe,
           prefixIcon: Icon(Symbols.search, color: Colors.grey.shade600),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -691,7 +705,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   alignment: Alignment.centerRight,
                   color: AppColors.primary,
                   icon: Symbols.add_circle,
-                  label: 'Добавить',
+                  label: AppLocalizations.of(context)!.added,
                 ),
                 confirmDismiss: (_) async {
                   _addRecipeSelection(recipe);
@@ -710,13 +724,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 alignment: Alignment.centerLeft,
                 color: Colors.blue.shade600,
                 icon: Symbols.edit,
-                label: 'Редактировать',
+                label: AppLocalizations.of(context)!.edit,
               ),
               secondaryBackground: _buildSwipeBackground(
                 alignment: Alignment.centerRight,
                 color: Colors.red.shade600,
                 icon: Symbols.delete,
-                label: 'Удалить',
+                label: AppLocalizations.of(context)!.delete,
               ),
               confirmDismiss: (direction) async {
                 if (direction == DismissDirection.startToEnd) {
@@ -786,7 +800,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            isSearching ? 'Ничего не найдено' : 'У вас пока нет рецептов',
+            isSearching
+                ? AppLocalizations.of(context)!.nothingFound
+                : AppLocalizations.of(context)!.noRecipesYet,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
@@ -794,8 +810,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(
               isSearching
-                  ? 'Попробуйте изменить запрос'
-                  : 'Нажмите +, чтобы добавить свой первый рецепт',
+                  ? AppLocalizations.of(context)!.tryChangingQuery
+                  : AppLocalizations.of(context)!.pressPlusToAdd,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
