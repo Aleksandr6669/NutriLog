@@ -201,6 +201,17 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      l10n.swipeToDeleteHint,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.textTheme.bodySmall?.color),
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: _activities.isEmpty
                       ? Center(child: Text(l10n.noActivities))
@@ -237,10 +248,9 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                                   ],
                                 ),
                               ),
-                              confirmDismiss: (_) async {
-                                await _confirmAndRemoveActivity(entry);
-                                return false;
-                              },
+                              confirmDismiss: (_) async => true,
+                              onDismissed: (_) =>
+                                  _confirmAndRemoveActivity(entry),
                               child: Card(
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(
@@ -261,16 +271,10 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                                   subtitle:
                                       Text('${entry.calories} ${l10n.kcal}'),
                                   onTap: () => _addOrEditActivity(entry: entry),
-                                  trailing: IconButton(
-                                    icon: const Icon(
-                                      Symbols.delete_outline,
-                                      color: Colors.red,
-                                    ),
-                                    tooltip: l10n.deleteActivity,
-                                    onPressed: _saving
-                                        ? null
-                                        : () =>
-                                            _confirmAndRemoveActivity(entry),
+                                  trailing: Icon(
+                                    Symbols.info,
+                                    color: theme.colorScheme.primary,
+                                    size: 20,
                                   ),
                                 ),
                               ),

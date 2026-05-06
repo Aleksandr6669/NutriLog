@@ -46,21 +46,34 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _waterKey = GlobalKey();
   final GlobalKey _weightKey = GlobalKey();
 
+  String? _lastHandledUri;
+
   @override
   void initState() {
     super.initState();
     _refreshHealthConnectionState();
     _loadLogForSelectedDate();
-    _checkScrollRequest();
   }
 
-  void _checkScrollRequest() {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    try {
+      final state = GoRouterState.of(context);
+      final uri = state.uri.toString();
+      if (uri != _lastHandledUri && state.uri.queryParameters.isNotEmpty) {
+        _lastHandledUri = uri;
+        _checkScrollRequest(state.uri.queryParameters);
+      }
+    } catch (_) {}
+  }
+
+  void _checkScrollRequest(Map<String, String> params) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       try {
-        final state = GoRouterState.of(context);
-        final scrollTarget = state.uri.queryParameters['scrollTo'];
-        final openMeal = state.uri.queryParameters['openMeal'];
+        final scrollTarget = params['scrollTo'];
+        final openMeal = params['openMeal'];
         if (scrollTarget == 'water') {
           _scrollToWater();
         } else if (scrollTarget == 'weight') {
@@ -1496,7 +1509,8 @@ class _MealCard extends StatelessWidget {
   });
 
   Future<void> _addFromRecipes(BuildContext context) async {
-    final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
+    final selectedRecipes =
+        await Navigator.of(context, rootNavigator: true).push<List<Recipe>>(
       MaterialPageRoute(
         builder: (context) => const RecipesScreen(selectionMode: true),
       ),

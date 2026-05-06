@@ -5,8 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/recipes_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
-import 'package:nutri_log/services/recipe_loader.dart';
-import 'package:nutri_log/services/recipe_service.dart';
 import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
@@ -55,12 +53,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   Future<void> _addFromRecipes() async {
     HapticFeedback.selectionClick();
-    final initialSelectedRecipeIds = await _findRecipeIdsForItems(_foodItems);
     final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
       MaterialPageRoute(
-        builder: (_) => RecipesScreen(
+        builder: (_) => const RecipesScreen(
           selectionMode: true,
-          initialSelectedRecipeIds: initialSelectedRecipeIds,
         ),
       ),
     );
@@ -83,32 +79,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           List<FoodItem>.from(provider.currentLog?.meals[widget.mealKey] ?? []);
       _hasChanges = true;
     });
-  }
-
-  Future<Set<String>> _findRecipeIdsForItems(List<FoodItem> items) async {
-    if (items.isEmpty) return <String>{};
-
-    final locale = Localizations.localeOf(context).languageCode;
-    final builtIn = await RecipeLoader.loadRecipesFromAssets(locale: locale);
-    final userRecipes = await RecipeService().loadUserRecipes();
-    final allRecipes = [...builtIn, ...userRecipes];
-    final ids = <String>{};
-
-    for (final item in items) {
-      for (final recipe in allRecipes) {
-        if (recipe.name == item.name &&
-            recipe.description == item.description &&
-            recipe.nutrients['calories'] == item.nutrients.calories &&
-            recipe.nutrients['protein'] == item.nutrients.protein &&
-            recipe.nutrients['carbs'] == item.nutrients.carbs &&
-            recipe.nutrients['fat'] == item.nutrients.fat) {
-          ids.add(recipe.id);
-          break;
-        }
-      }
-    }
-
-    return ids;
   }
 
   Future<void> _removeFoodItemAt(int index) async {
@@ -374,6 +344,12 @@ class _FoodItemsList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.recipesInMeal, style: theme.textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(
+          l10n.swipeToDeleteHint,
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.textTheme.bodySmall?.color),
+        ),
         const SizedBox(height: 8),
         foodItems.isEmpty
             ? _buildEmptyState(context)
@@ -420,7 +396,6 @@ class _FoodItemsList extends StatelessWidget {
                     child: _FoodListItem(
                       item: item,
                       onTap: () => onItemTap(item),
-                      onDeleteTap: () => onRemove(originalIndex),
                     ),
                   );
                 },
@@ -456,12 +431,10 @@ class _FoodItemsList extends StatelessWidget {
 class _FoodListItem extends StatelessWidget {
   final FoodItem item;
   final VoidCallback onTap;
-  final VoidCallback onDeleteTap;
 
   const _FoodListItem({
     required this.item,
     required this.onTap,
-    required this.onDeleteTap,
   });
 
   @override
@@ -512,12 +485,10 @@ class _FoodListItem extends StatelessWidget {
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  IconButton(
-                    onPressed: onDeleteTap,
-                    icon: const Icon(Symbols.delete_outline),
+                  Icon(
+                    Symbols.info,
                     color: theme.colorScheme.primary,
-                    tooltip: AppLocalizations.of(context)!.removeRecipeTooltip,
-                    visualDensity: VisualDensity.compact,
+                    size: 20,
                   ),
                 ],
               ),

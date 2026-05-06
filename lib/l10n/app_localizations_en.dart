@@ -488,6 +488,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiReportTitle => 'AI Report';
 
   @override
+  String get statsAiOverviewTitle => 'Part 1. Goal Analysis';
+
+  @override
+  String get statsAiPlanTitle => 'Part 2. What and When to Eat';
+
+  @override
+  String get statsAiNoPlan => 'Meal plan is not available yet.';
+
+  @override
+  String get statsAiMealTimeAny => 'Time: any';
+
+  @override
+  String get statsAiMealTimeLabel => 'Time';
+
+  @override
+  String get statsAiRecipeLabel => 'Recipe';
+
+  @override
+  String get statsAiOpenRecipe => 'Open recipe';
+
+  @override
+  String get statsAiRecipeNotFound => 'Recipe not found in the current list.';
+
+  @override
+  String get statsAiDisabledInSettings =>
+      'Analytics assistant is disabled in settings.';
+
+  @override
   String get statsPeriodWeek => 'Week';
 
   @override
@@ -906,6 +934,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appSettingsSection => 'App';
 
   @override
+  String get statsAiAssistantToggleTitle => 'Analytics AI assistant';
+
+  @override
+  String get statsAiAssistantToggleSubtitle =>
+      'Show smart analysis and recommendations in Analytics';
+
+  @override
   String get changelogTitle => 'Version history';
 
   @override
@@ -1048,6 +1083,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weightUnit => 'kg';
 
   @override
+  String get cmUnit => 'cm';
+
+  @override
   String get editActivity => 'Edit activity';
 
   @override
@@ -1177,6 +1215,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get add => 'Add';
+
+  @override
+  String get swipeToDeleteHint => 'To remove, swipe left';
 
   @override
   String get selectIconDialogTitle => 'Select icon';

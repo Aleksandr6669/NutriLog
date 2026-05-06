@@ -818,6 +818,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: _nutrientTextFormField(
+              field.$1,
               _nutrientControllers[field.$1]!,
               field.$2,
               field.$3,
@@ -859,6 +860,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _nutrientTextFormField(
+    String nutrientKey,
     TextEditingController controller,
     String label,
     String suffix, {
@@ -870,9 +872,21 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       decoration:
           AppStyles.underlineInputDecoration(label: label, suffix: suffix),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))
-      ],
+      inputFormatters: nutrientKey == 'calories'
+          ? [
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                final text = newValue.text;
+                if (text.isEmpty) return newValue;
+                final normalized = text.replaceAll(',', '.');
+                if (!RegExp(r'^\d*(?:\.\d{0,1})?$').hasMatch(normalized)) {
+                  return oldValue;
+                }
+                return newValue;
+              }),
+            ]
+          : [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*')),
+            ],
       validator: (value) {
         if (value == null || value.isEmpty) {
           return null;
@@ -880,10 +894,97 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         if (double.tryParse(value.replaceAll(',', '.')) == null) {
           return l10n.enterCorrectNumber;
         }
+        if (nutrientKey == 'calories') {
+          final normalized = value.replaceAll(',', '.').trim();
+          final dotIndex = normalized.indexOf('.');
+          if (dotIndex >= 0) {
+            final fraction = normalized.substring(dotIndex + 1);
+            if (fraction.length > 1) {
+              return l10n.enterCorrectNumber;
+            }
+          }
+        }
         return null;
       },
     );
   }
+}
+
+String _normalizeIngredientUnit(String unit) {
+  final v = unit.trim().toLowerCase();
+  const mapping = {
+    'г': 'g',
+    'гр': 'g',
+    'гр.': 'g',
+    'gram': 'g',
+    'grams': 'g',
+    'грамм': 'g',
+    'граммов': 'g',
+    'мл': 'ml',
+    'мл.': 'ml',
+    'milliliter': 'ml',
+    'milliliters': 'ml',
+    'millilitre': 'ml',
+    'л': 'l',
+    'л.': 'l',
+    'литр': 'l',
+    'liter': 'l',
+    'litre': 'l',
+    'liters': 'l',
+    'кг': 'kg',
+    'кг.': 'kg',
+    'kilogram': 'kg',
+    'kilograms': 'kg',
+    'мг': 'mg',
+    'мг.': 'mg',
+    'milligram': 'mg',
+    'milligrams': 'mg',
+    'шт': 'pcs',
+    'шт.': 'pcs',
+    'штук': 'pcs',
+    'штука': 'pcs',
+    'piece': 'pcs',
+    'pieces': 'pcs',
+    'pc': 'pcs',
+    'упак': 'pack',
+    'упаковка': 'pack',
+    'пак': 'pack',
+    'package': 'pack',
+    'packages': 'pack',
+    'пкг': 'pkg',
+    'pkg.': 'pkg',
+    'ч.л.': 'tsp',
+    'ч.л': 'tsp',
+    'чл': 'tsp',
+    'teaspoon': 'tsp',
+    'teaspoons': 'tsp',
+    'ч л': 'tsp',
+    'ст.л.': 'tbsp',
+    'ст.л': 'tbsp',
+    'стл': 'tbsp',
+    'tablespoon': 'tbsp',
+    'tablespoons': 'tbsp',
+    'ст л': 'tbsp',
+    'стакан': 'cup',
+    'стакана': 'cup',
+    'cups': 'cup',
+  };
+  if (mapping.containsKey(v)) return mapping[v]!;
+  const validOptions = [
+    'g',
+    'mg',
+    'kg',
+    'pcs',
+    'pack',
+    'pkg',
+    'l',
+    'ml',
+    'tsp',
+    'tbsp',
+    'cup'
+  ];
+  if (validOptions.contains(v)) return v;
+  return 'g';
 }
 
 class _IngredientFormItem {
@@ -897,7 +998,7 @@ class _IngredientFormItem {
     String unit = '',
   })  : nameController = TextEditingController(text: name),
         quantityController = TextEditingController(text: quantity),
-        unit = unit.isEmpty ? 'g' : unit;
+        unit = _normalizeIngredientUnit(unit);
 
   void dispose() {
     nameController.dispose();

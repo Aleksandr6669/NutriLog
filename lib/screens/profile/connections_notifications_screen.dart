@@ -325,6 +325,21 @@ class _ConnectionsNotificationsScreenState
             child: Column(
               children: [
                 ListTile(
+                  leading: const Icon(Symbols.smart_toy),
+                  title: Text(l10n.statsAiAssistantToggleTitle),
+                  subtitle: Text(l10n.statsAiAssistantToggleSubtitle),
+                  trailing: Switch.adaptive(
+                    value: _settings.statsAiAssistantEnabled,
+                    onChanged: (enabled) async {
+                      final updated =
+                          _settings.copyWith(statsAiAssistantEnabled: enabled);
+                      setState(() => _settings = updated);
+                      await _settingsService.save(updated);
+                    },
+                  ),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
                   leading: const Icon(Symbols.language),
                   title: Text(l10n.language),
                   subtitle: Text(_getLanguageName(context)),

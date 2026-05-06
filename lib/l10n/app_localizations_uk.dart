@@ -490,6 +490,34 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiReportTitle => 'Звіт від AI';
 
   @override
+  String get statsAiOverviewTitle => 'Частина 1. Аналіз за цілями';
+
+  @override
+  String get statsAiPlanTitle => 'Частина 2. Що і коли їсти';
+
+  @override
+  String get statsAiNoPlan => 'План поки не сформовано.';
+
+  @override
+  String get statsAiMealTimeAny => 'Час: будь-який';
+
+  @override
+  String get statsAiMealTimeLabel => 'Час';
+
+  @override
+  String get statsAiRecipeLabel => 'Рецепт';
+
+  @override
+  String get statsAiOpenRecipe => 'Відкрити рецепт';
+
+  @override
+  String get statsAiRecipeNotFound => 'Рецепт не знайдено у поточному списку.';
+
+  @override
+  String get statsAiDisabledInSettings =>
+      'Асистент аналітики вимкнений у налаштуваннях.';
+
+  @override
   String get statsPeriodWeek => 'Тиждень';
 
   @override
@@ -909,6 +937,13 @@ class AppLocalizationsUk extends AppLocalizations {
   String get appSettingsSection => 'Додаток';
 
   @override
+  String get statsAiAssistantToggleTitle => 'AI-асистент аналітики';
+
+  @override
+  String get statsAiAssistantToggleSubtitle =>
+      'Показувати розумний аналіз і рекомендації в розділі аналітики';
+
+  @override
   String get changelogTitle => 'Історія версій';
 
   @override
@@ -1051,6 +1086,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get weightUnit => 'кг';
 
   @override
+  String get cmUnit => 'см';
+
+  @override
   String get editActivity => 'Редагувати активність';
 
   @override
@@ -1180,6 +1218,9 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get add => 'Додати';
+
+  @override
+  String get swipeToDeleteHint => 'Щоб видалити, зробіть свайп вліво';
 
   @override
   String get selectIconDialogTitle => 'Виберіть іконку';

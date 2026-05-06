@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         surfaceTintColor: Colors.transparent,
         forceMaterialTransparency: true,
         flexibleSpace: const GlassAppBarBackground(),
-        title: const Text('Профиль'),
+        title: Text(AppLocalizations.of(context)!.profile),
         centerTitle: true,
       ),
       body: Consumer<ProfileProvider>(
@@ -193,8 +193,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildInfoRow(theme, l10n.birthDate,
                   '${profile.birthDate.day.toString().padLeft(2, '0')}.${profile.birthDate.month.toString().padLeft(2, '0')}.${profile.birthDate.year}'),
               _buildInfoRow(theme, l10n.age, '${profile.age} ${l10n.yearsOld}'),
-              _buildInfoRow(theme, l10n.height, '${profile.height} см'),
-              _buildInfoRow(theme, l10n.weight, '${profile.weight} кг'),
+              _buildInfoRow(
+                  theme, l10n.height, '${profile.height} ${l10n.cmUnit}'),
+              _buildInfoRow(
+                  theme, l10n.weight, '${profile.weight} ${l10n.weightUnit}'),
               _buildInfoRow(
                   theme, l10n.gender, profile.gender.localizedLabel(context)),
             ],
@@ -211,7 +213,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (result == true) _refreshProfile();
             },
             children: [
-              _buildInfoRow(theme, l10n.weightGoalTitle, '$weightGoal кг'),
+              _buildInfoRow(theme, l10n.weightGoalTitle,
+                  '$weightGoal ${l10n.weightUnit}'),
               _buildInfoRow(theme, l10n.goalTypeTitle,
                   profile.goalType.localizedLabel(context)),
             ],
@@ -230,14 +233,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               _buildInfoRow(
                   theme, l10n.calories, '${profile.calorieGoal} ${l10n.kcal}'),
-              _buildInfoRow(
-                  theme, l10n.water, '${waterGoalLiters.toStringAsFixed(1)} ${l10n.liters}'),
+              _buildInfoRow(theme, l10n.water,
+                  '${waterGoalLiters.toStringAsFixed(1)} ${l10n.liters}'),
               _buildInfoRow(
                   theme, l10n.steps, '${profile.stepsGoal} ${l10n.steps}'),
               const Divider(height: 16),
-              _buildInfoRow(theme, l10n.protein, '${profile.proteinGoal} ${l10n.grams}'),
-              _buildInfoRow(theme, l10n.carbs, '${profile.carbsGoal} ${l10n.grams}'),
-              _buildInfoRow(theme, l10n.fat, '${profile.fatGoal} ${l10n.grams}'),
+              _buildInfoRow(
+                  theme, l10n.protein, '${profile.proteinGoal} ${l10n.grams}'),
+              _buildInfoRow(
+                  theme, l10n.carbs, '${profile.carbsGoal} ${l10n.grams}'),
+              _buildInfoRow(
+                  theme, l10n.fat, '${profile.fatGoal} ${l10n.grams}'),
             ],
           ),
           const SizedBox(height: 16),

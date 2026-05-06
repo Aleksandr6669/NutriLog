@@ -2,14 +2,19 @@ import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/daily_log.dart';
+import '../../models/recipe.dart';
 import '../../models/user_profile.dart';
 import '../../services/daily_log_service.dart';
 import '../../services/gemini_recipe_service.dart';
+import '../../services/notification_settings_service.dart';
 import '../../services/profile_service.dart';
+import '../../services/recipe_loader.dart';
+import '../../services/recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
@@ -30,8 +35,11 @@ class _StatsScreenState extends State<StatsScreen> {
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
   final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
+  final NotificationSettingsService _settingsService =
+      NotificationSettingsService();
   late Future<Map<String, dynamic>> _statsFuture;
-  String? _aiReport;
+  String? _aiOverview;
+  List<Map<String, String>> _aiRecommendations = const [];
   bool _aiError = false;
   int _dataRequestId = 0;
   int _aiStartedForRequestId = -1;
@@ -48,17 +56,18 @@ class _StatsScreenState extends State<StatsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final locale = Localizations.localeOf(context);
-    final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+    // TickerMode корректно определяет активность вкладки в StatefulShellRoute.indexedStack
+    final isVisible = TickerMode.valuesOf(context).enabled;
     if (_lastLocale != locale) {
       _lastLocale = locale;
       if (_isCurrentlyVisible) {
         _reloadStats();
       }
     }
-    if (isCurrent && !_isCurrentlyVisible) {
+    if (isVisible && !_isCurrentlyVisible) {
       _isCurrentlyVisible = true;
       _reloadStats();
-    } else if (!isCurrent) {
+    } else if (!isVisible) {
       _isCurrentlyVisible = false;
     }
   }
@@ -67,7 +76,8 @@ class _StatsScreenState extends State<StatsScreen> {
     _dataRequestId++;
     _aiStartedForRequestId = -1;
     setState(() {
-      _aiReport = null;
+      _aiOverview = null;
+      _aiRecommendations = const [];
       _aiError = false;
       _statsFuture = _loadData();
     });
@@ -76,6 +86,7 @@ class _StatsScreenState extends State<StatsScreen> {
   Future<Map<String, dynamic>> _loadData() async {
     developer.log('Starting to load data for stats screen...',
         name: 'StatsScreen');
+    final locale = Localizations.localeOf(context).languageCode;
     final now = DateTime.now();
     final startDate = switch (_period) {
       _StatsPeriod.week => now.subtract(const Duration(days: 6)),
@@ -86,6 +97,13 @@ class _StatsScreenState extends State<StatsScreen> {
 
     final logs = await _logService.getLogsForPeriod(startDate, endDate);
     final profile = await _profileService.loadProfile();
+    final settings = await _settingsService.load();
+    final aiAssistantEnabled = settings.statsAiAssistantEnabled;
+    final builtInRecipes = await RecipeLoader.loadRecipesFromAssets(
+      locale: locale,
+    );
+    final userRecipes = await RecipeService().loadUserRecipes();
+    final allRecipes = [...userRecipes, ...builtInRecipes];
 
     List<double> caloriesData;
     List<double> weightData;
@@ -271,6 +289,8 @@ class _StatsScreenState extends State<StatsScreen> {
       'activitySeries': activitySeries,
       'waterSeries': waterSeries,
       'profile': profile,
+      'aiAssistantEnabled': aiAssistantEnabled,
+      'recipes': allRecipes,
       'aiInput': {
         'periodLabel': _period.name,
         'calorieGoal': profile.calorieGoal,
@@ -321,6 +341,14 @@ class _StatsScreenState extends State<StatsScreen> {
         'waterGoalLiters': profile.waterGoal / 1000,
         'workouts': workouts,
         'avgActivityCalories': avgActivityCalories,
+        'availableRecipes': allRecipes
+            .take(60)
+            .map((recipe) => {
+                  'name': recipe.name,
+                  'calories':
+                      ((recipe.nutrients['calories'] as num?) ?? 0).round(),
+                })
+            .toList(),
       },
     };
   }
@@ -328,7 +356,7 @@ class _StatsScreenState extends State<StatsScreen> {
   Future<void> _loadAiReport(
       Map<String, dynamic> aiInput, int requestId) async {
     try {
-      final aiReport = await _geminiRecipeService.generateStatsReport(
+      final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
         calorieGoal: aiInput['calorieGoal'] as int,
         proteinGoal: aiInput['proteinGoal'] as int,
@@ -385,11 +413,27 @@ class _StatsScreenState extends State<StatsScreen> {
         waterGoalLiters: (aiInput['waterGoalLiters'] as num).toDouble(),
         workouts: aiInput['workouts'] as int,
         avgActivityCalories: aiInput['avgActivityCalories'] as int,
+        availableRecipes:
+            (aiInput['availableRecipes'] as List<dynamic>? ?? const [])
+                .whereType<Map<String, dynamic>>()
+                .toList(growable: false),
       );
 
       if (!mounted || requestId != _dataRequestId) return;
       setState(() {
-        _aiReport = aiReport;
+        _aiOverview = (aiReport['overview'] as String?)?.trim();
+        _aiRecommendations =
+            (aiReport['recommendations'] as List<dynamic>? ?? const [])
+                .whereType<Map<String, dynamic>>()
+                .map(
+                  (item) => {
+                    'when': (item['when'] as String? ?? '').trim(),
+                    'action': (item['action'] as String? ?? '').trim(),
+                    'recipeName': (item['recipeName'] as String? ?? '').trim(),
+                  },
+                )
+                .where((item) => (item['action'] ?? '').isNotEmpty)
+                .toList(growable: false);
         _aiError = false;
       });
     } on GeminiRecipeException catch (e) {
@@ -488,17 +532,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
-      if (isCurrent && !_isCurrentlyVisible) {
-        _isCurrentlyVisible = true;
-        _reloadStats();
-      } else if (!isCurrent && _isCurrentlyVisible) {
-        _isCurrentlyVisible = false;
-      }
-    });
-
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -528,8 +561,10 @@ class _StatsScreenState extends State<StatsScreen> {
           }
 
           final data = snapshot.data!;
+          final aiAssistantEnabled =
+              data['aiAssistantEnabled'] as bool? ?? true;
           final requestId = _dataRequestId;
-          if (_aiStartedForRequestId != requestId) {
+          if (aiAssistantEnabled && _aiStartedForRequestId != requestId) {
             _aiStartedForRequestId = requestId;
             _loadAiReport(data['aiInput'] as Map<String, dynamic>, requestId);
           }
@@ -640,7 +675,12 @@ class _StatsScreenState extends State<StatsScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildAiReportCard(context, theme),
+                _buildAiReportCard(
+                  context,
+                  theme,
+                  List<Recipe>.from(data['recipes'] as List),
+                  aiAssistantEnabled,
+                ),
               ],
             ),
           );
@@ -857,15 +897,49 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildAiReportCard(BuildContext context, ThemeData theme) {
+  Recipe? _findRecipeByName(String name, List<Recipe> recipes) {
+    final target = name.trim().toLowerCase();
+    if (target.isEmpty) return null;
+    for (final recipe in recipes) {
+      if (recipe.name.trim().toLowerCase() == target) {
+        return recipe;
+      }
+    }
+    return null;
+  }
+
+  Widget _buildAiReportCard(
+    BuildContext context,
+    ThemeData theme,
+    List<Recipe> recipes,
+    bool aiAssistantEnabled,
+  ) {
     final l10n = AppLocalizations.of(context)!;
-    final String reportText;
+    if (!aiAssistantEnabled) {
+      return Card(
+        color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppStyles.largeBorderRadius,
+          side: BorderSide(
+              color: const Color.fromARGB(252, 179, 250, 209).withAlpha(51)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            l10n.statsAiDisabledInSettings,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      );
+    }
+
+    final String overviewText;
     if (_aiError) {
-      reportText = l10n.statsAiError;
-    } else if (_aiReport == null) {
-      reportText = l10n.statsAiLoading;
+      overviewText = l10n.statsAiError;
+    } else if (_aiOverview == null) {
+      overviewText = l10n.statsAiLoading;
     } else {
-      reportText = _aiReport!;
+      overviewText = _aiOverview!;
     }
     return Card(
       color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),
@@ -885,11 +959,99 @@ class _StatsScreenState extends State<StatsScreen> {
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Text(
-              reportText,
+              l10n.statsAiOverviewTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              overviewText,
               style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
                   color: theme.colorScheme.onSurface.withAlpha(204)),
             ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.statsAiPlanTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_aiError || _aiOverview == null)
+              Text(
+                l10n.statsAiLoading,
+                style: theme.textTheme.bodySmall,
+              )
+            else if (_aiRecommendations.isEmpty)
+              Text(
+                l10n.statsAiNoPlan,
+                style: theme.textTheme.bodySmall,
+              )
+            else
+              ..._aiRecommendations.map((item) {
+                final when = item['when'] ?? '';
+                final action = item['action'] ?? '';
+                final recipeName = item['recipeName'] ?? '';
+                final matchedRecipe = _findRecipeByName(recipeName, recipes);
+
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        when.isEmpty
+                            ? l10n.statsAiMealTimeAny
+                            : '${l10n.statsAiMealTimeLabel}: $when',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(action, style: theme.textTheme.bodySmall),
+                      if (recipeName.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          '${l10n.statsAiRecipeLabel}: $recipeName',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                      if (matchedRecipe != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              context.push(
+                                '/recipe_detail',
+                                extra: {'recipe': matchedRecipe},
+                              );
+                            },
+                            icon: const Icon(Symbols.open_in_new, size: 16),
+                            label: Text(l10n.statsAiOpenRecipe),
+                          ),
+                        )
+                      else if (recipeName.isNotEmpty)
+                        Text(
+                          l10n.statsAiRecipeNotFound,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodySmall?.color,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,

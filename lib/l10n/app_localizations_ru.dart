@@ -490,6 +490,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiReportTitle => 'Отчет от AI';
 
   @override
+  String get statsAiOverviewTitle => 'Часть 1. Анализ по целям';
+
+  @override
+  String get statsAiPlanTitle => 'Часть 2. Что и когда есть';
+
+  @override
+  String get statsAiNoPlan => 'План пока не сформирован.';
+
+  @override
+  String get statsAiMealTimeAny => 'Время: любое';
+
+  @override
+  String get statsAiMealTimeLabel => 'Время';
+
+  @override
+  String get statsAiRecipeLabel => 'Рецепт';
+
+  @override
+  String get statsAiOpenRecipe => 'Открыть рецепт';
+
+  @override
+  String get statsAiRecipeNotFound => 'Рецепт не найден в текущем списке.';
+
+  @override
+  String get statsAiDisabledInSettings =>
+      'Ассистент аналитики отключен в настройках.';
+
+  @override
   String get statsPeriodWeek => 'Неделя';
 
   @override
@@ -907,6 +935,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appSettingsSection => 'Приложение';
 
   @override
+  String get statsAiAssistantToggleTitle => 'AI-ассистент аналитики';
+
+  @override
+  String get statsAiAssistantToggleSubtitle =>
+      'Показывать умный анализ и рекомендации в разделе аналитики';
+
+  @override
   String get changelogTitle => 'История версий';
 
   @override
@@ -1049,6 +1084,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get weightUnit => 'кг';
 
   @override
+  String get cmUnit => 'см';
+
+  @override
   String get editActivity => 'Редактировать активность';
 
   @override
@@ -1178,6 +1216,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get add => 'Добавить';
+
+  @override
+  String get swipeToDeleteHint => 'Чтобы удалить, сделайте свайп влево';
 
   @override
   String get selectIconDialogTitle => 'Выберите иконку';

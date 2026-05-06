@@ -1012,6 +1012,60 @@ abstract class AppLocalizations {
   /// **'AI Report'**
   String get statsAiReportTitle;
 
+  /// No description provided for @statsAiOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Part 1. Goal Analysis'**
+  String get statsAiOverviewTitle;
+
+  /// No description provided for @statsAiPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Part 2. What and When to Eat'**
+  String get statsAiPlanTitle;
+
+  /// No description provided for @statsAiNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal plan is not available yet.'**
+  String get statsAiNoPlan;
+
+  /// No description provided for @statsAiMealTimeAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Time: any'**
+  String get statsAiMealTimeAny;
+
+  /// No description provided for @statsAiMealTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get statsAiMealTimeLabel;
+
+  /// No description provided for @statsAiRecipeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get statsAiRecipeLabel;
+
+  /// No description provided for @statsAiOpenRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Open recipe'**
+  String get statsAiOpenRecipe;
+
+  /// No description provided for @statsAiRecipeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe not found in the current list.'**
+  String get statsAiRecipeNotFound;
+
+  /// No description provided for @statsAiDisabledInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics assistant is disabled in settings.'**
+  String get statsAiDisabledInSettings;
+
   /// No description provided for @statsPeriodWeek.
   ///
   /// In en, this message translates to:
@@ -1738,6 +1792,18 @@ abstract class AppLocalizations {
   /// **'App'**
   String get appSettingsSection;
 
+  /// No description provided for @statsAiAssistantToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics AI assistant'**
+  String get statsAiAssistantToggleTitle;
+
+  /// No description provided for @statsAiAssistantToggleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show smart analysis and recommendations in Analytics'**
+  String get statsAiAssistantToggleSubtitle;
+
   /// No description provided for @changelogTitle.
   ///
   /// In en, this message translates to:
@@ -2008,6 +2074,12 @@ abstract class AppLocalizations {
   /// **'kg'**
   String get weightUnit;
 
+  /// No description provided for @cmUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get cmUnit;
+
   /// No description provided for @editActivity.
   ///
   /// In en, this message translates to:
@@ -2241,6 +2313,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get add;
+
+  /// No description provided for @swipeToDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To remove, swipe left'**
+  String get swipeToDeleteHint;
 
   /// No description provided for @selectIconDialogTitle.
   ///

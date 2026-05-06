@@ -705,6 +705,198 @@ Response format:
     return text;
   }
 
+  Future<Map<String, dynamic>> generateStructuredStatsReport({
+    required String periodLabel,
+    String? locale,
+    required int calorieGoal,
+    required int proteinGoal,
+    required int fatGoal,
+    required int carbsGoal,
+    required double avgCalories,
+    required double avgProteinGrams,
+    required double avgFatGrams,
+    required double avgCarbsGrams,
+    required double avgFiberGrams,
+    required double avgSugarGrams,
+    required double avgSaturatedFatGrams,
+    required double avgPolyunsaturatedFatGrams,
+    required double avgMonounsaturatedFatGrams,
+    required double avgTransFatGrams,
+    required double avgCholesterolMg,
+    required double avgSodiumMg,
+    required double avgPotassiumMg,
+    required double avgVitaminAMcg,
+    required double avgVitaminCMg,
+    required double avgVitaminDMcg,
+    required double avgCalciumMg,
+    required double avgIronMg,
+    required double totalCalories,
+    required double totalProteinGrams,
+    required double totalFatGrams,
+    required double totalCarbsGrams,
+    required double totalFiberGrams,
+    required double totalSugarGrams,
+    required double totalSaturatedFatGrams,
+    required double totalPolyunsaturatedFatGrams,
+    required double totalMonounsaturatedFatGrams,
+    required double totalTransFatGrams,
+    required double totalCholesterolMg,
+    required double totalSodiumMg,
+    required double totalPotassiumMg,
+    required double totalVitaminAMcg,
+    required double totalVitaminCMg,
+    required double totalVitaminDMcg,
+    required double totalCalciumMg,
+    required double totalIronMg,
+    required int stepsGoal,
+    required int avgSteps,
+    required double weightGoal,
+    required double latestWeight,
+    required double avgWaterLiters,
+    required double waterGoalLiters,
+    required int workouts,
+    required int avgActivityCalories,
+    required List<Map<String, dynamic>> availableRecipes,
+  }) async {
+    final recipesContext = availableRecipes
+        .take(60)
+        .map((r) =>
+            '- ${(r['name'] as String? ?? '').trim()} (${((r['calories'] as num?) ?? 0).round()} kcal)')
+        .where((line) => !line.startsWith('-  ('))
+        .join('\n');
+
+    final prompt = '''
+You are a fitness assistant and nutritionist.
+${_languageInstruction(locale)}
+Analyze user progress for the period: $periodLabel.
+
+Goals and progress:
+- Calorie goal: $calorieGoal kcal
+- Protein goal: $proteinGoal g
+- Fat goal: $fatGoal g
+- Carbs goal: $carbsGoal g
+- Average calories: ${avgCalories.toStringAsFixed(0)} kcal
+- Average protein: ${avgProteinGrams.toStringAsFixed(1)} g
+- Average fat: ${avgFatGrams.toStringAsFixed(1)} g
+- Average carbs: ${avgCarbsGrams.toStringAsFixed(1)} g
+- Average fiber: ${avgFiberGrams.toStringAsFixed(1)} g
+- Average sugar: ${avgSugarGrams.toStringAsFixed(1)} g
+- Average saturated fat: ${avgSaturatedFatGrams.toStringAsFixed(1)} g
+- Average polyunsaturated fat: ${avgPolyunsaturatedFatGrams.toStringAsFixed(1)} g
+- Average monounsaturated fat: ${avgMonounsaturatedFatGrams.toStringAsFixed(1)} g
+- Average trans fat: ${avgTransFatGrams.toStringAsFixed(2)} g
+- Average cholesterol: ${avgCholesterolMg.toStringAsFixed(1)} mg
+- Average sodium: ${avgSodiumMg.toStringAsFixed(1)} mg
+- Average potassium: ${avgPotassiumMg.toStringAsFixed(1)} mg
+- Average vitamin A: ${avgVitaminAMcg.toStringAsFixed(1)} mcg
+- Average vitamin C: ${avgVitaminCMg.toStringAsFixed(1)} mg
+- Average vitamin D: ${avgVitaminDMcg.toStringAsFixed(1)} mcg
+- Average calcium: ${avgCalciumMg.toStringAsFixed(1)} mg
+- Average iron: ${avgIronMg.toStringAsFixed(1)} mg
+- Total calories: ${totalCalories.toStringAsFixed(0)} kcal
+- Total protein: ${totalProteinGrams.toStringAsFixed(1)} g
+- Total fat: ${totalFatGrams.toStringAsFixed(1)} g
+- Total carbs: ${totalCarbsGrams.toStringAsFixed(1)} g
+- Total fiber: ${totalFiberGrams.toStringAsFixed(1)} g
+- Total sugar: ${totalSugarGrams.toStringAsFixed(1)} g
+- Total saturated fat: ${totalSaturatedFatGrams.toStringAsFixed(1)} g
+- Total polyunsaturated fat: ${totalPolyunsaturatedFatGrams.toStringAsFixed(1)} g
+- Total monounsaturated fat: ${totalMonounsaturatedFatGrams.toStringAsFixed(1)} g
+- Total trans fat: ${totalTransFatGrams.toStringAsFixed(2)} g
+- Total cholesterol: ${totalCholesterolMg.toStringAsFixed(1)} mg
+- Total sodium: ${totalSodiumMg.toStringAsFixed(1)} mg
+- Total potassium: ${totalPotassiumMg.toStringAsFixed(1)} mg
+- Total vitamin A: ${totalVitaminAMcg.toStringAsFixed(1)} mcg
+- Total vitamin C: ${totalVitaminCMg.toStringAsFixed(1)} mg
+- Total vitamin D: ${totalVitaminDMcg.toStringAsFixed(1)} mcg
+- Total calcium: ${totalCalciumMg.toStringAsFixed(1)} mg
+- Total iron: ${totalIronMg.toStringAsFixed(1)} mg
+- Steps goal: $stepsGoal
+- Average steps: $avgSteps
+- Weight goal: ${weightGoal.toStringAsFixed(1)} kg
+- Latest weight: ${latestWeight.toStringAsFixed(1)} kg
+- Water goal: ${waterGoalLiters.toStringAsFixed(1)} L
+- Average water: ${avgWaterLiters.toStringAsFixed(1)} L
+- Workouts: $workouts
+- Average activity calories per workout: $avgActivityCalories
+
+Available recipes in app:
+${recipesContext.isEmpty ? '- none' : recipesContext}
+
+Task:
+1) Create a short analytical summary versus goals.
+2) Create a practical meal plan for the next period (what and when to eat) focused on deficits/excesses.
+3) If suitable recipes from the list exist, include exact recipe names from the provided list.
+4) If there is no suitable recipe, leave recipeName as an empty string and still provide meal advice.
+
+Return ONLY JSON object in this format:
+{
+  "overview": "2-5 short sentences",
+  "recommendations": [
+    {
+      "when": "breakfast|lunch|dinner|snack|any",
+      "action": "specific actionable advice",
+      "recipeName": "exact recipe name from provided list or empty string"
+    }
+  ]
+}
+
+Rules:
+- recommendations: 2 to 5 items
+- no markdown, no extra keys, no text outside JSON
+''';
+
+    final response = await _requestWithFallback(
+      body: {
+        'messages': [
+          {
+            'role': 'user',
+            'content': prompt,
+          }
+        ],
+        'temperature': 0.4,
+        'max_completion_tokens': 520,
+        'top_p': 1,
+        'stream': false,
+      },
+      locale: locale,
+    );
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload, locale).trim();
+    if (text.isEmpty) {
+      throw GeminiRecipeException(
+        _messages(locale).aiEmptyReportError,
+      );
+    }
+
+    final decoded = _decodeJsonObject(text, locale);
+    final overview = (decoded['overview'] as String? ?? '').trim();
+    final recommendations =
+        (decoded['recommendations'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => {
+                'when': (item['when'] as String? ?? '').trim(),
+                'action': (item['action'] as String? ?? '').trim(),
+                'recipeName': (item['recipeName'] as String? ?? '').trim(),
+              },
+            )
+            .where((item) => (item['action'] as String).isNotEmpty)
+            .toList(growable: false);
+
+    if (overview.isEmpty) {
+      throw GeminiRecipeException(
+        _messages(locale).aiEmptyReportError,
+      );
+    }
+
+    return {
+      'overview': overview,
+      'recommendations': recommendations,
+    };
+  }
+
   Future<DailyGoalsDraft> generateDailyGoals({
     required UserProfile profile,
     String? locale,
@@ -1048,8 +1240,8 @@ Rules:
     } catch (_) {}
 
     // 2. Try parsing code-fenced content first.
-    final fencedMatches = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```')
-        .allMatches(trimmed);
+    final fencedMatches =
+        RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').allMatches(trimmed);
     for (final match in fencedMatches) {
       final fencedBody = (match.group(1) ?? '').trim();
       if (fencedBody.isEmpty) continue;
