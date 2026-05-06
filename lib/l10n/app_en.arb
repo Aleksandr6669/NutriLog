@@ -283,6 +283,9 @@
   "recipeClarificationHint": "Clarification for AI (e.g., boiled, with milk, 100g dry)",
   "recipeClarificationDescription": "Describe preparation method, form or other details — AI will use this when calculating.",
   "calculateNutrition": "Calculate nutrition",
+  "makePublic": "Make public",
+  "publicRecipe": "Public recipe",
+  "privateRecipe": "Private recipe",
   "unitLabel": "Unit",
   "autoMacros": "Auto macros",
   "nutritionDetails": "Nutrition details",
@@ -480,5 +483,7 @@
   "add": "Add",
   "swipeToDeleteHint": "To remove, swipe left",
   "recipeAiCalculating": "Calculating nutrition...",
-  "selectIconDialogTitle": "Select icon"
+  "selectIconDialogTitle": "Select icon",
+  "nameFromGoogleAccount": "Your name is synchronized from your Google account",
+  "cloudSyncInfo": "When you connect a Google account, the following are automatically synchronized: profile, recipes, nutrition and activity logs. Profile photo is cached and available offline. When you sign out, data remains local on your device."
 }

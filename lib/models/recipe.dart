@@ -61,6 +61,7 @@ class Recipe {
   List<String> instructions;
   IconData icon;
   bool isUserRecipe;
+  final bool isPublic;
 
   Recipe({
     required this.id,
@@ -71,6 +72,7 @@ class Recipe {
     this.instructions = const [],
     required this.icon,
     this.isUserRecipe = false,
+    this.isPublic = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -99,6 +101,7 @@ class Recipe {
           : [],
       icon: RecipeLoader.getIcon(json['icon'] as String? ?? 'restaurant'),
       isUserRecipe: json['isUserRecipe'] ?? false,
+      isPublic: json['isPublic'] == true,
     );
   }
 
@@ -121,7 +124,32 @@ class Recipe {
       'instructions': instructions,
       'icon': _iconToString(icon),
       'isUserRecipe': isUserRecipe,
+      'isPublic': isPublic,
     };
+  }
+
+  Recipe copyWith({
+    String? id,
+    String? name,
+    String? description,
+    Map<String, double>? nutrients,
+    List<RecipeIngredient>? ingredients,
+    List<String>? instructions,
+    IconData? icon,
+    bool? isUserRecipe,
+    bool? isPublic,
+  }) {
+    return Recipe(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      nutrients: nutrients ?? this.nutrients,
+      ingredients: ingredients ?? this.ingredients,
+      instructions: instructions ?? this.instructions,
+      icon: icon ?? this.icon,
+      isUserRecipe: isUserRecipe ?? this.isUserRecipe,
+      isPublic: isPublic ?? this.isPublic,
+    );
   }
 
   static String _iconToString(IconData icon) {

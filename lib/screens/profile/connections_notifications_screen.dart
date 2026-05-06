@@ -11,6 +11,7 @@ import 'package:nutri_log/services/cloud_data_service.dart';
 import 'package:nutri_log/services/firebase_auth_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
+import 'package:nutri_log/services/avatar_cache_service.dart';
 import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,7 @@ class _ConnectionsNotificationsScreenState
 
   bool _loading = true;
   bool _authBusy = false;
+  bool _connectionsExpanded = false;
   User? _user;
   DateTime? _lastSyncAt;
   late NotificationSettings _settings;
@@ -181,9 +183,9 @@ class _ConnectionsNotificationsScreenState
   }
 
   Future<void> _syncCloudDataAfterSignIn() async {
-    await ProfileService().loadProfile();
-    await RecipeService().loadUserRecipes();
-    await DailyLogService().getLoggedDates();
+    await ProfileService().syncWithCloud();
+    await RecipeService().syncWithCloud();
+    await DailyLogService().syncWithCloud();
   }
 
   Future<void> _autoSyncInBackground() async {
@@ -221,7 +223,6 @@ class _ConnectionsNotificationsScreenState
       setState(() {
         _lastSyncAt = lastSync;
       });
-      _showSnack(l10n.cloudSyncEnabled);
     } catch (e) {
       if (!mounted) return;
       _showSnack(
@@ -239,9 +240,12 @@ class _ConnectionsNotificationsScreenState
     final l10n = AppLocalizations.of(context)!;
     setState(() => _authBusy = true);
     try {
+      final uid = _authService.currentUser?.uid;
       await _authService.signOut();
-      if (!mounted) return;
-      _showSnack(l10n.signedOut);
+      // Очищаем кеш фото при выходе
+      if (uid != null) {
+        await AvatarCacheService.clearCache(uid);
+      }
     } catch (e) {
       if (!mounted) return;
       _showSnack(
@@ -314,17 +318,52 @@ class _ConnectionsNotificationsScreenState
             child: Column(
               children: [
                 ListTile(
+                  onTap: () => setState(
+                    () => _connectionsExpanded = !_connectionsExpanded,
+                  ),
                   leading: const Icon(Symbols.account_circle),
                   title: Text(l10n.loginToAccount),
                   subtitle: Text(_user == null
                       ? l10n.cloudSyncLocalOnly
                       : '${_user!.email}\n${_formatLastSync(context)}'),
-                  trailing: FilledButton.tonal(
-                    onPressed: _authBusy
-                        ? null
-                        : (_user == null ? _handleSignIn : _handleSignOut),
-                    child: Text(_user == null ? l10n.signIn : l10n.signOut),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FilledButton.tonal(
+                        onPressed: _authBusy
+                            ? null
+                            : (_user == null ? _handleSignIn : _handleSignOut),
+                        child: Text(_user == null ? l10n.signIn : l10n.signOut),
+                      ),
+                      const SizedBox(width: 8),
+                      AnimatedRotation(
+                        turns: _connectionsExpanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        child: const Icon(Symbols.expand_more),
+                      ),
+                    ],
                   ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  child: _connectionsExpanded
+                      ? Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 14,
+                            left: 16,
+                            right: 16,
+                          ),
+                          child: Text(
+                            l10n.cloudSyncInfo,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),

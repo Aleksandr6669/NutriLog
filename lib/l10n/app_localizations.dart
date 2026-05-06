@@ -1486,6 +1486,24 @@ abstract class AppLocalizations {
   /// **'Calculate nutrition'**
   String get calculateNutrition;
 
+  /// No description provided for @makePublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Make public'**
+  String get makePublic;
+
+  /// No description provided for @publicRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Public recipe'**
+  String get publicRecipe;
+
+  /// No description provided for @privateRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Private recipe'**
+  String get privateRecipe;
+
   /// No description provided for @unitLabel.
   ///
   /// In en, this message translates to:
@@ -2433,6 +2451,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select icon'**
   String get selectIconDialogTitle;
+
+  /// No description provided for @nameFromGoogleAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name is synchronized from your Google account'**
+  String get nameFromGoogleAccount;
+
+  /// No description provided for @cloudSyncInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'When you connect a Google account, the following are automatically synchronized: profile, recipes, nutrition and activity logs. Profile photo is cached and available offline. When you sign out, data remains local on your device.'**
+  String get cloudSyncInfo;
 }
 
 class _AppLocalizationsDelegate

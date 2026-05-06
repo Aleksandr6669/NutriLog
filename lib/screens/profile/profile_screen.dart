@@ -7,6 +7,8 @@ import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:nutri_log/services/firebase_auth_service.dart';
+import 'package:nutri_log/services/avatar_cache_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
+  String? _cachedPhotoBase64;
   static const String _avatarPrefix = 'icon:';
   static const String _defaultAvatarKey = 'person';
   static const Map<String, IconData> _avatarIcons = {
@@ -43,6 +46,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _saveNameFromController();
       }
     });
+    _syncGoogleNameIfAuthorized();
+    // Слушаем изменения в авторизации
+    FirebaseAuthService.instance.authStateChanges().listen((_) {
+      if (mounted) {
+        _syncGoogleNameIfAuthorized();
+      }
+    });
+  }
+
+  Future<void> _syncGoogleNameIfAuthorized() async {
+    final authService = FirebaseAuthService.instance;
+    final googleUser = authService.currentUser;
+    if (googleUser == null) {
+      // При выходе очищаем кеш фото
+      if (mounted && _cachedPhotoBase64 != null) {
+        setState(() => _cachedPhotoBase64 = null);
+      }
+      return;
+    }
+
+    // Синхронизируем имя
+    if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
+      final provider = context.read<ProfileProvider>();
+      final currentProfile = provider.profile;
+      if (currentProfile != null &&
+          currentProfile.name != googleUser.displayName) {
+        final updated = currentProfile.copyWith(name: googleUser.displayName);
+        await provider.updateProfile(updated);
+      }
+    }
+
+    // Загружаем и кешируем фото
+    if (googleUser.photoURL != null && googleUser.photoURL!.isNotEmpty) {
+      await AvatarCacheService.cacheGooglePhoto(
+          googleUser.photoURL, googleUser.uid);
+      final cached = await AvatarCacheService.getCachedPhoto(googleUser.uid);
+      if (mounted) {
+        setState(() => _cachedPhotoBase64 = cached);
+      }
+    }
   }
 
   @override
@@ -266,6 +309,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _startEditingName(UserProfile profile) {
+    // Не разрешаем редактирование имени если пользователь авторизован
+    if (FirebaseAuthService.instance.isSignedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.nameFromGoogleAccount),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     _nameController.text = profile.name;
     setState(() => _isEditingName = true);
     Future.microtask(() => _nameFocusNode.requestFocus());
@@ -286,17 +339,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
     final avatarIcon = _avatarIconFromProfile(profile);
+    final isAuthorized = FirebaseAuthService.instance.isSignedIn;
+    final hasPhoto = _cachedPhotoBase64 != null && isAuthorized;
 
     return Center(
       child: Column(
         children: [
           InkWell(
-            onTap: () => _pickAvatarIcon(profile),
+            onTap: isAuthorized ? null : () => _pickAvatarIcon(profile),
             borderRadius: BorderRadius.circular(50),
             child: CircleAvatar(
               radius: 50,
               backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-              child: Icon(avatarIcon, size: 56, color: AppColors.primary),
+              backgroundImage: hasPhoto
+                  ? MemoryImage(AvatarCacheService.decodeBase64Photo(
+                      _cachedPhotoBase64!)!)
+                  : null,
+              child: !hasPhoto
+                  ? Icon(avatarIcon, size: 56, color: AppColors.primary)
+                  : null,
             ),
           ),
           const SizedBox(height: 16),
@@ -323,11 +384,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onSubmitted: (_) => _saveNameFromController(),
                   ),
                 )
-              : GestureDetector(
-                  onTap: () => _startEditingName(profile),
-                  child: Text(profile.name,
-                      style: theme.textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: isAuthorized
+                          ? null
+                          : () => _startEditingName(profile),
+                      child: Opacity(
+                        opacity: isAuthorized ? 0.7 : 1.0,
+                        child: Text(profile.name,
+                            style: theme.textTheme.headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    if (isAuthorized)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Icon(
+                          Symbols.lock,
+                          size: 20,
+                          color: theme.textTheme.headlineMedium?.color
+                              ?.withValues(alpha: 0.6),
+                        ),
+                      ),
+                  ],
                 ),
         ],
       ),

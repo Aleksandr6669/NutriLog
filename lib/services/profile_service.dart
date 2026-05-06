@@ -12,13 +12,10 @@ class ProfileService {
     final String? profileString = prefs.getString(_profileKey);
 
     UserProfile localProfile;
-    bool hasLocalProfile = false;
-
     if (profileString != null) {
       try {
         final Map<String, dynamic> jsonMap = json.decode(profileString);
         localProfile = UserProfile.fromJson(jsonMap);
-        hasLocalProfile = true;
       } catch (e) {
         localProfile = _createDefaultProfile();
       }
@@ -26,23 +23,30 @@ class ProfileService {
       localProfile = _createDefaultProfile();
     }
 
-    try {
-      final cloud = CloudDataService.instance;
-      final cloudMap = await cloud.readMap('profile');
-      if (cloudMap != null && cloudMap.isNotEmpty) {
-        final cloudProfile = UserProfile.fromJson(cloudMap);
-        await saveProfile(cloudProfile);
-        return cloudProfile;
-      }
+    return localProfile;
+  }
 
-      if (hasLocalProfile && cloud.isSignedIn) {
-        await cloud.writeMap('profile', localProfile.toJson());
+  Future<void> syncWithCloud() async {
+    final cloud = CloudDataService.instance;
+    if (!cloud.isSignedIn) return;
+
+    final localProfile = await loadProfile();
+    final cloudMap = await cloud.readMap('profile');
+
+    if (cloudMap != null && cloudMap.isNotEmpty) {
+      final cloudProfile = UserProfile.fromJson(cloudMap);
+      // Локальные данные приоритетны: облаком заполняем только пустой профиль.
+      final hasMeaningfulLocalData = localProfile.name.trim().isNotEmpty ||
+          localProfile.height > 0 ||
+          localProfile.weight > 0 ||
+          localProfile.calorieGoal > 0;
+      if (!hasMeaningfulLocalData) {
+        await saveProfile(cloudProfile);
+        return;
       }
-    } catch (_) {
-      // Если облако недоступно, используем локальные данные.
     }
 
-    return localProfile;
+    await cloud.writeMap('profile', localProfile.toJson());
   }
 
   Future<void> saveProfile(UserProfile profile) async {

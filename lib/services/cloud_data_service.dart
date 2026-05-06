@@ -13,6 +13,7 @@ class CloudDataService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   String? get _uid => FirebaseAuthService.instance.currentUser?.uid;
+  String? get currentUserId => _uid;
 
   bool get isSignedIn => FirebaseAuthService.instance.isSignedIn;
 
@@ -45,6 +46,44 @@ class CloudDataService {
 
     await FirebaseBootstrapService.ensureInitialized();
     await _docRef(key).set(data, SetOptions(merge: false));
+    await markSyncNow();
+  }
+
+  Future<List<Map<String, dynamic>>> readCollection(
+      String collectionPath) async {
+    if (!isSignedIn) return const [];
+
+    await FirebaseBootstrapService.ensureInitialized();
+    final snapshot = await _firestore.collection(collectionPath).get();
+    await markSyncNow();
+    return snapshot.docs
+        .map((doc) => <String, dynamic>{
+              ...doc.data(),
+              '__docId': doc.id,
+            })
+        .toList(growable: false);
+  }
+
+  Future<void> upsertDocument(
+    String collectionPath,
+    String docId,
+    Map<String, dynamic> data,
+  ) async {
+    if (!isSignedIn) return;
+
+    await FirebaseBootstrapService.ensureInitialized();
+    await _firestore
+        .collection(collectionPath)
+        .doc(docId)
+        .set(data, SetOptions(merge: false));
+    await markSyncNow();
+  }
+
+  Future<void> deleteDocument(String collectionPath, String docId) async {
+    if (!isSignedIn) return;
+
+    await FirebaseBootstrapService.ensureInitialized();
+    await _firestore.collection(collectionPath).doc(docId).delete();
     await markSyncNow();
   }
 

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "902308453779-c2bsjn1k3vabf6jaiacq7bgi4fc837db.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nutrilog.app",
+            "certificate_hash": "15f77177a3bd1e1e34c465193dfffe011a4ed131"
+          }
+        },
+        {
           "client_id": "902308453779-r46nibh735kvnleu21ik7leau7p6ikcu.apps.googleusercontent.com",
           "client_type": 3
         }

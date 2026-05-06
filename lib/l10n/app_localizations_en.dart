@@ -769,6 +769,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calculateNutrition => 'Calculate nutrition';
 
   @override
+  String get makePublic => 'Make public';
+
+  @override
+  String get publicRecipe => 'Public recipe';
+
+  @override
+  String get privateRecipe => 'Private recipe';
+
+  @override
   String get unitLabel => 'Unit';
 
   @override
@@ -1286,4 +1295,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectIconDialogTitle => 'Select icon';
+
+  @override
+  String get nameFromGoogleAccount =>
+      'Your name is synchronized from your Google account';
+
+  @override
+  String get cloudSyncInfo =>
+      'When you connect a Google account, the following are automatically synchronized: profile, recipes, nutrition and activity logs. Profile photo is cached and available offline. When you sign out, data remains local on your device.';
 }

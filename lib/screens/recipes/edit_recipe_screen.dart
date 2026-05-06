@@ -57,6 +57,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   String? _aiStatus;
   bool _isAiError = false;
   int _aiRequestId = 0;
+  bool _isPublic = false;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -90,6 +91,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _clarificationController =
         TextEditingController(text: widget.initialClarification ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
+    _isPublic = sourceRecipe?.isPublic ?? false;
 
     // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
     final isFromDraft = widget.initialDraft != null;
@@ -400,6 +402,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         nutrients: nutrients,
         icon: _selectedIcon,
         isUserRecipe: true,
+        isPublic: _isPublic,
         ingredients: ingredients,
         instructions:
             (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
@@ -535,6 +538,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildNutrientsCard() {
+    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -587,6 +591,35 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 8),
             ],
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.makePublic,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _isPublic,
+                  onChanged: canManageVisibility
+                      ? (value) => setState(() => _isPublic = value)
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -748,126 +781,116 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (item.isAmbiguous)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          children: [
-                            Icon(Symbols.help,
-                                size: 14, color: Colors.orange.shade700),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                l10n.ingredientAmbiguousHint,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.orange.shade700,
-                                ),
-                              ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: TextFormField(
+                            controller: item.nameController,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: AppStyles.underlineInputDecoration(
+                              label: l10n.ingredientLabel,
+                            ).copyWith(
+                              suffixIcon: item.isAmbiguous
+                                  ? Tooltip(
+                                      message: l10n.ingredientAmbiguousHint,
+                                      child: Icon(
+                                        Symbols.help,
+                                        size: 16,
+                                        color: Colors.orange.shade700,
+                                      ),
+                                    )
+                                  : null,
+                              enabledBorder: item.isAmbiguous
+                                  ? UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.orange.shade400,
+                                          width: 1.5),
+                                    )
+                                  : null,
+                              focusedBorder: item.isAmbiguous
+                                  ? UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.orange.shade700,
+                                          width: 2),
+                                    )
+                                  : null,
                             ),
-                          ],
+                            minLines: 1,
+                            maxLines: 2,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) {
+                              if (item.isAmbiguous) {
+                                setState(() => item.isAmbiguous = false);
+                              }
+                            },
+                          ),
                         ),
-                      ),
-                    Container(
-                      decoration: item.isAmbiguous
-                          ? BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.orange.withValues(alpha: 0.4),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: item.quantityController,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: AppStyles.underlineInputDecoration(
+                                label: l10n.quantityLabel),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d*[\.,]?\d*'))
+                            ],
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: item.unit.isEmpty
+                                ? unitOptions.first
+                                : item.unit,
+                            items: unitOptions
+                                .map((unit) => DropdownMenuItem(
+                                      value: unit,
+                                      child: Text(
+                                        _unitLabel(unit),
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => item.unit = value);
+                              }
+                            },
+                            decoration: InputDecoration(
+                              labelText: l10n.unitLabel,
+                              border: UnderlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
-                            )
-                          : null,
-                      padding: item.isAmbiguous
-                          ? const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4)
-                          : EdgeInsets.zero,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: TextFormField(
-                              controller: item.nameController,
-                              style: const TextStyle(fontSize: 13),
-                              decoration: AppStyles.underlineInputDecoration(
-                                  label: l10n.ingredientLabel),
-                              minLines: 1,
-                              maxLines: 2,
-                              textInputAction: TextInputAction.next,
-                              onChanged: (_) {
-                                if (item.isAmbiguous) {
-                                  setState(() => item.isAmbiguous = false);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: item.quantityController,
-                              style: const TextStyle(fontSize: 13),
-                              decoration: AppStyles.underlineInputDecoration(
-                                  label: l10n.quantityLabel),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d*[\.,]?\d*'))
-                              ],
-                              textInputAction: TextInputAction.next,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: item.unit.isEmpty
-                                  ? unitOptions.first
-                                  : item.unit,
-                              items: unitOptions
-                                  .map((unit) => DropdownMenuItem(
-                                        value: unit,
-                                        child: Text(
-                                          _unitLabel(unit),
-                                          style: const TextStyle(fontSize: 13),
-                                        ),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => item.unit = value);
-                                }
-                              },
-                              decoration: InputDecoration(
-                                labelText: l10n.unitLabel,
-                                border: UnderlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.grey.shade300),
-                                ),
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                isDense: true,
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 8),
+                              isDense: true,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          IconButton(
-                            tooltip: l10n.delete,
-                            onPressed: () => _removeIngredientRow(index),
-                            icon: const Icon(
-                              Symbols.remove_circle,
-                              color: Colors.redAccent,
-                            ),
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          tooltip: l10n.delete,
+                          onPressed: () => _removeIngredientRow(index),
+                          icon: const Icon(
+                            Symbols.remove_circle,
+                            color: Colors.redAccent,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

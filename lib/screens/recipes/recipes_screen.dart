@@ -281,10 +281,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
         await RecipeLoader.loadRecipesFromAssets(locale: _locale);
     final userRecipes = await _recipeService.loadUserRecipes();
 
-    for (var recipe in userRecipes) {
-      recipe.isUserRecipe = true;
-    }
-
     // Пользовательские рецепты сверху (новые первыми), встроенные внизу
     userRecipes.sort((a, b) => b.id.compareTo(a.id));
     final allRecipes = [...userRecipes, ...defaultRecipes];

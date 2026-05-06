@@ -771,6 +771,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get calculateNutrition => 'Рассчитать пищевую ценность';
 
   @override
+  String get makePublic => 'Сделать публичным';
+
+  @override
+  String get publicRecipe => 'Публичный рецепт';
+
+  @override
+  String get privateRecipe => 'Приватный рецепт';
+
+  @override
   String get unitLabel => 'Ед.';
 
   @override
@@ -1289,4 +1298,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get selectIconDialogTitle => 'Выберите иконку';
+
+  @override
+  String get nameFromGoogleAccount =>
+      'Имя синхронизируется из вашего Google-аккаунта';
+
+  @override
+  String get cloudSyncInfo =>
+      'При подключении Google-аккаунта автоматически синхронизируются: профиль, рецепты, логи питания и активности. Фото профиля кешируется и доступно офлайн. При выходе данные остаются локальными на устройстве.';
 }

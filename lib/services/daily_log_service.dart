@@ -16,39 +16,20 @@ class DailyLogService {
   Future<Map<String, dynamic>> _loadRawData() async {
     final prefs = await SharedPreferences.getInstance();
     String? stored = prefs.getString(_storageKey);
-    Map<String, dynamic> localData = {};
-
     if (stored == null || stored.isEmpty) {
-      localData = {};
-    } else {
-      try {
-        final decoded = json.decode(stored);
-        if (decoded is Map<String, dynamic>) {
-          localData = decoded;
-        }
-      } catch (_) {
-        localData = {};
-      }
+      return {};
     }
 
     try {
-      final cloudMap = await CloudDataService.instance.readMap('daily_logs');
-      final cloudLogs = cloudMap?['logs'];
-      if (cloudLogs is Map<String, dynamic>) {
-        await prefs.setString(_storageKey, json.encode(cloudLogs));
-        return cloudLogs;
-      }
-
-      if (localData.isNotEmpty) {
-        await CloudDataService.instance.writeMap('daily_logs', {
-          'logs': localData,
-        });
+      final decoded = json.decode(stored);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
       }
     } catch (_) {
-      // Если облако недоступно, используем локальные данные.
+      // Игнорируем битые локальные данные и возвращаем пустой map.
     }
 
-    return localData;
+    return {};
   }
 
   Future<void> _saveRawData(Map<String, dynamic> jsonMap) async {
@@ -60,6 +41,23 @@ class DailyLogService {
     } catch (_) {
       // Локальное сохранение уже выполнено.
     }
+  }
+
+  Future<void> syncWithCloud() async {
+    final cloud = CloudDataService.instance;
+    if (!cloud.isSignedIn) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final localData = await _loadRawData();
+    final cloudMap = await cloud.readMap('daily_logs');
+    final cloudLogs = cloudMap?['logs'];
+
+    if (localData.isEmpty && cloudLogs is Map<String, dynamic>) {
+      await prefs.setString(_storageKey, json.encode(cloudLogs));
+      return;
+    }
+
+    await cloud.writeMap('daily_logs', {'logs': localData});
   }
 
   Map<String, dynamic> _emptyMealsJson() {
