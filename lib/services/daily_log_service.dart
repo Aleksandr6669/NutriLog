@@ -9,6 +9,12 @@ import 'profile_service.dart';
 import 'recipe_loader.dart';
 
 class DailyLogService {
+  /// Очищает локальный кеш дневника пользователя
+  static Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_storageKey);
+  }
+
   static final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   static const String _storageKey = 'daily_logs';
   final ProfileService _profileService = ProfileService();

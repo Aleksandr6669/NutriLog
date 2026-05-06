@@ -6,6 +6,13 @@ import '../models/recipe.dart';
 import 'cloud_data_service.dart';
 
 class RecipeService {
+  /// Очищает локальный кеш рецептов пользователя
+  static Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userRecipesKey);
+    await prefs.remove(_publicRecipesKey);
+  }
+
   static const _userRecipesKey = 'user_recipes';
   static const _publicRecipesKey = 'public_recipes_cache';
 

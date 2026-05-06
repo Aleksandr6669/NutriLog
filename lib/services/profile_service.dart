@@ -5,6 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'cloud_data_service.dart';
 
 class ProfileService {
+  /// Очищает локальный кеш профиля пользователя
+  static Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_profileKey);
+  }
+
   static const String _profileKey = 'user_profile';
 
   Future<UserProfile> loadProfile() async {

@@ -264,10 +264,12 @@ class _ConnectionsNotificationsScreenState
     try {
       final uid = _authService.currentUser?.uid;
       await _authService.signOut();
-      // Очищаем кеш фото при выходе
+      // Очищаем только кеш фото Google-аккаунта при выходе
       if (uid != null) {
         await AvatarCacheService.clearCache(uid);
       }
+      // После выхода — если была выбрана локальная аватарка до входа, восстановить её (логика восстановления должна быть реализована в UI/сервисе)
+      // Остальные пользовательские данные не трогаем
     } catch (e) {
       if (!mounted) return;
       _showSnack(
