@@ -45,6 +45,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String _locale = 'ru';
   StreamSubscription<List<Recipe>>? _publicRecipesSubscription;
   StreamSubscription<List<Recipe>>? _privateRecipesSubscription;
+  final Set<String> _knownRealtimeRecipeIds = <String>{};
+  String? _highlightedAppearedRecipeId;
+  bool _isRecipeFeedInitialized = false;
 
   @override
   void initState() {
@@ -336,10 +339,33 @@ class _RecipesScreenState extends State<RecipesScreen> {
         .where((r) => !r.isUserRecipe && r.isPublic)
         .toList()
       ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
+
+    final appearedIds = userRecipes.map((r) => r.id).toSet();
+    String? nextHighlightedRecipeId = _highlightedAppearedRecipeId;
+    if (_isRecipeFeedInitialized) {
+      final newIds = appearedIds.difference(_knownRealtimeRecipeIds);
+      if (newIds.isNotEmpty) {
+        final newestAppearedRecipe = userRecipes
+          ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
+        final matched = newestAppearedRecipe
+            .where((r) => newIds.contains(r.id))
+            .cast<Recipe?>()
+            .firstWhere((_) => true, orElse: () => null);
+        if (matched != null) {
+          nextHighlightedRecipeId = matched.id;
+        }
+      }
+    }
+    _knownRealtimeRecipeIds
+      ..clear()
+      ..addAll(appearedIds);
+    _isRecipeFeedInitialized = true;
+
     // 3. Встроенные рецепты из ассетов
     final allRecipes = [...ownRecipes, ...othersRecipes, ...defaultRecipes];
 
     setState(() {
+      _highlightedAppearedRecipeId = nextHighlightedRecipeId;
       _allRecipes = allRecipes;
       _filteredRecipes = _allRecipes;
       _isLoading = false;
@@ -623,13 +649,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             height: 58,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _showFabMenu
-                                  ? AppColors.primary.withValues(alpha: 0.85)
-                                  : AppColors.primary,
+                              color: AppColors.primary,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary
-                                      .withAlpha(_showFabMenu ? 60 : 100),
+                                  color: AppColors.primary.withAlpha(100),
                                   blurRadius: _showFabMenu ? 8 : 12,
                                   spreadRadius: _showFabMenu ? 1 : 2,
                                   offset: const Offset(0, 6),
@@ -731,6 +754,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
             final item = _RecipeListItem(
               recipe: recipe,
+              isHighlighted: recipe.id == _highlightedAppearedRecipeId,
               isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
               isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
               canSelectInDeleteMode: recipe.isUserRecipe,
@@ -890,6 +914,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 class _RecipeListItem extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
+  final bool isHighlighted;
   final bool isSelectionMode;
   final bool isDeleteMode;
   final bool canSelectInDeleteMode;
@@ -900,6 +925,7 @@ class _RecipeListItem extends StatelessWidget {
   const _RecipeListItem({
     required this.recipe,
     required this.onTap,
+    this.isHighlighted = false,
     this.isSelectionMode = false,
     this.isDeleteMode = false,
     this.canSelectInDeleteMode = true,
@@ -916,18 +942,13 @@ class _RecipeListItem extends StatelessWidget {
     final calories = ((rawCalories as num?) ?? 0).round();
     final isOwnRecipe = recipe.isUserRecipe;
 
-    return Card(
+    final card = Card(
       color: Colors.white,
-      elevation: isOwnRecipe ? 0 : 0.5,
+      elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.cardRadius,
-        side: isOwnRecipe
-            ? BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.42),
-                width: 1.2,
-              )
-            : BorderSide.none,
+        side: BorderSide.none,
       ),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
@@ -937,31 +958,8 @@ class _RecipeListItem extends StatelessWidget {
         highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
         child: Stack(
           children: [
-            if (isOwnRecipe)
-              Positioned(
-                left: 0,
-                top: 14,
-                bottom: 14,
-                child: Container(
-                  width: 6,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(12),
-                      bottomRight: Radius.circular(12),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.22),
-                        blurRadius: 10,
-                        offset: const Offset(2, 0),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             Padding(
-              padding: EdgeInsets.fromLTRB(isOwnRecipe ? 18 : 12, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -1070,5 +1068,113 @@ class _RecipeListItem extends StatelessWidget {
         ),
       ),
     );
+
+    if (!isHighlighted) return card;
+    return _AppearedRecipeHighlight(child: card);
+  }
+}
+
+class _AppearedRecipeHighlight extends StatefulWidget {
+  final Widget child;
+
+  const _AppearedRecipeHighlight({required this.child});
+
+  @override
+  State<_AppearedRecipeHighlight> createState() =>
+      _AppearedRecipeHighlightState();
+}
+
+class _AppearedRecipeHighlightState extends State<_AppearedRecipeHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1700),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _rotationController,
+      child: widget.child,
+      builder: (context, child) {
+        return CustomPaint(
+          foregroundPainter: _AppearedRecipeBorderPainter(
+            progress: _rotationController.value,
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _AppearedRecipeBorderPainter extends CustomPainter {
+  final double progress;
+
+  const _AppearedRecipeBorderPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final outerRRect = RRect.fromRectAndRadius(
+      rect.deflate(0.8),
+      const Radius.circular(22),
+    );
+    final innerRRect = RRect.fromRectAndRadius(
+      rect.deflate(3.2),
+      const Radius.circular(19),
+    );
+
+    final outerPath = Path()..addRRect(outerRRect);
+    final innerPath = Path()..addRRect(innerRRect);
+    final outerMetric = outerPath.computeMetrics().first;
+    final innerMetric = innerPath.computeMetrics().first;
+
+    final outerArcLength = outerMetric.length * 0.17;
+    final innerArcLength = innerMetric.length * 0.12;
+    final outerOffset = outerMetric.length * progress;
+    final innerOffset = innerMetric.length * ((progress + 0.42) % 1.0);
+
+    final outerSegment = outerMetric.extractPath(
+      outerOffset,
+      outerOffset + outerArcLength,
+      startWithMoveTo: true,
+    );
+    final innerSegment = innerMetric.extractPath(
+      innerOffset,
+      innerOffset + innerArcLength,
+      startWithMoveTo: true,
+    );
+
+    final outerPaint = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.95)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    final innerPaint = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.75)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawPath(outerSegment, outerPaint);
+    canvas.drawPath(innerSegment, innerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AppearedRecipeBorderPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

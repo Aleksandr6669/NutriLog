@@ -1036,12 +1036,61 @@ ThemeData _buildTheme(Brightness brightness) {
         ),
     cardTheme: CardThemeData(
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.defaultBorderRadius,
         side: BorderSide(color: cardBorderColor, width: 1),
       ),
       color: cardColor,
       margin: EdgeInsets.zero,
+    ),
+    listTileTheme: ListTileThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.defaultBorderRadius,
+      ),
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: cardColor,
+      hourMinuteColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.primary.withValues(alpha: 0.18);
+        }
+        return (isLight ? Colors.grey.shade100 : Colors.grey.shade800);
+      }),
+      hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.primary;
+        }
+        return textColor;
+      }),
+      dayPeriodColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.primary.withValues(alpha: 0.18);
+        }
+        return Colors.transparent;
+      }),
+      dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColors.primary;
+        }
+        return textColor;
+      }),
+      dialHandColor: AppColors.primary,
+      dialBackgroundColor:
+          isLight ? Colors.grey.shade100 : Colors.grey.shade800,
+      dialTextColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return Colors.white;
+        }
+        return textColor;
+      }),
+      entryModeIconColor: AppColors.primary,
+      confirmButtonStyle: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+      ),
+      cancelButtonStyle: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+      ),
     ),
     appBarTheme: AppBarTheme(
       elevation: 0,

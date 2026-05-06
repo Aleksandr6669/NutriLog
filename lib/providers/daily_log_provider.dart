@@ -29,7 +29,18 @@ class DailyLogProvider with ChangeNotifier {
   DailyLogProvider() {
     loadLoggedDates();
     loadLogForDate(_selectedDate);
-    _startRealtimeSync();
+    // Запускаем realtime sync после первого кадра, чтобы Firebase
+    // успел инициализироваться до первого обращения к FirebaseAuth.
+    Future.microtask(_startRealtimeSyncSafe);
+  }
+
+  void _startRealtimeSyncSafe() {
+    try {
+      _startRealtimeSync();
+    } catch (_) {
+      // Firebase ещё не готов — повторим через 2 секунды
+      Future.delayed(const Duration(seconds: 2), _startRealtimeSyncSafe);
+    }
   }
 
   /// Подписывается на Firestore-документ дневника.

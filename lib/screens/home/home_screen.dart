@@ -52,7 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _refreshHealthConnectionState();
-    _loadLogForSelectedDate();
+    // Откладываем на post-frame чтобы Provider успел создать DailyLogProvider
+    // уже после того как Firebase инициализирован.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadLogForSelectedDate();
+    });
   }
 
   @override
@@ -1530,14 +1534,6 @@ class _MealCard extends StatelessWidget {
     final isNotEaten = calories == '0';
     return InkWell(
       onTap: () async {
-        final mealType = mealName == 'Завтрак'
-            ? 'breakfast'
-            : mealName == 'Обед'
-                ? 'lunch'
-                : mealName == 'Ужин'
-                    ? 'dinner'
-                    : 'snacks';
-
         final result = await context.push<bool>(
           '/meal/$mealKey',
           extra: {
