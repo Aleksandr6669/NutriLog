@@ -496,5 +496,9 @@
   "donateRecipeSuccess": "Рецепт передано спільноті!",
   "donateRecipeError": "Помилка при передачі рецепту",
   "donateRecipeAlreadyDonated": "Рецепт вже передано",
-  "donateRecipeSignInRequired": "Увійдіть, щоб передати рецепт спільноті"
+  "donateRecipeSignInRequired": "Увійдіть, щоб передати рецепт спільноті",
+  "aiClarificationTitle": "Уточнення для AI",
+  "aiClarificationDescription": "Опишіть важливі деталі: спосіб приготування, обмеження, бажаний стиль страви або особливості порції.",
+  "aiClarificationLabel": "Що важливо врахувати?",
+  "aiClarificationHint": "Наприклад: без глютену, більше білка, менше цукру, запечене, вегетаріанське"
 }

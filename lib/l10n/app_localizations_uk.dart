@@ -1344,4 +1344,18 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get donateRecipeSignInRequired =>
       'Увійдіть, щоб передати рецепт спільноті';
+
+  @override
+  String get aiClarificationTitle => 'Уточнення для AI';
+
+  @override
+  String get aiClarificationDescription =>
+      'Опишіть важливі деталі: спосіб приготування, обмеження, бажаний стиль страви або особливості порції.';
+
+  @override
+  String get aiClarificationLabel => 'Що важливо врахувати?';
+
+  @override
+  String get aiClarificationHint =>
+      'Наприклад: без глютену, більше білка, менше цукру, запечене, вегетаріанське';
 }

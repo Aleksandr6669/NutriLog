@@ -26,6 +26,7 @@ class _FabMenuItemState extends State<FabMenuItem>
   late Animation<double> _iconScale;
   late Animation<double> _textWidth;
   late Animation<double> _opacity;
+  late Animation<Offset> _slideUp;
 
   @override
   void initState() {
@@ -57,6 +58,17 @@ class _FabMenuItemState extends State<FabMenuItem>
       ),
     );
 
+    // Скольжение снизу вверх (0.0 -> 0.6)
+    _slideUp = Tween<Offset>(
+      begin: const Offset(0, 0.4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
+
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
     });
@@ -70,85 +82,89 @@ class _FabMenuItemState extends State<FabMenuItem>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Текст
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              const textStyle = TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              );
+    return SlideTransition(
+      position: _slideUp,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          widget.onTap();
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Текст
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                const textStyle = TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                );
 
-              return ClipRect(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  widthFactor: _textWidth.value,
-                  child: Opacity(
-                    opacity: _opacity.value,
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        widget.label,
-                        style: textStyle,
-                        maxLines: 1,
-                        overflow: TextOverflow.visible,
+                return ClipRect(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    widthFactor: _textWidth.value,
+                    child: Opacity(
+                      opacity: _opacity.value,
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          widget.label,
+                          style: textStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.visible,
+                        ),
                       ),
                     ),
                   ),
+                );
+              },
+            ),
+
+            // Кружок с иконкой
+            ScaleTransition(
+              scale: _iconScale,
+              child: Container(
+                width: 48,
+                height: 48,
+                // Небольшой отступ справа, чтобы выровнять с главной FAB кнопкой (которая 58x58)
+                margin: const EdgeInsets.only(right: 5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
-          
-          // Кружок с иконкой
-          ScaleTransition(
-            scale: _iconScale,
-            child: Container(
-              width: 48,
-              height: 48,
-              // Небольшой отступ справа, чтобы выровнять с главной FAB кнопкой (которая 58x58)
-              margin: const EdgeInsets.only(right: 5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Icon(
-                widget.icon,
-                color: AppColors.primary,
-                size: 24,
+                child: Icon(
+                  widget.icon,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

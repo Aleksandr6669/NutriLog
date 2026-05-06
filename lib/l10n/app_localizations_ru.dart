@@ -1343,4 +1343,18 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get donateRecipeSignInRequired =>
       'Войдите в аккаунт, чтобы передать рецепт сообществу';
+
+  @override
+  String get aiClarificationTitle => 'Уточнение для AI';
+
+  @override
+  String get aiClarificationDescription =>
+      'Опишите важные детали: способ приготовления, ограничения, желаемый стиль блюда или особенности порции.';
+
+  @override
+  String get aiClarificationLabel => 'Что важно учесть?';
+
+  @override
+  String get aiClarificationHint =>
+      'Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское';
 }

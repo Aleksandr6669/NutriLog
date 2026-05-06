@@ -1340,4 +1340,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get donateRecipeSignInRequired =>
       'Sign in to donate a recipe to the community';
+
+  @override
+  String get aiClarificationTitle => 'AI Clarification';
+
+  @override
+  String get aiClarificationDescription =>
+      'Describe important details: cooking method, dietary restrictions, desired dish style, or portion specifics.';
+
+  @override
+  String get aiClarificationLabel => 'What to consider?';
+
+  @override
+  String get aiClarificationHint =>
+      'E.g. gluten-free, high protein, less sugar, baked, vegetarian';
 }

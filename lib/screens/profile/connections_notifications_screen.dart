@@ -9,6 +9,7 @@ import 'package:nutri_log/services/app_startup_service.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
 import 'package:nutri_log/services/cloud_data_service.dart';
 import 'package:nutri_log/services/firebase_auth_service.dart';
+import 'package:nutri_log/services/local_first_sync_service.dart';
 import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/avatar_cache_service.dart';
@@ -438,6 +439,77 @@ class _ConnectionsNotificationsScreenState
     );
   }
 
+  Widget _buildSyncStatusBadge(ThemeData theme) {
+    return ValueListenableBuilder<SyncStatus>(
+      valueListenable: LocalFirstSyncService.instance.statusNotifier,
+      builder: (context, status, _) {
+        final Color color;
+        final IconData icon;
+        final String label;
+        Widget? leading;
+
+        switch (status) {
+          case SyncStatus.syncing:
+            color = Colors.blue.shade600;
+            icon = Symbols.sync;
+            label = 'Синхронизация…';
+            leading = SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: color,
+              ),
+            );
+          case SyncStatus.synced:
+            color = Colors.green.shade600;
+            icon = Symbols.cloud_done;
+            final syncedAt = LocalFirstSyncService.instance.lastSyncedAt;
+            final timeStr = syncedAt != null
+                ? DateFormat.Hm().format(syncedAt)
+                : '';
+            label = timeStr.isNotEmpty ? 'Синхронизировано в $timeStr' : 'Синхронизировано';
+          case SyncStatus.error:
+            color = Colors.orange.shade700;
+            icon = Symbols.sync_problem;
+            label = 'Ошибка синхронизации — повтор при следующем подключении';
+          case SyncStatus.idle:
+            color = theme.colorScheme.onSurface.withValues(alpha: 0.4);
+            icon = Symbols.cloud_queue;
+            label = 'Ожидание синхронизации…';
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              leading ??
+                  Icon(icon, size: 14, color: color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(color: color),
+                ),
+              ),
+              if (status != SyncStatus.syncing)
+                GestureDetector(
+                  onTap: () => LocalFirstSyncService.instance.syncNow(),
+                  child: Icon(Symbols.refresh, size: 16, color: color),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -483,8 +555,14 @@ class _ConnectionsNotificationsScreenState
             child: _connectionsExpanded
                 ? Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Card(
-                      child: _buildSyncInfoPanel(theme, l10n),
+                    child: Column(
+                      children: [
+                        if (_user != null) _buildSyncStatusBadge(theme),
+                        if (_user != null) const SizedBox(height: 8),
+                        Card(
+                          child: _buildSyncInfoPanel(theme, l10n),
+                        ),
+                      ],
                     ),
                   )
                 : const SizedBox.shrink(),

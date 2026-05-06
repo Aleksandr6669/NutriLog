@@ -2529,6 +2529,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to donate a recipe to the community'**
   String get donateRecipeSignInRequired;
+
+  /// No description provided for @aiClarificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Clarification'**
+  String get aiClarificationTitle;
+
+  /// No description provided for @aiClarificationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe important details: cooking method, dietary restrictions, desired dish style, or portion specifics.'**
+  String get aiClarificationDescription;
+
+  /// No description provided for @aiClarificationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What to consider?'**
+  String get aiClarificationLabel;
+
+  /// No description provided for @aiClarificationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. gluten-free, high protein, less sugar, baked, vegetarian'**
+  String get aiClarificationHint;
 }
 
 class _AppLocalizationsDelegate

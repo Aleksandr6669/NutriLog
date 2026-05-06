@@ -614,18 +614,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         },
                         child: AnimatedRotation(
                           turns: _showFabMenu ? 0.125 : 0.0,
-                          duration: const Duration(milliseconds: 220),
-                          child: Container(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeInOutCubic,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeInOut,
                             width: 58,
                             height: 58,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.primary,
+                              color: _showFabMenu
+                                  ? AppColors.primary.withValues(alpha: 0.85)
+                                  : AppColors.primary,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary.withAlpha(100),
-                                  blurRadius: 12,
-                                  spreadRadius: 2,
+                                  color: AppColors.primary
+                                      .withAlpha(_showFabMenu ? 60 : 100),
+                                  blurRadius: _showFabMenu ? 8 : 12,
+                                  spreadRadius: _showFabMenu ? 1 : 2,
                                   offset: const Offset(0, 6),
                                 ),
                               ],

@@ -1132,17 +1132,17 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(
+                const Icon(
                   Symbols.psychology,
                   size: 20,
                   color: AppColors.primary,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  'Уточнение для AI',
-                  style: TextStyle(
+                  l10n.aiClarificationTitle,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1151,7 +1151,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Опишите важные детали: способ приготовления, ограничения, желаемый стиль блюда или особенности порции.',
+              l10n.aiClarificationDescription,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.35,
@@ -1194,9 +1194,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
-                        labelText: 'Что важно учесть?',
-                        hintText:
-                            'Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское',
+                        labelText: l10n.aiClarificationLabel,
+                        hintText: l10n.aiClarificationHint,
                         alignLabelWithHint: true,
                         labelStyle: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant,
