@@ -12,8 +12,10 @@ import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 class EditRecipeScreen extends StatefulWidget {
   final Recipe? recipe;
   final Recipe? initialDraft;
+  final String? initialClarification;
 
-  const EditRecipeScreen({super.key, this.recipe, this.initialDraft});
+  const EditRecipeScreen(
+      {super.key, this.recipe, this.initialDraft, this.initialClarification});
 
   @override
   State<EditRecipeScreen> createState() => _EditRecipeScreenState();
@@ -43,6 +45,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   // Main info
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  late TextEditingController _clarificationController;
   IconData _selectedIcon = Symbols.restaurant;
 
   // Nutrient controllers
@@ -84,6 +87,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nameController = TextEditingController(text: sourceRecipe?.name ?? '');
     _descriptionController =
         TextEditingController(text: sourceRecipe?.description ?? '');
+    _clarificationController =
+        TextEditingController(text: widget.initialClarification ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
 
     // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
@@ -107,6 +112,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             quantity:
                 ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
             unit: ingredient.unit,
+            isAmbiguous: ingredient.isAmbiguous,
           ),
         );
       }
@@ -216,6 +222,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       final nutrients = await _geminiRecipeService.estimateNutrients(
         recipeName: _nameController.text,
         recipeDescription: _descriptionController.text,
+        clarification: _clarificationController.text,
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
       );
@@ -256,6 +263,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
     _nutrientControllers['fat']?.removeListener(_onMacroChanged);
     _nameController.dispose();
+    _clarificationController.dispose();
     _descriptionController.dispose();
     for (var controller in _nutrientControllers.values) {
       controller.dispose();
@@ -588,6 +596,22 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 label: Text(l10n.calculateNutrition),
               ),
             ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _clarificationController,
+              minLines: 1,
+              maxLines: 3,
+              decoration: AppStyles.underlineInputDecoration(
+                label: l10n.recipeClarificationHint,
+              ).copyWith(
+                prefixIcon: const Icon(Symbols.help, size: 18),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.recipeClarificationDescription,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -721,79 +745,128 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               final item = _ingredientItems[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 6,
-                      child: TextFormField(
-                        controller: item.nameController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: AppStyles.underlineInputDecoration(
-                            label: l10n.ingredientLabel),
-                        minLines: 1,
-                        maxLines: 2,
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: item.quantityController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: AppStyles.underlineInputDecoration(
-                            label: l10n.quantityLabel),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*[\.,]?\d*'))
-                        ],
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: DropdownButtonFormField<String>(
-                        initialValue:
-                            item.unit.isEmpty ? unitOptions.first : item.unit,
-                        items: unitOptions
-                            .map((unit) => DropdownMenuItem(
-                                  value: unit,
-                                  child: Text(
-                                    _unitLabel(unit),
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => item.unit = value);
-                          }
-                        },
-                        decoration: InputDecoration(
-                          labelText: l10n.unitLabel,
-                          border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
+                    if (item.isAmbiguous)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(Symbols.help,
+                                size: 14, color: Colors.orange.shade700),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                l10n.ingredientAmbiguousHint,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.orange.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      tooltip: l10n.delete,
-                      onPressed: () => _removeIngredientRow(index),
-                      icon: const Icon(
-                        Symbols.remove_circle,
-                        color: Colors.redAccent,
+                    Container(
+                      decoration: item.isAmbiguous
+                          ? BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.orange.withValues(alpha: 0.4),
+                              ),
+                            )
+                          : null,
+                      padding: item.isAmbiguous
+                          ? const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4)
+                          : EdgeInsets.zero,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: TextFormField(
+                              controller: item.nameController,
+                              style: const TextStyle(fontSize: 13),
+                              decoration: AppStyles.underlineInputDecoration(
+                                  label: l10n.ingredientLabel),
+                              minLines: 1,
+                              maxLines: 2,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (_) {
+                                if (item.isAmbiguous) {
+                                  setState(() => item.isAmbiguous = false);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: item.quantityController,
+                              style: const TextStyle(fontSize: 13),
+                              decoration: AppStyles.underlineInputDecoration(
+                                  label: l10n.quantityLabel),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d*[\.,]?\d*'))
+                              ],
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: DropdownButtonFormField<String>(
+                              initialValue: item.unit.isEmpty
+                                  ? unitOptions.first
+                                  : item.unit,
+                              items: unitOptions
+                                  .map((unit) => DropdownMenuItem(
+                                        value: unit,
+                                        child: Text(
+                                          _unitLabel(unit),
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => item.unit = value);
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: l10n.unitLabel,
+                                border: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            tooltip: l10n.delete,
+                            onPressed: () => _removeIngredientRow(index),
+                            icon: const Icon(
+                              Symbols.remove_circle,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -991,11 +1064,13 @@ class _IngredientFormItem {
   final TextEditingController nameController;
   final TextEditingController quantityController;
   String unit;
+  bool isAmbiguous;
 
   _IngredientFormItem({
     String name = '',
     String quantity = '',
     String unit = '',
+    this.isAmbiguous = false,
   })  : nameController = TextEditingController(text: name),
         quantityController = TextEditingController(text: quantity),
         unit = _normalizeIngredientUnit(unit);

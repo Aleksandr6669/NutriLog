@@ -758,6 +758,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI estimates may be inaccurate by about 10%; verify values before saving.';
 
   @override
+  String get recipeClarificationHint =>
+      'Clarification for AI (e.g., boiled, with milk, 100g dry)';
+
+  @override
+  String get recipeClarificationDescription =>
+      'Describe preparation method, form or other details — AI will use this when calculating.';
+
+  @override
   String get calculateNutrition => 'Calculate nutrition';
 
   @override
@@ -1238,6 +1246,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ingredientExamples =>
       'Examples: Carrot 120 g, Eggs 2 pcs, Oil 1 tbsp';
+
+  @override
+  String get ingredientAmbiguousHint =>
+      'Please clarify: preparation method or form affects nutrition';
 
   @override
   String get newRecipeTitle => 'New recipe';

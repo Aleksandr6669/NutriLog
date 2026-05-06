@@ -1468,6 +1468,18 @@ abstract class AppLocalizations {
   /// **'AI estimates may be inaccurate by about 10%; verify values before saving.'**
   String get recipeAiDisclaimer;
 
+  /// No description provided for @recipeClarificationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarification for AI (e.g., boiled, with milk, 100g dry)'**
+  String get recipeClarificationHint;
+
+  /// No description provided for @recipeClarificationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe preparation method, form or other details — AI will use this when calculating.'**
+  String get recipeClarificationDescription;
+
   /// No description provided for @calculateNutrition.
   ///
   /// In en, this message translates to:
@@ -2343,6 +2355,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Examples: Carrot 120 g, Eggs 2 pcs, Oil 1 tbsp'**
   String get ingredientExamples;
+
+  /// No description provided for @ingredientAmbiguousHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please clarify: preparation method or form affects nutrition'**
+  String get ingredientAmbiguousHint;
 
   /// No description provided for @newRecipeTitle.
   ///

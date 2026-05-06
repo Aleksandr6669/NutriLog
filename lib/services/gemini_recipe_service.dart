@@ -203,7 +203,7 @@ Format:
   "description": "...",
   "icon": "restaurant",
   "ingredients": [
-    {"name": "...", "quantity": 100, "unit": "g"}
+    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
   ],
   "nutrients": {
     "calories": 0,
@@ -234,6 +234,7 @@ Rules:
 - unit as a short string like: g, ml, pcs, tbsp, tsp.
 - nutrients as numbers only >= 0.
 - If exact data is unavailable, provide a realistic estimate.
+- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
 ''';
 
     final response = await _requestWithFallback(
@@ -298,7 +299,7 @@ Format:
   "description": "...", // brief description, be sure to indicate type (e.g., energy drink, soda, protein bar, soup, etc.)
   "icon": "restaurant",
   "ingredients": [
-    {"name": "...", "quantity": 100, "unit": "g"}
+    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
   ],
   "nutrients": {
     "calories": 0,
@@ -326,6 +327,7 @@ Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
 - quantity as a number >= 0. If needed, quantity >= 0.0001 (for spices, supplements, etc.).
+- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat, fresh vs canned). Set "ambiguous": false otherwise.
    If given in pieces, estimate the weight of one piece based on reference tables or common sense (e.g., average apple ~150 g, average egg ~50 g). If given in milliliters, estimate weight based on product density (e.g., 1 ml water ~ 1 g, 1 ml oil ~ 0.9 g). If weight cannot be precisely estimated, provide a realistic estimate based on similar products.
 - unit as a short string like: g, mg, kg, pcs, pack, package, l, ml, tsp, tbsp, cup.
 - nutrients as numbers only >= 0. If needed, values >= 0.0001 (for micronutrients, vitamins, supplements, etc.) are allowed.
@@ -375,6 +377,7 @@ Rules:
     required String recipeName,
     required String recipeDescription,
     required List<RecipeIngredient> ingredients,
+    String clarification = '',
     String? locale,
   }) async {
     if (ingredients.isEmpty) {
@@ -468,6 +471,7 @@ Rules:
   Recipe details:
   - Name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
   - Description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
+  - User clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
   - Serving size: all ingredients below = 1 serving for 1 person
   - Ingredients:
   $ingredientsText
@@ -1120,11 +1124,13 @@ Rules:
         if (name.isEmpty) continue;
         final quantity = _toNonNegativeDouble(rawIngredient['quantity']);
         final unit = (rawIngredient['unit'] as String? ?? '').trim();
+        final isAmbiguous = rawIngredient['ambiguous'] == true;
         ingredients.add(
           RecipeIngredient(
             name: name,
             quantity: quantity,
             unit: unit,
+            isAmbiguous: isAmbiguous,
           ),
         );
       }

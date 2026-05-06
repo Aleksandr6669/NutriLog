@@ -74,8 +74,10 @@ class _CreateRecipeFromDescriptionScreenState
 
       final result = await Navigator.of(context).push<bool>(
         MaterialPageRoute(
-          builder: (_) =>
-              EditRecipeScreen(initialDraft: _buildDraftRecipe(draft)),
+          builder: (_) => EditRecipeScreen(
+            initialDraft: _buildDraftRecipe(draft),
+            initialClarification: _descriptionController.text.trim(),
+          ),
         ),
       );
 

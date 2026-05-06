@@ -5,11 +5,13 @@ class RecipeIngredient {
   final String name;
   final double quantity;
   final String unit;
+  final bool isAmbiguous;
 
   const RecipeIngredient({
     required this.name,
     required this.quantity,
     required this.unit,
+    this.isAmbiguous = false,
   });
 
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {

@@ -761,6 +761,14 @@ class AppLocalizationsUk extends AppLocalizations {
       'Оцінки AI можуть відрізнятися приблизно на 10%; перевірте значення перед збереженням.';
 
   @override
+  String get recipeClarificationHint =>
+      'Уточнення для AI (напр., варена, з молоком, 100г сухого)';
+
+  @override
+  String get recipeClarificationDescription =>
+      'Опишіть спосіб приготування, форму або інші деталі — AI врахує це при розрахунку.';
+
+  @override
   String get calculateNutrition => 'Розрахувати харчову цінність';
 
   @override
@@ -1242,6 +1250,10 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get ingredientExamples =>
       'Приклади: Морква 120 г, Яйця 2 шт, Олія 1 ст.л.';
+
+  @override
+  String get ingredientAmbiguousHint =>
+      'Уточніть: спосіб приготування або форма впливають на КБЖУ';
 
   @override
   String get newRecipeTitle => 'Новий рецепт';
