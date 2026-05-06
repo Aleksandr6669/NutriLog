@@ -13,6 +13,7 @@ import 'package:nutri_log/services/profile_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/avatar_cache_service.dart';
 import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
+import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/locale_provider.dart';
@@ -335,12 +336,14 @@ class _ConnectionsNotificationsScreenState
               ),
             ),
             const SizedBox(height: 10),
-            _buildSyncItem(theme, icon: Symbols.person,
-                label: l10n.profile, status: null),
-            _buildSyncItem(theme, icon: Symbols.receipt_long,
-                label: l10n.myRecipes, status: null),
-            _buildSyncItem(theme, icon: Symbols.book,
-                label: l10n.diary, status: null),
+            _buildSyncItem(theme,
+                icon: Symbols.person, label: l10n.profile, status: null),
+            _buildSyncItem(theme,
+                icon: Symbols.receipt_long,
+                label: l10n.myRecipes,
+                status: null),
+            _buildSyncItem(theme,
+                icon: Symbols.book, label: l10n.diary, status: null),
           ],
         ),
       );
@@ -464,9 +467,8 @@ class _ConnectionsNotificationsScreenState
               ),
               leading: _buildAccountAvatar(),
               title: Text(l10n.loginToAccount),
-              subtitle: Text(_user == null
-                  ? l10n.cloudSyncLocalOnly
-                  : _user!.email ?? ''),
+              subtitle: Text(
+                  _user == null ? l10n.cloudSyncLocalOnly : _user!.email ?? ''),
               trailing: FilledButton.tonal(
                 onPressed: _authBusy
                     ? null
@@ -590,7 +592,23 @@ class _ConnectionsNotificationsScreenState
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Symbols.smart_toy),
+                  leading: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.auto_awesome,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
                   title: Text(l10n.statsAiAssistantToggleTitle),
                   subtitle: Text(l10n.statsAiAssistantToggleSubtitle),
                   trailing: Switch.adaptive(

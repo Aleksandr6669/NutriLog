@@ -27,6 +27,7 @@ import 'router.dart';
 import 'services/daily_log_service.dart';
 import 'services/profile_service.dart';
 import 'services/home_widget_service.dart';
+import 'services/local_first_sync_service.dart';
 import 'providers/profile_provider.dart';
 import 'providers/daily_log_provider.dart';
 import 'providers/locale_provider.dart';
@@ -184,6 +185,8 @@ Future<void> _bootstrapServices() async {
     _reportStartupWarning(
         'Firebase не инициализирован. Облачная синхронизация может быть недоступна.');
   }
+
+  LocalFirstSyncService.instance.start();
 
   if (!kIsWeb) {
     try {
@@ -822,7 +825,7 @@ class _BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final BorderRadius borderRadius = BorderRadius.circular(30);
+    final BorderRadius borderRadius = BorderRadius.circular(44);
 
     return Container(
       height: 90,

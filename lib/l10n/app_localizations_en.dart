@@ -555,6 +555,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI may be off by ~10%. Use the report as a reference.';
 
   @override
+  String get statsAiNotMedicalAdvice =>
+      'This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.';
+
+  @override
   String get statsAiLoading => 'Loading AI report...';
 
   @override

@@ -9,6 +9,8 @@ import '../../l10n/app_localizations.dart';
 import '../../models/daily_log.dart';
 import '../../models/recipe.dart';
 import '../../models/user_profile.dart';
+import '../../services/ai_report_history_service.dart';
+import '../../services/cloud_data_service.dart';
 import '../../services/daily_log_service.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../services/notification_settings_service.dart';
@@ -45,11 +47,20 @@ class _StatsScreenState extends State<StatsScreen> {
   int _aiStartedForRequestId = -1;
   bool _isCurrentlyVisible = false;
   Locale? _lastLocale;
+  final AiReportHistoryService _historyService = AiReportHistoryService();
+  List<AiReportEntry> _aiReportHistory = const [];
 
   @override
   void initState() {
     super.initState();
     _reloadStats();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final history = await _historyService.loadHistory();
+    if (!mounted) return;
+    setState(() => _aiReportHistory = history);
   }
 
   @override
@@ -99,10 +110,18 @@ class _StatsScreenState extends State<StatsScreen> {
     final profile = await _profileService.loadProfile();
     final settings = await _settingsService.load();
     final aiAssistantEnabled = settings.statsAiAssistantEnabled;
+    final recipeService = RecipeService();
+    if (CloudDataService.instance.isSignedIn) {
+      try {
+        await recipeService.syncWithCloud();
+      } catch (_) {
+        // Если сеть недоступна, используем локальный кеш рецептов.
+      }
+    }
     final builtInRecipes = await RecipeLoader.loadRecipesFromAssets(
       locale: locale,
     );
-    final userRecipes = await RecipeService().loadUserRecipes();
+    final userRecipes = await recipeService.loadUserRecipes();
     final allRecipes = [...userRecipes, ...builtInRecipes];
 
     List<double> caloriesData;
@@ -498,11 +517,25 @@ class _StatsScreenState extends State<StatsScreen> {
               )
               .where((item) => (item['action'] ?? '').isNotEmpty)
               .toList(growable: false);
+      final overview = (aiReport['overview'] as String?)?.trim();
+      final normalizedRecommendations =
+          _normalizeSortAndMergeRecommendations(parsedRecommendations);
+
+      if (overview != null && overview.isNotEmpty) {
+        await _historyService.saveReport(
+          AiReportEntry(
+            period: aiInput['periodLabel'] as String? ?? _period.name,
+            generatedAt: DateTime.now(),
+            overview: overview,
+            recommendations: normalizedRecommendations,
+          ),
+        );
+        await _loadHistory();
+      }
 
       setState(() {
-        _aiOverview = (aiReport['overview'] as String?)?.trim();
-        _aiRecommendations =
-            _normalizeSortAndMergeRecommendations(parsedRecommendations);
+        _aiOverview = overview;
+        _aiRecommendations = normalizedRecommendations;
         _aiError = false;
       });
     } on GeminiRecipeException catch (e) {
@@ -623,7 +656,8 @@ class _StatsScreenState extends State<StatsScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text(l10n.statsErrorLoading(snapshot.error.toString())));
+              child: Text(l10n.statsErrorLoading(snapshot.error.toString())),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text(l10n.statsNoDataForAnalysis));
@@ -637,7 +671,10 @@ class _StatsScreenState extends State<StatsScreen> {
             _aiStartedForRequestId = requestId;
             _loadAiReport(data['aiInput'] as Map<String, dynamic>, requestId);
           }
-          final UserProfile profile = data['profile'];
+
+          final profile = data['profile'] as UserProfile;
+          final calories = List<double>.from(data['calories'] as List);
+          final weight = List<double>.from(data['weight'] as List);
           final stepsTrend = _trimProgressSeriesToCurrentDate(
             List<double>.from(data['stepsSeries'] as List),
           );
@@ -662,68 +699,38 @@ class _StatsScreenState extends State<StatsScreen> {
               children: [
                 _buildPeriodToggle(theme),
                 const SizedBox(height: 24),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: AppStyles.largeBorderRadius,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Symbols.info,
-                          size: 20,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            l10n.statsInfoText,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              height: 1.35,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                _buildCaloriesChart(
+                  context,
+                  theme,
+                  calories,
+                  profile.calorieGoal.toDouble(),
                 ),
-                const SizedBox(height: 24),
-                Text(l10n.statsCaloriesDynamics,
-                    style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 16),
-                _buildCaloriesChart(context, theme, data['calories'],
-                    profile.calorieGoal.toDouble()),
-                const SizedBox(height: 24),
-                Text(l10n.statsWeightDynamics,
-                    style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 16),
                 _buildWeightChart(
-                    context, theme, data['weight'], profile.weightGoal),
-                const SizedBox(height: 24),
-                Text(l10n.statsAvgMacros, style: theme.textTheme.headlineSmall),
+                  context,
+                  theme,
+                  weight,
+                  profile.weightGoal,
+                ),
                 const SizedBox(height: 16),
                 _buildPieChartAndLegend(
-                    context,
-                    theme,
-                    (data['avgCarbs'] as num).toDouble(),
-                    (data['avgProtein'] as num).toDouble(),
-                    (data['avgFat'] as num).toDouble()),
-                const SizedBox(height: 24),
-                Text(l10n.statsProgress, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 10),
+                  context,
+                  theme,
+                  (data['avgCarbs'] as num).toDouble(),
+                  (data['avgProtein'] as num).toDouble(),
+                  (data['avgFat'] as num).toDouble(),
+                ),
+                const SizedBox(height: 16),
                 _buildProgressCards(
                   theme,
-                  data['avgSteps'],
-                  data['latestSteps'],
-                  data['avgWeight'],
-                  data['latestWeight'],
-                  data['avgActivityCalories'],
-                  data['workouts'],
-                  data['avgWater'],
-                  data['latestWater'],
+                  data['avgSteps'] as int,
+                  data['latestSteps'] as int,
+                  (data['avgWeight'] as num).toDouble(),
+                  (data['latestWeight'] as num).toDouble(),
+                  data['avgActivityCalories'] as int,
+                  data['workouts'] as int,
+                  data['avgWater'] as int,
+                  data['latestWater'] as int,
                   stepsTrend,
                   weightTrend,
                   activityTrend,
@@ -731,25 +738,59 @@ class _StatsScreenState extends State<StatsScreen> {
                   profile,
                 ),
                 const SizedBox(height: 24),
+                _buildAverageMetricsCard(theme, data),
+                const SizedBox(height: 24),
                 Row(
                   children: [
-                    Icon(
-                      Symbols.smart_toy,
-                      size: 22,
-                      color: theme.colorScheme.primary,
+                    _buildAiCircleIcon(),
+                    const SizedBox(width: 10),
+                    Text(
+                      l10n.statsAiReportTitle,
+                      style: theme.textTheme.headlineSmall,
                     ),
-                    const SizedBox(width: 8),
-                    Text(l10n.statsAiReportTitle,
-                        style: theme.textTheme.headlineSmall),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.09),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Symbols.info, size: 16, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.statsAiNotMedicalAdvice,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.orange.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _buildAiReportCard(
                   context,
                   theme,
                   List<Recipe>.from(data['recipes'] as List),
                   aiAssistantEnabled,
                 ),
+                if (_aiReportHistory.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildAiHistoryCard(theme),
+                ],
               ],
             ),
           );
@@ -1140,6 +1181,211 @@ class _StatsScreenState extends State<StatsScreen> {
       });
 
     return result;
+  }
+
+  Widget _buildAiCircleIcon() {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primary.withValues(alpha: 0.12),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.28),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(
+        Symbols.auto_awesome,
+        size: 18,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  Widget _buildAverageMetricsCard(ThemeData theme, Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
+    final aiInput = data['aiInput'] as Map<String, dynamic>;
+    final metrics = <({String label, String value})>[
+      (
+        label: l10n.calories,
+        value: '${(aiInput['avgCalories'] as num).round()} ${l10n.kcal}'
+      ),
+      (
+        label: l10n.protein,
+        value: '${(aiInput['avgProteinGrams'] as num).toStringAsFixed(1)} г'
+      ),
+      (
+        label: l10n.fat,
+        value: '${(aiInput['avgFatGrams'] as num).toStringAsFixed(1)} г'
+      ),
+      (
+        label: l10n.carbs,
+        value: '${(aiInput['avgCarbsGrams'] as num).toStringAsFixed(1)} г'
+      ),
+      (
+        label: 'Клетчатка',
+        value: '${(aiInput['avgFiberGrams'] as num).toStringAsFixed(1)} г'
+      ),
+      (
+        label: 'Сахар',
+        value: '${(aiInput['avgSugarGrams'] as num).toStringAsFixed(1)} г'
+      ),
+      (
+        label: l10n.sodium,
+        value: '${(aiInput['avgSodiumMg'] as num).toStringAsFixed(0)} мг'
+      ),
+      (
+        label: l10n.potassium,
+        value: '${(aiInput['avgPotassiumMg'] as num).toStringAsFixed(0)} мг'
+      ),
+      (
+        label: l10n.calcium,
+        value: '${(aiInput['avgCalciumMg'] as num).toStringAsFixed(0)} мг'
+      ),
+      (
+        label: l10n.iron,
+        value: '${(aiInput['avgIronMg'] as num).toStringAsFixed(1)} мг'
+      ),
+      (
+        label: l10n.vitaminA,
+        value: '${(aiInput['avgVitaminAMcg'] as num).toStringAsFixed(0)} мкг'
+      ),
+      (
+        label: l10n.vitaminC,
+        value: '${(aiInput['avgVitaminCMg'] as num).toStringAsFixed(1)} мг'
+      ),
+      (
+        label: l10n.vitaminD,
+        value: '${(aiInput['avgVitaminDMcg'] as num).toStringAsFixed(1)} мкг'
+      ),
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Средние значения за период',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: metrics.map((item) {
+                return Container(
+                  constraints: const BoxConstraints(minWidth: 145),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.48),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.label,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.value,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(growable: false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiHistoryCard(ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Последние 5 диагнозов AI',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ..._aiReportHistory.map((entry) {
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.42),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_historyPeriodLabel(entry.period)} • ${_formatHistoryDate(entry.generatedAt)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(entry.overview, style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _historyPeriodLabel(String period) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (period) {
+      case 'week':
+        return l10n.statsPeriodLabelWeek;
+      case 'month':
+        return l10n.statsPeriodLabelMonth;
+      case 'year':
+        return l10n.statsPeriodLabelYear;
+      default:
+        return period;
+    }
+  }
+
+  String _formatHistoryDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day.$month.$year $hour:$minute';
   }
 
   Widget _buildAiReportCard(

@@ -1138,6 +1138,12 @@ abstract class AppLocalizations {
   /// **'AI may be off by ~10%. Use the report as a reference.'**
   String get statsAiDisclaimer;
 
+  /// No description provided for @statsAiNotMedicalAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.'**
+  String get statsAiNotMedicalAdvice;
+
   /// No description provided for @statsAiLoading.
   ///
   /// In en, this message translates to:

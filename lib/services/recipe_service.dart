@@ -259,4 +259,23 @@ class RecipeService {
       return publicRecipes;
     });
   }
+
+  /// Real-time поток приватных рецептов текущего пользователя.
+  /// Позволяет мгновенно синхронизировать рецепты между устройствами.
+  Stream<List<Recipe>> privateRecipesStream() {
+    return CloudDataService.instance
+        .docStream('recipes')
+        .asyncMap((data) async {
+      if (data == null) return <Recipe>[];
+      final cloudRecipes = data['recipes'];
+      if (cloudRecipes is! List) return <Recipe>[];
+      final recipes = cloudRecipes
+          .whereType<Map>()
+          .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
+          .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
+          .toList(growable: false);
+      await _savePrivateRecipesToPrefs(recipes);
+      return recipes;
+    });
+  }
 }

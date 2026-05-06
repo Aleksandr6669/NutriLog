@@ -44,6 +44,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _showFabMenu = false;
   String _locale = 'ru';
   StreamSubscription<List<Recipe>>? _publicRecipesSubscription;
+  StreamSubscription<List<Recipe>>? _privateRecipesSubscription;
 
   @override
   void initState() {
@@ -54,9 +55,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _selectedOrder.addAll(widget.initialSelectedRecipeIds);
     _searchController.addListener(_filterRecipes);
     _startPublicRecipesStream();
-    // Перезапускаем стрим при изменении авторизации
+    _startPrivateRecipesStream();
+    // Перезапускаем стримы при изменении авторизации
     FirebaseAuthService.instance.authStateChanges().listen((_) {
-      if (mounted) _startPublicRecipesStream();
+      if (mounted) {
+        _startPublicRecipesStream();
+        _startPrivateRecipesStream();
+      }
     });
   }
 
@@ -70,6 +75,19 @@ class _RecipesScreenState extends State<RecipesScreen> {
         if (mounted) _loadAllRecipes();
       },
       onError: (_) {}, // Тихо игнорируем ошибки сети — данные уже в кеше
+    );
+  }
+
+  void _startPrivateRecipesStream() {
+    _privateRecipesSubscription?.cancel();
+    if (!FirebaseAuthService.instance.isSignedIn) return;
+
+    _privateRecipesSubscription = _recipeService.privateRecipesStream().listen(
+      (_) {
+        // Облако обновилось — обновляем список приватных рецептов
+        if (mounted) _loadAllRecipes();
+      },
+      onError: (_) {},
     );
   }
 
@@ -331,6 +349,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   void dispose() {
     _publicRecipesSubscription?.cancel();
+    _privateRecipesSubscription?.cancel();
     _searchController.removeListener(_filterRecipes);
     _searchController.dispose();
     super.dispose();
@@ -889,90 +908,159 @@ class _RecipeListItem extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final rawCalories = recipe.nutrients['calories'];
     final calories = ((rawCalories as num?) ?? 0).round();
+    final isOwnRecipe = recipe.isUserRecipe;
 
     return Card(
       color: Colors.white,
-      elevation: 0.5,
+      elevation: isOwnRecipe ? 0 : 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+        side: isOwnRecipe
+            ? BorderSide(
+                color: AppColors.primary.withValues(alpha: 0.42),
+                width: 1.2,
+              )
+            : BorderSide.none,
+      ),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
         borderRadius: AppStyles.cardRadius,
         splashColor: theme.colorScheme.primary.withValues(alpha: 0.1),
         highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor:
-                    theme.colorScheme.primary.withValues(alpha: 0.1),
-                child: Icon(recipe.icon,
-                    color: theme.colorScheme.primary, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(recipe.name,
-                        style: const TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w500)),
-                    if (recipe.description.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2.0),
-                        child: Text(
-                          recipe.description,
-                          style: TextStyle(
-                              color: Colors.grey.shade600, fontSize: 14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+        child: Stack(
+          children: [
+            if (isOwnRecipe)
+              Positioned(
+                left: 0,
+                top: 14,
+                bottom: 14,
+                child: Container(
+                  width: 6,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.22),
+                        blurRadius: 10,
+                        offset: const Offset(2, 0),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              if (!isSelectionMode)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '$calories ${l10n.kcal}',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Icon(
-                      Symbols.info,
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                  ],
-                )
-              else if (!isDeleteMode || canSelectInDeleteMode)
-                IconButton(
-                  icon: Icon(
-                    isDeleteMode
-                        ? (isDeleteSelected
-                            ? Symbols.check_circle
-                            : Symbols.radio_button_unchecked)
-                        : Symbols.add_circle,
-                    color: isDeleteMode
-                        ? (isDeleteSelected
-                            ? Colors.red
-                            : theme.colorScheme.primary)
-                        : theme.colorScheme.primary,
+            Padding(
+              padding: EdgeInsets.fromLTRB(isOwnRecipe ? 18 : 12, 12, 12, 12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor:
+                        theme.colorScheme.primary.withValues(alpha: 0.1),
+                    child: Icon(recipe.icon,
+                        color: theme.colorScheme.primary, size: 28),
                   ),
-                  onPressed: onActionTap,
-                  tooltip: isDeleteMode
-                      ? (isDeleteSelected ? l10n.deselect : l10n.select)
-                      : (isSelected ? l10n.addMore : l10n.add),
-                ),
-            ],
-          ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                recipe.name,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isOwnRecipe) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  'Мой рецепт',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (recipe.description.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Text(
+                              recipe.description,
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (!isSelectionMode)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$calories ${l10n.kcal}',
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Icon(
+                          Symbols.info,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                      ],
+                    )
+                  else if (!isDeleteMode || canSelectInDeleteMode)
+                    IconButton(
+                      icon: Icon(
+                        isDeleteMode
+                            ? (isDeleteSelected
+                                ? Symbols.check_circle
+                                : Symbols.radio_button_unchecked)
+                            : Symbols.add_circle,
+                        color: isDeleteMode
+                            ? (isDeleteSelected
+                                ? Colors.red
+                                : theme.colorScheme.primary)
+                            : theme.colorScheme.primary,
+                      ),
+                      onPressed: onActionTap,
+                      tooltip: isDeleteMode
+                          ? (isDeleteSelected ? l10n.deselect : l10n.select)
+                          : (isSelected ? l10n.addMore : l10n.add),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

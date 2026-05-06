@@ -1117,41 +1117,101 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildAiClarificationCard() {
+    final theme = Theme.of(context);
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+        side: BorderSide(
+          color: AppColors.primary.withValues(alpha: 0.18),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
-                const Icon(Symbols.psychology,
-                    size: 20, color: AppColors.primary),
-                const SizedBox(width: 8),
+                Icon(
+                  Symbols.psychology,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: 8),
                 Text(
-                  l10n.recipeClarificationHint,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  'Уточнение для AI',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.recipeClarificationDescription,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              'Опишите важные детали: способ приготовления, ограничения, желаемый стиль блюда или особенности порции.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _clarificationController,
-              minLines: 1,
-              maxLines: 5,
-              decoration: AppStyles.underlineInputDecoration(
-                label: l10n.recipeClarificationHint,
-              ).copyWith(
-                prefixIcon: const Icon(Symbols.help, size: 18),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.14),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    margin: const EdgeInsets.only(top: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.auto_awesome,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _clarificationController,
+                      minLines: 2,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        labelText: 'Что важно учесть?',
+                        hintText:
+                            'Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское',
+                        alignLabelWithHint: true,
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        hintStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.72),
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

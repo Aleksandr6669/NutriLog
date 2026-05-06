@@ -557,6 +557,10 @@ class AppLocalizationsUk extends AppLocalizations {
       'Нейромережа може помилятися приблизно на 10%. Використовуйте звіт як орієнтир.';
 
   @override
+  String get statsAiNotMedicalAdvice =>
+      'Це не рекомендації лікаря або дієтолога — лише порада нейромережі. Не є медичним посібником.';
+
+  @override
   String get statsAiLoading => 'Завантаження звіту від нейромережі...';
 
   @override

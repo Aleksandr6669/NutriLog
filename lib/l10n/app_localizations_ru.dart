@@ -557,6 +557,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Нейросеть может ошибаться примерно на 10%. Используйте отчет как ориентир.';
 
   @override
+  String get statsAiNotMedicalAdvice =>
+      'Это не рекомендации врача или диетолога — только совет нейросети. Не является медицинским руководством.';
+
+  @override
   String get statsAiLoading => 'Загрузка отчета от нейросети...';
 
   @override

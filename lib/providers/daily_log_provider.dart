@@ -14,6 +14,7 @@ class DailyLogProvider with ChangeNotifier {
   final HealthStepsService _healthStepsService = HealthStepsService();
   final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
   final ProfileService _profileService = ProfileService();
+  StreamSubscription<Map<String, dynamic>?>? _syncSubscription;
 
   DateTime _selectedDate = DateTime.now();
   DailyLog? _currentLog;
@@ -28,6 +29,36 @@ class DailyLogProvider with ChangeNotifier {
   DailyLogProvider() {
     loadLoggedDates();
     loadLogForDate(_selectedDate);
+    _startRealtimeSync();
+  }
+
+  /// Подписывается на Firestore-документ дневника.
+  /// При получении изменений с другого устройства сохраняет их локально
+  /// и обновляет текущий дневник без записи обратно в Firestore.
+  void _startRealtimeSync() {
+    _syncSubscription?.cancel();
+    _syncSubscription = CloudDataService.instance
+        .docStream('daily_logs')
+        .listen((remoteData) async {
+      if (remoteData == null) return;
+      final logs = remoteData['logs'];
+      if (logs is! Map<String, dynamic>) return;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('daily_logs', json.encode(logs));
+        // Перечитываем только лог для текущей даты чтобы избежать полного reload
+        final updatedLog = await _service.getLogForDate(_selectedDate);
+        _currentLog = updatedLog;
+        _loggedDates = await _service.getLoggedDates();
+        notifyListeners();
+      } catch (_) {}
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncSubscription?.cancel();
+    super.dispose();
   }
 
   void setSelectedDate(DateTime date) {
