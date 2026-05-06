@@ -747,7 +747,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           children: [
             Row(
               children: [
-                Icon(Symbols.psychology, size: 20, color: AppColors.primary),
+                const Icon(Symbols.psychology,
+                    size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
                   l10n.recipeClarificationHint,
