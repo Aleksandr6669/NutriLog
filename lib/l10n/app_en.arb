@@ -353,10 +353,9 @@
     "placeholders": { "error": { "type": "Object" } }
   },
   "signedOut": "Signed out",
-  "googleSignInFailed": "Google sign-in failed: {error}",
-  "@googleSignInFailed": {
-    "placeholders": { "error": { "type": "Object" } }
-  },
+  "googleSignInFailed": "Sign-in error",
+  "@googleSignInFailed": {},
+
   "googleSignOutFailed": "Sign-out failed: {error}",
   "@googleSignOutFailed": {
     "placeholders": { "error": { "type": "Object" } }

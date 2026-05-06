@@ -359,10 +359,9 @@
     "placeholders": { "error": { "type": "Object" } }
   },
   "signedOut": "Ви вийшли з акаунта",
-  "googleSignInFailed": "Не вдалося увійти через Google: {error}",
-  "@googleSignInFailed": {
-    "placeholders": { "error": { "type": "Object" } }
-  },
+  "googleSignInFailed": "Помилка входу",
+  "@googleSignInFailed": {},
+
   "googleSignOutFailed": "Не вдалося вийти з акаунта: {error}",
   "@googleSignOutFailed": {
     "placeholders": { "error": { "type": "Object" } }

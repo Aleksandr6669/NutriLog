@@ -245,7 +245,7 @@ class _ConnectionsNotificationsScreenState
     } catch (e) {
       if (!mounted) return;
       _showSnack(
-        l10n.googleSignInFailed(e.toString()),
+        l10n.googleSignInFailed,
         backgroundColor: Colors.red.shade700,
       );
       if (mounted) setState(() => _authBusy = false);
@@ -465,10 +465,11 @@ class _ConnectionsNotificationsScreenState
             color = Colors.green.shade600;
             icon = Symbols.cloud_done;
             final syncedAt = LocalFirstSyncService.instance.lastSyncedAt;
-            final timeStr = syncedAt != null
-                ? DateFormat.Hm().format(syncedAt)
-                : '';
-            label = timeStr.isNotEmpty ? 'Синхронизировано в $timeStr' : 'Синхронизировано';
+            final timeStr =
+                syncedAt != null ? DateFormat.Hm().format(syncedAt) : '';
+            label = timeStr.isNotEmpty
+                ? 'Синхронизировано в $timeStr'
+                : 'Синхронизировано';
           case SyncStatus.error:
             color = Colors.orange.shade700;
             icon = Symbols.sync_problem;
@@ -489,8 +490,7 @@ class _ConnectionsNotificationsScreenState
           ),
           child: Row(
             children: [
-              leading ??
-                  Icon(icon, size: 14, color: color),
+              leading ?? Icon(icon, size: 14, color: color),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -541,10 +541,15 @@ class _ConnectionsNotificationsScreenState
               title: Text(l10n.loginToAccount),
               subtitle: Text(
                   _user == null ? l10n.cloudSyncLocalOnly : _user!.email ?? ''),
-              trailing: FilledButton.tonal(
+              trailing: FilledButton(
                 onPressed: _authBusy
                     ? null
                     : (_user == null ? _handleSignIn : _handleSignOut),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _user == null
+                      ? Colors.green.shade600
+                      : Colors.red.shade600,
+                ),
                 child: Text(_user == null ? l10n.signIn : l10n.signOut),
               ),
             ),
