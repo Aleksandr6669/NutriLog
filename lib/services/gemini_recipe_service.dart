@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:nutri_log/l10n/app_localizations.dart';
 
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
@@ -147,50 +148,48 @@ class GeminiRecipeService {
     'restaurant_menu',
   ];
 
-  String _lang() {
-    final code = ui.PlatformDispatcher.instance.locale.languageCode;
-    if (code == 'ru' || code == 'uk' || code == 'en') {
-      return code;
-    }
+  String _languageCode([String? locale]) {
+    final raw = locale?.toLowerCase() ??
+        ui.PlatformDispatcher.instance.locale.toString().toLowerCase();
+    final code = raw.split(RegExp(r'[-_]')).first;
+    if (code == 'ru' || code == 'uk') return code;
     return 'en';
   }
 
-  String _msg({
-    required String ru,
-    required String uk,
-    required String en,
-  }) {
-    final lang = _lang();
-    if (lang == 'ru') return ru;
-    if (lang == 'uk') return uk;
-    return en;
+  AppLocalizations _messages(String? locale) {
+    final code = _languageCode(locale);
+    try {
+      return lookupAppLocalizations(Locale(code));
+    } catch (_) {
+      return lookupAppLocalizations(const Locale('en'));
+    }
   }
 
-  String _languageInstruction() {
-    return _msg(
-      ru: 'Язык ответа: русский.',
-      uk: 'Мова відповіді: українська.',
-      en: 'Response language: English.',
-    );
+  String _languageInstruction([String? locale]) {
+    switch (_languageCode(locale)) {
+      case 'ru':
+        return 'Response language: Russian.';
+      case 'uk':
+        return 'Response language: Ukrainian.';
+      default:
+        return 'Response language: English.';
+    }
   }
 
   Future<GeminiRecipeDraft> generateRecipeFromDescription({
     required String description,
+    String? locale,
   }) async {
     final normalizedDescription = description.trim();
     if (normalizedDescription.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Введите описание блюда.',
-          uk: 'Введіть опис страви.',
-          en: 'Please enter a dish description.',
-        ),
+        _messages(locale).recipeCreateFromDescriptionEmptyError,
       );
     }
 
     final prompt = '''
 You are a culinary assistant.
-${_languageInstruction()}
+${_languageInstruction(locale)}
 Generate a recipe draft based on the user's description.
 
 Dish description:
@@ -250,34 +249,35 @@ Rules:
         'top_p': 1,
         'stream': false,
       },
+      locale: locale,
     );
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload);
-    final decoded = _decodeJsonObject(text);
-    return _draftFromDecodedJson(decoded,
-        fallbackDescription: normalizedDescription);
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
+    return _draftFromDecodedJson(
+      decoded,
+      fallbackDescription: normalizedDescription,
+      locale: locale,
+    );
   }
 
   Future<GeminiRecipeDraft> generateRecipeFromPhoto({
     required Uint8List imageBytes,
     required String imageMimeType,
     String description = '',
+    String? locale,
   }) async {
     if (imageBytes.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Добавьте фото блюда.',
-          uk: 'Додайте фото страви.',
-          en: 'Please add a dish photo.',
-        ),
+        _messages(locale).recipeAddPhotoFirstError,
       );
     }
 
     final normalizedDescription = description.trim();
     final textPrompt = '''
 You are a culinary assistant and food expert.
-${_languageInstruction()}
+${_languageInstruction(locale)}
 Your task is to identify the product or dish in the photo as accurately as possible (and from the description if provided), identify all main and hidden ingredients, and determine the product type (e.g., energy drink, soda, protein bar, soup, salad, pastry, etc.).
 
 If the photo shows a packaged product (e.g., energy drink, soda, chocolate, snacks, yogurt, protein supplement, bar, ready meal, etc.), be sure to indicate its type in the description field and identify the composition (ingredients) as thoroughly as possible, even if some are not visible but can be inferred from packaging, color, shape, brand, or product type.
@@ -358,38 +358,35 @@ Rules:
         'top_p': 1,
         'stream': false,
       },
+      locale: locale,
     );
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload);
-    final decoded = _decodeJsonObject(text);
-    return _draftFromDecodedJson(decoded,
-        fallbackDescription: normalizedDescription);
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
+    return _draftFromDecodedJson(
+      decoded,
+      fallbackDescription: normalizedDescription,
+      locale: locale,
+    );
   }
 
   Future<Map<String, double>> estimateNutrients({
     required String recipeName,
     required String recipeDescription,
     required List<RecipeIngredient> ingredients,
+    String? locale,
   }) async {
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Добавьте хотя бы один ингредиент.',
-          uk: 'Додайте хоча б один інгредієнт.',
-          en: 'Please add at least one ingredient.',
-        ),
+        _messages(locale).aiFailedToExtractIngredientsError,
       );
     }
 
     final apiKey = _resolveApiKey();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Не найден ключ Groq. Добавьте GROQ_API_KEY в .env или передайте --dart-define=GROQ_API_KEY=... при запуске.',
-          uk: 'Ключ Groq не знайдено. Додайте GROQ_API_KEY у .env або передайте --dart-define=GROQ_API_KEY=... під час запуску.',
-          en: 'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.',
-        ),
+        _messages(locale).aiKeyMissingError,
       );
     }
 
@@ -402,59 +399,88 @@ Rules:
     // Build a JSON nutrient table for each ingredient
     final Map<String, Map<String, double>> factsJson = {};
     for (final ingredient in ingredients) {
-      final searchResults = await usdaService.searchProducts(ingredient.name);
-      if (searchResults.isNotEmpty) {
-        final product =
+      final queries = await _buildIngredientSearchQueries(
+        ingredient.name,
+        locale,
+      );
+
+      Map<String, dynamic>? product;
+      for (final query in queries) {
+        final searchResults = await usdaService.searchProducts(query);
+        if (searchResults.isEmpty) continue;
+
+        final candidate =
             await usdaService.getProductInfo(searchResults.first['fdcId']);
-        if (product != null && product['foodNutrients'] != null) {
-          final nutr = product['foodNutrients'] as List<dynamic>;
-          final nutrMap = <String, double>{};
-          for (final n in nutr) {
-            final name = (n['nutrientName'] as String? ?? '').toLowerCase();
-            final amount = (n['value'] as num?)?.toDouble() ?? 0.0;
-            nutrMap[name] = amount;
-          }
-          // Keep only keys from nutrientKeys
-          final filtered = <String, double>{};
-          for (final k in nutrientKeys) {
-            filtered[k] = _usdaNutrientValue(k, nutrMap);
-          }
-          factsJson[ingredient.name] = filtered;
+        if (candidate != null && candidate['foodNutrients'] != null) {
+          product = candidate;
+          break;
         }
+      }
+
+      if (product != null && product['foodNutrients'] != null) {
+        final nutr = product['foodNutrients'] as List<dynamic>;
+        final nutrMap = <String, double>{};
+        for (final n in nutr) {
+          final name = (n['nutrientName'] as String? ?? '').toLowerCase();
+          final amount = (n['value'] as num?)?.toDouble() ?? 0.0;
+          nutrMap[name] = amount;
+        }
+        // Keep only keys from nutrientKeys
+        final filtered = <String, double>{};
+        for (final k in nutrientKeys) {
+          filtered[k] = _usdaNutrientValue(k, nutrMap);
+        }
+        factsJson[ingredient.name] = filtered;
       }
     }
 
     final prompt = '''
-  You are a nutrition assistant.
-  ${_languageInstruction()}
-  Estimate the nutritional value of the recipe based on the ingredient list and their quantities. You may also use your understanding of the dish description and ingredients to infer nutrients not listed explicitly, estimating by analogy with typical dishes of this type.
-  For each ingredient, use nutritional data from open databases (e.g., USDA, FatSecret, Open Food Facts, etc.) rather than making up values.
+  You are a professional nutritionist specializing in precise per-serving nutritional calculations.
+  ${_languageInstruction(locale)}
 
-  Important rule: USDA data is given per 100 g of each ingredient. To calculate per serving, scale proportionally by the ingredient weight in the recipe.
-  IMPORTANT: Final nutrient values must be calculated for the entire serving (summing all ingredients scaled by their weight), NOT per 100 g!
+  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below.
 
-  Example: if the recipe has 150 g of chicken, and factsSection shows 20 g protein per 100 g, then for 150 g of chicken — 30 g protein (20 * 1.5).
+  CRITICAL RULES:
+  1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
+  2. The specified amounts are exactly what goes into this single serving.
+  3. For packaged products (bottle, can, pack, bar, etc.): treat the quantity as the actual content.
+     Examples: "1 bottle of energy drink (500 ml)" = 500 ml, "1 pack of butter (200 g)" = 200 g, "1 protein bar (60 g)" = 60 g.
+    3.1. If the ingredient name/description contains explicit net amount (for example: 500 ml, 330ml, 0.5 l, 200 g, 90g), ALWAYS use that explicit value.
+       Never replace an explicit label value with a "typical" package size.
+  4. Use the recipe NAME and DESCRIPTION as additional context to identify the product type and infer missing nutrient data.
+     Example: if description says "energy drink", include caffeine-related vitamins and typical energy drink composition.
 
-  Here is the nutritional table (per 100 g) for each ingredient in JSON format:
-  ${factsJson.isNotEmpty ? jsonEncode(factsJson) : '{}'}
-  Recipe:
+  UNIT CONVERSION (to grams):
+  - Milliliters: water/juice ≈ 1 g/ml, milk ≈ 1.03 g/ml, oil ≈ 0.9 g/ml, honey ≈ 1.4 g/ml
+  - Pieces (pcs): apple ≈ 150 g, egg ≈ 55 g, banana ≈ 120 g, orange ≈ 180 g; use common sense for others
+  - Pack/package: use the typical standard weight for that product category ONLY when no explicit net weight/volume is provided in name/description
+
+  CALCULATION STEPS:
+  1. Convert all ingredient quantities to grams using the rules above.
+  2. For each ingredient, look up nutrients per 100 g from USDA / FatSecret / Open Food Facts or your knowledge.
+  3. Scale: nutrient_for_ingredient = weight_g × (per_100g_value / 100)
+  4. Sum across ALL ingredients to get the total for the serving.
+  5. Cross-check: calories ≈ (protein × 4) + (carbs × 4) + (fat × 9). Adjust if off by more than 5%.
+
+  USDA nutritional reference data (per 100 g) for each ingredient:
+  ${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available — use your knowledge of food databases)'}
+
+  Recipe details:
   - Name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
-  - Description: ${recipeDescription.trim().isEmpty ? '—' : recipeDescription.trim()}
+  - Description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
+  - Serving size: all ingredients below = 1 serving for 1 person
   - Ingredients:
   $ingredientsText
-  
-  Ingredients may be in various units (grams, milliliters, pieces, etc.). Convert them to grams for nutrient calculation. If given in pieces, estimate the weight of one piece using reference tables or common sense (e.g., average apple ~150 g, average egg ~50 g). If given in milliliters, estimate weight based on product density (e.g., 1 ml water ~ 1 g, 1 ml oil ~ 0.9 g). If weight cannot be precisely estimated, provide a realistic estimate based on similar products.
-  Use the formula for calculating nutrients per serving: weight × (nutrient per 100 g) / 100. For example, if the recipe has 150 g chicken and the table shows 20 g protein per 100 g, then 150 g chicken has 30 g protein (20 * 1.5).
-  Calorie formula: calories = (protein * 4) + (carbs * 4) + (fat * 9). If calorie data is missing from the tables, estimate calories from macros and sum across all ingredients.
-  Reply with ONLY a JSON object with keys: ${nutrientKeys.join(', ')} (numbers only, double, no units). If unable — return empty object {}. Do not add any explanations, lists, markdown, or text before or after the JSON.
 
-  Units:
+  Ingredient names may be in any language (English, Russian, Ukrainian, mixed spellings). Correctly interpret them as food products before calculation.
+
+  Reply with ONLY a JSON object. Keys: ${nutrientKeys.join(', ')} (all numeric doubles, no units, no negatives, no nulls). Return {} only if completely unable to estimate. No markdown, no text, no explanations outside JSON.
+
+  JSON value units:
   - calories: kcal
   - protein, carbs, fat, fiber, sugar, saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat: grams
   - cholesterol, sodium, potassium, calcium, iron, vitamin_c: milligrams
   - vitamin_a, vitamin_d: micrograms
-
-  If exact data is unavailable, provide a realistic estimate based on similar products. Negative values are not allowed.
   ''';
 
     final response = await _requestWithFallback(
@@ -471,11 +497,12 @@ Rules:
         'stream': false,
       },
       apiKeyOverride: apiKey,
+      locale: locale,
     );
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload);
-    final decoded = _decodeJsonObject(text);
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
 
     final normalized = <String, double>{};
     for (final key in nutrientKeys) {
@@ -484,8 +511,78 @@ Rules:
     return normalized;
   }
 
+  Future<List<String>> _buildIngredientSearchQueries(
+    String ingredientName,
+    String? locale,
+  ) async {
+    final base = ingredientName.trim();
+    if (base.isEmpty) return const [];
+
+    final candidates = <String>{base};
+
+    final simplified = base
+        .toLowerCase()
+        .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s-]', unicode: true), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (simplified.isNotEmpty) {
+      candidates.add(simplified);
+    }
+
+    final translated = await _translateIngredientToEnglish(base, locale);
+    if (translated != null && translated.isNotEmpty) {
+      candidates.add(translated);
+    }
+
+    return candidates.toList(growable: false);
+  }
+
+  Future<String?> _translateIngredientToEnglish(
+    String ingredientName,
+    String? locale,
+  ) async {
+    final source = ingredientName.trim();
+    if (source.isEmpty) return null;
+
+    try {
+      final response = await _requestWithFallback(
+        body: {
+          'messages': [
+            {
+              'role': 'user',
+              'content': '''
+Translate the food ingredient name to concise English for USDA food search.
+Return ONLY one short English ingredient phrase (1-4 words), no punctuation, no quotes, no explanation.
+
+Ingredient: $source
+''',
+            }
+          ],
+          'temperature': 0,
+          'max_completion_tokens': 40,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: 'en',
+      );
+
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      final raw = _extractText(payload, locale).trim();
+      final cleaned = raw
+          .replaceAll(RegExp(r'^[\x22\x27\s]+|[\x22\x27\s]+$'), '')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      if (cleaned.isEmpty) return null;
+      return cleaned;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> generateStatsReport({
     required String periodLabel,
+    String? locale,
     required int calorieGoal,
     required int proteinGoal,
     required int fatGoal,
@@ -537,7 +634,7 @@ Rules:
   }) async {
     final prompt = '''
 You are a fitness assistant and nutritionist.
-${_languageInstruction()}
+${_languageInstruction(locale)}
 Write a short report based on the user's data for the period: $periodLabel.
 
 Data:
@@ -599,14 +696,10 @@ Response format:
     );
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload).trim();
+    final text = _extractText(payload, locale).trim();
     if (text.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Нейросеть вернула пустой отчет.',
-          uk: 'Нейромережа повернула порожній звіт.',
-          en: 'The AI returned an empty report.',
-        ),
+        _messages(locale).aiEmptyReportError,
       );
     }
     return text;
@@ -614,10 +707,11 @@ Response format:
 
   Future<DailyGoalsDraft> generateDailyGoals({
     required UserProfile profile,
+    String? locale,
   }) async {
     final prompt = '''
 You are a nutritionist and fitness consultant.
-${_languageInstruction()}
+${_languageInstruction(locale)}
 Based on the user's data, suggest daily goals.
 
 User:
@@ -665,11 +759,12 @@ Rules:
         'top_p': 1,
         'stream': false,
       },
+      locale: locale,
     );
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload);
-    final decoded = _decodeJsonObject(text);
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
 
     int normalizeInt(dynamic value, int fallback) {
       final parsed = _toNonNegativeDouble(value).round();
@@ -689,15 +784,12 @@ Rules:
   Future<http.Response> _requestWithFallback({
     required Map<String, dynamic> body,
     String? apiKeyOverride,
+    String? locale,
   }) async {
     final apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Не найден ключ Groq. Добавьте GROQ_API_KEY в .env или передайте --dart-define=GROQ_API_KEY=... при запуске.',
-          uk: 'Ключ Groq не знайдено. Додайте GROQ_API_KEY у .env або передайте --dart-define=GROQ_API_KEY=... під час запуску.',
-          en: 'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.',
-        ),
+        _messages(locale).aiKeyMissingError,
       );
     }
 
@@ -726,18 +818,15 @@ Rules:
           model != _models.last) {
         continue;
       }
-      throw GeminiRecipeException(_buildHttpErrorMessage(response));
+      throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
     }
 
     if (lastErrorResponse != null) {
-      throw GeminiRecipeException(_buildHttpErrorMessage(lastErrorResponse));
+      throw GeminiRecipeException(
+          _buildHttpErrorMessage(lastErrorResponse, locale));
     }
     throw GeminiRecipeException(
-      _msg(
-        ru: 'Не удалось получить ответ от Groq.',
-        uk: 'Не вдалося отримати відповідь від Groq.',
-        en: 'Failed to get a response from Groq.',
-      ),
+      _messages(locale).aiNoResponseError,
     );
   }
 
@@ -763,6 +852,7 @@ Rules:
   GeminiRecipeDraft _draftFromDecodedJson(
     Map<String, dynamic> decoded, {
     required String fallbackDescription,
+    String? locale,
   }) {
     final rawName = (decoded['name'] as String? ?? '').trim();
     final rawDescription = (decoded['description'] as String? ?? '').trim();
@@ -789,11 +879,7 @@ Rules:
 
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Не удалось получить ингредиенты из ответа Groq. Уточните описание и попробуйте снова.',
-          uk: 'Не вдалося отримати інгредієнти з відповіді Groq. Уточніть опис і спробуйте ще раз.',
-          en: 'Could not extract ingredients from the Groq response. Clarify the description and try again.',
-        ),
+        _messages(locale).aiFailedToExtractIngredientsError,
       );
     }
 
@@ -807,9 +893,7 @@ Rules:
     }
 
     return GeminiRecipeDraft(
-      name: rawName.isEmpty
-          ? _msg(ru: 'Новое блюдо', uk: 'Нова страва', en: 'New dish')
-          : rawName,
+      name: rawName.isEmpty ? _messages(locale).newRecipeTitle : rawName,
       description:
           rawDescription.isEmpty ? fallbackDescription : rawDescription,
       icon:
@@ -838,80 +922,70 @@ Rules:
       ...ingredients.map((item) => item.name),
     ].join(' ').toLowerCase();
 
-    if (haystack.contains('коф') ||
-        haystack.contains('латте') ||
-        haystack.contains('капуч')) {
+    if (haystack.contains('coffee') ||
+        haystack.contains('latte') ||
+        haystack.contains('cappu')) {
       return RecipeLoader.getIcon('coffee');
     }
-    if (haystack.contains('суп') || haystack.contains('бульон')) {
+    if (haystack.contains('soup') || haystack.contains('broth')) {
       return RecipeLoader.getIcon('soup_kitchen');
     }
-    if (haystack.contains('пиц')) {
+    if (haystack.contains('pizza') || haystack.contains('pizz')) {
       return RecipeLoader.getIcon('local_pizza');
     }
-    if (haystack.contains('морож') || haystack.contains('ice')) {
+    if (haystack.contains('ice') ||
+        haystack.contains('cream') ||
+        haystack.contains('gelato')) {
       return RecipeLoader.getIcon('icecream');
     }
-    if (haystack.contains('торт') ||
-        haystack.contains('пирож') ||
-        haystack.contains('cake')) {
+    if (haystack.contains('cake') ||
+        haystack.contains('pie') ||
+        haystack.contains('tort')) {
       return RecipeLoader.getIcon('cake');
     }
-    if (haystack.contains('печень') || haystack.contains('cookie')) {
+    if (haystack.contains('cookie') || haystack.contains('biscuit')) {
       return RecipeLoader.getIcon('cookie');
     }
-    if (haystack.contains('донат') || haystack.contains('пончик')) {
+    if (haystack.contains('donut') || haystack.contains('doughnut')) {
       return RecipeLoader.getIcon('donut_large');
     }
-    if (haystack.contains('рис') ||
-        haystack.contains('плов') ||
-        haystack.contains('боул')) {
+    if (haystack.contains('rice') ||
+        haystack.contains('pilaf') ||
+        haystack.contains('bowl')) {
       return RecipeLoader.getIcon('rice_bowl');
     }
-    if (haystack.contains('яйц') || haystack.contains('омлет')) {
+    if (haystack.contains('egg') ||
+        haystack.contains('omelet') ||
+        haystack.contains('omelette')) {
       return RecipeLoader.getIcon('egg');
     }
-    if (haystack.contains('кебаб') || haystack.contains('шаур')) {
+    if (haystack.contains('kebab') || haystack.contains('shawarma')) {
       return RecipeLoader.getIcon('kebab_dining');
     }
-    if (haystack.contains('смузи') || haystack.contains('коктейл')) {
+    if (haystack.contains('smoothie') ||
+        haystack.contains('cocktail') ||
+        haystack.contains('shake')) {
       return RecipeLoader.getIcon('blender');
     }
 
     return RecipeLoader.getIcon('restaurant');
   }
 
-  String _buildHttpErrorMessage(http.Response response) {
+  String _buildHttpErrorMessage(http.Response response, [String? locale]) {
     final code = response.statusCode;
     final apiMessage = _extractApiErrorMessage(response.body);
 
     if (code == 403) {
-      return _msg(
-        ru: 'Groq вернул 403 (доступ запрещен). Проверьте GROQ_API_KEY и ограничения доступа.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}',
-        uk: 'Groq повернув 403 (доступ заборонено). Перевірте GROQ_API_KEY та обмеження доступу.${apiMessage.isEmpty ? '' : ' Деталі: $apiMessage'}',
-        en: 'Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.${apiMessage.isEmpty ? '' : ' Details: $apiMessage'}',
-      );
+      return '${_messages(locale).aiHttpForbiddenError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
     }
     if (code == 401) {
-      return _msg(
-        ru: 'Groq вернул 401 (неавторизован). Проверьте корректность GROQ_API_KEY.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}',
-        uk: 'Groq повернув 401 (неавторизовано). Перевірте коректність GROQ_API_KEY.${apiMessage.isEmpty ? '' : ' Деталі: $apiMessage'}',
-        en: 'Groq returned 401 (unauthorized). Check GROQ_API_KEY.${apiMessage.isEmpty ? '' : ' Details: $apiMessage'}',
-      );
+      return '${_messages(locale).aiHttpUnauthorizedError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
     }
     if (code == 429) {
-      return _msg(
-        ru: 'Groq вернул 429 (лимит запросов). Попробуйте чуть позже.${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}',
-        uk: 'Groq повернув 429 (ліміт запитів). Спробуйте трохи пізніше.${apiMessage.isEmpty ? '' : ' Деталі: $apiMessage'}',
-        en: 'Groq returned 429 (rate limit). Please try again later.${apiMessage.isEmpty ? '' : ' Details: $apiMessage'}',
-      );
+      return '${_messages(locale).aiHttpRateLimitError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
     }
 
-    return _msg(
-      ru: 'Groq вернул ошибку ($code).${apiMessage.isEmpty ? '' : ' Детали: $apiMessage'}',
-      uk: 'Groq повернув помилку ($code).${apiMessage.isEmpty ? '' : ' Деталі: $apiMessage'}',
-      en: 'Groq returned an error ($code).${apiMessage.isEmpty ? '' : ' Details: $apiMessage'}',
-    );
+    return '${_messages(locale).aiHttpGenericError(code)}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
   }
 
   String _extractApiErrorMessage(String body) {
@@ -931,56 +1005,41 @@ Rules:
     return '';
   }
 
-  String _extractText(Map<String, dynamic> payload) {
+  String _extractText(Map<String, dynamic> payload, [String? locale]) {
     final choices = payload['choices'];
     if (choices is! List || choices.isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Пустой ответ от Groq.',
-          uk: 'Порожня відповідь від Groq.',
-          en: 'Empty response from Groq.',
-        ),
+        _messages(locale).aiEmptyResponseError,
       );
     }
     final first = choices.first;
     if (first is! Map<String, dynamic>) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Неожиданный формат ответа Groq.',
-          uk: 'Неочікуваний формат відповіді Groq.',
-          en: 'Unexpected Groq response format.',
-        ),
+        _messages(locale).aiUnexpectedResponseFormatError,
       );
     }
 
     final message = first['message'];
     if (message is! Map<String, dynamic>) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Не удалось прочитать ответ Groq.',
-          uk: 'Не вдалося прочитати відповідь Groq.',
-          en: 'Failed to read Groq response.',
-        ),
+        _messages(locale).aiFailedToReadResponseError,
       );
     }
 
     final content = message['content'];
     if (content is! String || content.trim().isEmpty) {
       throw GeminiRecipeException(
-        _msg(
-          ru: 'Groq вернул пустой текст.',
-          uk: 'Groq повернув порожній текст.',
-          en: 'Groq returned empty text.',
-        ),
+        _messages(locale).aiEmptyTextError,
       );
     }
     return content;
   }
 
-  Map<String, dynamic> _decodeJsonObject(String text) {
+  Map<String, dynamic> _decodeJsonObject(String text, [String? locale]) {
     final trimmed = text.trim();
     debugPrint('[Groq raw response]:\n$trimmed');
-    // 1. Прямая попытка
+
+    // 1. Direct decode.
     try {
       final direct = jsonDecode(trimmed);
       if (direct is Map<String, dynamic>) {
@@ -988,14 +1047,24 @@ Rules:
       }
     } catch (_) {}
 
-    // 2. Search for the first {...} block (even if there is markdown)
-    final regExp = RegExp(r'\{[\s\S]*?\}', multiLine: true);
-    final matches = regExp.allMatches(trimmed);
-    for (final match in matches) {
-      final candidate = match.group(0);
-      if (candidate != null) {
+    // 2. Try parsing code-fenced content first.
+    final fencedMatches = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```')
+        .allMatches(trimmed);
+    for (final match in fencedMatches) {
+      final fencedBody = (match.group(1) ?? '').trim();
+      if (fencedBody.isEmpty) continue;
+
+      try {
+        final parsed = jsonDecode(fencedBody);
+        if (parsed is Map<String, dynamic>) {
+          return parsed;
+        }
+      } catch (_) {}
+
+      final extractedFromFence = _extractFirstBalancedJsonObject(fencedBody);
+      if (extractedFromFence != null) {
         try {
-          final parsed = jsonDecode(candidate);
+          final parsed = jsonDecode(extractedFromFence);
           if (parsed is Map<String, dynamic>) {
             return parsed;
           }
@@ -1003,14 +1072,70 @@ Rules:
       }
     }
 
-    // 3. User-facing error message
+    // 3. Extract first balanced JSON object from free-form text.
+    final extracted = _extractFirstBalancedJsonObject(trimmed);
+    if (extracted != null) {
+      try {
+        final parsed = jsonDecode(extracted);
+        if (parsed is Map<String, dynamic>) {
+          return parsed;
+        }
+      } catch (_) {}
+    }
+
+    // 4. User-facing error message.
     throw GeminiRecipeException(
-      _msg(
-        ru: 'Не удалось разобрать JSON из ответа нейросети.\n\nПроверьте список ингредиентов или попробуйте еще раз. Если ошибка повторяется, попробуйте переформулировать ингредиенты (например, заменить экзотические продукты на более распространённые) или изменить их написание.',
-        uk: 'Не вдалося розібрати JSON з відповіді нейромережі.\n\nПеревірте список інгредієнтів або спробуйте ще раз. Якщо помилка повторюється, переформулюйте інгредієнти (наприклад, замініть екзотичні продукти на більш поширені) або змініть їх написання.',
-        en: 'Could not parse JSON from the AI response.\n\nCheck the ingredient list and try again. If the error repeats, rephrase ingredients (for example, replace exotic products with more common ones) or change spelling.',
-      ),
+      _messages(locale).aiFailedToParseJsonError,
     );
+  }
+
+  String? _extractFirstBalancedJsonObject(String text) {
+    var start = -1;
+    var depth = 0;
+    var inString = false;
+    var isEscaped = false;
+
+    for (var i = 0; i < text.length; i++) {
+      final ch = text[i];
+
+      if (inString) {
+        if (isEscaped) {
+          isEscaped = false;
+          continue;
+        }
+        if (ch == '\\') {
+          isEscaped = true;
+          continue;
+        }
+        if (ch == '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (ch == '"') {
+        inString = true;
+        continue;
+      }
+
+      if (ch == '{') {
+        if (depth == 0) {
+          start = i;
+        }
+        depth++;
+        continue;
+      }
+
+      if (ch == '}') {
+        if (depth == 0) continue;
+        depth--;
+        if (depth == 0 && start >= 0) {
+          return text.substring(start, i + 1).trim();
+        }
+      }
+    }
+
+    return null;
   }
 
   double _toNonNegativeDouble(dynamic value) {

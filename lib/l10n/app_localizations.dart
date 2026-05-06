@@ -1306,6 +1306,324 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get recipeDescriptionLabel;
 
+  /// No description provided for @recipeDescriptionCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dish description'**
+  String get recipeDescriptionCardTitle;
+
+  /// No description provided for @recipeDescriptionOptionalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get recipeDescriptionOptionalTitle;
+
+  /// No description provided for @recipeDescriptionExample.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: pasta with chicken in creamy sauce'**
+  String get recipeDescriptionExample;
+
+  /// No description provided for @recipeInstructionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get recipeInstructionsTitle;
+
+  /// No description provided for @recipeInstructionsStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Describe the dish and ingredients in detail.'**
+  String get recipeInstructionsStep1;
+
+  /// No description provided for @recipeInstructionsStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Tap the generate recipe button.'**
+  String get recipeInstructionsStep2;
+
+  /// No description provided for @recipeInstructionsStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. The editor screen will open with filled fields.'**
+  String get recipeInstructionsStep3;
+
+  /// No description provided for @recipeInstructionsStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Check and correct details if needed.'**
+  String get recipeInstructionsStep4;
+
+  /// No description provided for @recipeAiWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The neural network may err by about 10%; please verify the data.'**
+  String get recipeAiWarning;
+
+  /// No description provided for @recipeAiAddIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Add ingredients to calculate nutrition.'**
+  String get recipeAiAddIngredients;
+
+  /// No description provided for @recipeAiCalculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating nutrition...'**
+  String get recipeAiCalculating;
+
+  /// No description provided for @recipeAiUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition values updated.'**
+  String get recipeAiUpdated;
+
+  /// No description provided for @recipeAiFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'AI nutrition calculation failed.'**
+  String get recipeAiFailed;
+
+  /// No description provided for @recipeAiDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'AI estimates may be inaccurate by about 10%; verify values before saving.'**
+  String get recipeAiDisclaimer;
+
+  /// No description provided for @calculateNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate nutrition'**
+  String get calculateNutrition;
+
+  /// No description provided for @unitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get unitLabel;
+
+  /// No description provided for @autoMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto macros'**
+  String get autoMacros;
+
+  /// No description provided for @nutritionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition details'**
+  String get nutritionDetails;
+
+  /// No description provided for @pieces.
+  ///
+  /// In en, this message translates to:
+  /// **'pcs'**
+  String get pieces;
+
+  /// No description provided for @pack.
+  ///
+  /// In en, this message translates to:
+  /// **'pack'**
+  String get pack;
+
+  /// No description provided for @package.
+  ///
+  /// In en, this message translates to:
+  /// **'package'**
+  String get package;
+
+  /// No description provided for @milliliters.
+  ///
+  /// In en, this message translates to:
+  /// **'ml'**
+  String get milliliters;
+
+  /// No description provided for @teaspoon.
+  ///
+  /// In en, this message translates to:
+  /// **'tsp'**
+  String get teaspoon;
+
+  /// No description provided for @tablespoon.
+  ///
+  /// In en, this message translates to:
+  /// **'tbsp'**
+  String get tablespoon;
+
+  /// No description provided for @glass.
+  ///
+  /// In en, this message translates to:
+  /// **'glass'**
+  String get glass;
+
+  /// No description provided for @kilograms.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get kilograms;
+
+  /// No description provided for @recipePhotoCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dish photo'**
+  String get recipePhotoCardTitle;
+
+  /// No description provided for @recipePhotoEmptyState.
+  ///
+  /// In en, this message translates to:
+  /// **'No photo added yet'**
+  String get recipePhotoEmptyState;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @recipeFromDescriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe from description'**
+  String get recipeFromDescriptionTitle;
+
+  /// No description provided for @recipeFromPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe from photo'**
+  String get recipeFromPhotoTitle;
+
+  /// No description provided for @recipeGenerateAndOpenEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate and open editor'**
+  String get recipeGenerateAndOpenEditor;
+
+  /// No description provided for @recipeGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating recipe...'**
+  String get recipeGenerating;
+
+  /// No description provided for @recipeCreateFromDescriptionEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a dish description.'**
+  String get recipeCreateFromDescriptionEmptyError;
+
+  /// No description provided for @recipeCreateFromDescriptionFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create a recipe from description.'**
+  String get recipeCreateFromDescriptionFailure;
+
+  /// No description provided for @recipeAddPhotoFirstError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add the dish photo first.'**
+  String get recipeAddPhotoFirstError;
+
+  /// No description provided for @recipeCreateFromPhotoFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create a recipe from photo.'**
+  String get recipeCreateFromPhotoFailure;
+
+  /// No description provided for @aiEmptyReportError.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI returned an empty report.'**
+  String get aiEmptyReportError;
+
+  /// No description provided for @aiNoResponseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get a response from Groq.'**
+  String get aiNoResponseError;
+
+  /// No description provided for @aiFailedToReadResponseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to read Groq response.'**
+  String get aiFailedToReadResponseError;
+
+  /// No description provided for @aiEmptyResponseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty response from Groq.'**
+  String get aiEmptyResponseError;
+
+  /// No description provided for @aiUnexpectedResponseFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected Groq response format.'**
+  String get aiUnexpectedResponseFormatError;
+
+  /// No description provided for @aiEmptyTextError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq returned empty text.'**
+  String get aiEmptyTextError;
+
+  /// No description provided for @aiFailedToExtractIngredientsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not extract ingredients from the AI response. Clarify the description and try again.'**
+  String get aiFailedToExtractIngredientsError;
+
+  /// No description provided for @aiFailedToParseJsonError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not parse JSON from the AI response. Check the ingredient list and try again. If the error repeats, rephrase the ingredients or change spelling.'**
+  String get aiFailedToParseJsonError;
+
+  /// No description provided for @aiKeyMissingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.'**
+  String get aiKeyMissingError;
+
+  /// No description provided for @aiHttpForbiddenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.'**
+  String get aiHttpForbiddenError;
+
+  /// No description provided for @aiHttpUnauthorizedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq returned 401 (unauthorized). Check GROQ_API_KEY.'**
+  String get aiHttpUnauthorizedError;
+
+  /// No description provided for @aiHttpRateLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq returned 429 (rate limit). Please try again later.'**
+  String get aiHttpRateLimitError;
+
+  /// No description provided for @aiHttpGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq returned an error ({code}).'**
+  String aiHttpGenericError(Object code);
+
+  /// No description provided for @detailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsLabel;
+
   /// No description provided for @recipeNutritionPer100g.
   ///
   /// In en, this message translates to:
@@ -1317,6 +1635,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Field cannot be empty'**
   String get fieldCannotBeEmpty;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterName;
 
   /// No description provided for @invalidFormat.
   ///
@@ -1828,6 +2152,48 @@ abstract class AppLocalizations {
   /// **'Nutrition facts (per portion)'**
   String get nutritionValuePerPortion;
 
+  /// No description provided for @mainInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Main info'**
+  String get mainInfo;
+
+  /// No description provided for @ingredientLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredient'**
+  String get ingredientLabel;
+
+  /// No description provided for @quantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get quantityLabel;
+
+  /// No description provided for @addIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Add ingredient'**
+  String get addIngredient;
+
+  /// No description provided for @ingredientExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Examples: Carrot 120 g, Eggs 2 pcs, Oil 1 tbsp'**
+  String get ingredientExamples;
+
+  /// No description provided for @newRecipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New recipe'**
+  String get newRecipeTitle;
+
+  /// No description provided for @editRecipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recipe'**
+  String get editRecipeTitle;
+
   /// No description provided for @mainNutrients.
   ///
   /// In en, this message translates to:
@@ -1875,6 +2241,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get add;
+
+  /// No description provided for @selectIconDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select icon'**
+  String get selectIconDialogTitle;
 }
 
 class _AppLocalizationsDelegate

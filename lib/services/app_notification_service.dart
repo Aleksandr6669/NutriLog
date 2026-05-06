@@ -215,26 +215,17 @@ class AppNotificationService {
                   : 'Water and meal reminders',
           defaultColor: const Color(0xFF2196F3),
           importance: NotificationImportance.High,
-          channelShowBadge: true,
+          channelShowBadge: false,
         ),
       ],
       debug: false,
     );
     _initialized = true;
-
-    // Сброс счетчика и уведомлений при первой инициализации
-    await resetBadge();
   }
 
-  /// Сбрасывает счетчик на иконке и убирает все уведомления из шторки.
+  /// Disabled: badge counter is not used and notifications are not cleared automatically.
   Future<void> resetBadge() async {
-    if (kIsWeb) return;
-    try {
-      await AwesomeNotifications().setGlobalBadgeCounter(0);
-      await AwesomeNotifications().dismissAllNotifications();
-    } catch (e) {
-      debugPrint('Error resetting badge: $e');
-    }
+    return;
   }
 
   Future<void> _configureTimezone() async {
@@ -552,24 +543,22 @@ class AppNotificationService {
         'NOTIFICATION_CLICKED: id=$id, payload=${receivedAction.payload}');
 
     if (id != null) {
-      // Уменьшаем счетчик на иконке при нажатии на конкретное уведомление
-      AwesomeNotifications().decrementGlobalBadgeCounter();
       // Убираем только это уведомление из шторки
       AwesomeNotifications().dismiss(id);
     }
 
     if (id == _breakfastId) {
-      debugPrint('NAVIGATING_TO: /meal/breakfast');
-      handleAppDeepLink('/meal/breakfast');
+      debugPrint('NAVIGATING_TO: /home?openMeal=breakfast');
+      handleAppDeepLink('/home?openMeal=breakfast');
     } else if (id == _lunchId) {
-      debugPrint('NAVIGATING_TO: /meal/lunch');
-      handleAppDeepLink('/meal/lunch');
+      debugPrint('NAVIGATING_TO: /home?openMeal=lunch');
+      handleAppDeepLink('/home?openMeal=lunch');
     } else if (id == _dinnerId) {
-      debugPrint('NAVIGATING_TO: /meal/dinner');
-      handleAppDeepLink('/meal/dinner');
+      debugPrint('NAVIGATING_TO: /home?openMeal=dinner');
+      handleAppDeepLink('/home?openMeal=dinner');
     } else if (id == 1200) {
-      debugPrint('NAVIGATING_TO: /weight');
-      handleAppDeepLink('/weight', {'date': DateTime.now()});
+      debugPrint('NAVIGATING_TO: /home?scrollTo=weight');
+      handleAppDeepLink('/home?scrollTo=weight');
     } else if (id != null &&
         id >= _waterBaseId &&
         id < _waterBaseId + _maxWaterReminders) {

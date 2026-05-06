@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
@@ -20,18 +21,20 @@ class EditRecipeScreen extends StatefulWidget {
 
 class _EditRecipeScreenState extends State<EditRecipeScreen> {
   static const List<String> unitOptions = [
-    'г', // граммы
-    'мг', // миллиграммы
-    'кг', // килограммы
-    'шт', // штуки
-    'пачка', // пачка
-    'упак', // упаковка
-    'л', // литры
-    'мл', // миллилитры
-    'ч.л.', // чайная ложка
-    'ст.л.', // столовая ложка
-    'стакан', // стакан
+    'g',
+    'mg',
+    'kg',
+    'pcs',
+    'pack',
+    'pkg',
+    'l',
+    'ml',
+    'tsp',
+    'tbsp',
+    'cup',
   ];
+
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   final _formKey = GlobalKey<FormState>();
   final _recipeService = RecipeService();
@@ -191,7 +194,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (ingredients.isEmpty) {
       if (mounted) {
         setState(() {
-          _aiStatus = 'Добавьте ингредиенты для AI-подсчета';
+          _aiStatus = l10n.recipeAiAddIngredients;
           _isAiError = true;
           _isAiCalculating = false;
         });
@@ -203,7 +206,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (mounted) {
       setState(() {
         _isAiCalculating = true;
-        _aiStatus = 'Идет расчет пищевой ценности...';
+        _aiStatus = l10n.recipeAiCalculating;
         _isAiError = false;
         _autoCalculateCalories = false; // Отключаем авто БЖУ при расчёте AI
       });
@@ -214,6 +217,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         recipeName: _nameController.text,
         recipeDescription: _descriptionController.text,
         ingredients: ingredients,
+        locale: Localizations.localeOf(context).languageCode,
       );
 
       if (!mounted || requestId != _aiRequestId) return;
@@ -226,7 +230,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
       setState(() {
         _isAiCalculating = false;
-        _aiStatus = 'Поля обновлены';
+        _aiStatus = l10n.recipeAiUpdated;
         _isAiError = false;
       });
     } on GeminiRecipeException catch (e) {
@@ -240,7 +244,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       if (!mounted || requestId != _aiRequestId) return;
       setState(() {
         _isAiCalculating = false;
-        _aiStatus = 'Не удалось получить расчет';
+        _aiStatus = l10n.recipeAiFailed;
         _isAiError = true;
       });
     }
@@ -317,8 +321,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             : Colors.grey.shade700;
         return AlertDialog(
           backgroundColor: canvasColor,
-          title: const Text('Выберите иконку',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(
+            l10n.selectIconDialogTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
           content: SizedBox(
             width: double.maxFinite,
@@ -421,13 +427,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context)),
         title: Text(
-            widget.recipe == null ? 'Новый рецепт' : 'Редактировать рецепт',
+            widget.recipe == null ? l10n.newRecipeTitle : l10n.editRecipeTitle,
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Symbols.save, weight: 600),
             onPressed: _saveRecipe,
-            tooltip: 'Сохранить',
+            tooltip: l10n.save,
           ),
         ],
       ),
@@ -455,7 +461,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   child: TextButton.icon(
                     onPressed: _deleteRecipe,
                     icon: const Icon(Symbols.delete),
-                    label: const Text('Удалить рецепт'),
+                    label: Text(l10n.removeRecipeTooltip),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.red,
                     ),
@@ -480,8 +486,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Основная информация',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.mainInfo,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             Center(
               child: InkWell(
@@ -498,16 +505,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             const SizedBox(height: 24),
             TextFormField(
               controller: _nameController,
-              decoration:
-                  AppStyles.underlineInputDecoration(label: 'Название рецепта'),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Введите название' : null,
+              decoration: AppStyles.underlineInputDecoration(
+                  label: l10n.recipeNameLabel),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.enterName;
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration:
-                  AppStyles.underlineInputDecoration(label: 'Краткое описание'),
+              decoration: AppStyles.underlineInputDecoration(
+                  label: l10n.recipeDescriptionLabel),
             ),
           ],
         ),
@@ -525,8 +536,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Пищевая ценность (на порцию)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.nutritionValuePerPortion,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             if (_aiStatus != null) ...[
               Container(
@@ -573,7 +585,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 onPressed:
                     _isAiCalculating ? null : _recalculateNutrientsWithAi,
                 icon: const Icon(Symbols.calculate),
-                label: const Text('Рассчитать пищевую ценность'),
+                label: Text(l10n.calculateNutrition),
               ),
             ),
             const SizedBox(height: 8),
@@ -587,9 +599,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   color: Colors.orange.withValues(alpha: 0.3),
                 ),
               ),
-              child: const Text(
-                'Нейросеть может ошибаться примерно на 10%. Проверьте значения перед сохранением.',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              child: Text(
+                l10n.recipeAiDisclaimer,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
@@ -597,14 +610,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: _nutrientRow([('calories', 'Калории', 'ккал')],
+                  child: _nutrientRow([('calories', l10n.calories, l10n.kcal)],
                       isReadOnly: _autoCalculateCalories),
                 ),
                 const SizedBox(width: 8),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Авто БЖУ', style: TextStyle(fontSize: 12)),
+                    Text(l10n.autoMacros, style: const TextStyle(fontSize: 12)),
                     const SizedBox(width: 4),
                     Switch.adaptive(
                       value: _autoCalculateCalories,
@@ -619,51 +632,59 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            const Text('БЖУ',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.mainNutrients,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('protein', 'Белки', 'г'),
-              ('carbs', 'Углеводы', 'г'),
-              ('fat', 'Жиры', 'г')
+              ('protein', l10n.protein, l10n.grams),
+              ('carbs', l10n.carbs, l10n.grams),
+              ('fat', l10n.fat, l10n.grams)
             ]),
             const SizedBox(height: 14),
-            const Text('Детализация',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.nutritionDetails,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('sugar', 'в т.ч. Сахар', 'г'),
-              ('fiber', 'в т.ч. Клетчатка', 'г')
+              ('sugar', l10n.sugarSub, l10n.grams),
+              ('fiber', l10n.fiberSub, l10n.grams)
             ]),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('saturated_fat', 'Насыщенные', 'г'),
-              ('polyunsaturated_fat', 'Полиненасыщенные', 'г')
+              ('saturated_fat', l10n.saturatedFatSub, l10n.grams),
+              ('polyunsaturated_fat', l10n.polyunsaturatedFatSub, l10n.grams)
             ]),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('monounsaturated_fat', 'Мононенасыщенные', 'г'),
-              ('trans_fat', 'Трансжиры', 'г')
+              ('monounsaturated_fat', l10n.monounsaturatedFatSub, l10n.grams),
+              ('trans_fat', l10n.transFatSub, l10n.grams)
             ]),
             const SizedBox(height: 8),
-            _nutrientRow([('cholesterol', 'Холестерин', 'мг')]),
+            _nutrientRow([('cholesterol', l10n.cholesterolSub, l10n.mg)]),
             const SizedBox(height: 14),
-            const Text('Минералы',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            _nutrientRow(
-                [('sodium', 'Натрий', 'мг'), ('potassium', 'Калий', 'мг')]),
-            const SizedBox(height: 8),
-            _nutrientRow(
-                [('calcium', 'Кальций', 'мг'), ('iron', 'Железо', 'мг')]),
-            const SizedBox(height: 14),
-            const Text('Витамины',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.minerals,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('vitamin_a', 'Витамин A', 'мкг'),
-              ('vitamin_c', 'Витамин C', 'мг'),
-              ('vitamin_d', 'Витамин D', 'мкг')
+              ('sodium', l10n.sodium, l10n.mg),
+              ('potassium', l10n.potassium, l10n.mg)
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('calcium', l10n.calcium, l10n.mg),
+              ('iron', l10n.iron, l10n.mg)
+            ]),
+            const SizedBox(height: 14),
+            Text(l10n.vitamins,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_a', l10n.vitaminA, l10n.mcg),
+              ('vitamin_c', l10n.vitaminC, l10n.mg),
+              ('vitamin_d', l10n.vitaminD, l10n.mcg)
             ]),
           ],
         ),
@@ -683,13 +704,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text('Состав',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(l10n.ingredients,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
                 IconButton(
-                  tooltip: 'Добавить ингредиент',
+                  tooltip: l10n.addIngredient,
                   onPressed: _addIngredientRow,
                   icon: const Icon(Symbols.add_circle),
                 ),
@@ -709,7 +730,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         controller: item.nameController,
                         style: const TextStyle(fontSize: 13),
                         decoration: AppStyles.underlineInputDecoration(
-                            label: 'Ингредиент'),
+                            label: l10n.ingredientLabel),
                         minLines: 1,
                         maxLines: 2,
                         textInputAction: TextInputAction.next,
@@ -721,8 +742,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       child: TextFormField(
                         controller: item.quantityController,
                         style: const TextStyle(fontSize: 13),
-                        decoration:
-                            AppStyles.underlineInputDecoration(label: 'Кол-во'),
+                        decoration: AppStyles.underlineInputDecoration(
+                            label: l10n.quantityLabel),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         inputFormatters: [
@@ -741,8 +762,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         items: unitOptions
                             .map((unit) => DropdownMenuItem(
                                   value: unit,
-                                  child: Text(unit,
-                                      style: const TextStyle(fontSize: 13)),
+                                  child: Text(
+                                    _unitLabel(unit),
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
                                 ))
                             .toList(),
                         onChanged: (value) {
@@ -751,7 +774,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           }
                         },
                         decoration: InputDecoration(
-                          labelText: 'Ед.',
+                          labelText: l10n.unitLabel,
                           border: UnderlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
@@ -766,7 +789,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     ),
                     const SizedBox(width: 4),
                     IconButton(
-                      tooltip: 'Удалить',
+                      tooltip: l10n.delete,
                       onPressed: () => _removeIngredientRow(index),
                       icon: const Icon(
                         Symbols.remove_circle,
@@ -777,9 +800,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               );
             }),
-            const Text(
-              'Примеры: Морковь 120 г, Яйца 2 шт, Масло 1 ст.л.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Text(
+              l10n.ingredientExamples,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -806,6 +829,35 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
+  String _unitLabel(String unit) {
+    switch (unit) {
+      case 'g':
+        return l10n.grams;
+      case 'mg':
+        return l10n.mg;
+      case 'kg':
+        return l10n.kilograms;
+      case 'pcs':
+        return l10n.pieces;
+      case 'pack':
+        return l10n.pack;
+      case 'pkg':
+        return l10n.package;
+      case 'l':
+        return l10n.liters;
+      case 'ml':
+        return l10n.milliliters;
+      case 'tsp':
+        return l10n.teaspoon;
+      case 'tbsp':
+        return l10n.tablespoon;
+      case 'cup':
+        return l10n.glass;
+      default:
+        return unit;
+    }
+  }
+
   Widget _nutrientTextFormField(
     TextEditingController controller,
     String label,
@@ -822,8 +874,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*'))
       ],
       validator: (value) {
-        if (value == null || value.isEmpty) return null;
-        if (double.tryParse(value.replaceAll(',', '.')) == null) return 'Число';
+        if (value == null || value.isEmpty) {
+          return null;
+        }
+        if (double.tryParse(value.replaceAll(',', '.')) == null) {
+          return l10n.enterCorrectNumber;
+        }
         return null;
       },
     );
@@ -841,7 +897,7 @@ class _IngredientFormItem {
     String unit = '',
   })  : nameController = TextEditingController(text: name),
         quantityController = TextEditingController(text: quantity),
-        unit = unit.isEmpty ? 'г' : unit;
+        unit = unit.isEmpty ? 'g' : unit;
 
   void dispose() {
     nameController.dispose();

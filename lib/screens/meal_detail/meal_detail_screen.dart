@@ -5,6 +5,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/recipes_screen.dart';
 import 'package:nutri_log/services/daily_log_service.dart';
+import 'package:nutri_log/services/recipe_loader.dart';
+import 'package:nutri_log/services/recipe_service.dart';
 import '../../models/food_item.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
@@ -38,13 +40,28 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   void initState() {
     super.initState();
     _foodItems = List<FoodItem>.from(widget.items);
+    if (_foodItems.isEmpty) {
+      _loadMealItemsFromLog();
+    }
+  }
+
+  Future<void> _loadMealItemsFromLog() async {
+    final log = await _dailyLogService.getLogForDate(widget.date);
+    if (!mounted) return;
+    setState(() {
+      _foodItems = List<FoodItem>.from(log.meals[widget.mealKey] ?? const []);
+    });
   }
 
   Future<void> _addFromRecipes() async {
     HapticFeedback.selectionClick();
+    final initialSelectedRecipeIds = await _findRecipeIdsForItems(_foodItems);
     final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
       MaterialPageRoute(
-        builder: (_) => const RecipesScreen(selectionMode: true),
+        builder: (_) => RecipesScreen(
+          selectionMode: true,
+          initialSelectedRecipeIds: initialSelectedRecipeIds,
+        ),
       ),
     );
 
@@ -62,10 +79,36 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (!mounted) return;
 
     setState(() {
-      _foodItems = List<FoodItem>.from(
-          provider.currentLog?.meals[widget.mealKey] ?? []);
+      _foodItems =
+          List<FoodItem>.from(provider.currentLog?.meals[widget.mealKey] ?? []);
       _hasChanges = true;
     });
+  }
+
+  Future<Set<String>> _findRecipeIdsForItems(List<FoodItem> items) async {
+    if (items.isEmpty) return <String>{};
+
+    final locale = Localizations.localeOf(context).languageCode;
+    final builtIn = await RecipeLoader.loadRecipesFromAssets(locale: locale);
+    final userRecipes = await RecipeService().loadUserRecipes();
+    final allRecipes = [...builtIn, ...userRecipes];
+    final ids = <String>{};
+
+    for (final item in items) {
+      for (final recipe in allRecipes) {
+        if (recipe.name == item.name &&
+            recipe.description == item.description &&
+            recipe.nutrients['calories'] == item.nutrients.calories &&
+            recipe.nutrients['protein'] == item.nutrients.protein &&
+            recipe.nutrients['carbs'] == item.nutrients.carbs &&
+            recipe.nutrients['fat'] == item.nutrients.fat) {
+          ids.add(recipe.id);
+          break;
+        }
+      }
+    }
+
+    return ids;
   }
 
   Future<void> _removeFoodItemAt(int index) async {
@@ -83,12 +126,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (!mounted) return;
 
     setState(() {
-      _foodItems = List<FoodItem>.from(
-          provider.currentLog?.meals[widget.mealKey] ?? []);
+      _foodItems =
+          List<FoodItem>.from(provider.currentLog?.meals[widget.mealKey] ?? []);
       _hasChanges = true;
     });
   }
-
 
   Future<void> _openFoodItemAsRecipeDetail(FoodItem item) async {
     final recipe = _toSavedRecipeSnapshot(item);
@@ -355,10 +397,22 @@ class _FoodItemsList extends StatelessWidget {
                       ),
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: const Icon(
-                        Symbols.delete,
-                        color: Colors.white,
-                        size: 28,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.delete,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Symbols.delete,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ],
                       ),
                     ),
                     confirmDismiss: (_) async => true,

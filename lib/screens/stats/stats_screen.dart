@@ -35,11 +35,32 @@ class _StatsScreenState extends State<StatsScreen> {
   bool _aiError = false;
   int _dataRequestId = 0;
   int _aiStartedForRequestId = -1;
+  bool _isCurrentlyVisible = false;
+  Locale? _lastLocale;
 
   @override
   void initState() {
     super.initState();
     _reloadStats();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context);
+    final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+    if (_lastLocale != locale) {
+      _lastLocale = locale;
+      if (_isCurrentlyVisible) {
+        _reloadStats();
+      }
+    }
+    if (isCurrent && !_isCurrentlyVisible) {
+      _isCurrentlyVisible = true;
+      _reloadStats();
+    } else if (!isCurrent) {
+      _isCurrentlyVisible = false;
+    }
   }
 
   void _reloadStats() {
@@ -314,6 +335,7 @@ class _StatsScreenState extends State<StatsScreen> {
         fatGoal: aiInput['fatGoal'] as int,
         carbsGoal: aiInput['carbsGoal'] as int,
         avgCalories: (aiInput['avgCalories'] as num).toDouble(),
+        locale: Localizations.localeOf(context).languageCode,
         avgProteinGrams: (aiInput['avgProteinGrams'] as num).toDouble(),
         avgFatGrams: (aiInput['avgFatGrams'] as num).toDouble(),
         avgCarbsGrams: (aiInput['avgCarbsGrams'] as num).toDouble(),
@@ -466,6 +488,17 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+      if (isCurrent && !_isCurrentlyVisible) {
+        _isCurrentlyVisible = true;
+        _reloadStats();
+      } else if (!isCurrent && _isCurrentlyVisible) {
+        _isCurrentlyVisible = false;
+      }
+    });
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 

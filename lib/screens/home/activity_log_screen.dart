@@ -222,8 +222,20 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                                   color: Colors.red.withAlpha(210),
                                   borderRadius: AppStyles.cardRadius,
                                 ),
-                                child: const Icon(Symbols.delete,
-                                    color: Colors.white),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      l10n.delete,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Symbols.delete,
+                                        color: Colors.white),
+                                  ],
+                                ),
                               ),
                               confirmDismiss: (_) async {
                                 await _confirmAndRemoveActivity(entry);

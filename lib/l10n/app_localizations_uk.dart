@@ -671,10 +671,192 @@ class AppLocalizationsUk extends AppLocalizations {
   String get recipeDescriptionLabel => 'Опис';
 
   @override
+  String get recipeDescriptionCardTitle => 'Опис страви';
+
+  @override
+  String get recipeDescriptionOptionalTitle => 'Опис (необов’язково)';
+
+  @override
+  String get recipeDescriptionExample =>
+      'Наприклад: паста з куркою у вершковому соусі';
+
+  @override
+  String get recipeInstructionsTitle => 'Інструкція';
+
+  @override
+  String get recipeInstructionsStep1 =>
+      '1. Детально опишіть страву та інгредієнти.';
+
+  @override
+  String get recipeInstructionsStep2 =>
+      '2. Натисніть кнопку генерації рецепту.';
+
+  @override
+  String get recipeInstructionsStep3 =>
+      '3. Відкриється екран редагування з заповненими полями.';
+
+  @override
+  String get recipeInstructionsStep4 =>
+      '4. Перевірте та за потреби виправте деталі.';
+
+  @override
+  String get recipeAiWarning =>
+      'Нейромережа може помилятися приблизно на 10%; обов’язково перевірте дані.';
+
+  @override
+  String get recipeAiAddIngredients =>
+      'Додайте інгредієнти, щоб розрахувати харчову цінність.';
+
+  @override
+  String get recipeAiCalculating => 'Обчислення харчової цінності...';
+
+  @override
+  String get recipeAiUpdated => 'Харчові значення оновлені.';
+
+  @override
+  String get recipeAiFailed => 'Не вдалося розрахувати харчову цінність AI.';
+
+  @override
+  String get recipeAiDisclaimer =>
+      'Оцінки AI можуть відрізнятися приблизно на 10%; перевірте значення перед збереженням.';
+
+  @override
+  String get calculateNutrition => 'Розрахувати харчову цінність';
+
+  @override
+  String get unitLabel => 'Од.';
+
+  @override
+  String get autoMacros => 'Авто БЖУ';
+
+  @override
+  String get nutritionDetails => 'Деталі харчування';
+
+  @override
+  String get pieces => 'шт';
+
+  @override
+  String get pack => 'упаковка';
+
+  @override
+  String get package => 'пакет';
+
+  @override
+  String get milliliters => 'мл';
+
+  @override
+  String get teaspoon => 'ч.л.';
+
+  @override
+  String get tablespoon => 'ст.л.';
+
+  @override
+  String get glass => 'склянка';
+
+  @override
+  String get kilograms => 'кг';
+
+  @override
+  String get recipePhotoCardTitle => 'Фото страви';
+
+  @override
+  String get recipePhotoEmptyState => 'Фото поки не додано';
+
+  @override
+  String get camera => 'Камера';
+
+  @override
+  String get gallery => 'Галерея';
+
+  @override
+  String get optional => 'Опціонально';
+
+  @override
+  String get recipeFromDescriptionTitle => 'Рецепт за описом';
+
+  @override
+  String get recipeFromPhotoTitle => 'Рецепт за фото';
+
+  @override
+  String get recipeGenerateAndOpenEditor => 'Згенерувати і відкрити редактор';
+
+  @override
+  String get recipeGenerating => 'Генеруємо рецепт...';
+
+  @override
+  String get recipeCreateFromDescriptionEmptyError => 'Введіть опис страви.';
+
+  @override
+  String get recipeCreateFromDescriptionFailure =>
+      'Не вдалося створити рецепт за описом.';
+
+  @override
+  String get recipeAddPhotoFirstError => 'Спочатку додайте фото страви.';
+
+  @override
+  String get recipeCreateFromPhotoFailure =>
+      'Не вдалося створити рецепт за фото.';
+
+  @override
+  String get aiEmptyReportError => 'Нейромережа повернула порожній звіт.';
+
+  @override
+  String get aiNoResponseError => 'Не вдалося отримати відповідь від Groq.';
+
+  @override
+  String get aiFailedToReadResponseError =>
+      'Не вдалося прочитати відповідь Groq.';
+
+  @override
+  String get aiEmptyResponseError => 'Порожня відповідь від Groq.';
+
+  @override
+  String get aiUnexpectedResponseFormatError =>
+      'Неочікуваний формат відповіді Groq.';
+
+  @override
+  String get aiEmptyTextError => 'Groq повернув порожній текст.';
+
+  @override
+  String get aiFailedToExtractIngredientsError =>
+      'Не вдалося отримати інгредієнти з відповіді нейросистеми. Уточніть опис і спробуйте ще раз.';
+
+  @override
+  String get aiFailedToParseJsonError =>
+      'Не вдалося розібрати JSON з відповіді нейросистеми. Перевірте список інгредієнтів і спробуйте ще раз. Якщо помилка повторюється, переформулюйте інгредієнти або змініть їх написання.';
+
+  @override
+  String get aiKeyMissingError =>
+      'Не знайдено ключ Groq. Додайте GROQ_API_KEY у .env або передайте --dart-define=GROQ_API_KEY=... під час запуску.';
+
+  @override
+  String get aiHttpForbiddenError =>
+      'Groq повернув 403 (доступ заборонено). Перевірте GROQ_API_KEY і обмеження доступу.';
+
+  @override
+  String get aiHttpUnauthorizedError =>
+      'Groq повернув 401 (неавторизовано). Перевірте коректність GROQ_API_KEY.';
+
+  @override
+  String get aiHttpRateLimitError =>
+      'Groq повернув 429 (ліміт запитів). Спробуйте пізніше.';
+
+  @override
+  String aiHttpGenericError(Object code) {
+    return 'Groq повернув помилку ($code).';
+  }
+
+  @override
+  String get detailsLabel => 'Деталі';
+
+  @override
   String get recipeNutritionPer100g => 'Харчова цінність (на 100г)';
 
   @override
   String get fieldCannotBeEmpty => 'Поле не може бути порожнім';
+
+  @override
+  String get enterName => 'Введіть назву';
 
   @override
   String get invalidFormat => 'Невірний формат';
@@ -954,6 +1136,28 @@ class AppLocalizationsUk extends AppLocalizations {
   String get nutritionValuePerPortion => 'Харчова цінність (на порцію)';
 
   @override
+  String get mainInfo => 'Основна інформація';
+
+  @override
+  String get ingredientLabel => 'Інгредієнт';
+
+  @override
+  String get quantityLabel => 'Кількість';
+
+  @override
+  String get addIngredient => 'Додати інгредієнт';
+
+  @override
+  String get ingredientExamples =>
+      'Приклади: Морква 120 г, Яйця 2 шт, Олія 1 ст.л.';
+
+  @override
+  String get newRecipeTitle => 'Новий рецепт';
+
+  @override
+  String get editRecipeTitle => 'Редагувати рецепт';
+
+  @override
   String get mainNutrients => 'Основні';
 
   @override
@@ -976,4 +1180,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get add => 'Додати';
+
+  @override
+  String get selectIconDialogTitle => 'Виберіть іконку';
 }

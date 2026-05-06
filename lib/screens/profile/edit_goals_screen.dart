@@ -206,7 +206,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 ),
                 child: Text(
                   l10n.aiGoalsNotice,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(height: 16),

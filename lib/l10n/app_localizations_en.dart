@@ -669,10 +669,191 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeDescriptionLabel => 'Description';
 
   @override
+  String get recipeDescriptionCardTitle => 'Dish description';
+
+  @override
+  String get recipeDescriptionOptionalTitle => 'Description (optional)';
+
+  @override
+  String get recipeDescriptionExample =>
+      'For example: pasta with chicken in creamy sauce';
+
+  @override
+  String get recipeInstructionsTitle => 'Instructions';
+
+  @override
+  String get recipeInstructionsStep1 =>
+      '1. Describe the dish and ingredients in detail.';
+
+  @override
+  String get recipeInstructionsStep2 => '2. Tap the generate recipe button.';
+
+  @override
+  String get recipeInstructionsStep3 =>
+      '3. The editor screen will open with filled fields.';
+
+  @override
+  String get recipeInstructionsStep4 =>
+      '4. Check and correct details if needed.';
+
+  @override
+  String get recipeAiWarning =>
+      'The neural network may err by about 10%; please verify the data.';
+
+  @override
+  String get recipeAiAddIngredients =>
+      'Add ingredients to calculate nutrition.';
+
+  @override
+  String get recipeAiCalculating => 'Calculating nutrition...';
+
+  @override
+  String get recipeAiUpdated => 'Nutrition values updated.';
+
+  @override
+  String get recipeAiFailed => 'AI nutrition calculation failed.';
+
+  @override
+  String get recipeAiDisclaimer =>
+      'AI estimates may be inaccurate by about 10%; verify values before saving.';
+
+  @override
+  String get calculateNutrition => 'Calculate nutrition';
+
+  @override
+  String get unitLabel => 'Unit';
+
+  @override
+  String get autoMacros => 'Auto macros';
+
+  @override
+  String get nutritionDetails => 'Nutrition details';
+
+  @override
+  String get pieces => 'pcs';
+
+  @override
+  String get pack => 'pack';
+
+  @override
+  String get package => 'package';
+
+  @override
+  String get milliliters => 'ml';
+
+  @override
+  String get teaspoon => 'tsp';
+
+  @override
+  String get tablespoon => 'tbsp';
+
+  @override
+  String get glass => 'glass';
+
+  @override
+  String get kilograms => 'kg';
+
+  @override
+  String get recipePhotoCardTitle => 'Dish photo';
+
+  @override
+  String get recipePhotoEmptyState => 'No photo added yet';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get recipeFromDescriptionTitle => 'Recipe from description';
+
+  @override
+  String get recipeFromPhotoTitle => 'Recipe from photo';
+
+  @override
+  String get recipeGenerateAndOpenEditor => 'Generate and open editor';
+
+  @override
+  String get recipeGenerating => 'Generating recipe...';
+
+  @override
+  String get recipeCreateFromDescriptionEmptyError =>
+      'Please enter a dish description.';
+
+  @override
+  String get recipeCreateFromDescriptionFailure =>
+      'Failed to create a recipe from description.';
+
+  @override
+  String get recipeAddPhotoFirstError => 'Please add the dish photo first.';
+
+  @override
+  String get recipeCreateFromPhotoFailure =>
+      'Failed to create a recipe from photo.';
+
+  @override
+  String get aiEmptyReportError => 'The AI returned an empty report.';
+
+  @override
+  String get aiNoResponseError => 'Failed to get a response from Groq.';
+
+  @override
+  String get aiFailedToReadResponseError => 'Failed to read Groq response.';
+
+  @override
+  String get aiEmptyResponseError => 'Empty response from Groq.';
+
+  @override
+  String get aiUnexpectedResponseFormatError =>
+      'Unexpected Groq response format.';
+
+  @override
+  String get aiEmptyTextError => 'Groq returned empty text.';
+
+  @override
+  String get aiFailedToExtractIngredientsError =>
+      'Could not extract ingredients from the AI response. Clarify the description and try again.';
+
+  @override
+  String get aiFailedToParseJsonError =>
+      'Could not parse JSON from the AI response. Check the ingredient list and try again. If the error repeats, rephrase the ingredients or change spelling.';
+
+  @override
+  String get aiKeyMissingError =>
+      'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.';
+
+  @override
+  String get aiHttpForbiddenError =>
+      'Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.';
+
+  @override
+  String get aiHttpUnauthorizedError =>
+      'Groq returned 401 (unauthorized). Check GROQ_API_KEY.';
+
+  @override
+  String get aiHttpRateLimitError =>
+      'Groq returned 429 (rate limit). Please try again later.';
+
+  @override
+  String aiHttpGenericError(Object code) {
+    return 'Groq returned an error ($code).';
+  }
+
+  @override
+  String get detailsLabel => 'Details';
+
+  @override
   String get recipeNutritionPer100g => 'Nutrition (per 100g)';
 
   @override
   String get fieldCannotBeEmpty => 'Field cannot be empty';
+
+  @override
+  String get enterName => 'Enter a name';
 
   @override
   String get invalidFormat => 'Invalid format';
@@ -952,6 +1133,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionValuePerPortion => 'Nutrition facts (per portion)';
 
   @override
+  String get mainInfo => 'Main info';
+
+  @override
+  String get ingredientLabel => 'Ingredient';
+
+  @override
+  String get quantityLabel => 'Amount';
+
+  @override
+  String get addIngredient => 'Add ingredient';
+
+  @override
+  String get ingredientExamples =>
+      'Examples: Carrot 120 g, Eggs 2 pcs, Oil 1 tbsp';
+
+  @override
+  String get newRecipeTitle => 'New recipe';
+
+  @override
+  String get editRecipeTitle => 'Edit recipe';
+
+  @override
   String get mainNutrients => 'Main Nutrients';
 
   @override
@@ -974,4 +1177,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get add => 'Add';
+
+  @override
+  String get selectIconDialogTitle => 'Select icon';
 }

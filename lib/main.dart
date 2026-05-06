@@ -313,9 +313,6 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      AppNotificationService().resetBadge();
-    }
     _init();
   }
 
@@ -423,14 +420,14 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen> {
         if (currentPath == '/') {
           isAppBootstrapped = true;
           context.go('/home');
-          
+
           if (pendingRoute != null) {
             final route = pendingRoute!;
             final extra = pendingRouteExtra;
             pendingRoute = null;
             pendingRouteExtra = null;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-               handleAppDeepLink(route, extra);
+              handleAppDeepLink(route, extra);
             });
           }
         } else {
@@ -574,9 +571,6 @@ class _MainScreenShellState extends State<MainScreenShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (!kIsWeb) {
-      AppNotificationService().resetBadge();
-    }
   }
 
   @override
@@ -588,9 +582,6 @@ class _MainScreenShellState extends State<MainScreenShell>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (!kIsWeb && state == AppLifecycleState.resumed) {
-      AppNotificationService().resetBadge();
-    }
   }
 
   void _onItemTapped(int index) {

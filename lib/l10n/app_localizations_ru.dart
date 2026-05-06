@@ -671,10 +671,190 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recipeDescriptionLabel => 'Описание';
 
   @override
+  String get recipeDescriptionCardTitle => 'Описание блюда';
+
+  @override
+  String get recipeDescriptionOptionalTitle => 'Описание (необязательно)';
+
+  @override
+  String get recipeDescriptionExample =>
+      'Например: паста с курицей в сливочном соусе';
+
+  @override
+  String get recipeInstructionsTitle => 'Инструкция';
+
+  @override
+  String get recipeInstructionsStep1 =>
+      '1. Подробно опишите блюдо и ингредиенты.';
+
+  @override
+  String get recipeInstructionsStep2 => '2. Нажмите кнопку генерации рецепта.';
+
+  @override
+  String get recipeInstructionsStep3 =>
+      '3. Откроется экран редактирования с заполненными полями.';
+
+  @override
+  String get recipeInstructionsStep4 =>
+      '4. Проверьте и при необходимости исправьте детали.';
+
+  @override
+  String get recipeAiWarning =>
+      'Нейросеть может ошибаться примерно на 10%; обязательно проверьте данные.';
+
+  @override
+  String get recipeAiAddIngredients =>
+      'Добавьте ингредиенты, чтобы рассчитать пищевую ценность.';
+
+  @override
+  String get recipeAiCalculating => 'Идет расчет пищевой ценности...';
+
+  @override
+  String get recipeAiUpdated => 'Пищевые значения обновлены.';
+
+  @override
+  String get recipeAiFailed => 'Не удалось рассчитать пищевую ценность AI.';
+
+  @override
+  String get recipeAiDisclaimer =>
+      'Оценки AI могут отличаться примерно на 10%; проверьте значения перед сохранением.';
+
+  @override
+  String get calculateNutrition => 'Рассчитать пищевую ценность';
+
+  @override
+  String get unitLabel => 'Ед.';
+
+  @override
+  String get autoMacros => 'Авто БЖУ';
+
+  @override
+  String get nutritionDetails => 'Детали питания';
+
+  @override
+  String get pieces => 'шт';
+
+  @override
+  String get pack => 'упак.';
+
+  @override
+  String get package => 'пакет';
+
+  @override
+  String get milliliters => 'мл';
+
+  @override
+  String get teaspoon => 'ч.л.';
+
+  @override
+  String get tablespoon => 'ст.л.';
+
+  @override
+  String get glass => 'стакан';
+
+  @override
+  String get kilograms => 'кг';
+
+  @override
+  String get recipePhotoCardTitle => 'Фото блюда';
+
+  @override
+  String get recipePhotoEmptyState => 'Фото пока не добавлено';
+
+  @override
+  String get camera => 'Камера';
+
+  @override
+  String get gallery => 'Галерея';
+
+  @override
+  String get optional => 'Опционально';
+
+  @override
+  String get recipeFromDescriptionTitle => 'Рецепт по описанию';
+
+  @override
+  String get recipeFromPhotoTitle => 'Рецепт по фото';
+
+  @override
+  String get recipeGenerateAndOpenEditor => 'Сгенерировать и открыть редактор';
+
+  @override
+  String get recipeGenerating => 'Генерируем рецепт...';
+
+  @override
+  String get recipeCreateFromDescriptionEmptyError => 'Введите описание блюда.';
+
+  @override
+  String get recipeCreateFromDescriptionFailure =>
+      'Не удалось создать рецепт по описанию.';
+
+  @override
+  String get recipeAddPhotoFirstError => 'Сначала добавьте фото блюда.';
+
+  @override
+  String get recipeCreateFromPhotoFailure =>
+      'Не удалось создать рецепт по фото.';
+
+  @override
+  String get aiEmptyReportError => 'Нейросеть вернула пустой отчет.';
+
+  @override
+  String get aiNoResponseError => 'Не удалось получить ответ от Groq.';
+
+  @override
+  String get aiFailedToReadResponseError => 'Не удалось прочитать ответ Groq.';
+
+  @override
+  String get aiEmptyResponseError => 'Пустой ответ от Groq.';
+
+  @override
+  String get aiUnexpectedResponseFormatError =>
+      'Неожиданный формат ответа Groq.';
+
+  @override
+  String get aiEmptyTextError => 'Groq вернул пустой текст.';
+
+  @override
+  String get aiFailedToExtractIngredientsError =>
+      'Не удалось получить ингредиенты из ответа нейросети. Уточните описание и попробуйте снова.';
+
+  @override
+  String get aiFailedToParseJsonError =>
+      'Не удалось разобрать JSON из ответа нейросети. Проверьте список ингредиентов и попробуйте еще раз. Если ошибка повторяется, переформулируйте ингредиенты или измените их написание.';
+
+  @override
+  String get aiKeyMissingError =>
+      'Не найден ключ Groq. Добавьте GROQ_API_KEY в .env или передайте --dart-define=GROQ_API_KEY=... при запуске.';
+
+  @override
+  String get aiHttpForbiddenError =>
+      'Groq вернул 403 (доступ запрещен). Проверьте GROQ_API_KEY и ограничения доступа.';
+
+  @override
+  String get aiHttpUnauthorizedError =>
+      'Groq вернул 401 (неавторизован). Проверьте корректность GROQ_API_KEY.';
+
+  @override
+  String get aiHttpRateLimitError =>
+      'Groq вернул 429 (лимит запросов). Попробуйте позже.';
+
+  @override
+  String aiHttpGenericError(Object code) {
+    return 'Groq вернул ошибку ($code).';
+  }
+
+  @override
+  String get detailsLabel => 'Детали';
+
+  @override
   String get recipeNutritionPer100g => 'Пищевая ценность (на 100г)';
 
   @override
   String get fieldCannotBeEmpty => 'Поле не может быть пустым';
+
+  @override
+  String get enterName => 'Введите название';
 
   @override
   String get invalidFormat => 'Неверный формат';
@@ -954,6 +1134,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get nutritionValuePerPortion => 'Пищевая ценность (на порцию)';
 
   @override
+  String get mainInfo => 'Основная информация';
+
+  @override
+  String get ingredientLabel => 'Ингредиент';
+
+  @override
+  String get quantityLabel => 'Кол-во';
+
+  @override
+  String get addIngredient => 'Добавить ингредиент';
+
+  @override
+  String get ingredientExamples =>
+      'Примеры: Морковь 120 г, Яйца 2 шт, Масло 1 ст.л.';
+
+  @override
+  String get newRecipeTitle => 'Новый рецепт';
+
+  @override
+  String get editRecipeTitle => 'Редактировать рецепт';
+
+  @override
   String get mainNutrients => 'Основные';
 
   @override
@@ -976,4 +1178,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get add => 'Добавить';
+
+  @override
+  String get selectIconDialogTitle => 'Выберите иконку';
 }

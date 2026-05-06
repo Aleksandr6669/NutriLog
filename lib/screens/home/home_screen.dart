@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _waterKey = GlobalKey();
+  final GlobalKey _weightKey = GlobalKey();
 
   @override
   void initState() {
@@ -58,8 +59,29 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       try {
         final state = GoRouterState.of(context);
-        if (state.uri.queryParameters['scrollTo'] == 'water') {
+        final scrollTarget = state.uri.queryParameters['scrollTo'];
+        final openMeal = state.uri.queryParameters['openMeal'];
+        if (scrollTarget == 'water') {
           _scrollToWater();
+        } else if (scrollTarget == 'weight') {
+          _scrollToWeight();
+        }
+
+        if (openMeal == 'breakfast' ||
+            openMeal == 'lunch' ||
+            openMeal == 'dinner' ||
+            openMeal == 'snacks') {
+          final currentLog = context.read<DailyLogProvider>().currentLog;
+          final items = List<FoodItem>.from(
+            currentLog?.meals[openMeal] ?? const <FoodItem>[],
+          );
+          context.push(
+            '/meal/$openMeal',
+            extra: {
+              'date': _selectedDay,
+              'items': items,
+            },
+          );
         }
       } catch (_) {}
     });
@@ -67,6 +89,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _scrollToWater() {
     final context = _waterKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
+  void _scrollToWeight() {
+    final context = _weightKey.currentContext;
     if (context != null) {
       Scrollable.ensureVisible(
         context,
@@ -382,6 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     showManualStepsInput: !_isHealthConnected,
                                     onManualStepsInput: _showManualStepsInput,
                                     waterKey: _waterKey,
+                                    weightKey: _weightKey,
                                   ),
                                 ],
                               ),
@@ -697,6 +731,7 @@ class _MealsSection extends StatelessWidget {
   final bool showManualStepsInput;
   final Future<void> Function() onManualStepsInput;
   final GlobalKey? waterKey;
+  final GlobalKey? weightKey;
 
   const _MealsSection({
     required this.dailyLog,
@@ -706,6 +741,7 @@ class _MealsSection extends StatelessWidget {
     required this.showManualStepsInput,
     required this.onManualStepsInput,
     this.waterKey,
+    this.weightKey,
   });
 
   @override
@@ -786,6 +822,7 @@ class _MealsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _ActivityWeightRow(
+          weightKey: weightKey,
           dailyLog: dailyLog,
           profile: profile,
           selectedDate: selectedDate,
@@ -957,6 +994,7 @@ class _WaterCard extends StatelessWidget {
 }
 
 class _ActivityWeightRow extends StatelessWidget {
+  final GlobalKey? weightKey;
   final DailyLog dailyLog;
   final UserProfile profile;
   final DateTime selectedDate;
@@ -965,6 +1003,7 @@ class _ActivityWeightRow extends StatelessWidget {
   final Future<void> Function() onManualStepsInput;
 
   const _ActivityWeightRow({
+    this.weightKey,
     required this.dailyLog,
     required this.profile,
     required this.selectedDate,
@@ -1002,22 +1041,25 @@ class _ActivityWeightRow extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _ActionInfoCard(
-                title: l10n.weight,
-                value: dailyLog.weight == null
-                    ? l10n.notSet
-                    : '${dailyLog.weight!.toStringAsFixed(1)} ${l10n.weightUnit}',
-                icon: Symbols.monitor_weight,
-                iconColor: Colors.indigo,
-                onTap: () async {
-                  final result = await context.push<bool>(
-                    '/weight',
-                    extra: {'date': selectedDate},
-                  );
-                  if (result == true) {
-                    await onDataChanged();
-                  }
-                },
+              child: Container(
+                key: weightKey,
+                child: _ActionInfoCard(
+                  title: l10n.weight,
+                  value: dailyLog.weight == null
+                      ? l10n.notSet
+                      : '${dailyLog.weight!.toStringAsFixed(1)} ${l10n.weightUnit}',
+                  icon: Symbols.monitor_weight,
+                  iconColor: Colors.indigo,
+                  onTap: () async {
+                    final result = await context.push<bool>(
+                      '/weight',
+                      extra: {'date': selectedDate},
+                    );
+                    if (result == true) {
+                      await onDataChanged();
+                    }
+                  },
+                ),
               ),
             ),
           ],
@@ -1531,7 +1573,8 @@ class _MealCard extends StatelessWidget {
                           style: theme.textTheme.titleMedium
                               ?.copyWith(color: theme.colorScheme.onSurface)),
                       const SizedBox(height: 2),
-                      Text('${l10n.recommendedShort}: $recommended ${l10n.kcal}',
+                      Text(
+                          '${l10n.recommendedShort}: $recommended ${l10n.kcal}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                               fontSize: 11,
                               color: theme.textTheme.bodySmall?.color)),

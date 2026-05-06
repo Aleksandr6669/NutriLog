@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
@@ -27,6 +28,8 @@ class _CreateRecipeFromPhotoScreenState
   Uint8List? _imageBytes;
   String _imageMimeType = 'image/jpeg';
   bool _isGenerating = false;
+
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   void _showAiErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +91,7 @@ class _CreateRecipeFromPhotoScreenState
 
   Future<void> _generateAndOpenEditor() async {
     if (_imageBytes == null) {
-      _showAiErrorSnackBar('Сначала добавьте фото блюда.');
+      _showAiErrorSnackBar(l10n.recipeAddPhotoFirstError);
       return;
     }
 
@@ -98,6 +101,7 @@ class _CreateRecipeFromPhotoScreenState
         imageBytes: _imageBytes!,
         imageMimeType: _imageMimeType,
         description: _descriptionController.text.trim(),
+        locale: Localizations.localeOf(context).languageCode,
       );
 
       if (!mounted) return;
@@ -117,7 +121,7 @@ class _CreateRecipeFromPhotoScreenState
       _showAiErrorSnackBar(e.message);
     } catch (_) {
       if (!mounted) return;
-      _showAiErrorSnackBar('Не удалось создать рецепт по фото.');
+      _showAiErrorSnackBar(l10n.recipeCreateFromPhotoFailure);
     } finally {
       if (mounted) {
         setState(() => _isGenerating = false);
@@ -131,9 +135,9 @@ class _CreateRecipeFromPhotoScreenState
       backgroundColor: Colors.grey[50],
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text(
-          'Рецепт по фото',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.recipeFromPhotoTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -166,8 +170,8 @@ class _CreateRecipeFromPhotoScreenState
                     : const Icon(Symbols.auto_awesome),
                 label: Text(
                   _isGenerating
-                      ? 'Генерируем рецепт...'
-                      : 'Сгенерировать и открыть редактор',
+                      ? l10n.recipeGenerating
+                      : l10n.recipeGenerateAndOpenEditor,
                 ),
               ),
             ),
@@ -182,22 +186,24 @@ class _CreateRecipeFromPhotoScreenState
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
-      child: const Padding(
-        padding: EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Инструкция',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('1. Сделайте фото блюда или выберите из галереи.'),
-            Text('2. При желании добавьте краткое описание.'),
-            Text('3. Нажмите кнопку генерации.'),
-            Text('4. Откроется экран редактирования с заполненными полями.'),
-            SizedBox(height: 8),
             Text(
-              'Нейросеть может ошибаться примерно на 10%, обязательно проверьте данные.',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              l10n.recipeInstructionsTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.recipeInstructionsStep1),
+            Text(l10n.recipeInstructionsStep2),
+            Text(l10n.recipeInstructionsStep3),
+            Text(l10n.recipeInstructionsStep4),
+            const SizedBox(height: 8),
+            Text(
+              l10n.recipeAiWarning,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -215,8 +221,10 @@ class _CreateRecipeFromPhotoScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Фото блюда',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              l10n.recipePhotoCardTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             AspectRatio(
               aspectRatio: 4 / 3,
@@ -228,8 +236,8 @@ class _CreateRecipeFromPhotoScreenState
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: _imageBytes == null
-                    ? const Center(
-                        child: Text('Фото пока не добавлено'),
+                    ? Center(
+                        child: Text(l10n.recipePhotoEmptyState),
                       )
                     : Image.memory(
                         _imageBytes!,
@@ -244,7 +252,7 @@ class _CreateRecipeFromPhotoScreenState
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.camera),
                     icon: const Icon(Symbols.photo_camera),
-                    label: const Text('Камера'),
+                    label: Text(l10n.camera),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -252,7 +260,7 @@ class _CreateRecipeFromPhotoScreenState
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.gallery),
                     icon: const Icon(Symbols.photo_library),
-                    label: const Text('Галерея'),
+                    label: Text(l10n.gallery),
                   ),
                 ),
               ],
@@ -275,13 +283,17 @@ class _CreateRecipeFromPhotoScreenState
           children: [
             Row(
               children: [
-                const Text('Описание (необязательно)',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  l10n.recipeDescriptionOptionalTitle,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(width: 8),
-                Text('Опционально',
-                    style: TextStyle(
-                        color: AppColors.primary.withValues(alpha: 0.8))),
+                Text(
+                  l10n.optional,
+                  style: TextStyle(
+                      color: AppColors.primary.withValues(alpha: 0.8)),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -290,7 +302,7 @@ class _CreateRecipeFromPhotoScreenState
               minLines: 2,
               maxLines: 4,
               decoration: AppStyles.underlineInputDecoration(
-                label: 'Например: паста с курицей и сливочным соусом',
+                label: l10n.recipeDescriptionExample,
               ),
             ),
           ],

@@ -4,6 +4,7 @@ import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class CreateRecipeFromDescriptionScreen extends StatefulWidget {
@@ -19,6 +20,8 @@ class _CreateRecipeFromDescriptionScreenState
   final _descriptionController = TextEditingController();
   final _geminiService = GeminiRecipeService();
   bool _isGenerating = false;
+
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   void _showAiErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +59,7 @@ class _CreateRecipeFromDescriptionScreenState
   Future<void> _generateAndOpenEditor() async {
     final description = _descriptionController.text.trim();
     if (description.isEmpty) {
-      _showAiErrorSnackBar('Введите описание блюда.');
+      _showAiErrorSnackBar(l10n.recipeCreateFromDescriptionEmptyError);
       return;
     }
 
@@ -64,6 +67,7 @@ class _CreateRecipeFromDescriptionScreenState
     try {
       final draft = await _geminiService.generateRecipeFromDescription(
         description: description,
+        locale: Localizations.localeOf(context).languageCode,
       );
 
       if (!mounted) return;
@@ -83,7 +87,7 @@ class _CreateRecipeFromDescriptionScreenState
       _showAiErrorSnackBar(e.message);
     } catch (_) {
       if (!mounted) return;
-      _showAiErrorSnackBar('Не удалось создать рецепт по описанию.');
+      _showAiErrorSnackBar(l10n.recipeCreateFromDescriptionFailure);
     } finally {
       if (mounted) {
         setState(() => _isGenerating = false);
@@ -97,9 +101,9 @@ class _CreateRecipeFromDescriptionScreenState
       backgroundColor: Colors.grey[50],
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text(
-          'Рецепт по описанию',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.recipeFromDescriptionTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -130,8 +134,8 @@ class _CreateRecipeFromDescriptionScreenState
                     : const Icon(Symbols.auto_awesome),
                 label: Text(
                   _isGenerating
-                      ? 'Генерируем рецепт...'
-                      : 'Сгенерировать и открыть редактор',
+                      ? l10n.recipeGenerating
+                      : l10n.recipeGenerateAndOpenEditor,
                 ),
               ),
             ),
@@ -146,22 +150,24 @@ class _CreateRecipeFromDescriptionScreenState
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
-      child: const Padding(
-        padding: EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Инструкция',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('1. Подробно опишите блюдо и ингредиенты.'),
-            Text('2. Нажмите кнопку генерации рецепта.'),
-            Text('3. Откроется экран редактирования с заполненными полями.'),
-            Text('4. Проверьте и при необходимости исправьте детали.'),
-            SizedBox(height: 8),
             Text(
-              'Нейросеть может ошибаться примерно на 10%, обязательно проверьте данные.',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              l10n.recipeInstructionsTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.recipeInstructionsStep1),
+            Text(l10n.recipeInstructionsStep2),
+            Text(l10n.recipeInstructionsStep3),
+            Text(l10n.recipeInstructionsStep4),
+            const SizedBox(height: 8),
+            Text(
+              l10n.recipeAiWarning,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -179,9 +185,9 @@ class _CreateRecipeFromDescriptionScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Описание блюда',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.recipeDescriptionCardTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -189,8 +195,7 @@ class _CreateRecipeFromDescriptionScreenState
               minLines: 6,
               maxLines: 10,
               decoration: AppStyles.underlineInputDecoration(
-                label:
-                    'Например: Куриная паста в сливочном соусе с чесноком и пармезаном. На 2 порции.',
+                label: l10n.recipeDescriptionExample,
               ),
             ),
           ],
