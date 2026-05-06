@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
+import '../services/cloud_data_service.dart';
 import '../services/profile_service.dart';
 
 import '../services/daily_log_service.dart';
@@ -9,19 +13,49 @@ class ProfileProvider with ChangeNotifier {
   final DailyLogService _dailyLogService = DailyLogService();
   UserProfile? _profile;
   bool _isLoading = false;
+  StreamSubscription<Map<String, dynamic>?>? _syncSubscription;
 
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
 
+  ProfileProvider() {
+    _startRealtimeSync();
+  }
+
+  /// Подписывается на Firestore-документ профиля.
+  /// Пропускает локальные записи (hasPendingWrites) чтобы не вызывать
+  /// лишних перерисовок при сохранении с этого устройства.
+  void _startRealtimeSync() {
+    _syncSubscription?.cancel();
+    _syncSubscription = CloudDataService.instance
+        .docStream('profile')
+        .listen((remoteData) async {
+      if (remoteData == null || remoteData.isEmpty) return;
+      try {
+        final remoteProfile = UserProfile.fromJson(remoteData);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_profile', json.encode(remoteData));
+        _profile = remoteProfile;
+        notifyListeners();
+      } catch (_) {}
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> loadProfile() async {
     if (_profile != null && !_isLoading) return; // Уже загружено
-    
+
     _isLoading = true;
     notifyListeners();
-    
+
     await _dailyLogService.syncProfileWeightFromLogs();
     _profile = await _service.loadProfile();
-    
+
     _isLoading = false;
     notifyListeners();
   }

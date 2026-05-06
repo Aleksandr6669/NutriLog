@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
+import 'package:nutri_log/services/cloud_data_service.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
@@ -58,6 +61,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isAiError = false;
   int _aiRequestId = 0;
   bool _isPublic = false;
+  bool _isDonating = false;
+  bool _isDonated = false;
+  bool _isDonateAiChecking = false;
+  bool _isDonateAiApproved = false;
+  String? _donateAiStatus;
+  Timer? _donateAiDebounce;
+  int _donateAiRequestId = 0;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -92,6 +102,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         TextEditingController(text: widget.initialClarification ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
+    _isDonated = sourceRecipe?.isDonated ?? false;
+
+    _nameController.addListener(_onDonateValidationInputChanged);
+    _descriptionController.addListener(_onDonateValidationInputChanged);
+    _clarificationController.addListener(_onDonateValidationInputChanged);
 
     // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
     final isFromDraft = widget.initialDraft != null;
@@ -108,17 +123,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final loadedIngredients = sourceRecipe?.ingredients ?? const [];
     if (loadedIngredients.isNotEmpty) {
       for (final ingredient in loadedIngredients) {
-        _ingredientItems.add(
-          _IngredientFormItem(
-            name: ingredient.name,
-            quantity:
-                ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
-            unit: ingredient.unit,
-            isAmbiguous: ingredient.isAmbiguous,
-          ),
+        final item = _IngredientFormItem(
+          name: ingredient.name,
+          quantity:
+              ingredient.quantity <= 0 ? '' : ingredient.quantity.toString(),
+          unit: ingredient.unit,
+          isAmbiguous: ingredient.isAmbiguous,
         );
+        _attachIngredientListeners(item);
+        _ingredientItems.add(item);
       }
     }
+
+    _nutrientControllers['calories']
+        ?.addListener(_onDonateValidationInputChanged);
 
     _autoCalculateCalories = _shouldEnableAutoCalories();
     _nutrientControllers['protein']?.addListener(_onMacroChanged);
@@ -131,6 +149,112 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
     } else if (_autoCalculateCalories) {
       _applyAutoCalories();
+    }
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _onDonateValidationInputChanged());
+  }
+
+  void _attachIngredientListeners(_IngredientFormItem item) {
+    item.nameController.addListener(_onDonateValidationInputChanged);
+    item.quantityController.addListener(_onDonateValidationInputChanged);
+  }
+
+  void _detachIngredientListeners(_IngredientFormItem item) {
+    item.nameController.removeListener(_onDonateValidationInputChanged);
+    item.quantityController.removeListener(_onDonateValidationInputChanged);
+  }
+
+  void _onDonateValidationInputChanged() {
+    if (!mounted || _isDonated) return;
+
+    if (!_isFormReadyForDonate) {
+      _donateAiDebounce?.cancel();
+      if (_isDonateAiChecking ||
+          _isDonateAiApproved ||
+          _donateAiStatus != null) {
+        setState(() {
+          _isDonateAiChecking = false;
+          _isDonateAiApproved = false;
+          _donateAiStatus = null;
+        });
+      }
+      return;
+    }
+
+    _donateAiDebounce?.cancel();
+    if (_isDonateAiApproved || _donateAiStatus != l10n.recipeAiCalculating) {
+      setState(() {
+        _isDonateAiApproved = false;
+        _donateAiStatus = l10n.recipeAiCalculating;
+      });
+    }
+    _donateAiDebounce = Timer(const Duration(milliseconds: 700), () {
+      _runDonateAiModeration();
+    });
+  }
+
+  Future<DonateRecipeModerationResult?> _runDonateAiModeration() async {
+    if (!_isFormReadyForDonate || _isDonated) return null;
+
+    final requestId = ++_donateAiRequestId;
+    if (mounted) {
+      setState(() {
+        _isDonateAiChecking = true;
+        _isDonateAiApproved = false;
+        _donateAiStatus = l10n.recipeAiCalculating;
+      });
+    }
+
+    try {
+      final nutrients = <String, double>{};
+      for (final key in _nutrientKeys) {
+        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
+      }
+
+      final ingredients = _ingredientItems
+          .map((item) => RecipeIngredient(
+                name: item.nameController.text.trim(),
+                quantity: _parseAmount(item.quantityController.text),
+                unit: item.unit.trim(),
+              ))
+          .where((i) => i.name.isNotEmpty)
+          .toList(growable: false);
+
+      final result =
+          await _geminiRecipeService.validateRecipeForCommunityDonation(
+        recipeName: _nameController.text.trim(),
+        recipeDescription: _descriptionController.text.trim(),
+        clarification: _clarificationController.text.trim(),
+        ingredients: ingredients,
+        nutrients: nutrients,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (!mounted || requestId != _donateAiRequestId) return null;
+
+      setState(() {
+        _isDonateAiChecking = false;
+        _isDonateAiApproved = result.approved;
+        _donateAiStatus = result.reason;
+      });
+      return result;
+    } on GeminiRecipeException catch (e) {
+      if (!mounted || requestId != _donateAiRequestId) return null;
+      setState(() {
+        _isDonateAiChecking = false;
+        _isDonateAiApproved = false;
+        _donateAiStatus = e.message;
+      });
+      return null;
+    } catch (_) {
+      if (!mounted || requestId != _donateAiRequestId) return null;
+      setState(() {
+        _isDonateAiChecking = false;
+        _isDonateAiApproved = false;
+        _donateAiStatus = l10n.recipeAiFailed;
+      });
+      return null;
     }
   }
 
@@ -177,12 +301,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   void _addIngredientRow() {
     setState(() {
-      _ingredientItems.add(_IngredientFormItem());
+      final item = _IngredientFormItem();
+      _attachIngredientListeners(item);
+      _ingredientItems.add(item);
     });
   }
 
   void _removeIngredientRow(int index) {
     final item = _ingredientItems.removeAt(index);
+    _detachIngredientListeners(item);
     item.dispose();
     setState(() {});
   }
@@ -261,9 +388,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   @override
   void dispose() {
+    _donateAiDebounce?.cancel();
     _nutrientControllers['protein']?.removeListener(_onMacroChanged);
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
     _nutrientControllers['fat']?.removeListener(_onMacroChanged);
+    _nutrientControllers['calories']
+        ?.removeListener(_onDonateValidationInputChanged);
+    _nameController.removeListener(_onDonateValidationInputChanged);
+    _descriptionController.removeListener(_onDonateValidationInputChanged);
+    _clarificationController.removeListener(_onDonateValidationInputChanged);
     _nameController.dispose();
     _clarificationController.dispose();
     _descriptionController.dispose();
@@ -271,6 +404,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       controller.dispose();
     }
     for (final ingredientItem in _ingredientItems) {
+      _detachIngredientListeners(ingredientItem);
       ingredientItem.dispose();
     }
     super.dispose();
@@ -428,6 +562,251 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
   }
 
+  bool get _isFormReadyForDonate {
+    final hasName = _nameController.text.trim().isNotEmpty;
+    final hasIngredients = _ingredientItems
+        .any((item) => item.nameController.text.trim().isNotEmpty);
+    final hasCalories =
+        _parseAmount(_nutrientControllers['calories']?.text ?? '') > 0;
+    return hasName && hasIngredients && hasCalories;
+  }
+
+  Future<void> _donateRecipe() async {
+    if (!_isDonateAiApproved || _isDonateAiChecking) {
+      final moderation = await _runDonateAiModeration();
+      if (!mounted) return;
+      if (moderation == null || !moderation.approved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_donateAiStatus ?? l10n.recipeAiFailed),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(l10n.donateRecipeConfirmTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(l10n.donateRecipeConfirmMessage),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.deepOrange),
+              child: Text(l10n.donateRecipeConfirm),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
+    final cloudService = CloudDataService.instance;
+    if (!cloudService.isSignedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(l10n.donateRecipeSignInRequired),
+            behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
+    setState(() => _isDonating = true);
+    try {
+      // Сначала сохраняем рецепт локально
+      await _saveRecipe();
+      // Собираем данные из формы
+      final nutrients = <String, double>{};
+      for (final key in _nutrientKeys) {
+        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
+      }
+      final ingredients = _ingredientItems
+          .map((item) => RecipeIngredient(
+                name: item.nameController.text.trim(),
+                quantity: _parseAmount(item.quantityController.text),
+                unit: item.unit.trim(),
+              ))
+          .where((i) => i.name.isNotEmpty)
+          .toList();
+      final recipe = Recipe(
+        id: widget.recipe?.id ??
+            'donated_${DateTime.now().microsecondsSinceEpoch}',
+        name: _nameController.text.trim(),
+        description: _descriptionController.text,
+        nutrients: nutrients,
+        icon: _selectedIcon,
+        isUserRecipe: false,
+        isPublic: true,
+        isDonated: true,
+        ingredients: ingredients,
+        instructions: widget.recipe?.instructions ?? [],
+      );
+      await cloudService.donateRecipe(recipe.toJson());
+      if (!mounted) return;
+      setState(() {
+        _isDonated = true;
+        _isDonating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.donateRecipeSuccess),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isDonating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.donateRecipeError}: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
+  Widget _buildDonateCard() {
+    final theme = Theme.of(context);
+    final isEnabled = _isFormReadyForDonate &&
+        !_isDonated &&
+        _isDonateAiApproved &&
+        !_isDonateAiChecking;
+    final accentColor = _isDonated ? Colors.green.shade600 : Colors.deepOrange;
+    return Card(
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+        side: BorderSide(
+          color: accentColor.withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _isDonated ? Symbols.volunteer_activism : Symbols.share,
+                  size: 20,
+                  color: accentColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _isDonated
+                        ? l10n.donateRecipeAlreadyDonated
+                        : l10n.donateRecipeCardTitle,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.donateRecipeCardDescription,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: (_isDonated || _isDonateAiApproved)
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : (_isDonateAiChecking
+                        ? Colors.orange.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.08)),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: (_isDonated || _isDonateAiApproved)
+                      ? Colors.green.withValues(alpha: 0.35)
+                      : (_isDonateAiChecking
+                          ? Colors.orange.withValues(alpha: 0.35)
+                          : Colors.red.withValues(alpha: 0.3)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  if (_isDonateAiChecking)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Icon(
+                      (_isDonated || _isDonateAiApproved)
+                          ? Symbols.verified
+                          : Symbols.warning,
+                      size: 16,
+                      color: (_isDonated || _isDonateAiApproved)
+                          ? Colors.green.shade700
+                          : Colors.red.shade700,
+                    ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isDonated
+                          ? l10n.donateRecipeAlreadyDonated
+                          : (_donateAiStatus ??
+                              'Для передачи рецепта в сообщество требуется полная AI-проверка на цензуру и валидность.'),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: (isEnabled && !_isDonating) ? _donateRecipe : null,
+                icon: _isDonating
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : Icon(_isDonated
+                        ? Symbols.check_circle
+                        : Symbols.volunteer_activism),
+                label: Text(_isDonated
+                    ? l10n.donateRecipeAlreadyDonated
+                    : l10n.donateRecipeButton),
+                style: FilledButton.styleFrom(
+                  backgroundColor: isEnabled ? accentColor : null,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -469,14 +848,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               _buildNutrientsCard(),
               if (widget.recipe != null) ...[
                 const SizedBox(height: 24),
+                _buildDonateCard(),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.center,
                   child: TextButton.icon(
-                    onPressed: _deleteRecipe,
+                    onPressed: _isDonated ? null : _deleteRecipe,
                     icon: const Icon(Symbols.delete),
                     label: Text(l10n.removeRecipeTooltip),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
+                      foregroundColor: _isDonated ? Colors.grey : Colors.red,
                     ),
                   ),
                 ),
@@ -893,6 +1274,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             onChanged: (value) {
                               if (value != null) {
                                 setState(() => item.unit = value);
+                                _onDonateValidationInputChanged();
                               }
                             },
                             decoration: InputDecoration(

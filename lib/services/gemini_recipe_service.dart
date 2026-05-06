@@ -515,6 +515,111 @@ Rules:
     return normalized;
   }
 
+  Future<DonateRecipeModerationResult> validateRecipeForCommunityDonation({
+    required String recipeName,
+    required String recipeDescription,
+    required String clarification,
+    required List<RecipeIngredient> ingredients,
+    required Map<String, double> nutrients,
+    String? locale,
+  }) async {
+    if (recipeName.trim().isEmpty || ingredients.isEmpty) {
+      throw GeminiRecipeException(
+        _messages(locale).aiFailedToExtractIngredientsError,
+      );
+    }
+
+    final ingredientsText = ingredients
+        .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
+        .join('\n');
+
+    final nutrientsText = nutrientKeys
+        .map((k) => '$k=${(nutrients[k] ?? 0).toStringAsFixed(2)}')
+        .join(', ');
+
+    final prompt = '''
+You are a strict content moderation and culinary validation assistant.
+${_languageInstruction(locale)}
+
+Task: decide whether this recipe can be permanently published to a public community feed.
+
+Reject the recipe if ANY of these is true:
+- contains profanity, insults, obscene/sexual terms, hateful content, harassment;
+- contains obvious nonsense, trolling, spam, gibberish, or fake recipe text;
+- is clearly not a food recipe (or not meaningful enough for users);
+- ingredient list is implausible for cooking/eating.
+
+Allow only if recipe looks legitimate, understandable, and safe for a public food community.
+
+Recipe data:
+- name: ${recipeName.trim()}
+- description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
+- clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
+- ingredients:
+$ingredientsText
+- nutrients: $nutrientsText
+
+Return ONLY JSON:
+{
+  "decision": "allow|reject",
+  "approved": true or false,
+  "reason": "short user-facing explanation in response language",
+  "confidence": 0.0,
+  "flags": ["profanity|nonsense|not_recipe|unsafe|other"]
+}
+
+Rules:
+- No markdown, no extra text.
+- reason must be concise and understandable.
+- Treat examples like "какашка", "рецепт мусора", random symbols or obvious trolling as nonsense and reject.
+- If uncertain, set approved=false.
+''';
+
+    final response = await _requestWithFallback(
+      body: {
+        'messages': [
+          {
+            'role': 'user',
+            'content': prompt,
+          }
+        ],
+        'temperature': 0,
+        'max_completion_tokens': 300,
+        'top_p': 1,
+        'stream': false,
+      },
+      locale: locale,
+    );
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
+
+    final decision =
+        (decoded['decision'] as String? ?? '').trim().toLowerCase();
+    final approvedByDecision =
+        decision == 'allow' ? true : (decision == 'reject' ? false : null);
+    final approvedByBool = decoded['approved'] == true;
+    final approved = approvedByDecision ?? approvedByBool;
+    final reason = (decoded['reason'] as String? ?? '').trim();
+    final confidence = _toNonNegativeDouble(decoded['confidence']);
+    final flags = ((decoded['flags'] as List<dynamic>?) ?? const [])
+        .map((f) => f.toString().trim())
+        .where((f) => f.isNotEmpty)
+        .toList(growable: false);
+
+    return DonateRecipeModerationResult(
+      approved: approved,
+      reason: reason.isEmpty
+          ? (approved
+              ? 'Рецепт прошел AI-проверку и может быть опубликован.'
+              : 'AI-проверка не пройдена: рецепт выглядит невалидным для сообщества.')
+          : reason,
+      confidence: confidence,
+      flags: flags,
+    );
+  }
+
   Future<List<String>> _buildIngredientSearchQueries(
     String ingredientName,
     String? locale,
@@ -1437,6 +1542,20 @@ class DailyGoalsDraft {
     required this.carbsGoal,
     required this.waterGoal,
     required this.stepsGoal,
+  });
+}
+
+class DonateRecipeModerationResult {
+  final bool approved;
+  final String reason;
+  final double confidence;
+  final List<String> flags;
+
+  const DonateRecipeModerationResult({
+    required this.approved,
+    required this.reason,
+    required this.confidence,
+    required this.flags,
   });
 }
 

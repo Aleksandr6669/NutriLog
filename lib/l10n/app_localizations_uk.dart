@@ -1307,4 +1307,37 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get cloudSyncInfo =>
       'При підключенні облікового запису Google автоматично синхронізуються: профіль, рецепти, логи харчування та активності. Фото профілю кешується та доступне офлайн. При виході дані залишаються локальними на пристрої.';
+
+  @override
+  String get donateRecipeButton => 'Передати рецепт спільноті';
+
+  @override
+  String get donateRecipeCardTitle => 'Передача рецепту';
+
+  @override
+  String get donateRecipeCardDescription =>
+      'Ця функція дозволяє безповоротно передати ваш рецепт усім користувачам NutriLog. Після передачі рецепт стає загальнодоступним і його не можна змінити чи видалити — ні вам, ні комусь. Це внесок у спільну базу рецептів додатку.';
+
+  @override
+  String get donateRecipeConfirmTitle => 'Передати рецепт?';
+
+  @override
+  String get donateRecipeConfirmMessage =>
+      'Рецепт буде безповоротно переданий спільноті. Після цього його не можна редагувати чи видаляти. Продовжити?';
+
+  @override
+  String get donateRecipeConfirm => 'Передати';
+
+  @override
+  String get donateRecipeSuccess => 'Рецепт передано спільноті!';
+
+  @override
+  String get donateRecipeError => 'Помилка при передачі рецепту';
+
+  @override
+  String get donateRecipeAlreadyDonated => 'Рецепт вже передано';
+
+  @override
+  String get donateRecipeSignInRequired =>
+      'Увійдіть, щоб передати рецепт спільноті';
 }

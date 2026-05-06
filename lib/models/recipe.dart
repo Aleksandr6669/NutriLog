@@ -62,6 +62,7 @@ class Recipe {
   IconData icon;
   bool isUserRecipe;
   final bool isPublic;
+  final bool isDonated;
 
   Recipe({
     required this.id,
@@ -73,6 +74,7 @@ class Recipe {
     required this.icon,
     this.isUserRecipe = false,
     this.isPublic = false,
+    this.isDonated = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -102,6 +104,7 @@ class Recipe {
       icon: RecipeLoader.getIcon(json['icon'] as String? ?? 'restaurant'),
       isUserRecipe: json['isUserRecipe'] ?? false,
       isPublic: json['isPublic'] == true,
+      isDonated: json['isDonated'] == true,
     );
   }
 
@@ -125,6 +128,7 @@ class Recipe {
       'icon': _iconToString(icon),
       'isUserRecipe': isUserRecipe,
       'isPublic': isPublic,
+      'isDonated': isDonated,
     };
   }
 
@@ -138,6 +142,7 @@ class Recipe {
     IconData? icon,
     bool? isUserRecipe,
     bool? isPublic,
+    bool? isDonated,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -149,6 +154,7 @@ class Recipe {
       icon: icon ?? this.icon,
       isUserRecipe: isUserRecipe ?? this.isUserRecipe,
       isPublic: isPublic ?? this.isPublic,
+      isDonated: isDonated ?? this.isDonated,
     );
   }
 

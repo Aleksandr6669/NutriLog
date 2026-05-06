@@ -101,7 +101,6 @@ class CloudDataService {
   }
 
   /// Real-time stream для коллекции Firestore.
-  /// Не требует isSignedIn — правила безопасности регулируются на стороне Firestore.
   Stream<List<Map<String, dynamic>>> collectionStream(String collectionPath) {
     return _firestore.collection(collectionPath).snapshots().map(
           (snapshot) => snapshot.docs
@@ -111,5 +110,40 @@ class CloudDataService {
                   })
               .toList(growable: false),
         );
+  }
+
+  /// Real-time stream для одного документа `users/{uid}/appData/{key}`.
+  /// Переключается при смене аккаунта. Пропускает обновления от локальных записей,
+  /// чтобы не вызывать лишних перерисовок.
+  Stream<Map<String, dynamic>?> docStream(String key) {
+    return FirebaseAuthService.instance.authStateChanges().asyncExpand((user) {
+      if (user == null) return Stream.value(null);
+      return _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('appData')
+          .doc(key)
+          .snapshots()
+          .where((snap) => !snap.metadata.hasPendingWrites)
+          .map((snap) => snap.exists ? snap.data() : null);
+    });
+  }
+
+  /// Отправляет рецепт в коллекцию donatedRecipes.
+  /// После записи никто (включая автора) не может изменить или удалить документ —
+  /// это обеспечивается правилами Firestore (только create разрешён).
+  Future<void> donateRecipe(Map<String, dynamic> recipeData) async {
+    if (!isSignedIn) throw StateError('User is not signed in.');
+
+    await FirebaseBootstrapService.ensureInitialized();
+    final uid = _uid!;
+    final docId = recipeData['id'] as String? ?? uid;
+    await _firestore.collection('donatedRecipes').doc(docId).set({
+      ...recipeData,
+      'donatedBy': uid,
+      'donatedAt': FieldValue.serverTimestamp(),
+      'isDonated': true,
+    });
+    await markSyncNow();
   }
 }

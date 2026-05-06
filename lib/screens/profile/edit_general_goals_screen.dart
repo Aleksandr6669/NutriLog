@@ -170,6 +170,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
 
   Widget _buildGoalTypeSelector(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -178,7 +179,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
             Icon(Symbols.track_changes, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Тип цели',
+              l10n.goalTypeTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -200,6 +201,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
 
   Widget _buildActivityFrequencySelector(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,7 +210,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
             Icon(Symbols.fitness_center, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Частота активности',
+              l10n.activityFrequencyTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -229,6 +231,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
   }
 
   Widget _buildGoalTypeCard(ThemeData theme, GoalType goal) {
+    final context = this.context;
     final isSelected = _goalType == goal;
     final backgroundColor = isSelected
         ? AppColors.primary.withValues(alpha: 0.14)
@@ -272,7 +275,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    goal.ruLabel,
+                    goal.localizedLabel(context),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -285,7 +288,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              goal.ruHint,
+              goal.localizedHint(context),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
                 fontSize: 13,
@@ -300,6 +303,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
   }
 
   Widget _buildActivityCard(ThemeData theme, ActivityFrequency activity) {
+    final context = this.context;
     final isSelected = _activityFrequency == activity;
     final backgroundColor = isSelected
         ? AppColors.primary.withValues(alpha: 0.14)
@@ -343,7 +347,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    activity.ruLabel,
+                    activity.localizedLabel(context),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -356,7 +360,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              activity.ruHint,
+              activity.localizedHint(context),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
                 fontSize: 13,

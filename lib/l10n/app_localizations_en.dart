@@ -1303,4 +1303,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cloudSyncInfo =>
       'When you connect a Google account, the following are automatically synchronized: profile, recipes, nutrition and activity logs. Profile photo is cached and available offline. When you sign out, data remains local on your device.';
+
+  @override
+  String get donateRecipeButton => 'Donate recipe to community';
+
+  @override
+  String get donateRecipeCardTitle => 'Donate recipe';
+
+  @override
+  String get donateRecipeCardDescription =>
+      'This feature lets you permanently donate your recipe to all NutriLog users. Once donated, the recipe becomes publicly available and cannot be edited or deleted — by you or anyone else. It is your contribution to the shared recipe library.';
+
+  @override
+  String get donateRecipeConfirmTitle => 'Donate recipe?';
+
+  @override
+  String get donateRecipeConfirmMessage =>
+      'The recipe will be permanently donated to the community. It cannot be edited or deleted afterwards. Continue?';
+
+  @override
+  String get donateRecipeConfirm => 'Donate';
+
+  @override
+  String get donateRecipeSuccess => 'Recipe donated to the community!';
+
+  @override
+  String get donateRecipeError => 'Error donating recipe';
+
+  @override
+  String get donateRecipeAlreadyDonated => 'Recipe already donated';
+
+  @override
+  String get donateRecipeSignInRequired =>
+      'Sign in to donate a recipe to the community';
 }

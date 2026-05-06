@@ -2463,6 +2463,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When you connect a Google account, the following are automatically synchronized: profile, recipes, nutrition and activity logs. Profile photo is cached and available offline. When you sign out, data remains local on your device.'**
   String get cloudSyncInfo;
+
+  /// No description provided for @donateRecipeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate recipe to community'**
+  String get donateRecipeButton;
+
+  /// No description provided for @donateRecipeCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate recipe'**
+  String get donateRecipeCardTitle;
+
+  /// No description provided for @donateRecipeCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature lets you permanently donate your recipe to all NutriLog users. Once donated, the recipe becomes publicly available and cannot be edited or deleted — by you or anyone else. It is your contribution to the shared recipe library.'**
+  String get donateRecipeCardDescription;
+
+  /// No description provided for @donateRecipeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate recipe?'**
+  String get donateRecipeConfirmTitle;
+
+  /// No description provided for @donateRecipeConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The recipe will be permanently donated to the community. It cannot be edited or deleted afterwards. Continue?'**
+  String get donateRecipeConfirmMessage;
+
+  /// No description provided for @donateRecipeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate'**
+  String get donateRecipeConfirm;
+
+  /// No description provided for @donateRecipeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe donated to the community!'**
+  String get donateRecipeSuccess;
+
+  /// No description provided for @donateRecipeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error donating recipe'**
+  String get donateRecipeError;
+
+  /// No description provided for @donateRecipeAlreadyDonated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe already donated'**
+  String get donateRecipeAlreadyDonated;
+
+  /// No description provided for @donateRecipeSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to donate a recipe to the community'**
+  String get donateRecipeSignInRequired;
 }
 
 class _AppLocalizationsDelegate

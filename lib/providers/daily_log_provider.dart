@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/daily_log.dart';
+import '../services/cloud_data_service.dart';
 import '../services/daily_log_service.dart';
 import '../services/health_steps_service.dart';
 import '../services/home_widget_service.dart';
@@ -10,7 +14,7 @@ class DailyLogProvider with ChangeNotifier {
   final HealthStepsService _healthStepsService = HealthStepsService();
   final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
   final ProfileService _profileService = ProfileService();
-  
+
   DateTime _selectedDate = DateTime.now();
   DailyLog? _currentLog;
   bool _isLoading = false;
@@ -35,9 +39,9 @@ class DailyLogProvider with ChangeNotifier {
   Future<void> loadLogForDate(DateTime date) async {
     _isLoading = true;
     notifyListeners();
-    
+
     DailyLog log = await _service.getLogForDate(date);
-    
+
     // Sync steps if connected
     try {
       final isConnected = await _healthStepsService.isConnected();
@@ -53,7 +57,7 @@ class DailyLogProvider with ChangeNotifier {
     _currentLog = log;
     _isLoading = false;
     notifyListeners();
-    
+
     // Sync widget safely
     try {
       final profile = await _profileService.loadProfile();

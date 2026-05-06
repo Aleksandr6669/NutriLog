@@ -14,5 +14,13 @@ service cloud.firestore {
       allow delete: if request.auth != null
                     && resource.data.userId == request.auth.uid;
     }
+    match /donatedRecipes/{recipeId} {
+      // Любой авторизованный пользователь может читать
+      allow read: if request.auth != null;
+      // Только создание — никто не может обновить или удалить (даже автор)
+      allow create: if request.auth != null
+                    && request.resource.data.donatedBy == request.auth.uid;
+      allow update, delete: if false;
+    }
   }
 }
