@@ -384,30 +384,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onSubmitted: (_) => _saveNameFromController(),
                   ),
                 )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              : Column(
                   children: [
-                    GestureDetector(
-                      onTap: isAuthorized
-                          ? null
-                          : () => _startEditingName(profile),
-                      child: Opacity(
-                        opacity: isAuthorized ? 0.7 : 1.0,
-                        child: Text(profile.name,
-                            style: theme.textTheme.headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: isAuthorized
+                              ? null
+                              : () => _startEditingName(profile),
+                          child: Opacity(
+                            opacity: isAuthorized ? 0.7 : 1.0,
+                            child: Text(profile.name,
+                                style: theme.textTheme.headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        if (isAuthorized)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(
+                              Symbols.lock,
+                              size: 20,
+                              color: theme.textTheme.headlineMedium?.color
+                                  ?.withValues(alpha: 0.6),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Symbols.diamond,
+                              size: 14, color: AppColors.primary),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Premium',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (isAuthorized)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Icon(
-                          Symbols.lock,
-                          size: 20,
-                          color: theme.textTheme.headlineMedium?.color
-                              ?.withValues(alpha: 0.6),
-                        ),
-                      ),
                   ],
                 ),
         ],

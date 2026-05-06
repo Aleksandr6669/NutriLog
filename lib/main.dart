@@ -974,9 +974,19 @@ ThemeData _buildTheme(Brightness brightness) {
   );
 
   return baseTheme.copyWith(
+    splashColor: AppColors.primary.withValues(alpha: 0.12),
+    highlightColor: AppColors.primary.withValues(alpha: 0.06),
     colorScheme: baseTheme.colorScheme.copyWith(
       primary: AppColors.primary,
       onPrimary: AppColors.onPrimary,
+      primaryContainer:
+          isLight ? const Color(0xFFB8F5CE) : const Color(0xFF1A4D2E),
+      onPrimaryContainer: isLight ? AppColors.textLight : AppColors.textDark,
+      secondary: AppColors.primary,
+      onSecondary: AppColors.onPrimary,
+      secondaryContainer:
+          isLight ? const Color(0xFFB8F5CE) : const Color(0xFF1A4D2E),
+      onSecondaryContainer: isLight ? AppColors.textLight : AppColors.textDark,
       surface: cardColor,
       onSurface: textColor,
     ),

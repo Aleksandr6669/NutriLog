@@ -969,9 +969,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signedOut => 'Signed out';
 
   @override
-  String googleSignInFailed(Object error) {
-    return 'Google sign-in failed: $error';
-  }
+  String get googleSignInFailed => 'Sign-in error';
 
   @override
   String googleSignOutFailed(Object error) {

@@ -972,9 +972,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signedOut => 'Вы вышли из аккаунта';
 
   @override
-  String googleSignInFailed(Object error) {
-    return 'Не удалось войти через Google: $error';
-  }
+  String get googleSignInFailed => 'Ошибка входа';
 
   @override
   String googleSignOutFailed(Object error) {

@@ -973,9 +973,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get signedOut => 'Ви вийшли з акаунта';
 
   @override
-  String googleSignInFailed(Object error) {
-    return 'Не вдалося увійти через Google: $error';
-  }
+  String get googleSignInFailed => 'Помилка входу';
 
   @override
   String googleSignOutFailed(Object error) {
