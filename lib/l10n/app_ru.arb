@@ -337,6 +337,29 @@
   "loginToAccount": "Вход в аккаунт",
   "inDevelopment": "В разработке",
   "signIn": "Войти",
+  "signOut": "Выйти",
+  "cloudSyncLocalOnly": "Локально на устройстве",
+  "cloudSyncEnabled": "Облачная синхронизация включена",
+  "syncNow": "Синхронизировать",
+  "lastCloudSyncNever": "Последняя синхронизация: еще не выполнялась",
+  "lastCloudSyncAt": "Последняя синхронизация: {dateTime}",
+  "@lastCloudSyncAt": {
+    "placeholders": { "dateTime": { "type": "String" } }
+  },
+  "signInRequiredForCloudSync": "Сначала войдите в аккаунт для облачной синхронизации",
+  "cloudSyncFailed": "Ошибка синхронизации: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "signedOut": "Вы вышли из аккаунта",
+  "googleSignInFailed": "Не удалось войти через Google: {error}",
+  "@googleSignInFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "googleSignOutFailed": "Не удалось выйти из аккаунта: {error}",
+  "@googleSignOutFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
   "notificationMessagesSection": "Сообщения",
   "waterReminderTitle": "Напоминание о воде",
   "waterReminderSubtitle": "Время и количество рассчитываются автоматически по вашей дневной цели воды",

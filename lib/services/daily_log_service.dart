@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/daily_log.dart';
 import '../models/food_item.dart';
 import '../models/recipe.dart';
+import 'cloud_data_service.dart';
 import 'profile_service.dart';
 import 'recipe_loader.dart';
 
@@ -15,24 +16,50 @@ class DailyLogService {
   Future<Map<String, dynamic>> _loadRawData() async {
     final prefs = await SharedPreferences.getInstance();
     String? stored = prefs.getString(_storageKey);
+    Map<String, dynamic> localData = {};
 
     if (stored == null || stored.isEmpty) {
-      return {};
-    }
-    
-    try {
-      final decoded = json.decode(stored);
-      if (decoded is Map<String, dynamic>) {
-        return decoded;
+      localData = {};
+    } else {
+      try {
+        final decoded = json.decode(stored);
+        if (decoded is Map<String, dynamic>) {
+          localData = decoded;
+        }
+      } catch (_) {
+        localData = {};
       }
-    } catch (_) {}
-    
-    return {};
+    }
+
+    try {
+      final cloudMap = await CloudDataService.instance.readMap('daily_logs');
+      final cloudLogs = cloudMap?['logs'];
+      if (cloudLogs is Map<String, dynamic>) {
+        await prefs.setString(_storageKey, json.encode(cloudLogs));
+        return cloudLogs;
+      }
+
+      if (localData.isNotEmpty) {
+        await CloudDataService.instance.writeMap('daily_logs', {
+          'logs': localData,
+        });
+      }
+    } catch (_) {
+      // Если облако недоступно, используем локальные данные.
+    }
+
+    return localData;
   }
 
   Future<void> _saveRawData(Map<String, dynamic> jsonMap) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, json.encode(jsonMap));
+
+    try {
+      await CloudDataService.instance.writeMap('daily_logs', {'logs': jsonMap});
+    } catch (_) {
+      // Локальное сохранение уже выполнено.
+    }
   }
 
   Map<String, dynamic> _emptyMealsJson() {

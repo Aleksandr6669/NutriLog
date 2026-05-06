@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/services/app_notification_service.dart';
 import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/services/app_startup_service.dart';
+import 'package:nutri_log/services/daily_log_service.dart';
+import 'package:nutri_log/services/cloud_data_service.dart';
+import 'package:nutri_log/services/firebase_auth_service.dart';
+import 'package:nutri_log/services/profile_service.dart';
+import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +30,31 @@ class _ConnectionsNotificationsScreenState
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
   final AppNotificationService _notificationService = AppNotificationService();
+  final FirebaseAuthService _authService = FirebaseAuthService.instance;
 
   bool _loading = true;
+  bool _authBusy = false;
+  User? _user;
+  DateTime? _lastSyncAt;
   late NotificationSettings _settings;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _user = _authService.currentUser;
+    if (_user != null) {
+      _autoSyncInBackground();
+    }
+    _authService.authStateChanges().listen((user) {
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+      });
+      if (user != null) {
+        _autoSyncInBackground();
+      }
+    });
   }
 
   String _getLanguageName(BuildContext context) {
@@ -108,10 +132,12 @@ class _ConnectionsNotificationsScreenState
 
   Future<void> _loadSettings() async {
     final settings = await _settingsService.load();
+    final lastSync = await CloudDataService.instance.getLastSyncAt();
     if (!mounted) return;
 
     setState(() {
       _settings = settings;
+      _lastSyncAt = lastSync;
       _loading = false;
     });
   }
@@ -152,6 +178,81 @@ class _ConnectionsNotificationsScreenState
         backgroundColor: backgroundColor,
       ),
     );
+  }
+
+  Future<void> _syncCloudDataAfterSignIn() async {
+    await ProfileService().loadProfile();
+    await RecipeService().loadUserRecipes();
+    await DailyLogService().getLoggedDates();
+  }
+
+  Future<void> _autoSyncInBackground() async {
+    try {
+      await _syncCloudDataAfterSignIn();
+      await CloudDataService.instance.markSyncNow();
+      final lastSync = await CloudDataService.instance.getLastSyncAt();
+      if (!mounted) return;
+      setState(() {
+        _lastSyncAt = lastSync;
+      });
+    } catch (_) {
+      // Автосинк фоновый, без шумных ошибок в UI.
+    }
+  }
+
+  String _formatLastSync(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (_lastSyncAt == null) return l10n.lastCloudSyncNever;
+
+    final locale = Localizations.localeOf(context).languageCode;
+    final date = DateFormat.yMd(locale).add_Hm().format(_lastSyncAt!);
+    return l10n.lastCloudSyncAt(date);
+  }
+
+  Future<void> _handleSignIn() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _authBusy = true);
+    try {
+      await _authService.signInWithGoogle();
+      await _syncCloudDataAfterSignIn();
+      await CloudDataService.instance.markSyncNow();
+      final lastSync = await CloudDataService.instance.getLastSyncAt();
+      if (!mounted) return;
+      setState(() {
+        _lastSyncAt = lastSync;
+      });
+      _showSnack(l10n.cloudSyncEnabled);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack(
+        l10n.googleSignInFailed(e.toString()),
+        backgroundColor: Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _authBusy = false);
+      }
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _authBusy = true);
+    try {
+      await _authService.signOut();
+      if (!mounted) return;
+      _showSnack(l10n.signedOut);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack(
+        l10n.googleSignOutFailed(e.toString()),
+        backgroundColor: Colors.red.shade700,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _authBusy = false);
+      }
+    }
   }
 
   Future<void> _pickTime(
@@ -215,10 +316,14 @@ class _ConnectionsNotificationsScreenState
                 ListTile(
                   leading: const Icon(Symbols.account_circle),
                   title: Text(l10n.loginToAccount),
-                  subtitle: Text(l10n.inDevelopment),
+                  subtitle: Text(_user == null
+                      ? l10n.cloudSyncLocalOnly
+                      : '${_user!.email}\n${_formatLastSync(context)}'),
                   trailing: FilledButton.tonal(
-                    onPressed: null,
-                    child: Text(l10n.signIn),
+                    onPressed: _authBusy
+                        ? null
+                        : (_user == null ? _handleSignIn : _handleSignOut),
+                    child: Text(_user == null ? l10n.signIn : l10n.signOut),
                   ),
                 ),
               ],

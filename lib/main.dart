@@ -13,6 +13,7 @@ import 'dart:ui';
 import 'services/app_notification_service.dart';
 import 'services/notification_settings_service.dart';
 import 'services/app_startup_service.dart';
+import 'services/firebase_bootstrap_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/screens/profile/user_agreement_screen.dart';
@@ -177,6 +178,13 @@ void main() async {
 }
 
 Future<void> _bootstrapServices() async {
+  try {
+    await FirebaseBootstrapService.ensureInitialized();
+  } catch (_) {
+    _reportStartupWarning(
+        'Firebase не инициализирован. Облачная синхронизация может быть недоступна.');
+  }
+
   if (!kIsWeb) {
     try {
       final notificationService = AppNotificationService();

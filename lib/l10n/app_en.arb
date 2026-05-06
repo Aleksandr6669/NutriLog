@@ -332,6 +332,29 @@
   "loginToAccount": "Sign in",
   "inDevelopment": "In development",
   "signIn": "Sign in",
+  "signOut": "Sign out",
+  "cloudSyncLocalOnly": "Stored locally on device",
+  "cloudSyncEnabled": "Cloud sync enabled",
+  "syncNow": "Sync now",
+  "lastCloudSyncNever": "Last sync: not yet performed",
+  "lastCloudSyncAt": "Last sync: {dateTime}",
+  "@lastCloudSyncAt": {
+    "placeholders": { "dateTime": { "type": "String" } }
+  },
+  "signInRequiredForCloudSync": "Sign in first to use cloud sync",
+  "cloudSyncFailed": "Sync failed: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "signedOut": "Signed out",
+  "googleSignInFailed": "Google sign-in failed: {error}",
+  "@googleSignInFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "googleSignOutFailed": "Sign-out failed: {error}",
+  "@googleSignOutFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
   "notificationMessagesSection": "Notifications",
   "waterReminderTitle": "Water reminder",
   "waterReminderSubtitle": "Time and amount are calculated automatically based on your daily water goal",

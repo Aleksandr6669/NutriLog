@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe.dart';
+import 'cloud_data_service.dart';
 
 class RecipeService {
   static const _userRecipesKey = 'user_recipes';
@@ -9,18 +10,53 @@ class RecipeService {
   Future<List<Recipe>> loadUserRecipes() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_userRecipesKey);
+    List<Recipe> localRecipes = [];
     if (jsonString != null) {
       final List<dynamic> jsonList = json.decode(jsonString);
-      return jsonList.map((json) => Recipe.fromJson(json)).toList();
+      localRecipes = jsonList.map((json) => Recipe.fromJson(json)).toList();
     }
-    return [];
+
+    try {
+      final cloudMap = await CloudDataService.instance.readMap('recipes');
+      final cloudRecipes = cloudMap?['recipes'];
+      if (cloudRecipes is List) {
+        final recipes = cloudRecipes
+            .whereType<Map>()
+            .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
+            .toList(growable: false);
+        await _saveUserRecipes(recipes, syncCloud: false);
+        return recipes;
+      }
+
+      if (localRecipes.isNotEmpty) {
+        await CloudDataService.instance.writeMap('recipes', {
+          'recipes': localRecipes.map((r) => r.toJson()).toList(),
+        });
+      }
+    } catch (_) {
+      // Если облако недоступно, используем локальные данные.
+    }
+
+    return localRecipes;
   }
 
   // Сохранение всех пользовательских рецептов
-  Future<void> _saveUserRecipes(List<Recipe> recipes) async {
+  Future<void> _saveUserRecipes(
+    List<Recipe> recipes, {
+    bool syncCloud = true,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<Map<String, dynamic>> jsonList = recipes.map((r) => r.toJson()).toList();
+    final List<Map<String, dynamic>> jsonList =
+        recipes.map((r) => r.toJson()).toList();
     await prefs.setString(_userRecipesKey, json.encode(jsonList));
+
+    if (!syncCloud) return;
+    try {
+      await CloudDataService.instance
+          .writeMap('recipes', {'recipes': jsonList});
+    } catch (_) {
+      // Локальное сохранение уже выполнено.
+    }
   }
 
   // Добавление нового рецепта

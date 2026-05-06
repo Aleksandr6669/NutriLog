@@ -917,6 +917,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign in';
 
   @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get cloudSyncLocalOnly => 'Stored locally on device';
+
+  @override
+  String get cloudSyncEnabled => 'Cloud sync enabled';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get lastCloudSyncNever => 'Last sync: not yet performed';
+
+  @override
+  String lastCloudSyncAt(String dateTime) {
+    return 'Last sync: $dateTime';
+  }
+
+  @override
+  String get signInRequiredForCloudSync => 'Sign in first to use cloud sync';
+
+  @override
+  String cloudSyncFailed(Object error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get signedOut => 'Signed out';
+
+  @override
+  String googleSignInFailed(Object error) {
+    return 'Google sign-in failed: $error';
+  }
+
+  @override
+  String googleSignOutFailed(Object error) {
+    return 'Sign-out failed: $error';
+  }
+
+  @override
   String get notificationMessagesSection => 'Notifications';
 
   @override

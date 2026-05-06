@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cloud_data_service.dart';
+
 class ProfileService {
   static const String _profileKey = 'user_profile';
 
@@ -9,22 +11,50 @@ class ProfileService {
     final prefs = await SharedPreferences.getInstance();
     final String? profileString = prefs.getString(_profileKey);
 
+    UserProfile localProfile;
+    bool hasLocalProfile = false;
+
     if (profileString != null) {
       try {
         final Map<String, dynamic> jsonMap = json.decode(profileString);
-        return UserProfile.fromJson(jsonMap);
+        localProfile = UserProfile.fromJson(jsonMap);
+        hasLocalProfile = true;
       } catch (e) {
-        return _createDefaultProfile();
+        localProfile = _createDefaultProfile();
       }
     } else {
-      return _createDefaultProfile();
+      localProfile = _createDefaultProfile();
     }
+
+    try {
+      final cloud = CloudDataService.instance;
+      final cloudMap = await cloud.readMap('profile');
+      if (cloudMap != null && cloudMap.isNotEmpty) {
+        final cloudProfile = UserProfile.fromJson(cloudMap);
+        await saveProfile(cloudProfile);
+        return cloudProfile;
+      }
+
+      if (hasLocalProfile && cloud.isSignedIn) {
+        await cloud.writeMap('profile', localProfile.toJson());
+      }
+    } catch (_) {
+      // Если облако недоступно, используем локальные данные.
+    }
+
+    return localProfile;
   }
 
   Future<void> saveProfile(UserProfile profile) async {
     final prefs = await SharedPreferences.getInstance();
     final String profileString = json.encode(profile.toJson());
     await prefs.setString(_profileKey, profileString);
+
+    try {
+      await CloudDataService.instance.writeMap('profile', profile.toJson());
+    } catch (_) {
+      // Локальное сохранение уже выполнено.
+    }
   }
 
   UserProfile _createDefaultProfile() {

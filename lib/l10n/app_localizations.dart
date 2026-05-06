@@ -1762,6 +1762,72 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signIn;
 
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// No description provided for @cloudSyncLocalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored locally on device'**
+  String get cloudSyncLocalOnly;
+
+  /// No description provided for @cloudSyncEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync enabled'**
+  String get cloudSyncEnabled;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @lastCloudSyncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: not yet performed'**
+  String get lastCloudSyncNever;
+
+  /// No description provided for @lastCloudSyncAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {dateTime}'**
+  String lastCloudSyncAt(String dateTime);
+
+  /// No description provided for @signInRequiredForCloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in first to use cloud sync'**
+  String get signInRequiredForCloudSync;
+
+  /// No description provided for @cloudSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String cloudSyncFailed(Object error);
+
+  /// No description provided for @signedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out'**
+  String get signedOut;
+
+  /// No description provided for @googleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed: {error}'**
+  String googleSignInFailed(Object error);
+
+  /// No description provided for @googleSignOutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-out failed: {error}'**
+  String googleSignOutFailed(Object error);
+
   /// No description provided for @notificationMessagesSection.
   ///
   /// In en, this message translates to:

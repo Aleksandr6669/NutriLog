@@ -918,6 +918,49 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signIn => 'Войти';
 
   @override
+  String get signOut => 'Выйти';
+
+  @override
+  String get cloudSyncLocalOnly => 'Локально на устройстве';
+
+  @override
+  String get cloudSyncEnabled => 'Облачная синхронизация включена';
+
+  @override
+  String get syncNow => 'Синхронизировать';
+
+  @override
+  String get lastCloudSyncNever =>
+      'Последняя синхронизация: еще не выполнялась';
+
+  @override
+  String lastCloudSyncAt(String dateTime) {
+    return 'Последняя синхронизация: $dateTime';
+  }
+
+  @override
+  String get signInRequiredForCloudSync =>
+      'Сначала войдите в аккаунт для облачной синхронизации';
+
+  @override
+  String cloudSyncFailed(Object error) {
+    return 'Ошибка синхронизации: $error';
+  }
+
+  @override
+  String get signedOut => 'Вы вышли из аккаунта';
+
+  @override
+  String googleSignInFailed(Object error) {
+    return 'Не удалось войти через Google: $error';
+  }
+
+  @override
+  String googleSignOutFailed(Object error) {
+    return 'Не удалось выйти из аккаунта: $error';
+  }
+
+  @override
   String get notificationMessagesSection => 'Сообщения';
 
   @override

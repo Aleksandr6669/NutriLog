@@ -920,6 +920,48 @@ class AppLocalizationsUk extends AppLocalizations {
   String get signIn => 'Увійти';
 
   @override
+  String get signOut => 'Вийти';
+
+  @override
+  String get cloudSyncLocalOnly => 'Локально на пристрої';
+
+  @override
+  String get cloudSyncEnabled => 'Хмарну синхронізацію увімкнено';
+
+  @override
+  String get syncNow => 'Синхронізувати';
+
+  @override
+  String get lastCloudSyncNever => 'Остання синхронізація: ще не виконувалась';
+
+  @override
+  String lastCloudSyncAt(String dateTime) {
+    return 'Остання синхронізація: $dateTime';
+  }
+
+  @override
+  String get signInRequiredForCloudSync =>
+      'Спочатку увійдіть в акаунт для хмарної синхронізації';
+
+  @override
+  String cloudSyncFailed(Object error) {
+    return 'Помилка синхронізації: $error';
+  }
+
+  @override
+  String get signedOut => 'Ви вийшли з акаунта';
+
+  @override
+  String googleSignInFailed(Object error) {
+    return 'Не вдалося увійти через Google: $error';
+  }
+
+  @override
+  String googleSignOutFailed(Object error) {
+    return 'Не вдалося вийти з акаунта: $error';
+  }
+
+  @override
   String get notificationMessagesSection => 'Повідомлення';
 
   @override

@@ -902,43 +902,42 @@ class _RecipeListItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$calories ${l10n.kcal}',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  if (isSelectionMode &&
-                      (!isDeleteMode || canSelectInDeleteMode))
-                    IconButton(
-                      icon: Icon(
-                        isDeleteMode
-                            ? (isDeleteSelected
-                                ? Symbols.check_circle
-                                : Symbols.radio_button_unchecked)
-                            : Symbols.add_circle,
-                        color: isDeleteMode
-                            ? (isDeleteSelected
-                                ? Colors.red
-                                : theme.colorScheme.primary)
-                            : theme.colorScheme.primary,
-                      ),
-                      onPressed: onActionTap,
-                      tooltip: isDeleteMode
-                          ? (isDeleteSelected ? l10n.deselect : l10n.select)
-                          : (isSelected ? l10n.addMore : l10n.add),
-                    )
-                  else
+              if (!isSelectionMode)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '$calories ${l10n.kcal}',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
                     Icon(
                       Symbols.info,
                       color: theme.colorScheme.primary,
                       size: 20,
                     ),
-                ],
-              ),
+                  ],
+                )
+              else if (!isDeleteMode || canSelectInDeleteMode)
+                IconButton(
+                  icon: Icon(
+                    isDeleteMode
+                        ? (isDeleteSelected
+                            ? Symbols.check_circle
+                            : Symbols.radio_button_unchecked)
+                        : Symbols.add_circle,
+                    color: isDeleteMode
+                        ? (isDeleteSelected
+                            ? Colors.red
+                            : theme.colorScheme.primary)
+                        : theme.colorScheme.primary,
+                  ),
+                  onPressed: onActionTap,
+                  tooltip: isDeleteMode
+                      ? (isDeleteSelected ? l10n.deselect : l10n.select)
+                      : (isSelected ? l10n.addMore : l10n.add),
+                ),
             ],
           ),
         ),
