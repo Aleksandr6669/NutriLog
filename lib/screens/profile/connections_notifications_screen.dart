@@ -35,20 +35,22 @@ class _ConnectionsNotificationsScreenState
 
   String _getLanguageName(BuildContext context) {
     final locale = Localizations.localeOf(context);
+    final l10n = AppLocalizations.of(context)!;
     switch (locale.languageCode) {
       case 'ru':
-        return 'Русский';
+        return l10n.languageRussian;
       case 'uk':
-        return 'Українська';
+        return l10n.languageUkrainian;
       case 'en':
-        return 'English';
+        return l10n.languageEnglish;
       default:
-        return 'Системный';
+        return l10n.languageSystem;
     }
   }
 
   void _showLanguagePicker(BuildContext context) {
     final localeProvider = context.read<LocaleProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
@@ -69,7 +71,7 @@ class _ConnectionsNotificationsScreenState
               ),
             ),
             ListTile(
-              title: const Text('Русский'),
+              title: Text(l10n.languageRussian),
               onTap: () {
                 localeProvider.setLocale(const Locale('ru'));
                 Navigator.pop(context);
@@ -79,7 +81,7 @@ class _ConnectionsNotificationsScreenState
                   : null,
             ),
             ListTile(
-              title: const Text('Українська'),
+              title: Text(l10n.languageUkrainian),
               onTap: () {
                 localeProvider.setLocale(const Locale('uk'));
                 Navigator.pop(context);
@@ -89,7 +91,7 @@ class _ConnectionsNotificationsScreenState
                   : null,
             ),
             ListTile(
-              title: const Text('English'),
+              title: Text(l10n.languageEnglish),
               onTap: () {
                 localeProvider.setLocale(const Locale('en'));
                 Navigator.pop(context);

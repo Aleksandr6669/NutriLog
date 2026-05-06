@@ -14,19 +14,19 @@ class HomeWidgetSyncService {
   }) async {
     // Skip for Web and desktop to prevent MissingPluginException.
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
-    
+
     final consumed = log.totalNutrients.calories.round();
     final carbs = log.totalNutrients.carbs.round();
     final protein = log.totalNutrients.protein.round();
     final fat = log.totalNutrients.fat.round();
- 
+
     final waterLiters = (log.waterIntake / 1000).toStringAsFixed(1);
     final stepsValue = log.steps;
     final stepsString = stepsValue.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]} ',
         );
- 
+
     // Initial sync might need App Group ID again just in case, but we moved it to main()
     // We'll keep it here as a fallback if Platform is iOS, but won't await it every time if it's already set.
     // Actually, calling it multiple times is safe and ensures the correct group is used.
@@ -35,7 +35,6 @@ class HomeWidgetSyncService {
         await HomeWidget.setAppGroupId(_iosAppGroup);
       } catch (_) {}
     }
-
 
     final Map<String, dynamic> data = {
       'calories': consumed.toString(),
@@ -52,31 +51,27 @@ class HomeWidgetSyncService {
     };
 
     // Save all data
-    await Future.wait(data.entries.map((e) => HomeWidget.saveWidgetData(e.key, e.value)));
+    await Future.wait(
+        data.entries.map((e) => HomeWidget.saveWidgetData(e.key, e.value)));
 
     if (Platform.isAndroid) {
       try {
         await HomeWidget.updateWidget(
-          androidName: 'NutriLargeWidgetProvider',
-          qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider'
-        );
+            androidName: 'NutriLargeWidgetProvider',
+            qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider');
         await HomeWidget.updateWidget(
-          androidName: 'NutriSmallWidgetProvider',
-          qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider'
-        );
+            androidName: 'NutriSmallWidgetProvider',
+            qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider');
         await HomeWidget.updateWidget(
-          androidName: 'NutriWaterWidgetProvider',
-          qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider'
-        );
+            androidName: 'NutriWaterWidgetProvider',
+            qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider');
       } catch (_) {}
     } else if (Platform.isIOS) {
       try {
         await HomeWidget.updateWidget(
-          name: 'NutriLogWidget',
           iOSName: 'NutriLogWidget',
         );
         await HomeWidget.updateWidget(
-          name: 'NutriLogWaterWidget',
           iOSName: 'NutriLogWaterWidget',
         );
       } catch (_) {}

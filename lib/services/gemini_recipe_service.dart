@@ -756,8 +756,17 @@ Response format:
     required double waterGoalLiters,
     required int workouts,
     required int avgActivityCalories,
+    required String userName,
+    required List<Map<String, dynamic>> topFoods,
     required List<Map<String, dynamic>> availableRecipes,
   }) async {
+    final topFoodsContext = topFoods
+        .take(8)
+        .map((f) =>
+            '- ${(f['name'] as String? ?? '').trim()} (${((f['count'] as num?) ?? 0).round()} times)')
+        .where((line) => !line.startsWith('-  ('))
+        .join('\n');
+
     final recipesContext = availableRecipes
         .take(60)
         .map((r) =>
@@ -766,9 +775,10 @@ Response format:
         .join('\n');
 
     final prompt = '''
-You are a fitness assistant and nutritionist.
+You are a supportive fitness assistant and nutritionist.
 ${_languageInstruction(locale)}
 Analyze user progress for the period: $periodLabel.
+User name: ${userName.trim().isEmpty ? 'friend' : userName.trim()}
 
 Goals and progress:
 - Calorie goal: $calorieGoal kcal
@@ -820,18 +830,26 @@ Goals and progress:
 - Workouts: $workouts
 - Average activity calories per workout: $avgActivityCalories
 
+Most frequently consumed dishes/products:
+${topFoodsContext.isEmpty ? '- no clear pattern' : topFoodsContext}
+
 Available recipes in app:
 ${recipesContext.isEmpty ? '- none' : recipesContext}
 
 Task:
-1) Create a short analytical summary versus goals.
-2) Create a practical meal plan for the next period (what and when to eat) focused on deficits/excesses.
-3) If suitable recipes from the list exist, include exact recipe names from the provided list.
-4) If there is no suitable recipe, leave recipeName as an empty string and still provide meal advice.
+1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 6-10 sentences.
+2) Start with personal addressing using the user's name naturally.
+3) Mention key achievements and where user is behind goals.
+4) Mention what foods/dishes are consumed most often and what to improve.
+5) Give concrete improvement tips for nutrition balance, including snack ideas (for example, vegetables if suitable).
+6) Add practical meal plan recommendations for the next period (what and when to eat) focused on deficits/excesses.
+7) If suitable recipes from the list exist, include exact recipe names from the provided list.
+8) If there is no suitable recipe, leave recipeName as an empty string and still provide meal advice.
+9) Include at least one recommendation for snacks (when = "snack"). Prefer adding a snack with recipeName if a suitable recipe exists.
 
 Return ONLY JSON object in this format:
 {
-  "overview": "2-5 short sentences",
+  "overview": "single continuous analysis text",
   "recommendations": [
     {
       "when": "breakfast|lunch|dinner|snack|any",
@@ -842,8 +860,10 @@ Return ONLY JSON object in this format:
 }
 
 Rules:
-- recommendations: 2 to 5 items
+- recommendations: 3 to 6 items
 - no markdown, no extra keys, no text outside JSON
+- do not output labels like "Part 1" or "Part 2"
+- at least one recommendation must have when = "snack"
 ''';
 
     final response = await _requestWithFallback(
@@ -882,8 +902,25 @@ Rules:
                 'recipeName': (item['recipeName'] as String? ?? '').trim(),
               },
             )
-            .where((item) => (item['action'] as String).isNotEmpty)
-            .toList(growable: false);
+            .where((item) => (item['action'] ?? '').isNotEmpty)
+            .toList(growable: true);
+
+    final hasSnack = recommendations.any(
+      (item) =>
+          (item['when'] ?? '').trim().toLowerCase() == 'snack' ||
+          (item['when'] ?? '').trim().toLowerCase() == 'snacks',
+    );
+    if (!hasSnack) {
+      final anyIndex = recommendations.indexWhere(
+        (item) => (item['when'] ?? '').trim().toLowerCase() == 'any',
+      );
+      if (anyIndex >= 0) {
+        recommendations[anyIndex] = {
+          ...recommendations[anyIndex],
+          'when': 'snack',
+        };
+      }
+    }
 
     if (overview.isEmpty) {
       throw GeminiRecipeException(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
-import 'package:nutri_log/services/daily_log_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final DailyLogService _dailyLogService = DailyLogService();
   bool _isEditingName = false;
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
@@ -127,6 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (selectedKey == null || selectedKey == currentKey) return;
+    if (!mounted) return;
 
     final updatedProfile =
         profile.copyWith(avatarImagePath: '$_avatarPrefix$selectedKey');

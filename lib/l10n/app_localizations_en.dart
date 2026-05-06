@@ -102,6 +102,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get languageRussian => 'Russian';
+
+  @override
+  String get languageUkrainian => 'Ukrainian';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageSystem => 'System';
+
+  @override
   String get today => 'Today';
 
   @override

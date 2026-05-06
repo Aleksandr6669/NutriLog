@@ -102,6 +102,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get language => 'Язык';
 
   @override
+  String get languageRussian => 'Русский';
+
+  @override
+  String get languageUkrainian => 'Українська';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageSystem => 'Системный';
+
+  @override
   String get today => 'Сегодня';
 
   @override

@@ -205,6 +205,18 @@ class _StatsScreenState extends State<StatsScreen> {
     final totalIron =
         filledLogs.fold<double>(0, (sum, log) => sum + log.totalNutrients.iron);
     final totalMacros = totalCarbs + totalProtein + totalFat;
+    final foodFrequency = <String, int>{};
+    for (final log in filledLogs) {
+      for (final mealItems in log.meals.values) {
+        for (final item in mealItems) {
+          final key = item.name.trim();
+          if (key.isEmpty) continue;
+          foodFrequency.update(key, (value) => value + 1, ifAbsent: () => 1);
+        }
+      }
+    }
+    final topFoods = foodFrequency.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     final avgCarbs = totalMacros > 0 ? (totalCarbs / totalMacros) * 100 : 0;
     final avgProtein = totalMacros > 0 ? (totalProtein / totalMacros) * 100 : 0;
@@ -341,6 +353,14 @@ class _StatsScreenState extends State<StatsScreen> {
         'waterGoalLiters': profile.waterGoal / 1000,
         'workouts': workouts,
         'avgActivityCalories': avgActivityCalories,
+        'userName': profile.name,
+        'topFoods': topFoods
+            .take(8)
+            .map((entry) => {
+                  'name': entry.key,
+                  'count': entry.value,
+                })
+            .toList(),
         'availableRecipes': allRecipes
             .take(60)
             .map((recipe) => {
@@ -413,6 +433,10 @@ class _StatsScreenState extends State<StatsScreen> {
         waterGoalLiters: (aiInput['waterGoalLiters'] as num).toDouble(),
         workouts: aiInput['workouts'] as int,
         avgActivityCalories: aiInput['avgActivityCalories'] as int,
+        userName: (aiInput['userName'] as String? ?? '').trim(),
+        topFoods: (aiInput['topFoods'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList(growable: false),
         availableRecipes:
             (aiInput['availableRecipes'] as List<dynamic>? ?? const [])
                 .whereType<Map<String, dynamic>>()
@@ -420,20 +444,23 @@ class _StatsScreenState extends State<StatsScreen> {
       );
 
       if (!mounted || requestId != _dataRequestId) return;
+      final parsedRecommendations =
+          (aiReport['recommendations'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .map(
+                (item) => {
+                  'when': (item['when'] as String? ?? '').trim(),
+                  'action': (item['action'] as String? ?? '').trim(),
+                  'recipeName': (item['recipeName'] as String? ?? '').trim(),
+                },
+              )
+              .where((item) => (item['action'] ?? '').isNotEmpty)
+              .toList(growable: false);
+
       setState(() {
         _aiOverview = (aiReport['overview'] as String?)?.trim();
         _aiRecommendations =
-            (aiReport['recommendations'] as List<dynamic>? ?? const [])
-                .whereType<Map<String, dynamic>>()
-                .map(
-                  (item) => {
-                    'when': (item['when'] as String? ?? '').trim(),
-                    'action': (item['action'] as String? ?? '').trim(),
-                    'recipeName': (item['recipeName'] as String? ?? '').trim(),
-                  },
-                )
-                .where((item) => (item['action'] ?? '').isNotEmpty)
-                .toList(growable: false);
+            _normalizeSortAndMergeRecommendations(parsedRecommendations);
         _aiError = false;
       });
     } on GeminiRecipeException catch (e) {
@@ -898,14 +925,179 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Recipe? _findRecipeByName(String name, List<Recipe> recipes) {
-    final target = name.trim().toLowerCase();
+    String normalize(String s) => s
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    final target = normalize(name);
     if (target.isEmpty) return null;
     for (final recipe in recipes) {
-      if (recipe.name.trim().toLowerCase() == target) {
+      final current = normalize(recipe.name);
+      if (current == target ||
+          current.contains(target) ||
+          target.contains(current)) {
         return recipe;
       }
     }
     return null;
+  }
+
+  String _localizedMealTime(String raw, AppLocalizations l10n) {
+    switch (raw.trim().toLowerCase()) {
+      case 'breakfast':
+        return l10n.breakfast;
+      case 'lunch':
+        return l10n.lunch;
+      case 'dinner':
+        return l10n.dinner;
+      case 'snack':
+      case 'snacks':
+        return l10n.snacks;
+      case 'any':
+      case '':
+        return l10n.statsAiMealTimeAny;
+      default:
+        return raw;
+    }
+  }
+
+  String _canonicalMealTime(String raw) {
+    switch (raw.trim().toLowerCase()) {
+      case 'breakfast':
+        return 'breakfast';
+      case 'lunch':
+        return 'lunch';
+      case 'dinner':
+        return 'dinner';
+      case 'snack':
+      case 'snacks':
+        return 'snack';
+      case 'any':
+      case '':
+        return 'any';
+      default:
+        return 'any';
+    }
+  }
+
+  int _mealTimeOrder(String raw) {
+    switch (_canonicalMealTime(raw)) {
+      case 'breakfast':
+        return 0;
+      case 'lunch':
+        return 1;
+      case 'dinner':
+        return 2;
+      case 'snack':
+        return 3;
+      case 'any':
+      default:
+        return 4;
+    }
+  }
+
+  String _normalizeActionText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  bool _areActionsSimilar(String a, String b) {
+    final normalizedA = _normalizeActionText(a);
+    final normalizedB = _normalizeActionText(b);
+
+    if (normalizedA.isEmpty || normalizedB.isEmpty) return false;
+    if (normalizedA == normalizedB) return true;
+
+    if (normalizedA.length >= 20 && normalizedB.length >= 20) {
+      if (normalizedA.contains(normalizedB) ||
+          normalizedB.contains(normalizedA)) {
+        return true;
+      }
+    }
+
+    final tokensA =
+        normalizedA.split(' ').where((token) => token.length >= 3).toSet();
+    final tokensB =
+        normalizedB.split(' ').where((token) => token.length >= 3).toSet();
+
+    if (tokensA.isEmpty || tokensB.isEmpty) return false;
+
+    final intersectionSize = tokensA.intersection(tokensB).length.toDouble();
+    final jaccard = intersectionSize / (tokensA.union(tokensB).length);
+    final coverage = intersectionSize / min(tokensA.length, tokensB.length);
+
+    return jaccard >= 0.72 || coverage >= 0.8;
+  }
+
+  List<Map<String, String>> _normalizeSortAndMergeRecommendations(
+      List<Map<String, String>> items) {
+    final mergedExact = <String, Map<String, String>>{};
+
+    for (final item in items) {
+      final action = (item['action'] ?? '').trim();
+      if (action.isEmpty) continue;
+
+      final canonicalWhen = _canonicalMealTime(item['when'] ?? '');
+      final normalizedAction = _normalizeActionText(action);
+      final key = '$canonicalWhen|$normalizedAction';
+
+      final existing = mergedExact[key];
+      if (existing == null) {
+        mergedExact[key] = {
+          'when': canonicalWhen,
+          'action': action,
+          'recipeName': (item['recipeName'] ?? '').trim(),
+        };
+      } else {
+        final existingRecipe = (existing['recipeName'] ?? '').trim();
+        final nextRecipe = (item['recipeName'] ?? '').trim();
+        if (existingRecipe.isEmpty && nextRecipe.isNotEmpty) {
+          existing['recipeName'] = nextRecipe;
+        }
+      }
+    }
+
+    final softMerged = <Map<String, String>>[];
+    for (final candidate in mergedExact.values) {
+      final idx = softMerged.indexWhere((existing) {
+        return (existing['when'] ?? '') == (candidate['when'] ?? '') &&
+            _areActionsSimilar(
+                existing['action'] ?? '', candidate['action'] ?? '');
+      });
+
+      if (idx == -1) {
+        softMerged.add(Map<String, String>.from(candidate));
+        continue;
+      }
+
+      final existing = softMerged[idx];
+      final existingAction = existing['action'] ?? '';
+      final candidateAction = candidate['action'] ?? '';
+      if (candidateAction.length > existingAction.length) {
+        existing['action'] = candidateAction;
+      }
+
+      final existingRecipe = (existing['recipeName'] ?? '').trim();
+      final candidateRecipe = (candidate['recipeName'] ?? '').trim();
+      if (existingRecipe.isEmpty && candidateRecipe.isNotEmpty) {
+        existing['recipeName'] = candidateRecipe;
+      }
+    }
+
+    final result = softMerged
+      ..sort((a, b) {
+        final byMeal = _mealTimeOrder(a['when'] ?? '')
+            .compareTo(_mealTimeOrder(b['when'] ?? ''));
+        if (byMeal != 0) return byMeal;
+        return (a['action'] ?? '').compareTo(b['action'] ?? '');
+      });
+
+    return result;
   }
 
   Widget _buildAiReportCard(
@@ -959,24 +1151,10 @@ class _StatsScreenState extends State<StatsScreen> {
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Text(
-              l10n.statsAiOverviewTitle,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
               overviewText,
               style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
                   color: theme.colorScheme.onSurface.withAlpha(204)),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.statsAiPlanTitle,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
             ),
             const SizedBox(height: 8),
             if (_aiError || _aiOverview == null)
@@ -995,6 +1173,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 final action = item['action'] ?? '';
                 final recipeName = item['recipeName'] ?? '';
                 final matchedRecipe = _findRecipeByName(recipeName, recipes);
+                final whenLabel = _localizedMealTime(when, l10n);
 
                 return Container(
                   width: double.infinity,
@@ -1009,9 +1188,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        when.isEmpty
-                            ? l10n.statsAiMealTimeAny
-                            : '${l10n.statsAiMealTimeLabel}: $when',
+                        '${l10n.statsAiMealTimeLabel}: $whenLabel',
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
