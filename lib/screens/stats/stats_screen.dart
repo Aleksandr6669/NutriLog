@@ -217,6 +217,34 @@ class _StatsScreenState extends State<StatsScreen> {
     }
     final topFoods = foodFrequency.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+    final snackPriorityRecipes = allRecipes.map((recipe) {
+      final nutrients = recipe.nutrients;
+      final calories = ((nutrients['calories'] as num?) ?? 0).toDouble();
+      final protein = ((nutrients['protein'] as num?) ?? 0).toDouble();
+      final fiber = ((nutrients['fiber'] as num?) ?? 0).toDouble();
+      final sugar = ((nutrients['sugar'] as num?) ?? 0).toDouble();
+
+      // Nutrient density for snacks: prioritize protein/fiber, limit sugar.
+      final score =
+          (protein * 2.2) + (fiber * 1.8) - (sugar * 0.6) - (calories / 220);
+      return {
+        'name': recipe.name,
+        'calories': calories.round(),
+        'protein': protein,
+        'fiber': fiber,
+        'sugar': sugar,
+        'score': score,
+      };
+    }).where((item) {
+      final calories = (item['calories'] as num).toInt();
+      final protein = (item['protein'] as num).toDouble();
+      final fiber = (item['fiber'] as num).toDouble();
+      final sugar = (item['sugar'] as num).toDouble();
+      final nutrientDense = protein >= 5 || fiber >= 3;
+      final sugarOk = sugar <= 18;
+      return calories >= 60 && calories <= 360 && nutrientDense && sugarOk;
+    }).toList()
+      ..sort((a, b) => (b['score'] as double).compareTo(a['score'] as double));
 
     final avgCarbs = totalMacros > 0 ? (totalCarbs / totalMacros) * 100 : 0;
     final avgProtein = totalMacros > 0 ? (totalProtein / totalMacros) * 100 : 0;
@@ -361,6 +389,16 @@ class _StatsScreenState extends State<StatsScreen> {
                   'count': entry.value,
                 })
             .toList(),
+        'snackPriorityRecipes': snackPriorityRecipes
+            .take(12)
+            .map((item) => {
+                  'name': item['name'],
+                  'calories': item['calories'],
+                  'protein': (item['protein'] as double).toStringAsFixed(1),
+                  'fiber': (item['fiber'] as double).toStringAsFixed(1),
+                  'sugar': (item['sugar'] as double).toStringAsFixed(1),
+                })
+            .toList(),
         'availableRecipes': allRecipes
             .take(60)
             .map((recipe) => {
@@ -437,6 +475,10 @@ class _StatsScreenState extends State<StatsScreen> {
         topFoods: (aiInput['topFoods'] as List<dynamic>? ?? const [])
             .whereType<Map<String, dynamic>>()
             .toList(growable: false),
+        snackPriorityRecipes:
+            (aiInput['snackPriorityRecipes'] as List<dynamic>? ?? const [])
+                .whereType<Map<String, dynamic>>()
+                .toList(growable: false),
         availableRecipes:
             (aiInput['availableRecipes'] as List<dynamic>? ?? const [])
                 .whereType<Map<String, dynamic>>()

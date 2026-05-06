@@ -758,8 +758,13 @@ Response format:
     required int avgActivityCalories,
     required String userName,
     required List<Map<String, dynamic>> topFoods,
+    required List<Map<String, dynamic>> snackPriorityRecipes,
     required List<Map<String, dynamic>> availableRecipes,
   }) async {
+    final snackLikelyNeeded = avgCalories < calorieGoal * 0.9 ||
+        avgProteinGrams < proteinGoal * 0.9 ||
+        avgFiberGrams < 18;
+
     final topFoodsContext = topFoods
         .take(8)
         .map((f) =>
@@ -771,6 +776,19 @@ Response format:
         .take(60)
         .map((r) =>
             '- ${(r['name'] as String? ?? '').trim()} (${((r['calories'] as num?) ?? 0).round()} kcal)')
+        .where((line) => !line.startsWith('-  ('))
+        .join('\n');
+
+    final snackPriorityContext = snackPriorityRecipes
+        .take(12)
+        .map((r) {
+          final name = (r['name'] as String? ?? '').trim();
+          final calories = ((r['calories'] as num?) ?? 0).round();
+          final protein = (r['protein'] as String? ?? '').trim();
+          final fiber = (r['fiber'] as String? ?? '').trim();
+          final sugar = (r['sugar'] as String? ?? '').trim();
+          return '- $name ($calories kcal, protein $protein g, fiber $fiber g, sugar $sugar g)';
+        })
         .where((line) => !line.startsWith('-  ('))
         .join('\n');
 
@@ -836,6 +854,9 @@ ${topFoodsContext.isEmpty ? '- no clear pattern' : topFoodsContext}
 Available recipes in app:
 ${recipesContext.isEmpty ? '- none' : recipesContext}
 
+Priority snack recipe candidates (prefer these for snack recommendations if suitable):
+${snackPriorityContext.isEmpty ? '- none' : snackPriorityContext}
+
 Task:
 1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 6-10 sentences.
 2) Start with personal addressing using the user's name naturally.
@@ -845,7 +866,11 @@ Task:
 6) Add practical meal plan recommendations for the next period (what and when to eat) focused on deficits/excesses.
 7) If suitable recipes from the list exist, include exact recipe names from the provided list.
 8) If there is no suitable recipe, leave recipeName as an empty string and still provide meal advice.
-9) Include at least one recommendation for snacks (when = "snack"). Prefer adding a snack with recipeName if a suitable recipe exists.
+9) Add snack recommendations only if they are actually needed for this user.
+10) If snack is needed, prefer adding snack with recipeName from priority snack candidates.
+11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
+
+Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
 Return ONLY JSON object in this format:
 {
@@ -863,7 +888,7 @@ Rules:
 - recommendations: 3 to 6 items
 - no markdown, no extra keys, no text outside JSON
 - do not output labels like "Part 1" or "Part 2"
-- at least one recommendation must have when = "snack"
+- do not add snack recommendation if snack is not needed
 ''';
 
     final response = await _requestWithFallback(
@@ -905,20 +930,19 @@ Rules:
             .where((item) => (item['action'] ?? '').isNotEmpty)
             .toList(growable: true);
 
-    final hasSnack = recommendations.any(
-      (item) =>
-          (item['when'] ?? '').trim().toLowerCase() == 'snack' ||
-          (item['when'] ?? '').trim().toLowerCase() == 'snacks',
-    );
-    if (!hasSnack) {
-      final anyIndex = recommendations.indexWhere(
-        (item) => (item['when'] ?? '').trim().toLowerCase() == 'any',
-      );
-      if (anyIndex >= 0) {
-        recommendations[anyIndex] = {
-          ...recommendations[anyIndex],
-          'when': 'snack',
-        };
+    final fallbackSnackRecipeName = snackPriorityRecipes
+        .map((r) => (r['name'] as String? ?? '').trim())
+        .firstWhere((name) => name.isNotEmpty, orElse: () => '');
+    if (fallbackSnackRecipeName.isNotEmpty) {
+      for (var i = 0; i < recommendations.length; i++) {
+        final when = (recommendations[i]['when'] ?? '').trim().toLowerCase();
+        final recipeName = (recommendations[i]['recipeName'] ?? '').trim();
+        if ((when == 'snack' || when == 'snacks') && recipeName.isEmpty) {
+          recommendations[i] = {
+            ...recommendations[i],
+            'recipeName': fallbackSnackRecipeName,
+          };
+        }
       }
     }
 
