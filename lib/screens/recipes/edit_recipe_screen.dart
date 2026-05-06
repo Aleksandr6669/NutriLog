@@ -462,6 +462,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             children: [
               _buildMainInfoCard(),
               const SizedBox(height: 20),
+              _buildAiClarificationCard(),
+              const SizedBox(height: 20),
               _buildIngredientsCard(),
               const SizedBox(height: 20),
               _buildNutrientsCard(),
@@ -630,22 +632,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _clarificationController,
-              minLines: 1,
-              maxLines: 3,
-              decoration: AppStyles.underlineInputDecoration(
-                label: l10n.recipeClarificationHint,
-              ).copyWith(
-                prefixIcon: const Icon(Symbols.help, size: 18),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.recipeClarificationDescription,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -743,6 +729,49 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ('vitamin_c', l10n.vitaminC, l10n.mg),
               ('vitamin_d', l10n.vitaminD, l10n.mcg)
             ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiClarificationCard() {
+    return Card(
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Symbols.psychology, size: 20, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.recipeClarificationHint,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.recipeClarificationDescription,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _clarificationController,
+              minLines: 1,
+              maxLines: 5,
+              decoration: AppStyles.underlineInputDecoration(
+                label: l10n.recipeClarificationHint,
+              ).copyWith(
+                prefixIcon: const Icon(Symbols.help, size: 18),
+              ),
+            ),
           ],
         ),
       ),

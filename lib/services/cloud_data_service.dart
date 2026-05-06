@@ -99,4 +99,17 @@ class CloudDataService {
     await prefs.setString(
         _lastSyncAtKey, DateTime.now().toUtc().toIso8601String());
   }
+
+  /// Real-time stream для коллекции Firestore.
+  /// Не требует isSignedIn — правила безопасности регулируются на стороне Firestore.
+  Stream<List<Map<String, dynamic>>> collectionStream(String collectionPath) {
+    return _firestore.collection(collectionPath).snapshots().map(
+          (snapshot) => snapshot.docs
+              .map((doc) => <String, dynamic>{
+                    ...doc.data(),
+                    '__docId': doc.id,
+                  })
+              .toList(growable: false),
+        );
+  }
 }

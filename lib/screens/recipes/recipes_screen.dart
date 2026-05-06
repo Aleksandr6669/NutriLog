@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
+import '../../services/firebase_auth_service.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
 import '../../styles/app_colors.dart';
@@ -41,6 +43,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final Set<String> _selectedRecipeIdsForDelete = <String>{};
   bool _showFabMenu = false;
   String _locale = 'ru';
+  StreamSubscription<List<Recipe>>? _publicRecipesSubscription;
 
   @override
   void initState() {
@@ -50,6 +53,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
     };
     _selectedOrder.addAll(widget.initialSelectedRecipeIds);
     _searchController.addListener(_filterRecipes);
+    _startPublicRecipesStream();
+    // Перезапускаем стрим при изменении авторизации
+    FirebaseAuthService.instance.authStateChanges().listen((_) {
+      if (mounted) _startPublicRecipesStream();
+    });
+  }
+
+  void _startPublicRecipesStream() {
+    _publicRecipesSubscription?.cancel();
+    if (!FirebaseAuthService.instance.isSignedIn) return;
+
+    _publicRecipesSubscription = _recipeService.publicRecipesStream().listen(
+      (_) {
+        // Облако обновилось — обновляем список (кеш уже обновлён внутри стрима)
+        if (mounted) _loadAllRecipes();
+      },
+      onError: (_) {}, // Тихо игнорируем ошибки сети — данные уже в кеше
+    );
   }
 
   @override
@@ -281,9 +302,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
         await RecipeLoader.loadRecipesFromAssets(locale: _locale);
     final userRecipes = await _recipeService.loadUserRecipes();
 
-    // Пользовательские рецепты сверху (новые первыми), встроенные внизу
-    userRecipes.sort((a, b) => b.id.compareTo(a.id));
-    final allRecipes = [...userRecipes, ...defaultRecipes];
+    // Дата создания закодирована в ID: recipe_{microseconds}_{hash}
+    int createdAt(Recipe r) {
+      final parts = r.id.split('_');
+      if (parts.length >= 3) return int.tryParse(parts[1]) ?? 0;
+      if (parts.length == 2) return int.tryParse(parts[1]) ?? 0;
+      return 0;
+    }
+
+    // 1. Свои рецепты — по дате создания, новые первыми
+    final ownRecipes = userRecipes.where((r) => r.isUserRecipe).toList()
+      ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
+    // 2. Публичные рецепты других пользователей — по дате создания, новые первыми
+    final othersRecipes = userRecipes
+        .where((r) => !r.isUserRecipe && r.isPublic)
+        .toList()
+      ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
+    // 3. Встроенные рецепты из ассетов
+    final allRecipes = [...ownRecipes, ...othersRecipes, ...defaultRecipes];
 
     setState(() {
       _allRecipes = allRecipes;
@@ -294,6 +330,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   @override
   void dispose() {
+    _publicRecipesSubscription?.cancel();
     _searchController.removeListener(_filterRecipes);
     _searchController.dispose();
     super.dispose();

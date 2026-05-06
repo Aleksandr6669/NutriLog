@@ -39,6 +39,11 @@ class _ConnectionsNotificationsScreenState
   User? _user;
   DateTime? _lastSyncAt;
   late NotificationSettings _settings;
+  String? _cachedPhotoBase64;
+  // Данные о последней синхронизации
+  int _syncedRecipesCount = 0;
+  bool _syncedProfile = false;
+  bool _syncedDiary = false;
 
   @override
   void initState() {
@@ -47,14 +52,17 @@ class _ConnectionsNotificationsScreenState
     _user = _authService.currentUser;
     if (_user != null) {
       _autoSyncInBackground();
+      _loadCachedPhoto(_user!.uid);
     }
     _authService.authStateChanges().listen((user) {
       if (!mounted) return;
       setState(() {
         _user = user;
+        if (user == null) _cachedPhotoBase64 = null;
       });
       if (user != null) {
         _autoSyncInBackground();
+        _loadCachedPhoto(user.uid);
       }
     });
   }
@@ -182,10 +190,25 @@ class _ConnectionsNotificationsScreenState
     );
   }
 
+  Future<void> _loadCachedPhoto(String uid) async {
+    final photo = await AvatarCacheService.getCachedPhoto(uid);
+    if (!mounted) return;
+    setState(() => _cachedPhotoBase64 = photo);
+    // Если ещё нет кеша — попробуем скачать из Google
+    if (photo == null && _user?.photoURL != null) {
+      await AvatarCacheService.cacheGooglePhoto(_user!.photoURL, uid);
+      final downloaded = await AvatarCacheService.getCachedPhoto(uid);
+      if (mounted) setState(() => _cachedPhotoBase64 = downloaded);
+    }
+  }
+
   Future<void> _syncCloudDataAfterSignIn() async {
     await ProfileService().syncWithCloud();
-    await RecipeService().syncWithCloud();
+    if (mounted) setState(() => _syncedProfile = true);
+    final recipes = await RecipeService().syncWithCloud();
+    if (mounted) setState(() => _syncedRecipesCount = recipes);
     await DailyLogService().syncWithCloud();
+    if (mounted) setState(() => _syncedDiary = true);
   }
 
   Future<void> _autoSyncInBackground() async {
@@ -215,25 +238,22 @@ class _ConnectionsNotificationsScreenState
     final l10n = AppLocalizations.of(context)!;
     setState(() => _authBusy = true);
     try {
+      // Только вход — ошибки тут реальные (отменил, сеть и т.д.)
       await _authService.signInWithGoogle();
-      await _syncCloudDataAfterSignIn();
-      await CloudDataService.instance.markSyncNow();
-      final lastSync = await CloudDataService.instance.getLastSyncAt();
-      if (!mounted) return;
-      setState(() {
-        _lastSyncAt = lastSync;
-      });
     } catch (e) {
       if (!mounted) return;
       _showSnack(
         l10n.googleSignInFailed(e.toString()),
         backgroundColor: Colors.red.shade700,
       );
-    } finally {
-      if (mounted) {
-        setState(() => _authBusy = false);
-      }
+      if (mounted) setState(() => _authBusy = false);
+      return;
     }
+
+    if (mounted) setState(() => _authBusy = false);
+
+    // Синхронизация в фоне — ошибки не показываем пользователю
+    _autoSyncInBackground();
   }
 
   Future<void> _handleSignOut() async {
@@ -283,6 +303,129 @@ class _ConnectionsNotificationsScreenState
     return '$h:$m';
   }
 
+  Widget _buildAccountAvatar() {
+    final photo = _cachedPhotoBase64 != null
+        ? AvatarCacheService.decodeBase64Photo(_cachedPhotoBase64!)
+        : null;
+    if (photo != null) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundImage: MemoryImage(photo),
+      );
+    }
+    return const CircleAvatar(
+      radius: 20,
+      child: Icon(Symbols.account_circle, size: 22),
+    );
+  }
+
+  Widget _buildSyncInfoPanel(ThemeData theme, AppLocalizations l10n) {
+    if (_user == null) {
+      // Пользователь не вошёл — показываем что будет синхронизироваться
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.cloudSyncInfo,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildSyncItem(theme, icon: Symbols.person,
+                label: l10n.profile, status: null),
+            _buildSyncItem(theme, icon: Symbols.receipt_long,
+                label: l10n.myRecipes, status: null),
+            _buildSyncItem(theme, icon: Symbols.book,
+                label: l10n.diary, status: null),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Дата синхронизации заголовком карточки
+          Row(
+            children: [
+              Icon(Symbols.sync,
+                  size: 14,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+              const SizedBox(width: 6),
+              Text(
+                _formatLastSync(context),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _buildSyncItem(
+            theme,
+            icon: Symbols.person,
+            label: l10n.profile,
+            status: _syncedProfile,
+          ),
+          _buildSyncItem(
+            theme,
+            icon: Symbols.receipt_long,
+            label: _syncedRecipesCount > 0
+                ? '${l10n.myRecipes} ($_syncedRecipesCount)'
+                : l10n.myRecipes,
+            status: _syncedRecipesCount > 0 || _syncedProfile,
+          ),
+          _buildSyncItem(
+            theme,
+            icon: Symbols.book,
+            label: l10n.diary,
+            status: _syncedDiary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncItem(
+    ThemeData theme, {
+    required IconData icon,
+    required String label,
+    required bool? status,
+  }) {
+    final color = status == null
+        ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
+        : status
+            ? Colors.green.shade600
+            : theme.colorScheme.onSurface.withValues(alpha: 0.45);
+    final statusIcon = status == null
+        ? Symbols.sync
+        : status
+            ? Symbols.check_circle
+            : Symbols.pending;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(color: color),
+            ),
+          ),
+          Icon(statusIcon, size: 16, color: color),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(ThemeData theme, String title) {
     return Text(
       title,
@@ -315,58 +458,34 @@ class _ConnectionsNotificationsScreenState
           _buildSectionTitle(theme, l10n.connectionsSection),
           const SizedBox(height: 10),
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  onTap: () => setState(
-                    () => _connectionsExpanded = !_connectionsExpanded,
-                  ),
-                  leading: const Icon(Symbols.account_circle),
-                  title: Text(l10n.loginToAccount),
-                  subtitle: Text(_user == null
-                      ? l10n.cloudSyncLocalOnly
-                      : '${_user!.email}\n${_formatLastSync(context)}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FilledButton.tonal(
-                        onPressed: _authBusy
-                            ? null
-                            : (_user == null ? _handleSignIn : _handleSignOut),
-                        child: Text(_user == null ? l10n.signIn : l10n.signOut),
-                      ),
-                      const SizedBox(width: 8),
-                      AnimatedRotation(
-                        turns: _connectionsExpanded ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                        child: const Icon(Symbols.expand_more),
-                      ),
-                    ],
-                  ),
-                ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  child: _connectionsExpanded
-                      ? Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 14,
-                            left: 16,
-                            right: 16,
-                          ),
-                          child: Text(
-                            l10n.cloudSyncInfo,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.textTheme.bodySmall?.color
-                                  ?.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
+            child: ListTile(
+              onTap: () => setState(
+                () => _connectionsExpanded = !_connectionsExpanded,
+              ),
+              leading: _buildAccountAvatar(),
+              title: Text(l10n.loginToAccount),
+              subtitle: Text(_user == null
+                  ? l10n.cloudSyncLocalOnly
+                  : _user!.email ?? ''),
+              trailing: FilledButton.tonal(
+                onPressed: _authBusy
+                    ? null
+                    : (_user == null ? _handleSignIn : _handleSignOut),
+                child: Text(_user == null ? l10n.signIn : l10n.signOut),
+              ),
             ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            child: _connectionsExpanded
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Card(
+                      child: _buildSyncInfoPanel(theme, l10n),
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
           const SizedBox(height: 24),
           _buildSectionTitle(theme, l10n.notificationMessagesSection),

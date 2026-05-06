@@ -31,8 +31,9 @@ class RecipeService {
     final prefs = await SharedPreferences.getInstance();
     final local =
         _loadRecipesFromJsonString(prefs.getString(_publicRecipesKey));
+    // Не переопределяем isUserRecipe — значение из JSON сохраняет права автора.
     return local
-        .map((recipe) => recipe.copyWith(isUserRecipe: false, isPublic: true))
+        .map((recipe) => recipe.copyWith(isPublic: true))
         .toList(growable: false);
   }
 
@@ -65,12 +66,12 @@ class RecipeService {
     return [...localPrivateRecipes, ...localPublicRecipes];
   }
 
-  Future<void> syncWithCloud() async {
+  Future<int> syncWithCloud() async {
     final cloudService = CloudDataService.instance;
-    if (!cloudService.isSignedIn) return;
+    if (!cloudService.isSignedIn) return 0;
 
     final uid = cloudService.currentUserId;
-    if (uid == null || uid.isEmpty) return;
+    if (uid == null || uid.isEmpty) return 0;
 
     final localPrivateRecipes = await _loadLocalPrivateRecipes();
     final localPublicRecipes = await _loadLocalPublicRecipes();
@@ -120,6 +121,10 @@ class RecipeService {
     }).toList(growable: false);
 
     await _savePublicRecipesToPrefs(publicRecipes);
+
+    final totalPrivate = localPrivateRecipes.length;
+    final totalPublic = publicRecipes.where((r) => r.isUserRecipe).length;
+    return totalPrivate + totalPublic;
   }
 
   Future<void> _syncOwnPublicRecipesToCloud(List<Recipe> publicRecipes) async {
@@ -129,15 +134,8 @@ class RecipeService {
     final uid = cloudService.currentUserId;
     if (uid == null || uid.isEmpty) return;
 
-    final existingDocs = await cloudService.readCollection('publicRecipes');
-    final existingOwnIds = existingDocs
-        .where((doc) => doc['userId'] == uid)
-        .map((doc) => doc['__docId'] as String?)
-        .whereType<String>()
-        .toSet();
-
-    final targetIds = publicRecipes.map((recipe) => recipe.id).toSet();
-
+    // При изменении/удалении рецепта сразу пишем в Firestore —
+    // все подписчики сразу видят изменение через collectionStream
     for (final recipe in publicRecipes) {
       await cloudService.upsertDocument('publicRecipes', recipe.id, {
         ...recipe.copyWith(isPublic: true).toJson(),
@@ -145,6 +143,15 @@ class RecipeService {
       });
     }
 
+    // Удаляем те, которых больше нет в списке (были отозваны или сделаны приватными)
+    // Читаем единственный раз во время полного синка
+    final existingDocs = await cloudService.readCollection('publicRecipes');
+    final existingOwnIds = existingDocs
+        .where((doc) => doc['userId'] == uid)
+        .map((doc) => doc['__docId'] as String?)
+        .whereType<String>()
+        .toSet();
+    final targetIds = publicRecipes.map((recipe) => recipe.id).toSet();
     for (final staleId in existingOwnIds.difference(targetIds)) {
       await cloudService.deleteDocument('publicRecipes', staleId);
     }
@@ -206,5 +213,50 @@ class RecipeService {
     final recipes = await _loadOwnedRecipesForMutation();
     recipes.removeWhere((r) => r.id == recipeId);
     await _saveUserRecipes(recipes);
+
+    // Также удаляем из облака если это публичный рецепт автора
+    try {
+      final cloudService = CloudDataService.instance;
+      if (cloudService.isSignedIn) {
+        await cloudService.deleteDocument('publicRecipes', recipeId);
+      }
+    } catch (_) {
+      // Удаление из облака необязательно — правила Firestore всё равно защитят.
+    }
+  }
+
+  /// Real-time поток публичных рецептов из Firestore.
+  /// Каждое обновление в облаке сохраняется в локальный кеш для оффлайн-доступа.
+  Stream<List<Recipe>> publicRecipesStream() {
+    final cloudService = CloudDataService.instance;
+    final uid = cloudService.currentUserId;
+
+    return cloudService
+        .collectionStream('publicRecipes')
+        .asyncMap((docs) async {
+      final publicRecipes = docs.whereType<Map>().map((rawMap) {
+        final map = Map<String, dynamic>.from(rawMap);
+        final ownerId = map['userId'] as String?;
+        final docId = map['__docId'] as String?;
+        map.remove('userId');
+        map.remove('__docId');
+
+        if ((map['id'] as String?)?.trim().isEmpty != false &&
+            docId != null &&
+            docId.isNotEmpty) {
+          map['id'] = docId;
+        }
+
+        final recipe = Recipe.fromJson(map);
+        return recipe.copyWith(
+          isPublic: true,
+          isUserRecipe: ownerId != null && uid != null && ownerId == uid,
+        );
+      }).toList(growable: false);
+
+      // Сохраняем в локальный кеш для оффлайн-использования
+      await _savePublicRecipesToPrefs(publicRecipes);
+      return publicRecipes;
+    });
   }
 }
