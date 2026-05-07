@@ -42,6 +42,7 @@ class _StatsScreenState extends State<StatsScreen> {
   final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
+  final ScrollController _scrollController = ScrollController();
   late Future<Map<String, dynamic>> _statsFuture;
   String? _aiOverview;
   List<Map<String, String>> _aiRecommendations = const [];
@@ -64,6 +65,12 @@ class _StatsScreenState extends State<StatsScreen> {
     final history = await _historyService.loadHistory();
     if (!mounted) return;
     setState(() => _aiReportHistory = history);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -824,6 +831,8 @@ class _StatsScreenState extends State<StatsScreen> {
           );
 
           return SingleChildScrollView(
+            key: const PageStorageKey<String>('stats-screen-scroll'),
+            controller: _scrollController,
             padding: glassBodyPadding(
               context,
               top: -8,
