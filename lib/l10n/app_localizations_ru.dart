@@ -763,6 +763,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recipeAiUpdated => 'Пищевые значения обновлены.';
 
   @override
+  String get recipeAiPendingUpdate =>
+      'Ингредиенты изменились — пересчитываю пищевую ценность...';
+
+  @override
   String get recipeAiFailed => 'Не удалось рассчитать пищевую ценность AI.';
 
   @override

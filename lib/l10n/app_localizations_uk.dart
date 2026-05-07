@@ -764,6 +764,10 @@ class AppLocalizationsUk extends AppLocalizations {
   String get recipeAiUpdated => 'Харчові значення оновлені.';
 
   @override
+  String get recipeAiPendingUpdate =>
+      'Інгредієнти змінились — перераховую харчову цінність...';
+
+  @override
   String get recipeAiFailed => 'Не вдалося розрахувати харчову цінність AI.';
 
   @override

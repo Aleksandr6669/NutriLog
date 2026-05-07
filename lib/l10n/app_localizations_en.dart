@@ -761,6 +761,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeAiUpdated => 'Nutrition values updated.';
 
   @override
+  String get recipeAiPendingUpdate =>
+      'Ingredients changed — recalculating nutrition...';
+
+  @override
   String get recipeAiFailed => 'AI nutrition calculation failed.';
 
   @override

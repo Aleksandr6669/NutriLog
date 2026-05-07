@@ -53,7 +53,9 @@ class _StatsScreenState extends State<StatsScreen> {
   final AiReportHistoryService _historyService = AiReportHistoryService();
   List<AiReportEntry> _aiReportHistory = const [];
   StreamSubscription<void>? _logCacheSubscription;
+  StreamSubscription<void>? _profileCacheSubscription;
   Timer? _reloadDebounce;
+  bool _isDebouncePending = false;
 
   @override
   void initState() {
@@ -63,6 +65,15 @@ class _StatsScreenState extends State<StatsScreen> {
     _logCacheSubscription = DailyLogService.cacheUpdates.listen((_) {
       if (!mounted) return;
       _reloadDebounce?.cancel();
+      setState(() => _isDebouncePending = true);
+      _reloadDebounce = Timer(const Duration(seconds: 3), () {
+        if (mounted) _reloadStats();
+      });
+    });
+    _profileCacheSubscription = ProfileService.cacheUpdates.listen((_) {
+      if (!mounted) return;
+      _reloadDebounce?.cancel();
+      setState(() => _isDebouncePending = true);
       _reloadDebounce = Timer(const Duration(seconds: 3), () {
         if (mounted) _reloadStats();
       });
@@ -79,6 +90,7 @@ class _StatsScreenState extends State<StatsScreen> {
   void dispose() {
     _reloadDebounce?.cancel();
     _logCacheSubscription?.cancel();
+    _profileCacheSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -100,6 +112,7 @@ class _StatsScreenState extends State<StatsScreen> {
     _aiStartedForRequestId = -1;
     unawaited(LocalFirstSyncService.instance.syncNow());
     setState(() {
+      _isDebouncePending = false;
       _aiOverview = null;
       _aiRecommendations = const [];
       _aiError = false;
@@ -1503,7 +1516,9 @@ class _StatsScreenState extends State<StatsScreen> {
     }
 
     final String overviewText;
-    if (_aiError) {
+    if (_isDebouncePending) {
+      overviewText = l10n.statsAiUpdating;
+    } else if (_aiError) {
       overviewText = l10n.statsAiError;
     } else if (_aiOverview == null) {
       overviewText = l10n.statsAiLoading;
@@ -1534,7 +1549,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   color: theme.colorScheme.onSurface.withAlpha(204)),
             ),
             const SizedBox(height: 8),
-            if (_aiError || _aiOverview == null)
+            if (_isDebouncePending || _aiError || _aiOverview == null)
               Text(
                 l10n.statsAiLoading,
                 style: theme.textTheme.bodySmall,

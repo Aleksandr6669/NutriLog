@@ -73,6 +73,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isDonateAiApproved = false;
   String? _donateAiStatus;
   Timer? _donateAiDebounce;
+  Timer? _nutritionAiDebounce;
   int _donateAiRequestId = 0;
   bool _publicIntentEnabled = false;
 
@@ -160,6 +161,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _attachIngredientListeners(_IngredientFormItem item) {
     item.nameController.addListener(_onDonateValidationInputChanged);
     item.quantityController.addListener(_onDonateValidationInputChanged);
+    item.nameController.addListener(_scheduleNutritionAiRecalculation);
+    item.quantityController.addListener(_scheduleNutritionAiRecalculation);
   }
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
@@ -188,6 +191,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _detachIngredientListeners(_IngredientFormItem item) {
     item.nameController.removeListener(_onDonateValidationInputChanged);
     item.quantityController.removeListener(_onDonateValidationInputChanged);
+    item.nameController.removeListener(_scheduleNutritionAiRecalculation);
+    item.quantityController.removeListener(_scheduleNutritionAiRecalculation);
   }
 
   void _onDonateValidationInputChanged() {
@@ -357,8 +362,27 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final hasNamedIngredients =
         _ingredientItems.any((i) => i.nameController.text.trim().isNotEmpty);
     if (_isAutoAiNutritionEnabled && hasNamedIngredients && !_isAiCalculating) {
-      unawaited(_recalculateNutrientsWithAi());
+      _scheduleNutritionAiRecalculation();
     }
+  }
+
+  void _scheduleNutritionAiRecalculation() {
+    if (!_isAutoAiNutritionEnabled || !mounted) return;
+    final hasNamedIngredients =
+        _ingredientItems.any((i) => i.nameController.text.trim().isNotEmpty);
+    if (!hasNamedIngredients) return;
+    _nutritionAiDebounce?.cancel();
+    if (!_isAiCalculating) {
+      setState(() {
+        _aiStatus = l10n.recipeAiPendingUpdate;
+        _isAiError = false;
+      });
+    }
+    _nutritionAiDebounce = Timer(const Duration(seconds: 3), () {
+      if (mounted && !_isAiCalculating) {
+        unawaited(_recalculateNutrientsWithAi());
+      }
+    });
   }
 
   Future<void> _recalculateNutrientsWithAi() async {
@@ -453,6 +477,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   @override
   void dispose() {
     _donateAiDebounce?.cancel();
+    _nutritionAiDebounce?.cancel();
     _nutrientControllers['protein']?.removeListener(_onMacroChanged);
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
     _nutrientControllers['fat']?.removeListener(_onMacroChanged);

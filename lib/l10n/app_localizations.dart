@@ -1474,6 +1474,12 @@ abstract class AppLocalizations {
   /// **'Nutrition values updated.'**
   String get recipeAiUpdated;
 
+  /// No description provided for @recipeAiPendingUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients changed — recalculating nutrition...'**
+  String get recipeAiPendingUpdate;
+
   /// No description provided for @recipeAiFailed.
   ///
   /// In en, this message translates to:

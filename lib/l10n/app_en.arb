@@ -280,6 +280,7 @@
   "recipeAiWarning": "The neural network may err by about 10%; please verify the data.",
   "recipeAiAddIngredients": "Add ingredients to calculate nutrition.",
   "recipeAiCalculating": "Calculating nutrition...",
+  "recipeAiPendingUpdate": "Ingredients changed — recalculating nutrition...",
   "recipeAiUpdated": "Nutrition values updated.",
   "recipeAiFailed": "AI nutrition calculation failed.",
   "recipeAiDisclaimer": "AI estimates may be inaccurate by about 10%; verify values before saving.",
