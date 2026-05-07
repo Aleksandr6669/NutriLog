@@ -241,13 +241,18 @@ class RecipeService {
     bool syncCloud = true,
   }) async {
     final privateRecipes = ownedRecipes
-        .where((recipe) => !recipe.isPublic)
+        .where((recipe) => !recipe.isPublic && !recipe.isDonated)
         .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: false))
         .toList(growable: false);
 
     final ownPublicRecipes = ownedRecipes
-        .where((recipe) => recipe.isPublic)
+        .where((recipe) => recipe.isPublic && !recipe.isDonated)
         .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: true))
+        .toList(growable: false);
+
+    final donatedAsPublicOthers = ownedRecipes
+        .where((recipe) => recipe.isDonated)
+        .map((recipe) => recipe.copyWith(isUserRecipe: false, isPublic: true))
         .toList(growable: false);
 
     await _savePrivateRecipesToPrefs(privateRecipes);
@@ -257,7 +262,11 @@ class RecipeService {
         .where((recipe) => recipe.isPublic && !recipe.isUserRecipe)
         .map((recipe) => recipe.copyWith(isUserRecipe: false, isPublic: true))
         .toList(growable: false);
-    await _savePublicRecipesToPrefs([...publicOthers, ...ownPublicRecipes]);
+    await _savePublicRecipesToPrefs([
+      ...publicOthers,
+      ...donatedAsPublicOthers,
+      ...ownPublicRecipes,
+    ]);
 
     if (!syncCloud) return;
 
@@ -293,7 +302,8 @@ class RecipeService {
     if (index == -1) return;
     if (recipes[index].isDonated) return;
 
-    recipes[index] = updatedRecipe.copyWith(isUserRecipe: true);
+    final shouldStayOwned = !updatedRecipe.isDonated;
+    recipes[index] = updatedRecipe.copyWith(isUserRecipe: shouldStayOwned);
     await _saveUserRecipes(recipes);
   }
 

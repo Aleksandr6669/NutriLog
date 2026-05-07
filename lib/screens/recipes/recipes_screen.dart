@@ -396,11 +396,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
     // 1. Свои рецепты — по дате создания, новые первыми
     final dedupedUserRecipes = dedupeById(userRecipes);
 
-    final ownRecipes = dedupedUserRecipes.where((r) => r.isUserRecipe).toList()
+    final ownRecipes = dedupedUserRecipes
+        .where((r) => r.isUserRecipe && !r.isDonated)
+        .toList()
       ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
     // 2. Публичные рецепты других пользователей — по дате создания, новые первыми
     final othersRecipes = dedupedUserRecipes
-        .where((r) => !r.isUserRecipe && r.isPublic)
+        .where((r) =>
+            (r.isPublic || r.isDonated) && (!r.isUserRecipe || r.isDonated))
         .toList()
       ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
 
@@ -479,15 +482,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   void _toggleRecipeForDelete(Recipe recipe) {
     HapticFeedback.lightImpact();
-    if (!recipe.isUserRecipe) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(AppLocalizations.of(context)!.builtinRecipesCannotBeDeleted),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(top: 0, left: 16, right: 16),
-        ),
-      );
+    if (!recipe.isUserRecipe || recipe.isDonated) {
       return;
     }
     // SnackBar при успешных действиях убран по требованию
@@ -505,8 +500,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     HapticFeedback.heavyImpact();
     if (_selectedRecipeIdsForDelete.isEmpty) return;
 
-    // final count = _selectedRecipeIdsForDelete.length; // не используется
-    final ids = _selectedRecipeIdsForDelete.toList(growable: false);
+    final byId = {for (final r in _allRecipes) r.id: r};
+    final ids = _selectedRecipeIdsForDelete.where((id) {
+      final recipe = byId[id];
+      return recipe != null && recipe.isUserRecipe && !recipe.isDonated;
+    }).toList(growable: false);
     for (final id in ids) {
       await _recipeService.deleteRecipe(id);
     }
@@ -843,7 +841,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               },
               isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
               isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
-              canSelectInDeleteMode: recipe.isUserRecipe,
+              canSelectInDeleteMode: recipe.isUserRecipe && !recipe.isDonated,
               isSelected: isSelected,
               isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
               onTap: () {
@@ -852,7 +850,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   return;
                 }
                 if (_isDeleteSelectionMode) {
-                  if (!recipe.isUserRecipe) return;
+                  if (!recipe.isUserRecipe || recipe.isDonated) return;
                   _toggleRecipeForDelete(recipe);
                   return;
                 }
@@ -860,7 +858,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
               },
               onActionTap: widget.selectionMode
                   ? () => _addRecipeSelection(recipe)
-                  : (_isDeleteSelectionMode
+                  : (_isDeleteSelectionMode &&
+                          recipe.isUserRecipe &&
+                          !recipe.isDonated
                       ? () => _toggleRecipeForDelete(recipe)
                       : null),
             );
@@ -883,7 +883,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               );
             }
 
-            if (!recipe.isUserRecipe) return item;
+            if (!recipe.isUserRecipe || recipe.isDonated) return item;
 
             return Dismissible(
               key: ValueKey('recipe-swipe-${recipe.id}'),
@@ -1028,7 +1028,7 @@ class _RecipeListItem extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final rawCalories = recipe.nutrients['calories'];
     final calories = ((rawCalories as num?) ?? 0).round();
-    final isOwnRecipe = recipe.isUserRecipe;
+    final isOwnRecipe = recipe.isUserRecipe && !recipe.isDonated;
 
     final card = Card(
       color: Colors.white,
@@ -1118,12 +1118,12 @@ class _RecipeListItem extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            if (isOwnRecipe) const SizedBox(width: 6),
-                            Icon(
-                              Symbols.info,
-                              color: theme.colorScheme.primary,
-                              size: 18,
-                            ),
+                            if (!isOwnRecipe)
+                              Icon(
+                                Symbols.info,
+                                color: theme.colorScheme.primary,
+                                size: 18,
+                              ),
                           ],
                         ),
                       ],

@@ -675,7 +675,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
       // Помечаем локальную копию как переданную сообществу.
       await _recipeService.updateRecipe(
-        localRecipe.copyWith(isPublic: true, isDonated: true),
+        localRecipe.copyWith(
+          isUserRecipe: false,
+          isPublic: true,
+          isDonated: true,
+        ),
       );
 
       if (!mounted) return;
