@@ -450,6 +450,13 @@
   "burnedCaloriesLabel": "Calories burned",
   "enterActivityName": "Enter activity name",
   "enterCorrectCalories": "Enter valid calories",
+  "activityAiEstimateButton": "Estimate calories with AI",
+  "activityAiEstimating": "Estimating calories...",
+  "activityAiEstimated": "AI estimate: {calories} kcal",
+  "@activityAiEstimated": {
+    "placeholders": { "calories": { "type": "int" } }
+  },
+  "activityAiEstimateFailed": "Failed to estimate activity calories",
   "activityLogTitle": "Activity",
   "activityInfoText": "Here you log all activities for the selected day.\nThis data helps calculate burned calories more accurately\nand affects the daily balance in the diary and analytics.",
   "totalBurned": "Total burned",

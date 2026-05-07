@@ -2338,6 +2338,30 @@ abstract class AppLocalizations {
   /// **'Enter valid calories'**
   String get enterCorrectCalories;
 
+  /// No description provided for @activityAiEstimateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate calories with AI'**
+  String get activityAiEstimateButton;
+
+  /// No description provided for @activityAiEstimating.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimating calories...'**
+  String get activityAiEstimating;
+
+  /// No description provided for @activityAiEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'AI estimate: {calories} kcal'**
+  String activityAiEstimated(int calories);
+
+  /// No description provided for @activityAiEstimateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to estimate activity calories'**
+  String get activityAiEstimateFailed;
+
   /// No description provided for @activityLogTitle.
   ///
   /// In en, this message translates to:

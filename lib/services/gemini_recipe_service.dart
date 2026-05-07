@@ -1192,6 +1192,64 @@ Rules:
     );
   }
 
+  Future<int> estimateActivityCaloriesFromDescription({
+    required String description,
+    String? locale,
+  }) async {
+    final normalized = description.trim();
+    if (normalized.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).enterActivityName);
+    }
+
+    final prompt = '''
+You are a sports and fitness assistant.
+${_languageInstruction(locale)}
+Estimate calories burned for a single activity session based on user description.
+
+Activity description:
+$normalized
+
+Return ONLY JSON, no markdown:
+{
+  "calories": 0
+}
+
+Rules:
+- calories must be a positive integer.
+- be realistic for one activity session.
+- if duration/intensity are missing, use a moderate default estimate.
+- output only JSON.
+''';
+
+    final response = await _requestWithFallback(
+      body: {
+        'messages': [
+          {
+            'role': 'user',
+            'content': prompt,
+          }
+        ],
+        'temperature': 0.2,
+        'max_completion_tokens': 220,
+        'top_p': 1,
+        'stream': false,
+      },
+      locale: locale,
+    );
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final text = _extractText(payload, locale);
+    final decoded = _decodeJsonObject(text, locale);
+
+    final calories = _toNonNegativeDouble(decoded['calories']).round();
+    if (calories <= 0) {
+      throw GeminiRecipeException(_messages(locale).activityAiEstimateFailed);
+    }
+
+    // Guardrails for unrealistic outputs from model.
+    return calories.clamp(30, 2500);
+  }
+
   Future<http.Response> _requestWithFallback({
     required Map<String, dynamic> body,
     String? apiKeyOverride,

@@ -456,6 +456,13 @@
   "burnedCaloriesLabel": "Спалені калорії",
   "enterActivityName": "Введіть назву активності",
   "enterCorrectCalories": "Введіть коректні калорії",
+  "activityAiEstimateButton": "Оцінити калорії AI",
+  "activityAiEstimating": "Оцінюю калорії...",
+  "activityAiEstimated": "AI оцінив: {calories} ккал",
+  "@activityAiEstimated": {
+    "placeholders": { "calories": { "type": "int" } }
+  },
+  "activityAiEstimateFailed": "Не вдалося оцінити калорії активності",
   "activityLogTitle": "Активність",
   "activityInfoText": "Тут ви фіксуєте всі активності за вибраний день.\nЦі дані допомагають точніше рахувати спалені калорії\nі впливають на добовий баланс у щоденнику та аналітиці.",
   "totalBurned": "Всього спалено",

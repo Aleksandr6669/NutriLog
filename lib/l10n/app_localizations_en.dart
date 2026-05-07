@@ -1228,6 +1228,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterCorrectCalories => 'Enter valid calories';
 
   @override
+  String get activityAiEstimateButton => 'Estimate calories with AI';
+
+  @override
+  String get activityAiEstimating => 'Estimating calories...';
+
+  @override
+  String activityAiEstimated(int calories) {
+    return 'AI estimate: $calories kcal';
+  }
+
+  @override
+  String get activityAiEstimateFailed => 'Failed to estimate activity calories';
+
+  @override
   String get activityLogTitle => 'Activity';
 
   @override

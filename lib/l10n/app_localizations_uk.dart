@@ -1233,6 +1233,21 @@ class AppLocalizationsUk extends AppLocalizations {
   String get enterCorrectCalories => 'Введіть коректні калорії';
 
   @override
+  String get activityAiEstimateButton => 'Оцінити калорії AI';
+
+  @override
+  String get activityAiEstimating => 'Оцінюю калорії...';
+
+  @override
+  String activityAiEstimated(int calories) {
+    return 'AI оцінив: $calories ккал';
+  }
+
+  @override
+  String get activityAiEstimateFailed =>
+      'Не вдалося оцінити калорії активності';
+
+  @override
   String get activityLogTitle => 'Активність';
 
   @override

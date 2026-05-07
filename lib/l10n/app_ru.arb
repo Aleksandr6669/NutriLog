@@ -456,6 +456,13 @@
   "burnedCaloriesLabel": "Сожженные калории",
   "enterActivityName": "Введите название активности",
   "enterCorrectCalories": "Введите корректные калории",
+  "activityAiEstimateButton": "Оценить калории AI",
+  "activityAiEstimating": "Оцениваю калории...",
+  "activityAiEstimated": "AI оценил: {calories} ккал",
+  "@activityAiEstimated": {
+    "placeholders": { "calories": { "type": "int" } }
+  },
+  "activityAiEstimateFailed": "Не удалось оценить калории активности",
   "activityLogTitle": "Активность",
   "activityInfoText": "Здесь вы фиксируете все активности за выбранный день.\nЭти данные помогают точнее считать сожженные калории\nи влияют на суточный баланс в дневнике и аналитике.",
   "totalBurned": "Всего сожжено",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/daily_log.dart';
+import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 
@@ -17,9 +18,13 @@ class EditActivityEntryScreen extends StatefulWidget {
 
 class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _geminiService = GeminiRecipeService();
   late TextEditingController _nameController;
   late TextEditingController _caloriesController;
   late String _selectedIconName;
+  bool _isAiEstimating = false;
+  String? _aiEstimateStatus;
+  bool _isAiEstimateError = false;
 
   @override
   void initState() {
@@ -52,6 +57,53 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
         iconName: _selectedIconName,
       ),
     );
+  }
+
+  Future<void> _estimateCaloriesWithAi() async {
+    final l10n = AppLocalizations.of(context)!;
+    final description = _nameController.text.trim();
+    if (description.isEmpty) {
+      setState(() {
+        _aiEstimateStatus = l10n.enterActivityName;
+        _isAiEstimateError = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _isAiEstimating = true;
+      _isAiEstimateError = false;
+      _aiEstimateStatus = l10n.activityAiEstimating;
+    });
+
+    try {
+      final estimated =
+          await _geminiService.estimateActivityCaloriesFromDescription(
+        description: description,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+      if (!mounted) return;
+      _caloriesController.text = estimated.toString();
+      setState(() {
+        _isAiEstimating = false;
+        _isAiEstimateError = false;
+        _aiEstimateStatus = l10n.activityAiEstimated(estimated);
+      });
+    } on GeminiRecipeException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isAiEstimating = false;
+        _isAiEstimateError = true;
+        _aiEstimateStatus = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isAiEstimating = false;
+        _isAiEstimateError = true;
+        _aiEstimateStatus = l10n.activityAiEstimateFailed;
+      });
+    }
   }
 
   @override
@@ -147,6 +199,56 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed:
+                              _isAiEstimating ? null : _estimateCaloriesWithAi,
+                          icon: _isAiEstimating
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Symbols.auto_awesome),
+                          label: Text(l10n.activityAiEstimateButton),
+                        ),
+                      ),
+                      if (_aiEstimateStatus != null) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                (_isAiEstimateError ? Colors.red : Colors.green)
+                                    .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: (_isAiEstimateError
+                                      ? Colors.red
+                                      : Colors.green)
+                                  .withValues(alpha: 0.22),
+                            ),
+                          ),
+                          child: Text(
+                            _aiEstimateStatus!,
+                            style: TextStyle(
+                              color: _isAiEstimateError
+                                  ? Colors.red.shade700
+                                  : Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _caloriesController,
