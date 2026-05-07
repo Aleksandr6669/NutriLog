@@ -31,7 +31,8 @@ class ConnectionsNotificationsScreen extends StatefulWidget {
 }
 
 class _ConnectionsNotificationsScreenState
-    extends State<ConnectionsNotificationsScreen> {
+    extends State<ConnectionsNotificationsScreen>
+    with SingleTickerProviderStateMixin {
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
   final AppNotificationService _notificationService = AppNotificationService();
@@ -41,6 +42,9 @@ class _ConnectionsNotificationsScreenState
   bool _authBusy = false;
   bool _connectionsExpanded = false;
   bool _confirmSignOut = false;
+  late final AnimationController _btnAnimController;
+  late final Animation<double> _btnScaleAnim;
+  late final Animation<double> _spacingAnim;
   User? _user;
   DateTime? _lastSyncAt;
   late NotificationSettings _settings;
@@ -54,6 +58,28 @@ class _ConnectionsNotificationsScreenState
   @override
   void initState() {
     super.initState();
+    _btnAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _btnScaleAnim = CurvedAnimation(
+      parent: _btnAnimController,
+      curve: Curves.easeOutBack,
+    );
+    _spacingAnim = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 16.0, end: 4.0),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 4.0, end: 12.0),
+        weight: 50,
+      ),
+    ]).animate(CurvedAnimation(
+      parent: _btnAnimController,
+      curve: Curves.easeInOut,
+    ));
+    _btnAnimController.forward();
     _loadSettings();
     _syncStatusListener = _onSyncStatusChanged;
     LocalFirstSyncService.instance.statusNotifier
@@ -83,6 +109,7 @@ class _ConnectionsNotificationsScreenState
 
   @override
   void dispose() {
+    _btnAnimController.dispose();
     LocalFirstSyncService.instance.statusNotifier
         .removeListener(_syncStatusListener);
     super.dispose();
@@ -308,10 +335,12 @@ class _ConnectionsNotificationsScreenState
 
   Future<void> _onSignOutTap() async {
     setState(() => _confirmSignOut = true);
+    _btnAnimController.forward(from: 0);
   }
 
   void _cancelSignOut() {
     setState(() => _confirmSignOut = false);
+    _btnAnimController.forward(from: 0);
   }
 
   Future<void> _handleSignOut() async {
@@ -641,46 +670,67 @@ class _ConnectionsNotificationsScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     else if (_user == null)
-                      FilledButton(
-                        onPressed: _handleSignIn,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.green.shade600,
+                      ScaleTransition(
+                        scale: _btnScaleAnim,
+                        child: TweenAnimationBuilder<Color?>(
+                          tween: ColorTween(
+                            begin: Colors.blue.shade600,
+                            end: Colors.green.shade600,
+                          ),
+                          duration: const Duration(milliseconds: 500),
+                          builder: (context, color, child) => FilledButton(
+                            onPressed: _handleSignIn,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: color,
+                            ),
+                            child: child!,
+                          ),
+                          child: Text(l10n.signIn),
                         ),
-                        child: Text(l10n.signIn),
                       )
                     else if (_confirmSignOut)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FilledButton(
-                            onPressed: _handleSignOut,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.red.shade600,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 14),
+                      ScaleTransition(
+                        scale: _btnScaleAnim,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FilledButton(
+                              onPressed: _handleSignOut,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.red.shade600,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
+                              ),
+                              child: Text(l10n.confirmYes),
                             ),
-                            child: Text(l10n.confirmYes),
-                          ),
-                          const SizedBox(width: 8),
-                          FilledButton(
-                            onPressed: _cancelSignOut,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.green.shade50,
-                              foregroundColor: Colors.black87,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 14),
+                            AnimatedBuilder(
+                              animation: _spacingAnim,
+                              builder: (context, _) =>
+                                  SizedBox(width: _spacingAnim.value),
                             ),
-                            child: Text(l10n.confirmNo),
-                          ),
-                        ],
+                            FilledButton(
+                              onPressed: _cancelSignOut,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.green.shade50,
+                                foregroundColor: Colors.black87,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
+                              ),
+                              child: Text(l10n.confirmNo),
+                            ),
+                          ],
+                        ),
                       )
                     else
-                      FilledButton(
-                        onPressed: _onSignOutTap,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.red.shade600,
+                      ScaleTransition(
+                        scale: _btnScaleAnim,
+                        child: FilledButton(
+                          onPressed: _onSignOutTap,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red.shade600,
+                          ),
+                          child: Text(l10n.signOut),
                         ),
-                        child: Text(l10n.signOut),
                       ),
                   ],
                 ),

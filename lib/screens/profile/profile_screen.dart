@@ -9,6 +9,7 @@ import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/services/firebase_auth_service.dart';
 import 'package:nutri_log/services/avatar_cache_service.dart';
+import 'package:nutri_log/services/local_first_sync_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -48,12 +49,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
     // Загружаем фото и имя сразу при инициализации
     _loadGooglePhotoAndNameImmediately();
+    // Синхронизируем данные с облаком при открытии экрана
+    _syncDataOnOpen();
     // Слушаем изменения в авторизации на случай логина/выхода
     FirebaseAuthService.instance.authStateChanges().listen((_) {
       if (mounted) {
         _loadGooglePhotoAndNameImmediately();
       }
     });
+  }
+
+  Future<void> _syncDataOnOpen() async {
+    if (!FirebaseAuthService.instance.isSignedIn) return;
+    await LocalFirstSyncService.instance.syncNow();
+    if (mounted) {
+      context.read<ProfileProvider>().refreshProfile();
+    }
   }
 
   Future<void> _loadGooglePhotoAndNameImmediately() async {

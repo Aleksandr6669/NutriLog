@@ -94,6 +94,8 @@ class GeminiRecipeService {
   ];
 
   static const Duration _requestTimeout = Duration(seconds: 12);
+  static const int _jsonRetryMaxAttempts = 5;
+  static const Duration _jsonRetryDelay = Duration(seconds: 10);
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -249,7 +251,7 @@ Rules:
 - Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly mentioned by the user or clearly required by the dish/product type.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -264,10 +266,6 @@ Rules:
       },
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
     return _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
@@ -352,7 +350,7 @@ Rules:
 - Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly visible/mentioned or clearly required by the dish/product type.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -379,10 +377,6 @@ Rules:
       },
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
     return _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
@@ -490,7 +484,7 @@ Rules:
   - vitamin_a, vitamin_d: micrograms
   ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -506,10 +500,6 @@ Rules:
       apiKeyOverride: apiKey,
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
 
     final firstPass = <String, double>{};
     for (final key in nutrientKeys) {
@@ -700,7 +690,7 @@ Rules:
 ''';
 
     try {
-      final response = await _requestWithFallback(
+      final decoded = await _requestDecodedJsonWithAutoRetry(
         body: {
           'messages': [
             {
@@ -715,18 +705,6 @@ Rules:
         },
         locale: locale,
       );
-
-      final payload = jsonDecode(response.body) as Map<String, dynamic>;
-      final text = _extractText(payload, locale).trim();
-      if (text.isEmpty) {
-        return {
-          'approved': true,
-          'reason': '',
-          'nutrients': firstPass,
-        };
-      }
-
-      final decoded = _decodeJsonObject(text, locale);
       final approved = decoded['approved'] == true;
       final reason = (decoded['reason'] as String? ?? '').trim();
       final decodedNutrients = decoded['nutrients'] as Map<String, dynamic>?;
@@ -813,7 +791,7 @@ Rules:
 - If uncertain, set approved=false.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -828,10 +806,6 @@ Rules:
       },
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
 
     final decision =
         (decoded['decision'] as String? ?? '').trim().toLowerCase();
@@ -893,7 +867,7 @@ Rules:
     if (source.isEmpty) return null;
 
     try {
-      final response = await _requestWithFallback(
+      final decoded = await _requestDecodedJsonWithAutoRetry(
         body: {
           'messages': [
             {
@@ -922,9 +896,6 @@ Ingredient: $source
         locale: 'en',
       );
 
-      final payload = jsonDecode(response.body) as Map<String, dynamic>;
-      final raw = _extractText(payload, locale).trim();
-      final decoded = _decodeJsonObject(raw, 'en');
       final value = (decoded['query'] as String? ?? '').trim();
       final cleaned = value
           .replaceAll(RegExp(r'^[\x22\x27\s]+|[\x22\x27\s]+$'), '')
@@ -1143,7 +1114,7 @@ Rules:
 - No markdown, no extra keys, no extra text.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -1156,11 +1127,8 @@ Rules:
         'top_p': 1,
         'stream': false,
       },
+      locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale).trim();
-    final decoded = _decodeJsonObject(text, locale);
     final report = (decoded['report'] as String? ?? '').trim();
     if (report.isEmpty) {
       throw GeminiRecipeException(
@@ -1419,53 +1387,40 @@ Rules:
 - do not add snack recommendation if snack is not needed
 ''';
 
-    final response = await _requestWithFallback(
-      body: {
-        'messages': [
-          {
-            'role': 'user',
-            'content': prompt,
-          }
-        ],
-        'temperature': 0.4,
-        'max_completion_tokens': 520,
-        'top_p': 1,
-        'stream': false,
-      },
-      locale: locale,
-    );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale).trim();
-    if (text.isEmpty) {
-      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
-    }
-
-    Map<String, dynamic> decoded;
-    String overview;
-    List<Map<String, dynamic>> recommendations;
+    Map<String, dynamic>? decoded;
     try {
-      decoded = _decodeJsonObject(text, locale);
-      overview = (decoded['overview'] as String? ?? '').trim();
-      recommendations =
-          (decoded['recommendations'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>()
-              .map(
-                (item) => {
-                  'when': (item['when'] as String? ?? '').trim(),
-                  'action': (item['action'] as String? ?? '').trim(),
-                  'recipeName': (item['recipeName'] as String? ?? '').trim(),
-                },
-              )
-              .where((item) => (item['action'] ?? '').isNotEmpty)
-              .toList(growable: true);
+      decoded = await _requestDecodedJsonWithAutoRetry(
+        body: {
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.4,
+          'max_completion_tokens': 520,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+      );
     } catch (_) {
-      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
+      decoded = null;
     }
 
-    if (overview.isEmpty) {
-      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
-    }
+    var overview = (decoded?['overview'] as String? ?? '').trim();
+    List<Map<String, dynamic>> recommendations =
+        (decoded?['recommendations'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => {
+                'when': (item['when'] as String? ?? '').trim(),
+                'action': (item['action'] as String? ?? '').trim(),
+                'recipeName': (item['recipeName'] as String? ?? '').trim(),
+              },
+            )
+            .where((item) => (item['action'] ?? '').isNotEmpty)
+            .toList(growable: true);
 
     final fallbackSnackRecipeName = snackPriorityRecipes
         .map((r) => (r['name'] as String? ?? '').trim())
@@ -1481,10 +1436,6 @@ Rules:
           };
         }
       }
-    }
-
-    if (overview.isEmpty) {
-      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
     }
 
     final initialResult = {
@@ -1513,16 +1464,43 @@ Rules:
             .where((item) => (item['action'] ?? '').isNotEmpty)
             .toList(growable: true);
 
-    if (reviewedOverview.isNotEmpty && reviewedRecommendations.isNotEmpty) {
-      return {
-        'overview': reviewedOverview,
-        'recommendations': reviewedRecommendations,
-      };
+    if (reviewedOverview.isNotEmpty) {
+      overview = reviewedOverview;
+    }
+    if (reviewedRecommendations.isNotEmpty) {
+      recommendations = reviewedRecommendations;
+    }
+
+    recommendations = _ensureApproximateRecommendations(
+      recommendations: recommendations,
+      topFoods: topFoods,
+      locale: locale,
+      snackLikelyNeeded: snackLikelyNeeded,
+    );
+
+    if (overview.isEmpty) {
+      overview = _buildStructuredStatsOverviewFallback(
+        locale: locale,
+        periodLabel: periodLabel,
+        avgCalories: avgCalories,
+        calorieGoal: calorieGoal,
+        avgProteinGrams: avgProteinGrams,
+        proteinGoal: proteinGoal,
+        avgSteps: avgSteps,
+        stepsGoal: stepsGoal,
+      );
+    }
+    if (recommendations.isEmpty) {
+      recommendations = _buildStructuredRecommendationsFallback(
+        locale: locale,
+        topFoods: topFoods,
+        snackLikelyNeeded: snackLikelyNeeded,
+      );
     }
 
     return {
       'overview': overview,
-      'recommendations': recommendations,
+      'recommendations': recommendations.take(6).toList(growable: false),
     };
   }
 
@@ -1568,7 +1546,7 @@ $allowedRecipesText
 ''';
 
     try {
-      final response = await _requestWithFallback(
+      final decoded = await _requestDecodedJsonWithAutoRetry(
         body: {
           'messages': [
             {
@@ -1583,12 +1561,6 @@ $allowedRecipesText
         },
         locale: locale,
       );
-
-      final payload = jsonDecode(response.body) as Map<String, dynamic>;
-      final text = _extractText(payload, locale).trim();
-      if (text.isEmpty) return initialResult;
-
-      final decoded = _decodeJsonObject(text, locale);
       if (decoded['overview'] is! String ||
           decoded['recommendations'] is! List) {
         return initialResult;
@@ -1597,6 +1569,104 @@ $allowedRecipesText
     } catch (_) {
       return initialResult;
     }
+  }
+
+  List<Map<String, dynamic>> _ensureApproximateRecommendations({
+    required List<Map<String, dynamic>> recommendations,
+    required List<Map<String, dynamic>> topFoods,
+    required bool snackLikelyNeeded,
+    String? locale,
+  }) {
+    final topFoodName = topFoods
+        .map((f) => (f['name'] as String? ?? '').trim())
+        .firstWhere((name) => name.isNotEmpty, orElse: () => '');
+
+    final normalized = recommendations
+        .map(
+          (item) => {
+            'when': (item['when'] as String? ?? 'any').trim().isEmpty
+                ? 'any'
+                : (item['when'] as String? ?? 'any').trim(),
+            'action': (item['action'] as String? ?? '').trim(),
+            'recipeName': (item['recipeName'] as String? ?? '').trim(),
+          },
+        )
+        .toList(growable: true);
+
+    for (var i = 0; i < normalized.length; i++) {
+      final action = (normalized[i]['action'] ?? '').toString().trim();
+      final recipeName = (normalized[i]['recipeName'] ?? '').toString().trim();
+      if (recipeName.isEmpty && action.length < 18 && topFoodName.isNotEmpty) {
+        normalized[i] = {
+          ...normalized[i],
+          'action': topFoodName,
+        };
+      }
+    }
+
+    if (!snackLikelyNeeded) {
+      normalized.removeWhere(
+        (item) =>
+            (item['when'] ?? '').toString().trim().toLowerCase() == 'snack',
+      );
+    }
+
+    return normalized;
+  }
+
+  String _buildStructuredStatsOverviewFallback({
+    required String periodLabel,
+    required double avgCalories,
+    required int calorieGoal,
+    required double avgProteinGrams,
+    required int proteinGoal,
+    required int avgSteps,
+    required int stepsGoal,
+    String? locale,
+  }) {
+    final isRu = _languageCode(locale) == 'ru';
+    final isUk = _languageCode(locale) == 'uk';
+
+    if (isUk) {
+      return 'Звіт за період $periodLabel сформовано у спрощеному режимі. Середні калорії: ${avgCalories.toStringAsFixed(0)} ккал при цілі $calorieGoal ккал; білок: ${avgProteinGrams.toStringAsFixed(1)} г при цілі $proteinGoal г. Кроки: $avgSteps при цілі $stepsGoal. Продовжуй стабільний режим харчування та активності, поступово вирівнюй дефіцити без різких змін.';
+    }
+    if (isRu) {
+      return 'Отчет за период $periodLabel сформирован в упрощенном режиме. Средние калории: ${avgCalories.toStringAsFixed(0)} ккал при цели $calorieGoal ккал; белок: ${avgProteinGrams.toStringAsFixed(1)} г при цели $proteinGoal г. Шаги: $avgSteps при цели $stepsGoal. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.';
+    }
+    return 'Report for $periodLabel was generated in fallback mode. Average calories: ${avgCalories.toStringAsFixed(0)} kcal vs goal $calorieGoal kcal; protein: ${avgProteinGrams.toStringAsFixed(1)} g vs goal $proteinGoal g. Steps: $avgSteps vs goal $stepsGoal. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.';
+  }
+
+  List<Map<String, dynamic>> _buildStructuredRecommendationsFallback({
+    required List<Map<String, dynamic>> topFoods,
+    required bool snackLikelyNeeded,
+    String? locale,
+  }) {
+    final sample = _ensureApproximateRecommendations(
+      recommendations: [
+        {
+          'when': 'breakfast',
+          'action': '',
+          'recipeName': '',
+        },
+        {
+          'when': snackLikelyNeeded ? 'snack' : 'lunch',
+          'action': '',
+          'recipeName': '',
+        },
+        {
+          'when': 'dinner',
+          'action': '',
+          'recipeName': '',
+        },
+      ],
+      topFoods: topFoods,
+      snackLikelyNeeded: snackLikelyNeeded,
+      locale: locale,
+    );
+
+    return sample
+        .where((item) => (item['action'] as String? ?? '').trim().isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<DailyGoalsDraft> generateDailyGoals({
@@ -1647,7 +1717,7 @@ Rules:
 - Do not add any explanations outside the JSON.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -1662,10 +1732,6 @@ Rules:
       },
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
 
     int normalizeInt(dynamic value, int fallback) {
       final parsed = _toNonNegativeDouble(value).round();
@@ -1828,7 +1894,7 @@ Rules:
 - output only JSON.
 ''';
 
-    final response = await _requestWithFallback(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {
@@ -1843,10 +1909,6 @@ Rules:
       },
       locale: locale,
     );
-
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final text = _extractText(payload, locale);
-    final decoded = _decodeJsonObject(text, locale);
 
     final parsedName = (decoded['name'] as String? ?? '').trim();
     final parsedDescription = (decoded['description'] as String? ?? '').trim();
@@ -1939,6 +2001,45 @@ Rules:
     if (lastErrorResponse != null) {
       throw GeminiRecipeException(
           _buildHttpErrorMessage(lastErrorResponse, locale));
+    }
+    throw GeminiRecipeException(
+      _messages(locale).aiNoResponseError,
+    );
+  }
+
+  Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
+    required Map<String, dynamic> body,
+    String? apiKeyOverride,
+    String? locale,
+    int maxAttempts = _jsonRetryMaxAttempts,
+  }) async {
+    Object? lastError;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final response = await _requestWithFallback(
+          body: body,
+          apiKeyOverride: apiKeyOverride,
+          locale: locale,
+        );
+
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final text = _extractText(payload, locale).trim();
+        if (text.isEmpty) {
+          throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
+        }
+
+        return _decodeJsonObject(text, locale);
+      } catch (e) {
+        lastError = e;
+        if (attempt < maxAttempts) {
+          await Future<void>.delayed(_jsonRetryDelay);
+        }
+      }
+    }
+
+    if (lastError is GeminiRecipeException) {
+      throw lastError;
     }
     throw GeminiRecipeException(
       _messages(locale).aiNoResponseError,
