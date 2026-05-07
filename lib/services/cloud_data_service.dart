@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,14 +10,18 @@ class CloudDataService {
   CloudDataService._();
 
   static final CloudDataService instance = CloudDataService._();
+  // Глобальный режим: приложение всегда работает только с локальными данными.
+  static const bool _forceLocalOnly = true;
   static const String _lastSyncAtKey = 'cloud_last_sync_at';
+  static const Duration _cloudTimeout = Duration(seconds: 3);
 
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   String? get _uid => FirebaseAuthService.instance.currentUser?.uid;
   String? get currentUserId => _uid;
+  bool get isLocalOnlyMode => _forceLocalOnly;
 
-  bool get isSignedIn => FirebaseAuthService.instance.isSignedIn;
+  bool get isSignedIn => !_forceLocalOnly && FirebaseAuthService.instance.isSignedIn;
 
   DocumentReference<Map<String, dynamic>> _docRef(String key) {
     final uid = _uid;
@@ -31,37 +37,56 @@ class CloudDataService {
   }
 
   Future<Map<String, dynamic>?> readMap(String key) async {
+    if (_forceLocalOnly) return null;
     if (!isSignedIn) return null;
 
-    await FirebaseBootstrapService.ensureInitialized();
-    final snapshot = await _docRef(key).get();
-    if (!snapshot.exists) return null;
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      final snapshot = await _docRef(key).get().timeout(_cloudTimeout);
+      if (!snapshot.exists) return null;
 
-    await markSyncNow();
-    return snapshot.data();
+      await markSyncNow();
+      return snapshot.data();
+    } catch (_) {
+      // Офлайн/таймаут: вызывающий код должен продолжать работать по локальным данным.
+      return null;
+    }
   }
 
   Future<void> writeMap(String key, Map<String, dynamic> data) async {
+    if (_forceLocalOnly) return;
     if (!isSignedIn) return;
 
-    await FirebaseBootstrapService.ensureInitialized();
-    await _docRef(key).set(data, SetOptions(merge: false));
-    await markSyncNow();
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      await _docRef(key)
+          .set(data, SetOptions(merge: false))
+          .timeout(_cloudTimeout);
+      await markSyncNow();
+    } catch (_) {
+      // Офлайн/таймаут: сохраняем только локально.
+    }
   }
 
   Future<List<Map<String, dynamic>>> readCollection(
       String collectionPath) async {
+    if (_forceLocalOnly) return const [];
     if (!isSignedIn) return const [];
 
-    await FirebaseBootstrapService.ensureInitialized();
-    final snapshot = await _firestore.collection(collectionPath).get();
-    await markSyncNow();
-    return snapshot.docs
-        .map((doc) => <String, dynamic>{
-              ...doc.data(),
-              '__docId': doc.id,
-            })
-        .toList(growable: false);
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      final snapshot =
+          await _firestore.collection(collectionPath).get().timeout(_cloudTimeout);
+      await markSyncNow();
+      return snapshot.docs
+          .map((doc) => <String, dynamic>{
+                ...doc.data(),
+                '__docId': doc.id,
+              })
+          .toList(growable: false);
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> upsertDocument(
@@ -69,22 +94,37 @@ class CloudDataService {
     String docId,
     Map<String, dynamic> data,
   ) async {
+    if (_forceLocalOnly) return;
     if (!isSignedIn) return;
 
-    await FirebaseBootstrapService.ensureInitialized();
-    await _firestore
-        .collection(collectionPath)
-        .doc(docId)
-        .set(data, SetOptions(merge: false));
-    await markSyncNow();
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      await _firestore
+          .collection(collectionPath)
+          .doc(docId)
+          .set(data, SetOptions(merge: false))
+          .timeout(_cloudTimeout);
+      await markSyncNow();
+    } catch (_) {
+      // Офлайн/таймаут: локальные данные остаются источником истины.
+    }
   }
 
   Future<void> deleteDocument(String collectionPath, String docId) async {
+    if (_forceLocalOnly) return;
     if (!isSignedIn) return;
 
-    await FirebaseBootstrapService.ensureInitialized();
-    await _firestore.collection(collectionPath).doc(docId).delete();
-    await markSyncNow();
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      await _firestore
+          .collection(collectionPath)
+          .doc(docId)
+          .delete()
+          .timeout(_cloudTimeout);
+      await markSyncNow();
+    } catch (_) {
+      // Офлайн/таймаут: удаление в облаке будет выполнено позже.
+    }
   }
 
   Future<DateTime?> getLastSyncAt() async {
@@ -102,6 +142,7 @@ class CloudDataService {
 
   /// Real-time stream для коллекции Firestore.
   Stream<List<Map<String, dynamic>>> collectionStream(String collectionPath) {
+    if (_forceLocalOnly) return Stream.value(const <Map<String, dynamic>>[]);
     return _firestore.collection(collectionPath).snapshots().map(
           (snapshot) => snapshot.docs
               .map((doc) => <String, dynamic>{
@@ -109,13 +150,16 @@ class CloudDataService {
                     '__docId': doc.id,
                   })
               .toList(growable: false),
-        );
+        ).handleError((_) {
+          // Офлайн/permission ошибки стрима игнорируем: UI работает с локальным кешем.
+        });
   }
 
   /// Real-time stream для одного документа `users/{uid}/appData/{key}`.
   /// Переключается при смене аккаунта. Пропускает обновления от локальных записей,
   /// чтобы не вызывать лишних перерисовок.
   Stream<Map<String, dynamic>?> docStream(String key) {
+    if (_forceLocalOnly) return Stream.value(null);
     return FirebaseAuthService.instance.authStateChanges().asyncExpand((user) {
       if (user == null) return Stream.value(null);
       return _firestore
@@ -126,6 +170,8 @@ class CloudDataService {
           .snapshots()
           .where((snap) => !snap.metadata.hasPendingWrites)
           .map((snap) => snap.exists ? snap.data() : null);
+    }).handleError((_) {
+      // Офлайн/permission ошибки стрима не должны ломать локальную работу.
     });
   }
 
@@ -133,6 +179,7 @@ class CloudDataService {
   /// После записи никто (включая автора) не может изменить или удалить документ —
   /// это обеспечивается правилами Firestore (только create разрешён).
   Future<void> donateRecipe(Map<String, dynamic> recipeData) async {
+    if (_forceLocalOnly) return;
     if (!isSignedIn) throw StateError('User is not signed in.');
 
     await FirebaseBootstrapService.ensureInitialized();

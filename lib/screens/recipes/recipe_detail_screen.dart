@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
@@ -82,6 +83,19 @@ class RecipeDetailScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final createdAt = _tryParseCreatedAt(recipe.id);
+    final locale = Localizations.localeOf(context).languageCode;
+    final createdAtLabel = createdAt != null
+      ? DateFormat.yMd(locale).add_Hm().format(createdAt)
+      : 'Не указано';
+
+    final statusLabel = recipe.isDonated
+      ? 'Подаренный'
+      : (recipe.isPublic ? 'Публичный' : 'Приватный');
+    final statusColor = recipe.isDonated
+      ? Colors.green.shade700
+      : (recipe.isPublic ? Colors.blue.shade700 : Colors.grey.shade700);
+
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -115,11 +129,87 @@ class RecipeDetailScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  _metaChip(
+                    icon: Symbols.schedule,
+                    text: 'Создан: $createdAtLabel',
+                    textColor: Colors.grey.shade700,
+                    background: Colors.grey.shade100,
+                  ),
+                  _metaChip(
+                    icon: Symbols.public,
+                    text: statusLabel,
+                    textColor: statusColor,
+                    background: statusColor.withValues(alpha: 0.12),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _metaChip({
+    required IconData icon,
+    required String text,
+    required Color textColor,
+    required Color background,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  DateTime? _tryParseCreatedAt(String id) {
+    final trimmed = id.trim();
+    if (trimmed.isEmpty) return null;
+
+    final parts = trimmed.split('_');
+    if (parts.length >= 2) {
+      final ts = int.tryParse(parts[1]);
+      if (ts != null && ts > 0) {
+        final isMicroseconds = ts > 9999999999999;
+        return DateTime.fromMillisecondsSinceEpoch(
+          isMicroseconds ? ts ~/ 1000 : ts,
+        );
+      }
+    }
+
+    final numeric = int.tryParse(trimmed);
+    if (numeric != null && numeric > 0) {
+      final isMicroseconds = numeric > 9999999999999;
+      return DateTime.fromMillisecondsSinceEpoch(
+        isMicroseconds ? numeric ~/ 1000 : numeric,
+      );
+    }
+
+    return null;
   }
 
   Widget _buildIngredientsCard(BuildContext context) {

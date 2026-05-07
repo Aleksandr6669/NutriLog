@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
 import 'firebase_auth_service.dart';
+import 'cloud_data_service.dart';
 import 'daily_log_service.dart';
 import 'profile_service.dart';
 import 'recipe_service.dart';
@@ -28,6 +29,10 @@ class LocalFirstSyncService {
 
   void start() {
     if (_started) return;
+    if (CloudDataService.instance.isLocalOnlyMode) {
+      statusNotifier.value = SyncStatus.idle;
+      return;
+    }
     _started = true;
 
     _authSubscription = FirebaseAuthService.instance.authStateChanges().listen(
@@ -63,6 +68,10 @@ class LocalFirstSyncService {
   }
 
   Future<void> syncNow() async {
+    if (CloudDataService.instance.isLocalOnlyMode) {
+      statusNotifier.value = SyncStatus.idle;
+      return;
+    }
     if (_isSyncing || !FirebaseAuthService.instance.isSignedIn) return;
 
     _isSyncing = true;

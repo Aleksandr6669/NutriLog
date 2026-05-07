@@ -530,7 +530,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
       final recipe = Recipe(
         id: widget.recipe?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
+            'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
         name: _nameController.text,
         description: _descriptionController.text,
         nutrients: nutrients,
@@ -846,9 +846,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               _buildIngredientsCard(),
               const SizedBox(height: 20),
               _buildNutrientsCard(),
+              const SizedBox(height: 24),
+              _buildDonateCard(),
               if (widget.recipe != null) ...[
-                const SizedBox(height: 24),
-                _buildDonateCard(),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.center,

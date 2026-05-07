@@ -556,6 +556,10 @@ class _ConnectionsNotificationsScreenState
               ),
             ),
           ),
+          if (_user != null) ...[
+            const SizedBox(height: 8),
+            _buildSyncStatusBadge(theme),
+          ],
           AnimatedSize(
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
@@ -564,8 +568,6 @@ class _ConnectionsNotificationsScreenState
                     padding: const EdgeInsets.only(top: 8),
                     child: Column(
                       children: [
-                        if (_user != null) _buildSyncStatusBadge(theme),
-                        if (_user != null) const SizedBox(height: 8),
                         Card(
                           child: _buildSyncInfoPanel(theme, l10n),
                         ),

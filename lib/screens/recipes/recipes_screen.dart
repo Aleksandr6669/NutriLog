@@ -30,6 +30,7 @@ class RecipesScreen extends StatefulWidget {
 }
 
 class _RecipesScreenState extends State<RecipesScreen> {
+  String? _streamErrorMessage;
   final _searchController = TextEditingController();
   final RecipeService _recipeService = RecipeService();
 
@@ -74,10 +75,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
     _publicRecipesSubscription = _recipeService.publicRecipesStream().listen(
       (_) {
-        // Облако обновилось — обновляем список (кеш уже обновлён внутри стрима)
-        if (mounted) _loadAllRecipes();
+        if (mounted) {
+          setState(() {
+            _streamErrorMessage = null;
+          });
+          _loadAllRecipes();
+        }
       },
-      onError: (_) {}, // Тихо игнорируем ошибки сети — данные уже в кеше
+      onError: (error) {
+        if (mounted) {
+          setState(() {
+            _streamErrorMessage = 'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+          });
+        }
+      },
     );
   }
 
@@ -87,10 +98,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
     _privateRecipesSubscription = _recipeService.privateRecipesStream().listen(
       (_) {
-        // Облако обновилось — обновляем список приватных рецептов
-        if (mounted) _loadAllRecipes();
+        if (mounted) {
+          setState(() {
+            _streamErrorMessage = null;
+          });
+          _loadAllRecipes();
+        }
       },
-      onError: (_) {},
+      onError: (error) {
+        if (mounted) {
+          setState(() {
+            _streamErrorMessage = 'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+          });
+        }
+      },
     );
   }
 
@@ -328,24 +349,58 @@ class _RecipesScreenState extends State<RecipesScreen> {
       final parts = r.id.split('_');
       if (parts.length >= 3) return int.tryParse(parts[1]) ?? 0;
       if (parts.length == 2) return int.tryParse(parts[1]) ?? 0;
-      return 0;
+      // Поддержка старых id, где timestamp был целиком числом.
+      return int.tryParse(r.id) ?? 0;
+    }
+
+    List<Recipe> dedupeById(List<Recipe> recipes) {
+      final byId = <String, Recipe>{};
+      for (final recipe in recipes) {
+        final id = recipe.id.trim();
+        if (id.isEmpty) continue;
+        final existing = byId[id];
+        if (existing == null) {
+          byId[id] = recipe;
+          continue;
+        }
+        byId[id] = existing.copyWith(
+          name: recipe.name.isNotEmpty ? recipe.name : existing.name,
+          description:
+              recipe.description.isNotEmpty ? recipe.description : existing.description,
+          nutrients:
+              recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
+          ingredients: recipe.ingredients.isNotEmpty
+              ? recipe.ingredients
+              : existing.ingredients,
+          instructions: recipe.instructions.isNotEmpty
+              ? recipe.instructions
+              : existing.instructions,
+          icon: recipe.icon,
+          isUserRecipe: existing.isUserRecipe || recipe.isUserRecipe,
+          isPublic: existing.isPublic || recipe.isPublic,
+          isDonated: existing.isDonated || recipe.isDonated,
+        );
+      }
+      return byId.values.toList(growable: false);
     }
 
     // 1. Свои рецепты — по дате создания, новые первыми
-    final ownRecipes = userRecipes.where((r) => r.isUserRecipe).toList()
+    final dedupedUserRecipes = dedupeById(userRecipes);
+
+    final ownRecipes = dedupedUserRecipes.where((r) => r.isUserRecipe).toList()
       ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
     // 2. Публичные рецепты других пользователей — по дате создания, новые первыми
-    final othersRecipes = userRecipes
+    final othersRecipes = dedupedUserRecipes
         .where((r) => !r.isUserRecipe && r.isPublic)
         .toList()
       ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
 
-    final appearedIds = userRecipes.map((r) => r.id).toSet();
+    final appearedIds = dedupedUserRecipes.map((r) => r.id).toSet();
     String? nextHighlightedRecipeId = _highlightedAppearedRecipeId;
     if (_isRecipeFeedInitialized) {
       final newIds = appearedIds.difference(_knownRealtimeRecipeIds);
       if (newIds.isNotEmpty) {
-        final newestAppearedRecipe = userRecipes
+        final newestAppearedRecipe = dedupedUserRecipes.toList()
           ..sort((a, b) => createdAt(b).compareTo(createdAt(a)));
         final matched = newestAppearedRecipe
             .where((r) => newIds.contains(r.id))
@@ -534,45 +589,60 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ),
             ],
           ),
-          body: Column(
+          body: Stack(
             children: [
-              SizedBox(height: fixedTopInset),
-              fixedSearch,
-              _buildSelectedRecipesBar(theme),
-              Expanded(
-                child: CustomScrollView(
-                  slivers: [
-                    if (_isDeleteSelectionMode && !widget.selectionMode)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              '${AppLocalizations.of(context)!.selected}: ${_selectedRecipeIdsForDelete.length}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
+              Column(
+                children: [
+                  SizedBox(height: fixedTopInset),
+                  fixedSearch,
+                  _buildSelectedRecipesBar(theme),
+                  Expanded(
+                    child: CustomScrollView(
+                      slivers: [
+                        if (_isDeleteSelectionMode && !widget.selectionMode)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${AppLocalizations.of(context)!.selected}: ${_selectedRecipeIdsForDelete.length}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    if (_isLoading)
-                      const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else if (_filteredRecipes.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _buildEmptyState(),
-                      )
-                    else
-                      _buildRecipesList(),
-                  ],
-                ),
+                        if (_isLoading)
+                          const SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (_filteredRecipes.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _buildEmptyState(),
+                          )
+                        else
+                          _buildRecipesList(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              if (_streamErrorMessage != null)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text(
+                      _streamErrorMessage!,
+                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
           bottomNavigationBar: null,
@@ -941,6 +1011,25 @@ class _RecipeListItem extends StatelessWidget {
     final rawCalories = recipe.nutrients['calories'];
     final calories = ((rawCalories as num?) ?? 0).round();
     final isOwnRecipe = recipe.isUserRecipe;
+    final isPublic = recipe.isPublic;
+    final isDonated = recipe.isDonated;
+
+    String? badgeText;
+    Color? badgeColor;
+    Color? badgeTextColor;
+    if (isOwnRecipe) {
+      badgeText = 'Мой рецепт';
+      badgeColor = AppColors.primary.withValues(alpha: 0.1);
+      badgeTextColor = AppColors.primary;
+    } else if (isPublic) {
+      badgeText = 'Публичный';
+      badgeColor = Colors.blue.withOpacity(0.10);
+      badgeTextColor = Colors.blue.shade700;
+    } else if (isDonated) {
+      badgeText = 'Стандартный';
+      badgeColor = Colors.green.withOpacity(0.10);
+      badgeTextColor = Colors.green.shade700;
+    }
 
     final card = Card(
       color: Colors.white,
@@ -987,7 +1076,7 @@ class _RecipeListItem extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (isOwnRecipe) ...[
+                            if (badgeText != null) ...[
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -995,14 +1084,13 @@ class _RecipeListItem extends StatelessWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.1),
+                                  color: badgeColor,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
-                                  'Мой рецепт',
+                                  badgeText,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: AppColors.primary,
+                                    color: badgeTextColor,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -1035,11 +1123,7 @@ class _RecipeListItem extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        Icon(
-                          Symbols.info,
-                          color: theme.colorScheme.primary,
-                          size: 20,
-                        ),
+                        // Был info-значок, теперь ничего
                       ],
                     )
                   else if (!isDeleteMode || canSelectInDeleteMode)
@@ -1128,13 +1212,15 @@ class _AppearedRecipeBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+    // Используем радиус карточки для точного совпадения
+    final borderRadius = AppStyles.cardRadius.topLeft;
     final outerRRect = RRect.fromRectAndRadius(
       rect.deflate(0.8),
-      const Radius.circular(22),
+      borderRadius,
     );
     final innerRRect = RRect.fromRectAndRadius(
       rect.deflate(3.2),
-      const Radius.circular(19),
+      Radius.circular(borderRadius.x - 3),
     );
 
     final outerPath = Path()..addRRect(outerRRect);

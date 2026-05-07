@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,10 +61,15 @@ class ProfileService {
     final String profileString = json.encode(profile.toJson());
     await prefs.setString(_profileKey, profileString);
 
+    // Не ждём сеть: локальное сохранение уже завершено, облако синкаем в фоне.
+    unawaited(_syncProfileToCloudInBackground(profile));
+  }
+
+  Future<void> _syncProfileToCloudInBackground(UserProfile profile) async {
     try {
       await CloudDataService.instance.writeMap('profile', profile.toJson());
     } catch (_) {
-      // Локальное сохранение уже выполнено.
+      // Повтор произойдёт при следующем цикле локально-first синхронизации.
     }
   }
 

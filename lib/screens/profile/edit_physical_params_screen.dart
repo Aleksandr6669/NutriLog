@@ -8,6 +8,7 @@ import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:nutri_log/services/firebase_auth_service.dart';
 
 class EditPhysicalParamsScreen extends StatefulWidget {
   final UserProfile profile;
@@ -38,6 +39,34 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         TextEditingController(text: widget.profile.height.toString());
     _weightController =
         TextEditingController(text: widget.profile.weight.toString());
+  }
+
+  Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
+    final isAuthorized = FirebaseAuthService.instance.isSignedIn;
+    return Stack(
+      alignment: Alignment.centerRight,
+      children: [
+        AbsorbPointer(
+          absorbing: isAuthorized,
+          child: _buildTextFormField(
+            controller: _nameController,
+            label: l10n.name,
+            icon: Symbols.person,
+            validator: (value) =>
+                value == null || value.isEmpty ? l10n.enterYourName : null,
+          ),
+        ),
+        if (isAuthorized)
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Icon(
+              Symbols.lock,
+              size: 20,
+              color: Theme.of(context).hintColor.withOpacity(0.6),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -114,13 +143,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildTextFormField(
-                controller: _nameController,
-                label: l10n.name,
-                icon: Symbols.person,
-                validator: (value) =>
-                    value == null || value.isEmpty ? l10n.enterYourName : null,
-              ),
+              _buildNameField(context, l10n),
               const SizedBox(height: 24),
               _buildGenderSelector(theme),
               const SizedBox(height: 24),

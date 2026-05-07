@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
@@ -112,11 +113,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final aiAssistantEnabled = settings.statsAiAssistantEnabled;
     final recipeService = RecipeService();
     if (CloudDataService.instance.isSignedIn) {
-      try {
-        await recipeService.syncWithCloud();
-      } catch (_) {
-        // Если сеть недоступна, используем локальный кеш рецептов.
-      }
+      // Не блокируем загрузку аналитики: синхронизация только в фоне.
+      unawaited(recipeService.syncWithCloud());
     }
     final builtInRecipes = await RecipeLoader.loadRecipesFromAssets(
       locale: locale,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,7 +71,39 @@ class RecipeService {
     final localPrivateRecipes = await _loadLocalPrivateRecipes();
     final localPublicRecipes = await _loadLocalPublicRecipes();
 
-    return [...localPrivateRecipes, ...localPublicRecipes];
+    return _dedupeRecipesById([...localPrivateRecipes, ...localPublicRecipes]);
+  }
+
+  List<Recipe> _dedupeRecipesById(List<Recipe> recipes) {
+    final byId = <String, Recipe>{};
+    for (final recipe in recipes) {
+      final id = recipe.id.trim();
+      if (id.isEmpty) continue;
+
+      final existing = byId[id];
+      if (existing == null) {
+        byId[id] = recipe;
+        continue;
+      }
+
+      // При дублях оставляем более «богатую» и приоритетную запись.
+      final merged = existing.copyWith(
+        name: recipe.name.isNotEmpty ? recipe.name : existing.name,
+        description:
+            recipe.description.isNotEmpty ? recipe.description : existing.description,
+        nutrients: recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
+        ingredients:
+            recipe.ingredients.isNotEmpty ? recipe.ingredients : existing.ingredients,
+        instructions:
+            recipe.instructions.isNotEmpty ? recipe.instructions : existing.instructions,
+        icon: recipe.icon,
+        isUserRecipe: existing.isUserRecipe || recipe.isUserRecipe,
+        isPublic: existing.isPublic || recipe.isPublic,
+        isDonated: existing.isDonated || recipe.isDonated,
+      );
+      byId[id] = merged;
+    }
+    return byId.values.toList(growable: false);
   }
 
   Future<int> syncWithCloud() async {
@@ -190,6 +223,14 @@ class RecipeService {
 
     if (!syncCloud) return;
 
+    // Не ждём сеть: UI должен работать офлайн без задержек.
+    unawaited(_syncRecipesToCloudInBackground(privateRecipes, ownPublicRecipes));
+  }
+
+  Future<void> _syncRecipesToCloudInBackground(
+    List<Recipe> privateRecipes,
+    List<Recipe> ownPublicRecipes,
+  ) async {
     try {
       await CloudDataService.instance.writeMap('recipes', {
         'recipes':
@@ -197,7 +238,7 @@ class RecipeService {
       });
       await _syncOwnPublicRecipesToCloud(ownPublicRecipes);
     } catch (_) {
-      // Локальное сохранение уже выполнено.
+      // Будет повторная синхронизация в фоне.
     }
   }
 
@@ -218,17 +259,27 @@ class RecipeService {
 
   Future<void> deleteRecipe(String recipeId) async {
     final recipes = await _loadOwnedRecipesForMutation();
+    final deletedRecipe = recipes.firstWhere(
+      (r) => r.id == recipeId,
+      orElse: () => Recipe.empty(),
+    );
     recipes.removeWhere((r) => r.id == recipeId);
     await _saveUserRecipes(recipes);
 
-    // Также удаляем из облака если это публичный рецепт автора
+    // Удаление из облака запускаем в фоне, чтобы не блокировать офлайн-удаление.
+    if (deletedRecipe.isPublic) {
+      unawaited(_deletePublicRecipeInBackground(recipeId));
+    }
+  }
+
+  Future<void> _deletePublicRecipeInBackground(String recipeId) async {
     try {
       final cloudService = CloudDataService.instance;
       if (cloudService.isSignedIn) {
         await cloudService.deleteDocument('publicRecipes', recipeId);
       }
     } catch (_) {
-      // Удаление из облака необязательно — правила Firestore всё равно защитят.
+      // При офлайне удаление в облаке будет дожато следующей синхронизацией.
     }
   }
 

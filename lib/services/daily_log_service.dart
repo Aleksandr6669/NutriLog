@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,10 +43,16 @@ class DailyLogService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, json.encode(jsonMap));
 
+    // Сохраняем локально мгновенно, синхронизацию в облако выполняем асинхронно.
+    unawaited(_syncDailyLogsToCloudInBackground(jsonMap));
+  }
+
+  Future<void> _syncDailyLogsToCloudInBackground(
+      Map<String, dynamic> jsonMap) async {
     try {
       await CloudDataService.instance.writeMap('daily_logs', {'logs': jsonMap});
     } catch (_) {
-      // Локальное сохранение уже выполнено.
+      // Повторится при следующем фоновом цикле синхронизации.
     }
   }
 
