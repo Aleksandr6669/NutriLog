@@ -49,7 +49,6 @@ class _StatsScreenState extends State<StatsScreen> {
   bool _aiError = false;
   int _dataRequestId = 0;
   int _aiStartedForRequestId = -1;
-  bool _isCurrentlyVisible = false;
   Locale? _lastLocale;
   final AiReportHistoryService _historyService = AiReportHistoryService();
   List<AiReportEntry> _aiReportHistory = const [];
@@ -77,19 +76,11 @@ class _StatsScreenState extends State<StatsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final locale = Localizations.localeOf(context);
-    // TickerMode корректно определяет активность вкладки в StatefulShellRoute.indexedStack
-    final isVisible = TickerMode.valuesOf(context).enabled;
     if (_lastLocale != locale) {
       _lastLocale = locale;
-      if (_isCurrentlyVisible) {
+      if (mounted) {
         _reloadStats();
       }
-    }
-    if (isVisible && !_isCurrentlyVisible) {
-      _isCurrentlyVisible = true;
-      _reloadStats();
-    } else if (!isVisible) {
-      _isCurrentlyVisible = false;
     }
   }
 
