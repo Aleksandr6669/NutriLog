@@ -10,8 +10,9 @@ class CloudDataService {
   CloudDataService._();
 
   static final CloudDataService instance = CloudDataService._();
-  // Глобальный режим: приложение всегда работает только с локальными данными.
-  static const bool _forceLocalOnly = true;
+  // Local-first: UI всегда работает на локальных данных, облако синкается фоном.
+  // Для полного отключения облака переключите в true.
+  static const bool _forceLocalOnly = false;
   static const String _lastSyncAtKey = 'cloud_last_sync_at';
   static const Duration _cloudTimeout = Duration(seconds: 3);
 
@@ -36,12 +37,31 @@ class CloudDataService {
         .doc(key);
   }
 
+  Future<void> _ensureUserRootDocument() async {
+    if (_forceLocalOnly) return;
+
+    final uid = _uid;
+    final user = FirebaseAuthService.instance.currentUser;
+    if (uid == null || uid.isEmpty || user == null) return;
+
+    await _firestore.collection('users').doc(uid).set({
+      'uid': uid,
+      'email': user.email,
+      'displayName': user.displayName,
+      'cloudSyncEnabled': true,
+      'appDataMirror': FieldValue.delete(),
+      'appDataMirrorMeta': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)).timeout(_cloudTimeout);
+  }
+
   Future<Map<String, dynamic>?> readMap(String key) async {
     if (_forceLocalOnly) return null;
     if (!isSignedIn) return null;
 
     try {
       await FirebaseBootstrapService.ensureInitialized();
+      await _ensureUserRootDocument();
       final snapshot = await _docRef(key).get().timeout(_cloudTimeout);
       if (!snapshot.exists) return null;
 
@@ -59,6 +79,7 @@ class CloudDataService {
 
     try {
       await FirebaseBootstrapService.ensureInitialized();
+      await _ensureUserRootDocument();
       await _docRef(key)
           .set(data, SetOptions(merge: false))
           .timeout(_cloudTimeout);
@@ -183,6 +204,7 @@ class CloudDataService {
     if (!isSignedIn) throw StateError('User is not signed in.');
 
     await FirebaseBootstrapService.ensureInitialized();
+    await _ensureUserRootDocument();
     final uid = _uid!;
     final docId = recipeData['id'] as String? ?? uid;
     await _firestore.collection('donatedRecipes').doc(docId).set({

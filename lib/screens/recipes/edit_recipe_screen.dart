@@ -7,6 +7,8 @@ import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/cloud_data_service.dart';
+import 'package:nutri_log/services/firebase_auth_service.dart';
+import 'package:nutri_log/services/firebase_bootstrap_service.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
@@ -586,33 +588,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       }
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: Text(l10n.donateRecipeConfirmTitle,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          content: Text(l10n.donateRecipeConfirmMessage),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: FilledButton.styleFrom(backgroundColor: Colors.deepOrange),
-              child: Text(l10n.donateRecipeConfirm),
-            ),
-          ],
-        );
-      },
-    );
-    if (confirmed != true || !mounted) return;
-
     final cloudService = CloudDataService.instance;
-    if (!cloudService.isSignedIn) {
+    await FirebaseBootstrapService.ensureInitialized();
+    if (FirebaseAuthService.instance.currentUser == null ||
+        !cloudService.isSignedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(l10n.donateRecipeSignInRequired),
@@ -623,9 +602,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     setState(() => _isDonating = true);
     try {
-      // Сначала сохраняем рецепт локально
-      await _saveRecipe();
-      // Собираем данные из формы
+      // Сначала сохраняем/обновляем локальный рецепт без закрытия экрана.
       final nutrients = <String, double>{};
       for (final key in _nutrientKeys) {
         nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
@@ -638,23 +615,43 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ))
           .where((i) => i.name.isNotEmpty)
           .toList();
-      final recipe = Recipe(
+
+      final localRecipe = Recipe(
         id: widget.recipe?.id ??
-            'donated_${DateTime.now().microsecondsSinceEpoch}',
+            'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
         name: _nameController.text.trim(),
         description: _descriptionController.text,
         nutrients: nutrients,
         icon: _selectedIcon,
-        isUserRecipe: false,
-        isPublic: true,
-        isDonated: true,
+        isUserRecipe: true,
+        isPublic: _isPublic,
+        isDonated: _isDonated,
         ingredients: ingredients,
         instructions: widget.recipe?.instructions ?? [],
       );
-      await cloudService.donateRecipe(recipe.toJson());
+
+      if (widget.recipe == null) {
+        await _recipeService.addRecipe(localRecipe);
+      } else {
+        await _recipeService.updateRecipe(localRecipe);
+      }
+
+      final donationRecipe = localRecipe.copyWith(
+        isUserRecipe: false,
+        isPublic: true,
+        isDonated: true,
+      );
+      await cloudService.donateRecipe(donationRecipe.toJson());
+
+      // Помечаем локальную копию как переданную сообществу.
+      await _recipeService.updateRecipe(
+        localRecipe.copyWith(isPublic: true, isDonated: true),
+      );
+
       if (!mounted) return;
       setState(() {
         _isDonated = true;
+        _isPublic = true;
         _isDonating = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -662,6 +659,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           content: Text(l10n.donateRecipeSuccess),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.green.shade700,
+        ),
+      );
+    } on StateError {
+      if (!mounted) return;
+      setState(() => _isDonating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.donateRecipeSignInRequired),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } catch (e) {

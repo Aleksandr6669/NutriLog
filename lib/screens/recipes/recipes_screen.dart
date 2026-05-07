@@ -85,7 +85,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       onError: (error) {
         if (mounted) {
           setState(() {
-            _streamErrorMessage = 'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+            _streamErrorMessage =
+                'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
           });
         }
       },
@@ -108,7 +109,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       onError: (error) {
         if (mounted) {
           setState(() {
-            _streamErrorMessage = 'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+            _streamErrorMessage =
+                'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
           });
         }
       },
@@ -365,10 +367,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
         }
         byId[id] = existing.copyWith(
           name: recipe.name.isNotEmpty ? recipe.name : existing.name,
-          description:
-              recipe.description.isNotEmpty ? recipe.description : existing.description,
-          nutrients:
-              recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
+          description: recipe.description.isNotEmpty
+              ? recipe.description
+              : existing.description,
+          nutrients: recipe.nutrients.isNotEmpty
+              ? recipe.nutrients
+              : existing.nutrients,
           ingredients: recipe.ingredients.isNotEmpty
               ? recipe.ingredients
               : existing.ingredients,
@@ -638,7 +642,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     padding: const EdgeInsets.all(24.0),
                     child: Text(
                       _streamErrorMessage!,
-                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.red),
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: Colors.red),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -825,6 +830,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
             final item = _RecipeListItem(
               recipe: recipe,
               isHighlighted: recipe.id == _highlightedAppearedRecipeId,
+              onHighlightCompleted: () {
+                if (!mounted) return;
+                if (_highlightedAppearedRecipeId != recipe.id) return;
+                setState(() => _highlightedAppearedRecipeId = null);
+              },
               isSelectionMode: widget.selectionMode || _isDeleteSelectionMode,
               isDeleteMode: _isDeleteSelectionMode && !widget.selectionMode,
               canSelectInDeleteMode: recipe.isUserRecipe,
@@ -991,6 +1001,7 @@ class _RecipeListItem extends StatelessWidget {
   final bool isSelected;
   final bool isDeleteSelected;
   final VoidCallback? onActionTap;
+  final VoidCallback? onHighlightCompleted;
 
   const _RecipeListItem({
     required this.recipe,
@@ -1002,6 +1013,7 @@ class _RecipeListItem extends StatelessWidget {
     this.isSelected = false,
     this.isDeleteSelected = false,
     this.onActionTap,
+    this.onHighlightCompleted,
   });
 
   @override
@@ -1063,40 +1075,35 @@ class _RecipeListItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
+                        if (badgeText != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: badgeColor,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
                               child: Text(
-                                recipe.name,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
+                                badgeText,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: badgeTextColor,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (badgeText != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: badgeColor,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  badgeText,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: badgeTextColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
+                          ),
+                        Text(
+                          recipe.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (recipe.description.isNotEmpty)
                           Padding(
@@ -1123,7 +1130,11 @@ class _RecipeListItem extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        // Был info-значок, теперь ничего
+                        Icon(
+                          Symbols.info,
+                          color: theme.colorScheme.primary,
+                          size: 18,
+                        ),
                       ],
                     )
                   else if (!isDeleteMode || canSelectInDeleteMode)
@@ -1154,14 +1165,18 @@ class _RecipeListItem extends StatelessWidget {
     );
 
     if (!isHighlighted) return card;
-    return _AppearedRecipeHighlight(child: card);
+    return _AppearedRecipeHighlight(
+      onCompleted: onHighlightCompleted,
+      child: card,
+    );
   }
 }
 
 class _AppearedRecipeHighlight extends StatefulWidget {
   final Widget child;
+  final VoidCallback? onCompleted;
 
-  const _AppearedRecipeHighlight({required this.child});
+  const _AppearedRecipeHighlight({required this.child, this.onCompleted});
 
   @override
   State<_AppearedRecipeHighlight> createState() =>
@@ -1171,14 +1186,21 @@ class _AppearedRecipeHighlight extends StatefulWidget {
 class _AppearedRecipeHighlightState extends State<_AppearedRecipeHighlight>
     with SingleTickerProviderStateMixin {
   late final AnimationController _rotationController;
+  bool _notified = false;
 
   @override
   void initState() {
     super.initState();
     _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1700),
-    )..repeat();
+      duration: const Duration(milliseconds: 1800),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && !_notified) {
+          _notified = true;
+          widget.onCompleted?.call();
+        }
+      });
+    _rotationController.forward();
   }
 
   @override
@@ -1193,11 +1215,14 @@ class _AppearedRecipeHighlightState extends State<_AppearedRecipeHighlight>
       animation: _rotationController,
       child: widget.child,
       builder: (context, child) {
-        return CustomPaint(
-          foregroundPainter: _AppearedRecipeBorderPainter(
-            progress: _rotationController.value,
+        return ClipRRect(
+          borderRadius: AppStyles.cardRadius,
+          child: CustomPaint(
+            foregroundPainter: _AppearedRecipeBorderPainter(
+              progress: _rotationController.value,
+            ),
+            child: child,
           ),
-          child: child,
         );
       },
     );
@@ -1215,11 +1240,11 @@ class _AppearedRecipeBorderPainter extends CustomPainter {
     // Используем радиус карточки для точного совпадения
     final borderRadius = AppStyles.cardRadius.topLeft;
     final outerRRect = RRect.fromRectAndRadius(
-      rect.deflate(0.8),
+      rect.deflate(2.0),
       borderRadius,
     );
     final innerRRect = RRect.fromRectAndRadius(
-      rect.deflate(3.2),
+      rect.deflate(4.4),
       Radius.circular(borderRadius.x - 3),
     );
 
@@ -1228,8 +1253,8 @@ class _AppearedRecipeBorderPainter extends CustomPainter {
     final outerMetric = outerPath.computeMetrics().first;
     final innerMetric = innerPath.computeMetrics().first;
 
-    final outerArcLength = outerMetric.length * 0.17;
-    final innerArcLength = innerMetric.length * 0.12;
+    final outerArcLength = outerMetric.length * 0.21;
+    final innerArcLength = innerMetric.length * 0.14;
     final outerOffset = outerMetric.length * progress;
     final innerOffset = innerMetric.length * ((progress + 0.42) % 1.0);
 
@@ -1247,12 +1272,12 @@ class _AppearedRecipeBorderPainter extends CustomPainter {
     final outerPaint = Paint()
       ..color = AppColors.primary.withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
+      ..strokeWidth = 1.8
       ..strokeCap = StrokeCap.round;
     final innerPaint = Paint()
       ..color = AppColors.primary.withValues(alpha: 0.75)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
+      ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(outerSegment, outerPaint);

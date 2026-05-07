@@ -869,6 +869,7 @@ Response format:
     required List<Map<String, dynamic>> topFoods,
     required List<Map<String, dynamic>> snackPriorityRecipes,
     required List<Map<String, dynamic>> availableRecipes,
+    required List<Map<String, dynamic>> previousReports,
   }) async {
     final snackLikelyNeeded = avgCalories < calorieGoal * 0.9 ||
         avgProteinGrams < proteinGoal * 0.9 ||
@@ -900,6 +901,40 @@ Response format:
         })
         .where((line) => !line.startsWith('-  ('))
         .join('\n');
+
+    final previousReportsContext = previousReports
+        .take(12)
+        .map((report) {
+          final period = (report['period'] as String? ?? '').trim();
+          final overview = (report['overview'] as String? ?? '').trim();
+          final recs = (report['recommendations'] as List<dynamic>? ?? const [])
+              .whereType<Map>()
+              .map((item) {
+                final when = (item['when'] as String? ?? '').trim();
+                final action = (item['action'] as String? ?? '').trim();
+                final recipeName = (item['recipeName'] as String? ?? '').trim();
+                final recipeSuffix =
+                    recipeName.isEmpty ? '' : ' [recipe: $recipeName]';
+                return '$when: $action$recipeSuffix';
+              })
+              .where((line) => line.trim().isNotEmpty)
+              .join('; ');
+          return '- period: $period; overview: $overview; recommendations: $recs';
+        })
+        .where((line) => !line.startsWith('- period: ;'))
+        .join('\n');
+
+    final previousRecipeNames = previousReports
+        .expand((report) =>
+            (report['recommendations'] as List<dynamic>? ?? const []))
+        .whereType<Map>()
+        .map((item) => (item['recipeName'] as String? ?? '').trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    final previousRecommendedRecipesContext =
+        previousRecipeNames.take(40).map((name) => '- $name').join('\n');
 
     final prompt = '''
 You are a supportive fitness assistant and nutritionist.
@@ -966,6 +1001,12 @@ ${recipesContext.isEmpty ? '- none' : recipesContext}
 Priority snack recipe candidates (prefer these for snack recommendations if suitable):
 ${snackPriorityContext.isEmpty ? '- none' : snackPriorityContext}
 
+Previous AI reports memory (use for continuity, avoid repeating same generic advice):
+${previousReportsContext.isEmpty ? '- no previous reports' : previousReportsContext}
+
+Previously recommended recipes (prefer continuity when still relevant):
+${previousRecommendedRecipesContext.isEmpty ? '- none' : previousRecommendedRecipesContext}
+
 Task:
 1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 6-10 sentences.
 2) Start with personal addressing using the user's name naturally.
@@ -978,6 +1019,8 @@ Task:
 9) Add snack recommendations only if they are actually needed for this user.
 10) If snack is needed, prefer adding snack with recipeName from priority snack candidates.
 11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
+12) Use previous reports memory to keep recommendations consistent and progressive.
+13) Reuse previously recommended recipes when still relevant, otherwise suggest better alternatives from current list.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 

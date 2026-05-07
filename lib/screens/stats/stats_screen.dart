@@ -18,6 +18,7 @@ import '../../services/notification_settings_service.dart';
 import '../../services/profile_service.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
+import '../../services/local_first_sync_service.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
@@ -35,6 +36,7 @@ enum _StatsPeriod { week, month, year }
 
 class _StatsScreenState extends State<StatsScreen> {
   _StatsPeriod _period = _StatsPeriod.week;
+  bool _isAverageMetricsExpanded = false;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
   final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
@@ -78,6 +80,7 @@ class _StatsScreenState extends State<StatsScreen> {
     }
     if (isVisible && !_isCurrentlyVisible) {
       _isCurrentlyVisible = true;
+      _isAverageMetricsExpanded = false;
       _reloadStats();
     } else if (!isVisible) {
       _isCurrentlyVisible = false;
@@ -87,6 +90,7 @@ class _StatsScreenState extends State<StatsScreen> {
   void _reloadStats() {
     _dataRequestId++;
     _aiStartedForRequestId = -1;
+    unawaited(LocalFirstSyncService.instance.syncNow());
     setState(() {
       _aiOverview = null;
       _aiRecommendations = const [];
@@ -500,6 +504,16 @@ class _StatsScreenState extends State<StatsScreen> {
             (aiInput['availableRecipes'] as List<dynamic>? ?? const [])
                 .whereType<Map<String, dynamic>>()
                 .toList(growable: false),
+        previousReports: _aiReportHistory
+            .map(
+              (entry) => {
+                'period': entry.period,
+                'generatedAt': entry.generatedAt.toIso8601String(),
+                'overview': entry.overview,
+                'recommendations': entry.recommendations,
+              },
+            )
+            .toList(growable: false),
       );
 
       if (!mounted || requestId != _dataRequestId) return;
@@ -785,10 +799,6 @@ class _StatsScreenState extends State<StatsScreen> {
                   List<Recipe>.from(data['recipes'] as List),
                   aiAssistantEnabled,
                 ),
-                if (_aiReportHistory.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _buildAiHistoryCard(theme),
-                ],
               ],
             ),
           );
@@ -1211,179 +1221,174 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
       (
         label: l10n.protein,
-        value: '${(aiInput['avgProteinGrams'] as num).toStringAsFixed(1)} г'
+        value:
+            '${(aiInput['avgProteinGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
       ),
       (
         label: l10n.fat,
-        value: '${(aiInput['avgFatGrams'] as num).toStringAsFixed(1)} г'
+        value:
+            '${(aiInput['avgFatGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
       ),
       (
         label: l10n.carbs,
-        value: '${(aiInput['avgCarbsGrams'] as num).toStringAsFixed(1)} г'
+        value:
+            '${(aiInput['avgCarbsGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
       ),
       (
-        label: 'Клетчатка',
-        value: '${(aiInput['avgFiberGrams'] as num).toStringAsFixed(1)} г'
+        label: l10n.fiber,
+        value:
+            '${(aiInput['avgFiberGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
       ),
       (
-        label: 'Сахар',
-        value: '${(aiInput['avgSugarGrams'] as num).toStringAsFixed(1)} г'
+        label: l10n.sugar,
+        value:
+            '${(aiInput['avgSugarGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
       ),
       (
         label: l10n.sodium,
-        value: '${(aiInput['avgSodiumMg'] as num).toStringAsFixed(0)} мг'
+        value:
+            '${(aiInput['avgSodiumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
       ),
       (
         label: l10n.potassium,
-        value: '${(aiInput['avgPotassiumMg'] as num).toStringAsFixed(0)} мг'
+        value:
+            '${(aiInput['avgPotassiumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
       ),
       (
         label: l10n.calcium,
-        value: '${(aiInput['avgCalciumMg'] as num).toStringAsFixed(0)} мг'
+        value:
+            '${(aiInput['avgCalciumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
       ),
       (
         label: l10n.iron,
-        value: '${(aiInput['avgIronMg'] as num).toStringAsFixed(1)} мг'
+        value: '${(aiInput['avgIronMg'] as num).toStringAsFixed(1)} ${l10n.mg}'
       ),
       (
         label: l10n.vitaminA,
-        value: '${(aiInput['avgVitaminAMcg'] as num).toStringAsFixed(0)} мкг'
+        value:
+            '${(aiInput['avgVitaminAMcg'] as num).toStringAsFixed(0)} ${l10n.mcg}'
       ),
       (
         label: l10n.vitaminC,
-        value: '${(aiInput['avgVitaminCMg'] as num).toStringAsFixed(1)} мг'
+        value:
+            '${(aiInput['avgVitaminCMg'] as num).toStringAsFixed(1)} ${l10n.mg}'
       ),
       (
         label: l10n.vitaminD,
-        value: '${(aiInput['avgVitaminDMcg'] as num).toStringAsFixed(1)} мкг'
+        value:
+            '${(aiInput['avgVitaminDMcg'] as num).toStringAsFixed(1)} ${l10n.mcg}'
       ),
     ];
 
+    Widget buildMetricChip(({String label, String value}) item) {
+      return Container(
+        constraints: const BoxConstraints(minWidth: 145),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color:
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.48),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item.value,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.largeBorderRadius,
+        side: BorderSide(
+          color: theme.colorScheme.outline.withValues(alpha: 0.10),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Средние значения за период',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: metrics.map((item) {
-                return Container(
-                  constraints: const BoxConstraints(minWidth: 145),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.48),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.label,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.value,
-                        style: theme.textTheme.titleSmall?.copyWith(
+            InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                setState(() {
+                  _isAverageMetricsExpanded = !_isAverageMetricsExpanded;
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${l10n.statsAverageValuesPeriod}: ${_periodLabel(context)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ],
-                  ),
-                );
-              }).toList(growable: false),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAiHistoryCard(ThemeData theme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Последние 5 диагнозов AI',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+                    ),
+                    AnimatedRotation(
+                      turns: _isAverageMetricsExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeInOut,
+                      child: Icon(
+                        Symbols.expand_more,
+                        size: 22,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            ..._aiReportHistory.map((entry) {
-              return Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.42),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_historyPeriodLabel(entry.period)} • ${_formatHistoryDate(entry.generatedAt)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+            AnimatedSize(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment.topCenter,
+              child: _isAverageMetricsExpanded
+                  ? Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children:
+                          metrics.map(buildMetricChip).toList(growable: false),
+                    )
+                  : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: metrics.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: buildMetricChip(item),
+                          );
+                        }).toList(growable: false),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(entry.overview, style: theme.textTheme.bodyMedium),
-                  ],
-                ),
-              );
-            }),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  String _historyPeriodLabel(String period) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (period) {
-      case 'week':
-        return l10n.statsPeriodLabelWeek;
-      case 'month':
-        return l10n.statsPeriodLabelMonth;
-      case 'year':
-        return l10n.statsPeriodLabelYear;
-      default:
-        return period;
-    }
-  }
-
-  String _formatHistoryDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year.toString();
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$day.$month.$year $hour:$minute';
   }
 
   Widget _buildAiReportCard(

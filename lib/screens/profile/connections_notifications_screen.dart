@@ -46,11 +46,15 @@ class _ConnectionsNotificationsScreenState
   int _syncedRecipesCount = 0;
   bool _syncedProfile = false;
   bool _syncedDiary = false;
+  late final VoidCallback _syncStatusListener;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _syncStatusListener = _onSyncStatusChanged;
+    LocalFirstSyncService.instance.statusNotifier
+        .addListener(_syncStatusListener);
     _user = _authService.currentUser;
     if (_user != null) {
       _autoSyncInBackground();
@@ -60,13 +64,42 @@ class _ConnectionsNotificationsScreenState
       if (!mounted) return;
       setState(() {
         _user = user;
-        if (user == null) _cachedPhotoBase64 = null;
+        if (user == null) {
+          _cachedPhotoBase64 = null;
+          _syncedProfile = false;
+          _syncedDiary = false;
+          _syncedRecipesCount = 0;
+        }
       });
       if (user != null) {
         _autoSyncInBackground();
         _loadCachedPhoto(user.uid);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    LocalFirstSyncService.instance.statusNotifier
+        .removeListener(_syncStatusListener);
+    super.dispose();
+  }
+
+  void _onSyncStatusChanged() {
+    if (!mounted) return;
+    final status = LocalFirstSyncService.instance.statusNotifier.value;
+    if (status == SyncStatus.synced) {
+      final syncedAt = LocalFirstSyncService.instance.lastSyncedAt;
+      setState(() {
+        _syncedProfile = true;
+        _syncedDiary = true;
+        if (_syncedRecipesCount == 0) {
+          // Если счётчик пока не посчитан, показываем, что синк рецептов тоже успешен.
+          _syncedRecipesCount = 1;
+        }
+        _lastSyncAt = syncedAt?.toLocal() ?? DateTime.now();
+      });
+    }
   }
 
   String _getLanguageName(BuildContext context) {
@@ -324,6 +357,9 @@ class _ConnectionsNotificationsScreenState
   }
 
   Widget _buildSyncInfoPanel(ThemeData theme, AppLocalizations l10n) {
+    final status = LocalFirstSyncService.instance.statusNotifier.value;
+    final hasSynced = status == SyncStatus.synced || _lastSyncAt != null;
+
     if (_user == null) {
       // Пользователь не вошёл — показываем что будет синхронизироваться
       return Padding(
@@ -377,7 +413,7 @@ class _ConnectionsNotificationsScreenState
             theme,
             icon: Symbols.person,
             label: l10n.profile,
-            status: _syncedProfile,
+            status: _syncedProfile || hasSynced,
           ),
           _buildSyncItem(
             theme,
@@ -385,13 +421,13 @@ class _ConnectionsNotificationsScreenState
             label: _syncedRecipesCount > 0
                 ? '${l10n.myRecipes} ($_syncedRecipesCount)'
                 : l10n.myRecipes,
-            status: _syncedRecipesCount > 0 || _syncedProfile,
+            status: _syncedRecipesCount > 0 || hasSynced,
           ),
           _buildSyncItem(
             theme,
             icon: Symbols.book,
             label: l10n.diary,
-            status: _syncedDiary,
+            status: _syncedDiary || hasSynced,
           ),
         ],
       ),

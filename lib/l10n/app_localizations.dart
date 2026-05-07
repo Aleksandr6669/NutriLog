@@ -1024,6 +1024,12 @@ abstract class AppLocalizations {
   /// **'Average Macros'**
   String get statsAvgMacros;
 
+  /// No description provided for @statsAverageValuesPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Average values for period'**
+  String get statsAverageValuesPeriod;
+
   /// No description provided for @statsProgress.
   ///
   /// In en, this message translates to:
@@ -2133,6 +2139,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'mcg'**
   String get mcg;
+
+  /// No description provided for @gram.
+  ///
+  /// In en, this message translates to:
+  /// **'g'**
+  String get gram;
+
+  /// No description provided for @fiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber'**
+  String get fiber;
+
+  /// No description provided for @sugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sugar'**
+  String get sugar;
 
   /// No description provided for @sugarSub.
   ///

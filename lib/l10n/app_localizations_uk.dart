@@ -496,6 +496,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAvgMacros => 'Середнє БЖВ';
 
   @override
+  String get statsAverageValuesPeriod => 'Середні значення за період';
+
+  @override
   String get statsProgress => 'Прогрес';
 
   @override
@@ -1122,6 +1125,15 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get mcg => 'мкг';
+
+  @override
+  String get gram => 'г';
+
+  @override
+  String get fiber => 'Клітковина';
+
+  @override
+  String get sugar => 'Цукор';
 
   @override
   String get sugarSub => 'у т.ч. Цукор';

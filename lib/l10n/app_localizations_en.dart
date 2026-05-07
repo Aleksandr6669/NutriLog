@@ -494,6 +494,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAvgMacros => 'Average Macros';
 
   @override
+  String get statsAverageValuesPeriod => 'Average values for period';
+
+  @override
   String get statsProgress => 'Progress';
 
   @override
@@ -1118,6 +1121,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mcg => 'mcg';
+
+  @override
+  String get gram => 'g';
+
+  @override
+  String get fiber => 'Fiber';
+
+  @override
+  String get sugar => 'Sugar';
 
   @override
   String get sugarSub => 'incl. Sugar';

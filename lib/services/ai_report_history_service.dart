@@ -26,18 +26,17 @@ class AiReportEntry {
         generatedAt: DateTime.tryParse(json['generatedAt'] as String? ?? '') ??
             DateTime.now(),
         overview: json['overview'] as String? ?? '',
-        recommendations:
-            (json['recommendations'] as List<dynamic>? ?? const [])
-                .whereType<Map>()
-                .map((e) => Map<String, String>.from(
-                    e.map((k, v) => MapEntry(k.toString(), v.toString()))))
-                .toList(growable: false),
+        recommendations: (json['recommendations'] as List<dynamic>? ?? const [])
+            .whereType<Map>()
+            .map((e) => Map<String, String>.from(
+                e.map((k, v) => MapEntry(k.toString(), v.toString()))))
+            .toList(growable: false),
       );
 }
 
 class AiReportHistoryService {
   static const String _storageKey = 'ai_report_history';
-  static const int _maxEntries = 5;
+  static const int _maxEntries = 30;
 
   Future<List<AiReportEntry>> loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
