@@ -2320,6 +2320,18 @@ abstract class AppLocalizations {
   /// **'Activity name'**
   String get activityNameLabel;
 
+  /// No description provided for @activityDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity description'**
+  String get activityDescriptionLabel;
+
+  /// No description provided for @activityDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: running 40 minutes at moderate pace, 5 km'**
+  String get activityDescriptionHint;
+
   /// No description provided for @burnedCaloriesLabel.
   ///
   /// In en, this message translates to:
@@ -2337,6 +2349,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter valid calories'**
   String get enterCorrectCalories;
+
+  /// No description provided for @activityAiNeedContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an activity description for AI'**
+  String get activityAiNeedContext;
 
   /// No description provided for @activityAiEstimateButton.
   ///

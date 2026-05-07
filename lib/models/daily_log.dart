@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 class ActivityEntry {
   final String id;
   final String name;
+  final String description;
   final int calories;
   final String iconName;
 
@@ -34,6 +35,7 @@ class ActivityEntry {
   const ActivityEntry({
     required this.id,
     required this.name,
+    this.description = '',
     required this.calories,
     this.iconName = defaultIconName,
   });
@@ -43,6 +45,7 @@ class ActivityEntry {
       id: json['id'] as String? ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       name: json['name'] as String? ?? 'Активность',
+      description: json['description'] as String? ?? '',
       calories: json['calories'] as int? ?? 0,
       iconName: json['iconName'] as String? ?? defaultIconName,
     );
@@ -52,6 +55,7 @@ class ActivityEntry {
     return {
       'id': id,
       'name': name,
+      'description': description,
       'calories': calories,
       'iconName': iconName,
     };

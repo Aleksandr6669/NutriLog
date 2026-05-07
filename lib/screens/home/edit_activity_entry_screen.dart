@@ -20,6 +20,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _geminiService = GeminiRecipeService();
   late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
   late TextEditingController _caloriesController;
   late String _selectedIconName;
   bool _isAiEstimating = false;
@@ -30,6 +31,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.entry?.name ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.entry?.description ?? '');
     _caloriesController =
         TextEditingController(text: widget.entry?.calories.toString() ?? '');
     _selectedIconName = widget.entry?.iconName ?? ActivityEntry.defaultIconName;
@@ -38,6 +41,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
     _caloriesController.dispose();
     super.dispose();
   }
@@ -46,6 +50,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
+    final description = _descriptionController.text.trim();
     final calories = int.tryParse(_caloriesController.text.trim()) ?? 0;
 
     Navigator.of(context).pop(
@@ -53,6 +58,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
         id: widget.entry?.id ??
             DateTime.now().microsecondsSinceEpoch.toString(),
         name: name,
+        description: description,
         calories: calories,
         iconName: _selectedIconName,
       ),
@@ -61,10 +67,12 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
 
   Future<void> _estimateCaloriesWithAi() async {
     final l10n = AppLocalizations.of(context)!;
-    final description = _nameController.text.trim();
-    if (description.isEmpty) {
+    final source = _descriptionController.text.trim().isNotEmpty
+        ? _descriptionController.text.trim()
+        : _nameController.text.trim();
+    if (source.isEmpty) {
       setState(() {
-        _aiEstimateStatus = l10n.enterActivityName;
+        _aiEstimateStatus = l10n.activityAiNeedContext;
         _isAiEstimateError = true;
       });
       return;
@@ -77,17 +85,18 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     });
 
     try {
-      final estimated =
-          await _geminiService.estimateActivityCaloriesFromDescription(
-        description: description,
+      final draft = await _geminiService.estimateActivityDraftFromDescription(
+        description: source,
         locale: Localizations.localeOf(context).languageCode,
       );
       if (!mounted) return;
-      _caloriesController.text = estimated.toString();
+      _nameController.text = draft.name;
+      _descriptionController.text = draft.description;
+      _caloriesController.text = draft.calories.toString();
       setState(() {
         _isAiEstimating = false;
         _isAiEstimateError = false;
-        _aiEstimateStatus = l10n.activityAiEstimated(estimated);
+        _aiEstimateStatus = l10n.activityAiEstimated(draft.calories);
       });
     } on GeminiRecipeException catch (e) {
       if (!mounted) return;
@@ -198,6 +207,21 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                           }
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _descriptionController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          labelText: l10n.activityDescriptionLabel,
+                          hintText: l10n.activityDescriptionHint,
+                          prefixIcon: const Padding(
+                            padding: EdgeInsets.only(bottom: 34),
+                            child: Icon(Symbols.description),
+                          ),
+                          alignLabelWithHint: true,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       SizedBox(

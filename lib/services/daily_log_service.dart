@@ -368,6 +368,7 @@ class DailyLogService {
   Future<void> addActivity(
     DateTime date, {
     required String name,
+    String description = '',
     required int calories,
     String iconName = ActivityEntry.defaultIconName,
   }) async {
@@ -377,6 +378,7 @@ class DailyLogService {
         ActivityEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           name: name,
+          description: description,
           calories: calories,
           iconName: iconName,
         ),
@@ -394,6 +396,7 @@ class DailyLogService {
     DateTime date, {
     required String id,
     required String name,
+    String description = '',
     required int calories,
     String iconName = ActivityEntry.defaultIconName,
   }) async {
@@ -404,6 +407,7 @@ class DailyLogService {
               ? ActivityEntry(
                   id: entry.id,
                   name: name,
+                  description: description,
                   calories: calories,
                   iconName: iconName,
                 )

@@ -1223,6 +1223,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get activityNameLabel => 'Название активности';
 
   @override
+  String get activityDescriptionLabel => 'Описание активности';
+
+  @override
+  String get activityDescriptionHint =>
+      'Например: бег 40 минут в среднем темпе, 5 км';
+
+  @override
   String get burnedCaloriesLabel => 'Сожженные калории';
 
   @override
@@ -1230,6 +1237,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get enterCorrectCalories => 'Введите корректные калории';
+
+  @override
+  String get activityAiNeedContext => 'Введите описание активности для AI';
 
   @override
   String get activityAiEstimateButton => 'Оценить калории AI';

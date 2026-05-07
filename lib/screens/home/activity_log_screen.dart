@@ -57,6 +57,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       await _service.addActivity(
         widget.date,
         name: result.name,
+        description: result.description,
         calories: result.calories,
         iconName: result.iconName,
       );
@@ -65,6 +66,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
         widget.date,
         id: entry.id,
         name: result.name,
+        description: result.description,
         calories: result.calories,
         iconName: result.iconName,
       );
@@ -95,10 +97,6 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       _saving = false;
       _hasChanges = true;
     });
-  }
-
-  void _saveChanges() {
-    Navigator.of(context).pop(true);
   }
 
   Future<void> _confirmAndRemoveActivity(ActivityEntry entry) async {
@@ -268,8 +266,24 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                                   ),
                                   title: Text(entry.name,
                                       style: theme.textTheme.titleMedium),
-                                  subtitle:
-                                      Text('${entry.calories} ${l10n.kcal}'),
+                                  subtitle: entry.description.trim().isEmpty
+                                      ? Text('${entry.calories} ${l10n.kcal}')
+                                      : Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              entry.description,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '${entry.calories} ${l10n.kcal}',
+                                            ),
+                                          ],
+                                        ),
                                   onTap: () => _addOrEditActivity(entry: entry),
                                   trailing: Icon(
                                     Symbols.info,

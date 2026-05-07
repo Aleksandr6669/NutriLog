@@ -1219,6 +1219,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityNameLabel => 'Activity name';
 
   @override
+  String get activityDescriptionLabel => 'Activity description';
+
+  @override
+  String get activityDescriptionHint =>
+      'For example: running 40 minutes at moderate pace, 5 km';
+
+  @override
   String get burnedCaloriesLabel => 'Calories burned';
 
   @override
@@ -1226,6 +1233,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterCorrectCalories => 'Enter valid calories';
+
+  @override
+  String get activityAiNeedContext => 'Enter an activity description for AI';
 
   @override
   String get activityAiEstimateButton => 'Estimate calories with AI';

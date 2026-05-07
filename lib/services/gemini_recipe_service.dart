@@ -1192,29 +1192,33 @@ Rules:
     );
   }
 
-  Future<int> estimateActivityCaloriesFromDescription({
+  Future<ActivityAiDraft> estimateActivityDraftFromDescription({
     required String description,
     String? locale,
   }) async {
     final normalized = description.trim();
     if (normalized.isEmpty) {
-      throw GeminiRecipeException(_messages(locale).enterActivityName);
+      throw GeminiRecipeException(_messages(locale).activityAiNeedContext);
     }
 
     final prompt = '''
 You are a sports and fitness assistant.
 ${_languageInstruction(locale)}
-Estimate calories burned for a single activity session based on user description.
+Analyze activity description and produce structured result for a single session.
 
 Activity description:
 $normalized
 
 Return ONLY JSON, no markdown:
 {
+  "name": "",
+  "description": "",
   "calories": 0
 }
 
 Rules:
+- name: short and clear (2-5 words), suitable as activity title in app.
+- description: concise, user-friendly summary of activity details.
 - calories must be a positive integer.
 - be realistic for one activity session.
 - if duration/intensity are missing, use a moderate default estimate.
@@ -1241,13 +1245,30 @@ Rules:
     final text = _extractText(payload, locale);
     final decoded = _decodeJsonObject(text, locale);
 
+    final parsedName = (decoded['name'] as String? ?? '').trim();
+    final parsedDescription = (decoded['description'] as String? ?? '').trim();
     final calories = _toNonNegativeDouble(decoded['calories']).round();
     if (calories <= 0) {
       throw GeminiRecipeException(_messages(locale).activityAiEstimateFailed);
     }
 
-    // Guardrails for unrealistic outputs from model.
-    return calories.clamp(30, 2500);
+    return ActivityAiDraft(
+      name: parsedName.isEmpty ? normalized : parsedName,
+      description: parsedDescription.isEmpty ? normalized : parsedDescription,
+      // Guardrails for unrealistic outputs from model.
+      calories: calories.clamp(30, 2500),
+    );
+  }
+
+  Future<int> estimateActivityCaloriesFromDescription({
+    required String description,
+    String? locale,
+  }) async {
+    final draft = await estimateActivityDraftFromDescription(
+      description: description,
+      locale: locale,
+    );
+    return draft.calories;
   }
 
   Future<http.Response> _requestWithFallback({
@@ -1968,6 +1989,18 @@ class DailyGoalsDraft {
     required this.carbsGoal,
     required this.waterGoal,
     required this.stepsGoal,
+  });
+}
+
+class ActivityAiDraft {
+  final String name;
+  final String description;
+  final int calories;
+
+  const ActivityAiDraft({
+    required this.name,
+    required this.description,
+    required this.calories,
   });
 }
 
