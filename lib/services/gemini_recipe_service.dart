@@ -1045,6 +1045,12 @@ Response format:
     final previousRecommendedRecipesContext =
         previousRecipeNames.take(40).map((name) => '- $name').join('\n');
 
+    final allowedRecipeNames = availableRecipes
+        .map((r) => (r['name'] as String? ?? '').trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
     final prompt = '''
 You are a supportive fitness assistant and nutritionist.
 ${_languageInstruction(locale)}
@@ -1222,10 +1228,116 @@ Rules:
       );
     }
 
+    final initialResult = {
+      'overview': overview,
+      'recommendations': recommendations,
+    };
+
+    final reviewed = await _recheckStructuredStatsReportWithAi(
+      initialResult: initialResult,
+      snackLikelyNeeded: snackLikelyNeeded,
+      allowedRecipeNames: allowedRecipeNames,
+      locale: locale,
+    );
+
+    final reviewedOverview = (reviewed['overview'] as String? ?? '').trim();
+    final reviewedRecommendations =
+        (reviewed['recommendations'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => {
+                'when': (item['when'] as String? ?? '').trim(),
+                'action': (item['action'] as String? ?? '').trim(),
+                'recipeName': (item['recipeName'] as String? ?? '').trim(),
+              },
+            )
+            .where((item) => (item['action'] ?? '').isNotEmpty)
+            .toList(growable: true);
+
+    if (reviewedOverview.isNotEmpty && reviewedRecommendations.isNotEmpty) {
+      return {
+        'overview': reviewedOverview,
+        'recommendations': reviewedRecommendations,
+      };
+    }
+
     return {
       'overview': overview,
       'recommendations': recommendations,
     };
+  }
+
+  Future<Map<String, dynamic>> _recheckStructuredStatsReportWithAi({
+    required Map<String, dynamic> initialResult,
+    required bool snackLikelyNeeded,
+    required List<String> allowedRecipeNames,
+    String? locale,
+  }) async {
+    final allowedRecipesText = allowedRecipeNames.isEmpty
+        ? '(none)'
+        : allowedRecipeNames.map((name) => '- $name').join('\n');
+
+    final prompt = '''
+You are a strict QA validator for AI nutrition reports.
+${_languageInstruction(locale)}
+
+Read the candidate JSON report below, verify consistency, and return a corrected JSON if needed.
+
+Candidate report JSON:
+${jsonEncode(initialResult)}
+
+Validation rules:
+- Keep ONLY this structure:
+  {
+    "overview": "...",
+    "recommendations": [
+      {"when": "breakfast|lunch|dinner|snack|any", "action": "...", "recipeName": "..."}
+    ]
+  }
+- overview must be non-empty.
+- recommendations must contain 3 to 6 items.
+- each recommendation action must be non-empty.
+- If snackLikelyNeeded = no, do NOT include snack recommendations.
+- If recipeName is not empty, it must be one of allowed recipe names below; otherwise set recipeName to empty string.
+- Remove duplicates and contradictory recommendations when possible.
+- No markdown, no extra keys, no text outside JSON.
+
+snackLikelyNeeded: ${snackLikelyNeeded ? 'yes' : 'no'}
+
+Allowed recipe names:
+$allowedRecipesText
+''';
+
+    try {
+      final response = await _requestWithFallback(
+        body: {
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.1,
+          'max_completion_tokens': 520,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+      );
+
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      final text = _extractText(payload, locale).trim();
+      if (text.isEmpty) return initialResult;
+
+      final decoded = _decodeJsonObject(text, locale);
+      if (decoded['overview'] is! String ||
+          decoded['recommendations'] is! List) {
+        return initialResult;
+      }
+      return decoded;
+    } catch (_) {
+      return initialResult;
+    }
   }
 
   Future<DailyGoalsDraft> generateDailyGoals({

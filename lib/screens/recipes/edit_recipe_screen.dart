@@ -73,6 +73,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   String? _donateAiStatus;
   Timer? _donateAiDebounce;
   int _donateAiRequestId = 0;
+  bool _publicIntentEnabled = false;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -103,12 +104,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nameController = TextEditingController(text: sourceRecipe?.name ?? '');
     _descriptionController =
         TextEditingController(text: sourceRecipe?.description ?? '');
-    _clarificationController =
-      TextEditingController(
+    _clarificationController = TextEditingController(
         text: widget.initialClarification ?? sourceRecipe?.clarification ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
+    _publicIntentEnabled = _isPublic;
 
     _nameController.addListener(_onDonateValidationInputChanged);
     _descriptionController.addListener(_onDonateValidationInputChanged);
@@ -195,11 +196,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       _donateAiDebounce?.cancel();
       if (_isDonateAiChecking ||
           _isDonateAiApproved ||
-          _donateAiStatus != null) {
+          _donateAiStatus != null ||
+          _isPublic) {
         setState(() {
           _isDonateAiChecking = false;
           _isDonateAiApproved = false;
           _donateAiStatus = null;
+          _isPublic = false;
         });
       }
       return;
@@ -260,6 +263,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isDonateAiChecking = false;
         _isDonateAiApproved = result.approved;
         _donateAiStatus = result.reason;
+        if (result.approved &&
+            _publicIntentEnabled &&
+            !_isDonated &&
+            (widget.recipe?.isUserRecipe ?? true)) {
+          _isPublic = true;
+        }
+        if (!result.approved) {
+          _isPublic = false;
+        }
       });
       return result;
     } on GeminiRecipeException catch (e) {
@@ -268,6 +280,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isDonateAiChecking = false;
         _isDonateAiApproved = false;
         _donateAiStatus = e.message;
+        _isPublic = false;
       });
       return null;
     } catch (_) {
@@ -276,6 +289,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isDonateAiChecking = false;
         _isDonateAiApproved = false;
         _donateAiStatus = l10n.recipeAiFailed;
+        _isPublic = false;
       });
       return null;
     }
@@ -855,45 +869,110 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   Widget _buildVisibilityCard() {
     final theme = Theme.of(context);
     final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
+    final canEnablePublic = canManageVisibility &&
+        !_isDonated &&
+        _isDonateAiApproved &&
+        !_isDonateAiChecking;
+    final canToggleVisibility =
+        _isPublic ? (canManageVisibility && !_isDonated) : canEnablePublic;
+
+    final visibilityStatusText = _isDonated
+        ? l10n.donateRecipeAlreadyDonated
+        : (_donateAiStatus ??
+            'Для публикации рецепта требуется успешная AI-проверка на цензуру и валидность.');
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.makePublic,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.makePublic,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _isPublic
+                              ? Colors.blue.shade700
+                              : Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: _isPublic
-                          ? Colors.blue.shade700
-                          : Colors.green.shade700,
-                      fontWeight: FontWeight.w600,
+                ),
+                Switch.adaptive(
+                  value: _isPublic,
+                  onChanged: canToggleVisibility
+                      ? (value) {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _publicIntentEnabled = value;
+                            _isPublic = value;
+                          });
+                        }
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: (_isDonated || _isDonateAiApproved)
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : (_isDonateAiChecking
+                        ? Colors.orange.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.08)),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: (_isDonated || _isDonateAiApproved)
+                      ? Colors.green.withValues(alpha: 0.35)
+                      : (_isDonateAiChecking
+                          ? Colors.orange.withValues(alpha: 0.35)
+                          : Colors.red.withValues(alpha: 0.3)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  _isDonateAiChecking
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          (_isDonated || _isDonateAiApproved)
+                              ? Symbols.verified
+                              : Symbols.warning,
+                          size: 16,
+                          color: (_isDonated || _isDonateAiApproved)
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
+                        ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      visibilityStatusText,
+                      style: theme.textTheme.bodySmall,
                     ),
                   ),
                 ],
               ),
-            ),
-            Switch.adaptive(
-              value: _isPublic,
-              onChanged: canManageVisibility && !_isDonated
-                  ? (value) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _isPublic = value);
-                    }
-                  : null,
             ),
           ],
         ),
