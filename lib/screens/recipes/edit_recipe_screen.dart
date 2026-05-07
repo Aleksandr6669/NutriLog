@@ -514,6 +514,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Future<void> _saveRecipe() async {
+    if (_isDonated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.donateRecipeAlreadyDonated),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       final Map<String, double> nutrients = {};
       for (var key in _nutrientKeys) {
@@ -699,7 +709,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Widget _buildDonateCard() {
     final theme = Theme.of(context);
-    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
     final isEnabled = _isFormReadyForDonate &&
         !_isDonated &&
         _isDonateAiApproved &&
@@ -720,45 +729,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.makePublic,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch.adaptive(
-                  value: _isPublic,
-                  onChanged: canManageVisibility
-                      ? (value) {
-                          HapticFeedback.selectionClick();
-                          setState(() => _isPublic = value);
-                        }
-                      : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Divider(
-              height: 1,
-              color: theme.colorScheme.outline.withValues(alpha: 0.18),
-            ),
-            const SizedBox(height: 12),
             Row(
               children: [
                 Icon(
@@ -867,6 +837,55 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
+  Widget _buildVisibilityCard() {
+    final theme = Theme.of(context);
+    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
+    return Card(
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.makePublic,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _isPublic
+                          ? Colors.blue.shade700
+                          : Colors.green.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch.adaptive(
+              value: _isPublic,
+              onChanged: canManageVisibility && !_isDonated
+                  ? (value) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _isPublic = value);
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -882,7 +901,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Symbols.save, weight: 600),
-            onPressed: _saveRecipe,
+            onPressed: _isDonated ? null : _saveRecipe,
             tooltip: l10n.save,
           ),
         ],
@@ -907,6 +926,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               const SizedBox(height: 20),
               _buildNutrientsCard(),
               const SizedBox(height: 24),
+              _buildVisibilityCard(),
+              const SizedBox(height: 12),
               _buildDonateCard(),
               if (widget.recipe != null) ...[
                 const SizedBox(height: 12),
@@ -1165,10 +1186,22 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           children: [
             Row(
               children: [
-                const Icon(
-                  Symbols.psychology,
-                  size: 20,
-                  color: AppColors.primary,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.28),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Symbols.auto_awesome,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -1191,57 +1224,34 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.04),
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.14),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.16),
                 ),
               ),
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    margin: const EdgeInsets.only(top: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Symbols.auto_awesome,
-                      size: 16,
-                      color: AppColors.primary,
-                    ),
+              child: TextField(
+                controller: _clarificationController,
+                minLines: 2,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  labelText: l10n.aiClarificationLabel,
+                  hintText: l10n.aiClarificationHint,
+                  alignLabelWithHint: true,
+                  labelStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _clarificationController,
-                      minLines: 2,
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        labelText: l10n.aiClarificationLabel,
-                        hintText: l10n.aiClarificationHint,
-                        alignLabelWithHint: true,
-                        labelStyle: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        hintStyle: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.72),
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
+                  hintStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.72),
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
                   ),
-                ],
+                ),
               ),
             ),
           ],

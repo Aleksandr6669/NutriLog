@@ -10,10 +10,22 @@ import 'profile_service.dart';
 import 'recipe_loader.dart';
 
 class DailyLogService {
+  static final StreamController<void> _cacheUpdatesController =
+      StreamController<void>.broadcast();
+
+  static Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
+
+  static void _notifyCacheUpdated() {
+    if (!_cacheUpdatesController.isClosed) {
+      _cacheUpdatesController.add(null);
+    }
+  }
+
   /// Очищает локальный кеш дневника пользователя
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
+    _notifyCacheUpdated();
   }
 
   static final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
@@ -42,9 +54,16 @@ class DailyLogService {
   Future<void> _saveRawData(Map<String, dynamic> jsonMap) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, json.encode(jsonMap));
+    _notifyCacheUpdated();
 
     // Сохраняем локально мгновенно, синхронизацию в облако выполняем асинхронно.
     unawaited(_syncDailyLogsToCloudInBackground(jsonMap));
+  }
+
+  Future<void> saveRawDataFromCloud(Map<String, dynamic> jsonMap) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_storageKey, json.encode(jsonMap));
+    _notifyCacheUpdated();
   }
 
   Future<void> _syncDailyLogsToCloudInBackground(

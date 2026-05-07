@@ -6,10 +6,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'cloud_data_service.dart';
 
 class ProfileService {
+  static final StreamController<void> _cacheUpdatesController =
+      StreamController<void>.broadcast();
+
+  static Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
+
+  static void _notifyCacheUpdated() {
+    if (!_cacheUpdatesController.isClosed) {
+      _cacheUpdatesController.add(null);
+    }
+  }
+
   /// Очищает локальный кеш профиля пользователя
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_profileKey);
+    _notifyCacheUpdated();
   }
 
   static const String _profileKey = 'user_profile';
@@ -46,9 +58,16 @@ class ProfileService {
     final prefs = await SharedPreferences.getInstance();
     final String profileString = json.encode(profile.toJson());
     await prefs.setString(_profileKey, profileString);
+    _notifyCacheUpdated();
 
     // Не ждём сеть: локальное сохранение уже завершено, облако синкаем в фоне.
     unawaited(_syncProfileToCloudInBackground(profile));
+  }
+
+  Future<void> saveProfileRaw(Map<String, dynamic> profileMap) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileKey, json.encode(profileMap));
+    _notifyCacheUpdated();
   }
 
   Future<void> _syncProfileToCloudInBackground(UserProfile profile) async {

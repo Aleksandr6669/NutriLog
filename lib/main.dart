@@ -590,10 +590,6 @@ class _MainScreenShellState extends State<MainScreenShell>
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-  }
 
   void _onItemTapped(int index) {
     HapticFeedback.selectionClick();

@@ -1368,7 +1368,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in to donate a recipe to the community';
 
   @override
-  String get aiClarificationTitle => 'AI Clarification';
+  String get aiClarificationTitle => 'Details';
 
   @override
   String get aiClarificationDescription =>

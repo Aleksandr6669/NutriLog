@@ -7,6 +7,17 @@ import '../models/recipe.dart';
 import 'cloud_data_service.dart';
 
 class RecipeService {
+  static final StreamController<void> _cacheUpdatesController =
+      StreamController<void>.broadcast();
+
+  Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
+
+  void _notifyCacheUpdated() {
+    if (!_cacheUpdatesController.isClosed) {
+      _cacheUpdatesController.add(null);
+    }
+  }
+
   /// Очищает локальный кеш рецептов пользователя
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
@@ -50,7 +61,11 @@ class RecipeService {
     final jsonList = recipes
         .map((r) => r.copyWith(isPublic: false).toJson())
         .toList(growable: false);
-    await prefs.setString(_userRecipesKey, json.encode(jsonList));
+    final encoded = json.encode(jsonList);
+    if (prefs.getString(_userRecipesKey) == encoded) return;
+
+    await prefs.setString(_userRecipesKey, encoded);
+    _notifyCacheUpdated();
   }
 
   Future<void> _savePublicRecipesToPrefs(List<Recipe> recipes) async {
@@ -58,7 +73,11 @@ class RecipeService {
     final jsonList = recipes
         .map((r) => r.copyWith(isPublic: true).toJson())
         .toList(growable: false);
-    await prefs.setString(_publicRecipesKey, json.encode(jsonList));
+    final encoded = json.encode(jsonList);
+    if (prefs.getString(_publicRecipesKey) == encoded) return;
+
+    await prefs.setString(_publicRecipesKey, encoded);
+    _notifyCacheUpdated();
   }
 
   Future<List<Recipe>> _loadOwnedRecipesForMutation() async {
@@ -272,6 +291,7 @@ class RecipeService {
     final recipes = await _loadOwnedRecipesForMutation();
     final index = recipes.indexWhere((r) => r.id == updatedRecipe.id);
     if (index == -1) return;
+    if (recipes[index].isDonated) return;
 
     recipes[index] = updatedRecipe.copyWith(isUserRecipe: true);
     await _saveUserRecipes(recipes);
@@ -283,6 +303,8 @@ class RecipeService {
       (r) => r.id == recipeId,
       orElse: () => Recipe.empty(),
     );
+    if (deletedRecipe.isDonated) return;
+
     recipes.removeWhere((r) => r.id == recipeId);
     await _saveUserRecipes(recipes);
 

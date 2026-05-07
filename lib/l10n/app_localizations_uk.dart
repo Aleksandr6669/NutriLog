@@ -1372,7 +1372,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'Увійдіть, щоб передати рецепт спільноті';
 
   @override
-  String get aiClarificationTitle => 'Уточнення для AI';
+  String get aiClarificationTitle => 'Деталі';
 
   @override
   String get aiClarificationDescription =>

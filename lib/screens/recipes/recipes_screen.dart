@@ -46,6 +46,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String _locale = 'ru';
   StreamSubscription<List<Recipe>>? _publicRecipesSubscription;
   StreamSubscription<List<Recipe>>? _privateRecipesSubscription;
+  StreamSubscription<void>? _cacheUpdatesSubscription;
   final Set<String> _knownRealtimeRecipeIds = <String>{};
   String? _highlightedAppearedRecipeId;
   bool _isRecipeFeedInitialized = false;
@@ -60,6 +61,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _searchController.addListener(_filterRecipes);
     _startPublicRecipesStream();
     _startPrivateRecipesStream();
+    _cacheUpdatesSubscription = _recipeService.cacheUpdates.listen((_) {
+      if (!mounted) return;
+      _loadAllRecipes();
+    });
     // Перезапускаем стримы при изменении авторизации
     FirebaseAuthService.instance.authStateChanges().listen((_) {
       if (mounted) {
@@ -435,6 +440,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void dispose() {
     _publicRecipesSubscription?.cancel();
     _privateRecipesSubscription?.cancel();
+    _cacheUpdatesSubscription?.cancel();
     _searchController.removeListener(_filterRecipes);
     _searchController.dispose();
     super.dispose();
@@ -1025,19 +1031,20 @@ class _RecipeListItem extends StatelessWidget {
     final isOwnRecipe = recipe.isUserRecipe;
     final isPublic = recipe.isPublic;
     final isDonated = recipe.isDonated;
+    final showStatusBadge = !isSelectionMode;
 
     String? badgeText;
     Color? badgeColor;
     Color? badgeTextColor;
-    if (isOwnRecipe) {
+    if (showStatusBadge && isOwnRecipe) {
       badgeText = l10n.myRecipe;
       badgeColor = AppColors.primary.withValues(alpha: 0.1);
       badgeTextColor = AppColors.primary;
-    } else if (isPublic) {
+    } else if (showStatusBadge && isPublic) {
       badgeText = l10n.publicRecipe;
       badgeColor = Colors.blue.withOpacity(0.10);
       badgeTextColor = Colors.blue.shade700;
-    } else if (isDonated) {
+    } else if (showStatusBadge && isDonated) {
       badgeText = l10n.donatedRecipe;
       badgeColor = Colors.green.withOpacity(0.10);
       badgeTextColor = Colors.green.shade700;
@@ -1075,9 +1082,37 @@ class _RecipeListItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          recipe.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (recipe.description.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3.0),
+                            child: Text(
+                              recipe.description,
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 14),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (!isSelectionMode)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
                         if (badgeText != null)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
+                            padding: const EdgeInsets.only(bottom: 6),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -1096,34 +1131,6 @@ class _RecipeListItem extends StatelessWidget {
                               ),
                             ),
                           ),
-                        Text(
-                          recipe.name,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (recipe.description.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2.0),
-                            child: Text(
-                              recipe.description,
-                              style: TextStyle(
-                                  color: Colors.grey.shade600, fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (!isSelectionMode)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
                         Text(
                           '$calories ${l10n.kcal}',
                           style: theme.textTheme.titleMedium

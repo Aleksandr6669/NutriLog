@@ -1371,7 +1371,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Войдите в аккаунт, чтобы передать рецепт сообществу';
 
   @override
-  String get aiClarificationTitle => 'Уточнение для AI';
+  String get aiClarificationTitle => 'Детали';
 
   @override
   String get aiClarificationDescription =>

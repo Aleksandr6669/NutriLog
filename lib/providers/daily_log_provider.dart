@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/daily_log.dart';
 import '../services/cloud_data_service.dart';
 import '../services/daily_log_service.dart';
@@ -15,6 +13,7 @@ class DailyLogProvider with ChangeNotifier {
   final HomeWidgetSyncService _homeWidgetSyncService = HomeWidgetSyncService();
   final ProfileService _profileService = ProfileService();
   StreamSubscription<Map<String, dynamic>?>? _syncSubscription;
+  StreamSubscription<void>? _cacheUpdatesSubscription;
 
   DateTime _selectedDate = DateTime.now();
   DailyLog? _currentLog;
@@ -27,6 +26,12 @@ class DailyLogProvider with ChangeNotifier {
   Set<DateTime> get loggedDates => _loggedDates;
 
   DailyLogProvider() {
+    _cacheUpdatesSubscription = DailyLogService.cacheUpdates.listen((_) async {
+      final updatedLog = await _service.getLogForDate(_selectedDate);
+      _currentLog = updatedLog;
+      _loggedDates = await _service.getLoggedDates();
+      notifyListeners();
+    });
     loadLoggedDates();
     loadLogForDate(_selectedDate);
     // Запускаем realtime sync после первого кадра, чтобы Firebase
@@ -55,13 +60,7 @@ class DailyLogProvider with ChangeNotifier {
       final logs = remoteData['logs'];
       if (logs is! Map<String, dynamic>) return;
       try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('daily_logs', json.encode(logs));
-        // Перечитываем только лог для текущей даты чтобы избежать полного reload
-        final updatedLog = await _service.getLogForDate(_selectedDate);
-        _currentLog = updatedLog;
-        _loggedDates = await _service.getLoggedDates();
-        notifyListeners();
+        await _service.saveRawDataFromCloud(logs);
       } catch (_) {}
     });
   }
@@ -69,6 +68,7 @@ class DailyLogProvider with ChangeNotifier {
   @override
   void dispose() {
     _syncSubscription?.cancel();
+    _cacheUpdatesSubscription?.cancel();
     super.dispose();
   }
 

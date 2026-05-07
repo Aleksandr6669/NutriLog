@@ -505,7 +505,7 @@
   "donateRecipePermissionDenied": "No permission to donate recipe. Check Firestore rules.",
   "donateRecipeAlreadyDonated": "Recipe already donated",
   "donateRecipeSignInRequired": "Sign in to donate a recipe to the community",
-  "aiClarificationTitle": "AI Clarification",
+  "aiClarificationTitle": "Details",
   "aiClarificationDescription": "Describe important details: cooking method, dietary restrictions, desired dish style, or portion specifics.",
   "aiClarificationLabel": "What to consider?",
   "aiClarificationHint": "E.g. gluten-free, high protein, less sugar, baked, vegetarian"

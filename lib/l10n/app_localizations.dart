@@ -2587,7 +2587,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiClarificationTitle.
   ///
   /// In en, this message translates to:
-  /// **'AI Clarification'**
+  /// **'Details'**
   String get aiClarificationTitle;
 
   /// No description provided for @aiClarificationDescription.

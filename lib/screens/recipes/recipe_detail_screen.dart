@@ -48,7 +48,7 @@ class RecipeDetailScreen extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(true),
               tooltip: isSelected ? l10n.addOneMoreToMeal : l10n.addToMeal,
             )
-          else if (recipe.isUserRecipe)
+          else if (recipe.isUserRecipe && !recipe.isDonated)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),

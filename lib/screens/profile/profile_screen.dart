@@ -425,7 +425,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Symbols.diamond,
+                          const Icon(Symbols.diamond,
                               size: 14, color: AppColors.primary),
                           const SizedBox(width: 4),
                           Text(

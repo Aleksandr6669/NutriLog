@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../services/cloud_data_service.dart';
 import '../services/profile_service.dart';
@@ -14,11 +12,16 @@ class ProfileProvider with ChangeNotifier {
   UserProfile? _profile;
   bool _isLoading = false;
   StreamSubscription<Map<String, dynamic>?>? _syncSubscription;
+  StreamSubscription<void>? _cacheUpdatesSubscription;
 
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
 
   ProfileProvider() {
+    _cacheUpdatesSubscription = ProfileService.cacheUpdates.listen((_) async {
+      _profile = await _service.loadProfile();
+      notifyListeners();
+    });
     _startRealtimeSync();
   }
 
@@ -32,11 +35,7 @@ class ProfileProvider with ChangeNotifier {
         .listen((remoteData) async {
       if (remoteData == null || remoteData.isEmpty) return;
       try {
-        final remoteProfile = UserProfile.fromJson(remoteData);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_profile', json.encode(remoteData));
-        _profile = remoteProfile;
-        notifyListeners();
+        await _service.saveProfileRaw(remoteData);
       } catch (_) {}
     });
   }
@@ -44,6 +43,7 @@ class ProfileProvider with ChangeNotifier {
   @override
   void dispose() {
     _syncSubscription?.cancel();
+    _cacheUpdatesSubscription?.cancel();
     super.dispose();
   }
 

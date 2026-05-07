@@ -505,7 +505,7 @@
   "donateRecipePermissionDenied": "Нет прав для передачи рецепта. Проверьте правила Firestore.",
   "donateRecipeAlreadyDonated": "Рецепт уже передан сообществу",
   "donateRecipeSignInRequired": "Войдите в аккаунт, чтобы передать рецепт сообществу",
-  "aiClarificationTitle": "Уточнение для AI",
+  "aiClarificationTitle": "Детали",
   "aiClarificationDescription": "Опишите важные детали: способ приготовления, ограничения, желаемый стиль блюда или особенности порции.",
   "aiClarificationLabel": "Что важно учесть?",
   "aiClarificationHint": "Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское"
