@@ -1,10 +1,10 @@
 {
   "IDX.agenticWorkspace": true,
-  "task.allowAutomaticTasks": "on",
+  "task.allowAutomaticTasks": "off",
   "remote.autoForwardPorts": true,
   "remote.portsAttributes": {
-    "8080": {
-      "onAutoForward": "openPreview"
+    "8081": {
+      "onAutoForward": "silent"
     }
   },
   "remote.autoForwardPortsFallback": 0,

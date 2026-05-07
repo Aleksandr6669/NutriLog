@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Auto: Flutter Web Preview",
+      "label": "Flutter Web Preview",
       "type": "shell",
       "command": "flutter",
       "args": [
@@ -13,16 +13,27 @@
         "--web-hostname",
         "0.0.0.0",
         "--web-port",
-        "8080"
+        "8081"
       ],
       "isBackground": true,
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
         "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Web Preview",
+      "type": "shell",
+      "command": "open",
+      "args": [
+        "http://localhost:8081"
+      ],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated",
+        "clear": false
       },
       "problemMatcher": []
     }
