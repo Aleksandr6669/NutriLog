@@ -221,7 +221,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _donateAiStatus = l10n.recipeAiCalculating;
       });
     }
-    _donateAiDebounce = Timer(const Duration(milliseconds: 700), () {
+    _donateAiDebounce = Timer(const Duration(seconds: 2), () {
       _runDonateAiModeration();
     });
   }
@@ -378,7 +378,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isAiError = false;
       });
     }
-    _nutritionAiDebounce = Timer(const Duration(seconds: 3), () {
+    _nutritionAiDebounce = Timer(const Duration(milliseconds: 1500), () {
       if (mounted && !_isAiCalculating) {
         unawaited(_recalculateNutrientsWithAi());
       }

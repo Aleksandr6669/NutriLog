@@ -88,13 +88,32 @@ class GeminiRecipeService {
     return 0.0;
   }
 
+  /// Основные модели — для первичного расчёта нутриентов, черновиков, аналитики.
   static const List<String> _models = [
     'meta-llama/llama-4-scout-17b-16e-instruct',
     'meta-llama/llama-4-maverick-17b-128e-instruct',
   ];
 
+  /// Быстрые модели — для recheck (самопроверки результата).
+  /// Llama 3.3 70B быстрее и дешевле Llama 4, достаточно для корректировки.
+  /// Qwen 3 32B — как запасная: хорошо рассуждает, подходит для самопроверки.
+  static const List<String> _recheckModels = [
+    'llama-3.3-70b-versatile',
+    'qwen/qwen3-32b',
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+  ];
+
+  /// Специализированные модели для модерации рецептов.
+  /// Safety GPT OSS 20B оптимизирован для задач контент-фильтрации.
+  static const List<String> _moderationModels = [
+    'meta-llama/llama-guard-4-12b',
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+  ];
+
   static const Duration _requestTimeout = Duration(seconds: 12);
   static const int _jsonRetryMaxAttempts = 5;
+  static const int _recheckRetryMaxAttempts = 2;
+  static const int _moderationRetryMaxAttempts = 3;
   static const Duration _jsonRetryDelay = Duration(seconds: 10);
 
   static const List<String> nutrientKeys = [
@@ -525,21 +544,9 @@ Rules:
           _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
     }
 
-    // Second self-recheck: AI reviews its own corrected output for final accuracy
-    rechecked = await _recheckEstimatedNutrientsWithAi(
-      recipeName: recipeName,
-      recipeDescription: recipeDescription,
-      clarification: clarification,
-      ingredientsText: ingredientsText,
-      factsJson: factsJson,
-      firstPass: afterFirstRecheck,
-      locale: locale,
-    );
-
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
-      finalNutrients[key] = _toNonNegativeDouble(
-          rechecked['nutrients']?[key] ?? afterFirstRecheck[key]);
+      finalNutrients[key] = _toNonNegativeDouble(afterFirstRecheck[key]);
     }
 
     var localIssueAfterRecheck = _validateEstimatedNutrients(
@@ -601,6 +608,9 @@ Rules:
     }
 
     final calories = nutrients['calories'] ?? 0;
+    final protein = nutrients['protein'] ?? 0;
+    final fat = nutrients['fat'] ?? 0;
+    final carbs = nutrients['carbs'] ?? 0;
 
     final allZeros = nutrientKeys.every((key) => (nutrients[key] ?? 0) <= 0);
     if (allZeros) {
@@ -609,6 +619,11 @@ Rules:
 
     if (calories <= 0) {
       return _messages(locale).validationZeroCalories;
+    }
+
+    // Calories present but all main macros are zero — structurally invalid
+    if (protein <= 0 && fat <= 0 && carbs <= 0) {
+      return _messages(locale).validationAllZeroNutrients;
     }
 
     return null;
@@ -713,6 +728,8 @@ Rules:
           'stream': false,
         },
         locale: locale,
+        modelsOverride: _recheckModels,
+        maxAttempts: _recheckRetryMaxAttempts,
       );
       final approved = decoded['approved'] == true;
       final reason = (decoded['reason'] as String? ?? '').trim();
@@ -816,6 +833,8 @@ Rules:
         'stream': false,
       },
       locale: locale,
+      modelsOverride: _moderationModels,
+      maxAttempts: _moderationRetryMaxAttempts,
     );
 
     final decision =
@@ -1571,6 +1590,8 @@ $allowedRecipesText
           'stream': false,
         },
         locale: locale,
+        modelsOverride: _recheckModels,
+        maxAttempts: _recheckRetryMaxAttempts,
       );
       if (decoded['overview'] is! String ||
           decoded['recommendations'] is! List) {
@@ -1951,6 +1972,7 @@ Rules:
     required Map<String, dynamic> body,
     String? apiKeyOverride,
     String? locale,
+    List<String>? modelsOverride,
   }) async {
     final apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
     if (apiKey.isEmpty) {
@@ -1959,8 +1981,9 @@ Rules:
       );
     }
 
+    final models = modelsOverride ?? _models;
     http.Response? lastErrorResponse;
-    for (final model in _models) {
+    for (final model in models) {
       final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
 
       try {
@@ -1982,7 +2005,7 @@ Rules:
         if (response.statusCode >= 200 && response.statusCode < 300) {
           final validForSystem = _isResponseValidForSystem(response.body);
           if (!validForSystem) {
-            if (model != _models.last) continue;
+            if (model != models.last) continue;
             throw GeminiRecipeException(
               _messages(locale).aiUnexpectedResponseFormatError,
             );
@@ -1996,15 +2019,15 @@ Rules:
             response.statusCode == 408 ||
             response.statusCode == 429 ||
             response.statusCode >= 500;
-        if (isRetryableStatus && model != _models.last) {
+        if (isRetryableStatus && model != models.last) {
           continue;
         }
         throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
       } on TimeoutException {
-        if (model != _models.last) continue;
+        if (model != models.last) continue;
         throw GeminiRecipeException(_messages(locale).aiNoResponseError);
       } on http.ClientException {
-        if (model != _models.last) continue;
+        if (model != models.last) continue;
         throw GeminiRecipeException(_messages(locale).aiNoResponseError);
       }
     }
@@ -2023,6 +2046,7 @@ Rules:
     String? apiKeyOverride,
     String? locale,
     int maxAttempts = _jsonRetryMaxAttempts,
+    List<String>? modelsOverride,
   }) async {
     Object? lastError;
 
@@ -2032,6 +2056,7 @@ Rules:
           body: body,
           apiKeyOverride: apiKeyOverride,
           locale: locale,
+          modelsOverride: modelsOverride,
         );
 
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
