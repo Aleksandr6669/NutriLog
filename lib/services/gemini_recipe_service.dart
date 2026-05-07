@@ -517,12 +517,6 @@ Rules:
       firstPass[key] = _toNonNegativeDouble(decoded[key]);
     }
 
-    final localIssueBeforeRecheck = _validateEstimatedNutrients(
-      nutrients: firstPass,
-      ingredients: ingredients,
-      locale: locale,
-    );
-
     var rechecked = await _recheckEstimatedNutrientsWithAi(
       recipeName: recipeName,
       recipeDescription: recipeDescription,
@@ -533,10 +527,27 @@ Rules:
       locale: locale,
     );
 
+    final afterFirstRecheck = <String, double>{};
+    for (final key in nutrientKeys) {
+      afterFirstRecheck[key] =
+          _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
+    }
+
+    // Second self-recheck: AI reviews its own corrected output for final accuracy
+    rechecked = await _recheckEstimatedNutrientsWithAi(
+      recipeName: recipeName,
+      recipeDescription: recipeDescription,
+      clarification: clarification,
+      ingredientsText: ingredientsText,
+      factsJson: factsJson,
+      firstPass: afterFirstRecheck,
+      locale: locale,
+    );
+
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
-      finalNutrients[key] =
-          _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
+      finalNutrients[key] = _toNonNegativeDouble(
+          rechecked['nutrients']?[key] ?? afterFirstRecheck[key]);
     }
 
     var localIssueAfterRecheck = _validateEstimatedNutrients(
@@ -546,7 +557,7 @@ Rules:
     );
 
     if (localIssueAfterRecheck != null) {
-      // Best-effort second pass if the first AI answer is empty/invalid.
+      // Emergency third pass if result is still invalid (all zeros / no calories)
       rechecked = await _recheckEstimatedNutrientsWithAi(
         recipeName: recipeName,
         recipeDescription: recipeDescription,
@@ -579,15 +590,10 @@ Rules:
       );
     }
 
-    final aiApproved = rechecked['approved'] == true;
-    final aiReason = (rechecked['reason'] as String? ?? '').trim();
-    if (!aiApproved || localIssueAfterRecheck != null) {
-      final reason = localIssueAfterRecheck ??
-          (aiReason.isNotEmpty
-              ? aiReason
-              : (localIssueBeforeRecheck ??
-                  _messages(locale).aiFailedToExtractIngredientsError));
-      throw GeminiRecipeException(reason);
+    // Only block if local structural validation failed (all zeros / calories=0)
+    // aiApproved is ignored — recheck is used only to improve accuracy, not to reject
+    if (localIssueAfterRecheck != null) {
+      throw GeminiRecipeException(localIssueAfterRecheck);
     }
 
     return finalNutrients;
@@ -599,33 +605,18 @@ Rules:
     String? locale,
   }) {
     if (ingredients.isEmpty) {
-      return _localizedText(
-        locale: locale,
-        ru: 'Валидация не пройдена: отсутствуют ингредиенты.',
-        uk: 'Валідація не пройдена: відсутні інгредієнти.',
-        en: 'Validation failed: ingredients are missing.',
-      );
+      return _messages(locale).validationNoIngredients;
     }
 
     final calories = nutrients['calories'] ?? 0;
 
     final allZeros = nutrientKeys.every((key) => (nutrients[key] ?? 0) <= 0);
     if (allZeros) {
-      return _localizedText(
-        locale: locale,
-        ru: 'Валидация не пройдена: расчет вернул нулевые нутриенты.',
-        uk: 'Валідація не пройдена: розрахунок повернув нульові нутрієнти.',
-        en: 'Validation failed: calculated nutrients are all zeros.',
-      );
+      return _messages(locale).validationAllZeroNutrients;
     }
 
     if (calories <= 0) {
-      return _localizedText(
-        locale: locale,
-        ru: 'Валидация не пройдена: калории должны быть больше нуля.',
-        uk: 'Валідація не пройдена: калорії мають бути більші за нуль.',
-        en: 'Validation failed: calories must be greater than zero.',
-      );
+      return _messages(locale).validationZeroCalories;
     }
 
     return null;
@@ -641,28 +632,46 @@ Rules:
     String? locale,
   }) async {
     final prompt = '''
-You are a strict nutrition QA validator.
+You are a nutrition calculation corrector and food state interpreter.
 ${_languageInstruction(locale)}
 
-Re-check the candidate nutrition result against ORIGINAL user input and ingredient constraints.
+Your task is to IMPROVE the candidate nutrition values using USDA reference data as hints.
+Do NOT reject or block the calculation — always return approved: true with your best corrected values.
 
-ORIGINAL INPUT:
-- clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
+CRITICAL: FOOD PREPARATION STATE
+Before calculating, carefully determine the ACTUAL state of each ingredient using all available context:
+- User clarification (HIGHEST priority): if it says "варёные макароны", "готовая каша", "сухие хлопья" — use that exact state.
+- Description and name: "овсяная каша на воде" → oats are cooked, "мюсли с молоком" → dry flakes + milk.
+- Default assumption when state is ambiguous: prefer COOKED/PREPARED state for pasta, rice, grains, oats, buckwheat, lentils, beans; use RAW weight for meat, fish, vegetables.
+- Cooked pasta/rice/grains have ~3x LOWER calories per gram than dry (e.g. cooked pasta: ~130 kcal/100g, dry pasta: ~350 kcal/100g).
+- Dry oats/flakes: ~370 kcal/100g. Cooked oatmeal: ~70 kcal/100g.
+- If ingredient name contains "сухой/dry/сырой/raw" → use dry/raw values. If "варёный/cooked/готовый/prepared" → use cooked values.
+
+INPUT:
+- clarification (HIGHEST PRIORITY for food state): ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
 - recipe name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
 - recipe description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
 - ingredients:
 $ingredientsText
 
-USDA references:
-${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available)'}
+USDA nutritional reference data (per 100 g) — use as HINTS only, not as hard constraints:
+${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available — use your food knowledge)'}
 
-Candidate nutrients JSON:
+Candidate nutrients JSON (your starting point):
 ${jsonEncode(firstPass)}
 
-Validate and fix if needed. Return ONLY JSON in this exact format:
+Instructions:
+1. First, determine preparation state for each ingredient from clarification → description → name → default assumption (see rules above).
+2. Use USDA data (adjusted for the correct state) as reference to spot obvious errors (e.g. off by 2x or more).
+3. Recalculate if preparation state or USDA data clearly shows the candidate is wrong.
+4. If candidate looks reasonable and state matches, keep candidate values.
+5. Always return approved: true with your best nutrient values.
+6. Cross-check: calories ≈ protein×4 + carbs×4 + fat×9. Adjust if off by more than 10%.
+
+Return ONLY JSON:
 {
-  "approved": true or false,
-  "reason": "short reason in response language",
+  "approved": true,
+  "reason": "",
   "nutrients": {
     "calories": 0,
     "protein": 0,
@@ -687,12 +696,8 @@ Validate and fix if needed. Return ONLY JSON in this exact format:
 
 Rules:
 - no markdown, no extra text.
-- reason must clearly explain why validation failed when approved=false.
-- validate with original input first, not only with candidate output.
 - all nutrient values must be numeric and >= 0.
 - keep values realistic for one serving.
-- allow normal branded/packaged products (for example energy drinks, bars, factory products) if quantities are plausible.
-- reject only clearly non-food/trolling input or absurd one-serving quantities (for example salt in hundreds of grams/kilograms).
 ''';
 
     try {
@@ -716,13 +721,8 @@ Rules:
       final text = _extractText(payload, locale).trim();
       if (text.isEmpty) {
         return {
-          'approved': false,
-          'reason': _localizedText(
-            locale: locale,
-            ru: 'Валидация не пройдена: пустой ответ AI-проверки.',
-            uk: 'Валідація не пройдена: порожня відповідь AI-перевірки.',
-            en: 'Validation failed: empty AI recheck response.',
-          ),
+          'approved': true,
+          'reason': '',
           'nutrients': firstPass,
         };
       }
@@ -745,13 +745,8 @@ Rules:
       };
     } catch (_) {
       return {
-        'approved': false,
-        'reason': _localizedText(
-          locale: locale,
-          ru: 'Валидация не пройдена: ошибка повторной AI-проверки.',
-          uk: 'Валідація не пройдена: помилка повторної AI-перевірки.',
-          en: 'Validation failed: AI recheck error.',
-        ),
+        'approved': true,
+        'reason': '',
         'nutrients': firstPass,
       };
     }
@@ -768,19 +763,6 @@ Rules:
     if (recipeName.trim().isEmpty || ingredients.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiFailedToExtractIngredientsError,
-      );
-    }
-
-    final ingredientIssue = _validateIngredientPlausibility(
-      ingredients: ingredients,
-      locale: locale,
-    );
-    if (ingredientIssue != null) {
-      return DonateRecipeModerationResult(
-        approved: false,
-        reason: ingredientIssue,
-        confidence: 0.99,
-        flags: const ['nonsense'],
       );
     }
 
@@ -869,8 +851,8 @@ Rules:
       approved: approved,
       reason: reason.isEmpty
           ? (approved
-              ? 'Рецепт прошел AI-проверку и может быть опубликован.'
-              : 'AI-проверка не пройдена: рецепт выглядит невалидным для сообщества.')
+              ? _messages(locale).moderationApproved
+              : _messages(locale).moderationRejected)
           : reason,
       confidence: confidence,
       flags: flags,
@@ -2365,12 +2347,7 @@ Rules:
         'фекал',
       ];
       if (_containsAny(name, nonFoodWords)) {
-        return _localizedText(
-          locale: locale,
-          ru: 'Похоже, в ингредиентах есть неедобный или мусорный текст. Проверьте название продукта.',
-          uk: 'Схоже, в інгредієнтах є неїстівний або сміттєвий текст. Перевірте назву продукту.',
-          en: 'Ingredients contain non-food or nonsense text. Please check the product name.',
-        );
+        return _messages(locale).validationNonFoodIngredient;
       }
 
       final grams = _toGramsEquivalent(
@@ -2381,12 +2358,7 @@ Rules:
 
       final isSalt = _containsAny(name, ['salt', 'соль', 'солі', 'сiль']);
       if (isSalt && grams > 120) {
-        return _localizedText(
-          locale: locale,
-          ru: 'Количество соли выглядит нереалистичным для одной порции. Проверьте граммовку.',
-          uk: 'Кількість солі виглядає нереалістичною для однієї порції. Перевірте грамовку.',
-          en: 'Salt amount looks unrealistic for one serving. Please check the quantity.',
-        );
+        return _messages(locale).validationSaltExcess;
       }
     }
 
@@ -2412,41 +2384,12 @@ Rules:
     }
   }
 
-  String _localizedText({
-    required String? locale,
-    required String ru,
-    required String uk,
-    required String en,
-  }) {
-    switch (_languageCode(locale)) {
-      case 'ru':
-        return ru;
-      case 'uk':
-        return uk;
-      default:
-        return en;
-    }
-  }
-
   bool _hasExplicitYieldOrVolumeInfo(String sourceText) {
     final text = sourceText.toLowerCase();
-
-    final explicitAmount = RegExp(
-      r'\b\d+(?:[\.,]\d+)?\s*(?:порц|порци|serv|serving|г|гр|kg|кг|ml|мл|l|л|литр|літр)\b',
+    return RegExp(
+      r'\b\d+(?:[\.,]\d+)?\s*(?:порц|порци|serv|serving)\b',
       caseSensitive: false,
-    );
-    if (explicitAmount.hasMatch(text)) return true;
-
-    final phrases = [
-      'на двоих',
-      'на троих',
-      'for two',
-      'for three',
-      'для компании',
-      'на семью',
-      'для сім',
-    ];
-    return _containsAny(text, phrases);
+    ).hasMatch(text);
   }
 
   double? _toGramsEquivalent(double quantity, String unit) {

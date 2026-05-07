@@ -877,6 +877,42 @@ class AppLocalizationsUk extends AppLocalizations {
   String get aiEmptyReportError => 'Нейромережа повернула порожній звіт.';
 
   @override
+  String get validationNoIngredients =>
+      'Не вдалося розрахувати: список інгредієнтів порожній.';
+
+  @override
+  String get validationAllZeroNutrients =>
+      'Не вдалося розрахувати харчову цінність. Спробуйте ще раз або введіть значення вручну.';
+
+  @override
+  String get validationZeroCalories =>
+      'Не вдалося розрахувати харчову цінність. Спробуйте ще раз або введіть значення вручну.';
+
+  @override
+  String get validationRecheckEmptyResponse =>
+      'Не вдалося розрахувати харчову цінність. Спробуйте ще раз.';
+
+  @override
+  String get validationRecheckError =>
+      'Не вдалося розрахувати харчову цінність. Спробуйте ще раз.';
+
+  @override
+  String get validationNonFoodIngredient =>
+      'Схоже, в інгредієнтах є неїстівний або сміттєвий текст. Перевірте назву продукту.';
+
+  @override
+  String get validationSaltExcess =>
+      'Кількість солі виглядає нереалістичною для однієї порції. Перевірте грамовку.';
+
+  @override
+  String get moderationApproved =>
+      'Рецепт пройшов AI-перевірку і може бути опублікований.';
+
+  @override
+  String get moderationRejected =>
+      'AI-перевірка не пройдена: рецепт виглядає невалідним для спільноти.';
+
+  @override
   String get aiNoResponseError => 'Не вдалося отримати відповідь від Groq.';
 
   @override

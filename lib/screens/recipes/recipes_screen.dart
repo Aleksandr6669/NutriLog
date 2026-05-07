@@ -135,11 +135,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _addRecipeSelection(Recipe recipe) {
     HapticFeedback.lightImpact();
     setState(() {
-      _selectedRecipeCounts[recipe.id] = 1;
-
-      // Перемещаем в начало, так как это последнее добавленное/измененное
-      _selectedOrder.remove(recipe.id);
-      _selectedOrder.insert(0, recipe.id);
+      _selectedRecipeCounts[recipe.id] =
+          (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
+      if (!_selectedOrder.contains(recipe.id)) {
+        _selectedOrder.insert(0, recipe.id);
+      }
     });
   }
 
@@ -194,7 +194,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
       final recipe = _allRecipes.firstWhere((r) => r.id == id,
           orElse: () => Recipe.empty());
       if (recipe.id.isEmpty) continue;
-      selectedRecipes.add(recipe);
+      final count = _selectedRecipeCounts[id] ?? 1;
+      for (int i = 0; i < count; i++) {
+        selectedRecipes.add(recipe);
+      }
     }
     Navigator.of(context).pop(selectedRecipes);
   }
@@ -244,6 +247,29 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                const SizedBox(width: 4),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: (_selectedRecipeCounts[recipe.id] ?? 0) > 1
+                      ? Container(
+                          key: ValueKey(_selectedRecipeCounts[recipe.id]),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '×${_selectedRecipeCounts[recipe.id]}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(key: ValueKey(0)),
                 ),
                 IconButton(
                   icon: const Icon(Symbols.remove_circle, size: 18),
@@ -589,26 +615,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 children: [
                   SizedBox(height: fixedTopInset),
                   fixedSearch,
-                  _buildSelectedRecipesBar(theme),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: _buildSelectedRecipesBar(theme),
+                  ),
                   Expanded(
                     child: CustomScrollView(
                       slivers: [
-                        if (_isDeleteSelectionMode && !widget.selectionMode)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  '${AppLocalizations.of(context)!.selected}: ${_selectedRecipeIdsForDelete.length}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         if (_isLoading)
                           const SliverFillRemaining(
                             hasScrollBody: false,
@@ -811,7 +825,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   Widget _buildRecipesList() {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -830,9 +844,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
               canSelectInDeleteMode: recipe.isUserRecipe && !recipe.isDonated,
               isSelected: isSelected,
               isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
+              selectedCount: _selectedRecipeCounts[recipe.id] ?? 0,
               onTap: () {
                 if (widget.selectionMode) {
-                  _toggleRecipeSelection(recipe);
+                  _addRecipeSelection(recipe);
                   return;
                 }
                 if (_isDeleteSelectionMode) {
@@ -843,7 +858,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 _openRecipeDetail(recipe);
               },
               onActionTap: widget.selectionMode
-                  ? () => _toggleRecipeSelection(recipe)
+                  ? () => _addRecipeSelection(recipe)
                   : (_isDeleteSelectionMode &&
                           recipe.isUserRecipe &&
                           !recipe.isDonated
@@ -992,6 +1007,7 @@ class _RecipeListItem extends StatelessWidget {
   final bool canSelectInDeleteMode;
   final bool isSelected;
   final bool isDeleteSelected;
+  final int selectedCount;
   final VoidCallback? onActionTap;
   final VoidCallback? onHighlightCompleted;
 
@@ -1004,6 +1020,7 @@ class _RecipeListItem extends StatelessWidget {
     this.canSelectInDeleteMode = true,
     this.isSelected = false,
     this.isDeleteSelected = false,
+    this.selectedCount = 0,
     this.onActionTap,
     this.onHighlightCompleted,
   });
@@ -1036,12 +1053,50 @@ class _RecipeListItem extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor:
-                        theme.colorScheme.primary.withValues(alpha: 0.1),
-                    child: Icon(recipe.icon,
-                        color: theme.colorScheme.primary, size: 28),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor:
+                            theme.colorScheme.primary.withValues(alpha: 0.1),
+                        child: Icon(recipe.icon,
+                            color: theme.colorScheme.primary, size: 28),
+                      ),
+                      if (isSelectionMode && !isDeleteMode && selectedCount > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: Container(
+                              key: ValueKey(selectedCount),
+                              constraints: const BoxConstraints(
+                                  minWidth: 20, minHeight: 20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 5),
+                              decoration: BoxDecoration(
+                                color: selectedCount > 1
+                                    ? AppColors.primary
+                                    : Colors.green.shade600,
+                                borderRadius: BorderRadius.circular(999),
+                                border:
+                                    Border.all(color: Colors.white, width: 1.5),
+                              ),
+                              child: Text(
+                                selectedCount > 1 ? '$selectedCount' : '✓',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -1121,12 +1176,16 @@ class _RecipeListItem extends StatelessWidget {
                             ? (isDeleteSelected
                                 ? Symbols.check_circle
                                 : Symbols.radio_button_unchecked)
-                            : Symbols.add_circle,
+                            : (isSelected
+                                ? Symbols.check_circle
+                                : Symbols.add_circle),
                         color: isDeleteMode
                             ? (isDeleteSelected
                                 ? Colors.red
                                 : theme.colorScheme.primary)
-                            : theme.colorScheme.primary,
+                            : (isSelected
+                                ? Colors.green.shade600
+                                : theme.colorScheme.primary),
                       ),
                       onPressed: onActionTap,
                       tooltip: isDeleteMode
@@ -1148,9 +1207,14 @@ class _RecipeListItem extends StatelessWidget {
           )
         : card;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: highlightedCard,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: highlightedCard,
+      ),
     );
   }
 }

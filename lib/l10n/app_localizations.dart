@@ -1690,6 +1690,60 @@ abstract class AppLocalizations {
   /// **'The AI returned an empty report.'**
   String get aiEmptyReportError;
 
+  /// No description provided for @validationNoIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate: ingredient list is empty.'**
+  String get validationNoIngredients;
+
+  /// No description provided for @validationAllZeroNutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate nutrition. Please try again or enter values manually.'**
+  String get validationAllZeroNutrients;
+
+  /// No description provided for @validationZeroCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate nutrition. Please try again or enter values manually.'**
+  String get validationZeroCalories;
+
+  /// No description provided for @validationRecheckEmptyResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate nutrition. Please try again.'**
+  String get validationRecheckEmptyResponse;
+
+  /// No description provided for @validationRecheckError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate nutrition. Please try again.'**
+  String get validationRecheckError;
+
+  /// No description provided for @validationNonFoodIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients contain non-food or nonsense text. Please check the product name.'**
+  String get validationNonFoodIngredient;
+
+  /// No description provided for @validationSaltExcess.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt amount looks unrealistic for one serving. Please check the quantity.'**
+  String get validationSaltExcess;
+
+  /// No description provided for @moderationApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe passed AI review and can be published.'**
+  String get moderationApproved;
+
+  /// No description provided for @moderationRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'AI review failed: recipe looks invalid for the community.'**
+  String get moderationRejected;
+
   /// No description provided for @aiNoResponseError.
   ///
   /// In en, this message translates to:

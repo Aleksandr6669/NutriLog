@@ -876,6 +876,42 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aiEmptyReportError => 'Нейросеть вернула пустой отчет.';
 
   @override
+  String get validationNoIngredients =>
+      'Не удалось рассчитать: список ингредиентов пуст.';
+
+  @override
+  String get validationAllZeroNutrients =>
+      'Не удалось рассчитать пищевую ценность. Попробуйте ещё раз или введите значения вручную.';
+
+  @override
+  String get validationZeroCalories =>
+      'Не удалось рассчитать пищевую ценность. Попробуйте ещё раз или введите значения вручную.';
+
+  @override
+  String get validationRecheckEmptyResponse =>
+      'Не удалось рассчитать питательную ценность. Попробуйте ещё раз.';
+
+  @override
+  String get validationRecheckError =>
+      'Не удалось рассчитать питательную ценность. Попробуйте ещё раз.';
+
+  @override
+  String get validationNonFoodIngredient =>
+      'Похоже, в ингредиентах есть неедобный или мусорный текст. Проверьте название продукта.';
+
+  @override
+  String get validationSaltExcess =>
+      'Количество соли выглядит нереалистичным для одной порции. Проверьте граммовку.';
+
+  @override
+  String get moderationApproved =>
+      'Рецепт прошел AI-проверку и может быть опубликован.';
+
+  @override
+  String get moderationRejected =>
+      'AI-проверка не пройдена: рецепт выглядит невалидным для сообщества.';
+
+  @override
   String get aiNoResponseError => 'Не удалось получить ответ от Groq.';
 
   @override

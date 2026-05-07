@@ -875,6 +875,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiEmptyReportError => 'The AI returned an empty report.';
 
   @override
+  String get validationNoIngredients =>
+      'Could not calculate: ingredient list is empty.';
+
+  @override
+  String get validationAllZeroNutrients =>
+      'Could not calculate nutrition. Please try again or enter values manually.';
+
+  @override
+  String get validationZeroCalories =>
+      'Could not calculate nutrition. Please try again or enter values manually.';
+
+  @override
+  String get validationRecheckEmptyResponse =>
+      'Could not calculate nutrition. Please try again.';
+
+  @override
+  String get validationRecheckError =>
+      'Could not calculate nutrition. Please try again.';
+
+  @override
+  String get validationNonFoodIngredient =>
+      'Ingredients contain non-food or nonsense text. Please check the product name.';
+
+  @override
+  String get validationSaltExcess =>
+      'Salt amount looks unrealistic for one serving. Please check the quantity.';
+
+  @override
+  String get moderationApproved =>
+      'Recipe passed AI review and can be published.';
+
+  @override
+  String get moderationRejected =>
+      'AI review failed: recipe looks invalid for the community.';
+
+  @override
   String get aiNoResponseError => 'Failed to get a response from Groq.';
 
   @override
