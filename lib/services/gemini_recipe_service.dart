@@ -900,7 +900,15 @@ Rules:
               'role': 'user',
               'content': '''
 Translate the food ingredient name to concise English for USDA food search.
-Return ONLY one short English ingredient phrase (1-4 words), no punctuation, no quotes, no explanation.
+Return ONLY JSON:
+{
+  "query": "short English ingredient phrase"
+}
+
+Rules:
+- query must be 1-4 words.
+- no punctuation, no quotes inside value.
+- no extra keys, no extra text.
 
 Ingredient: $source
 ''',
@@ -916,7 +924,9 @@ Ingredient: $source
 
       final payload = jsonDecode(response.body) as Map<String, dynamic>;
       final raw = _extractText(payload, locale).trim();
-      final cleaned = raw
+      final decoded = _decodeJsonObject(raw, 'en');
+      final value = (decoded['query'] as String? ?? '').trim();
+      final cleaned = value
           .replaceAll(RegExp(r'^[\x22\x27\s]+|[\x22\x27\s]+$'), '')
           .replaceAll(RegExp(r'\s+'), ' ')
           .trim();
@@ -1122,12 +1132,15 @@ Data:
 - Workouts: $workouts
 - Average activity calories per workout: $avgActivityCalories
 
-Response format:
-1) A very brief summary: 2-4 sentences maximum
-2) Consider not only calories but also macro/micronutrients and activity
-3) Provide 2-3 practical steps for the next period
-4) Tone: supportive, no fear-mongering
-5) No markdown, plain text only.
+Return ONLY JSON:
+{
+  "report": "A very brief summary in 2-4 sentences with 2-3 practical steps"
+}
+
+Rules:
+- report must mention calories, macro/micronutrients, and activity.
+- Tone: supportive, no fear-mongering.
+- No markdown, no extra keys, no extra text.
 ''';
 
     final response = await _requestWithFallback(
@@ -1147,12 +1160,14 @@ Response format:
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
     final text = _extractText(payload, locale).trim();
-    if (text.isEmpty) {
+    final decoded = _decodeJsonObject(text, locale);
+    final report = (decoded['report'] as String? ?? '').trim();
+    if (report.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiEmptyReportError,
       );
     }
-    return text;
+    return report;
   }
 
   Future<Map<String, dynamic>> generateStructuredStatsReport({

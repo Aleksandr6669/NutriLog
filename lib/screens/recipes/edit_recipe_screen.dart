@@ -65,6 +65,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   String? _aiStatus;
   bool _isAiError = false;
   int _aiRequestId = 0;
+  bool _isAutoAiNutritionEnabled = true;
   bool _isPublic = false;
   bool _isDonating = false;
   bool _isDonated = false;
@@ -163,16 +164,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
     if (isFromDraft) {
-      bool isAutoAiEnabled = true;
       try {
         final settings = await NotificationSettingsService().load();
-        isAutoAiEnabled = settings.recipeAiAutoNutritionEnabled;
+        _isAutoAiNutritionEnabled = settings.recipeAiAutoNutritionEnabled;
       } catch (_) {
         // Если настройки недоступны, используем безопасное поведение по умолчанию.
+        _isAutoAiNutritionEnabled = true;
       }
 
       if (!mounted) return;
-      if (isAutoAiEnabled && _ingredientItems.isNotEmpty) {
+      if (_isAutoAiNutritionEnabled && _ingredientItems.isNotEmpty) {
         WidgetsBinding.instance
             .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
       }
@@ -349,6 +350,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _detachIngredientListeners(item);
     item.dispose();
     setState(() {});
+
+    // При удалении ингредиента запускаем AI-реакцию так же, как после изменений.
+    _onDonateValidationInputChanged();
+
+    final hasNamedIngredients =
+        _ingredientItems.any((i) => i.nameController.text.trim().isNotEmpty);
+    if (_isAutoAiNutritionEnabled && hasNamedIngredients && !_isAiCalculating) {
+      unawaited(_recalculateNutrientsWithAi());
+    }
   }
 
   Future<void> _recalculateNutrientsWithAi() async {
