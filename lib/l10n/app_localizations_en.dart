@@ -953,6 +953,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign in';
 
   @override
+  String get confirmYes => 'Yes';
+
+  @override
+  String get confirmNo => 'No';
+
+  @override
+  String get syncConfirmTitle => 'Are you sure?';
+
+  @override
   String get signOut => 'Sign out';
 
   @override

@@ -900,7 +900,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+        side: BorderSide(
+          color: Colors.green.withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
@@ -1037,47 +1043,56 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: AbsorbPointer(
-          absorbing: _isAiCalculating,
-          child: SingleChildScrollView(
-            padding: glassBodyPadding(
-              context,
-              left: 16,
-              top: 8,
-              right: 16,
-              bottom: 110,
-            ),
-            child: Column(
-              children: [
-                _buildMainInfoCard(),
-                const SizedBox(height: 20),
-                _buildAiClarificationCard(),
-                const SizedBox(height: 20),
-                _buildIngredientsCard(),
-                const SizedBox(height: 20),
-                _buildNutrientsCard(),
-                const SizedBox(height: 24),
-                _buildVisibilityCard(),
-                const SizedBox(height: 12),
-                _buildDonateCard(),
-                if (widget.recipe != null) ...[
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.center,
-                    child: TextButton.icon(
-                      onPressed: _isDonated ? null : _deleteRecipe,
-                      icon: const Icon(Symbols.delete),
-                      label: Text(l10n.removeRecipeTooltip),
-                      style: TextButton.styleFrom(
-                        foregroundColor: _isDonated ? Colors.grey : Colors.red,
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: glassBodyPadding(
+                context,
+                left: 16,
+                top: 8,
+                right: 16,
+                bottom: 110,
+              ),
+              child: AbsorbPointer(
+                absorbing: _isAiCalculating,
+                child: Column(
+                  children: [
+                    _buildMainInfoCard(),
+                    const SizedBox(height: 20),
+                    _buildIngredientsCard(),
+                    const SizedBox(height: 20),
+                    _buildNutrientsCard(),
+                    const SizedBox(height: 24),
+                    _buildVisibilityCard(),
+                    const SizedBox(height: 12),
+                    _buildDonateCard(),
+                    if (widget.recipe != null) ...[
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.center,
+                        child: TextButton.icon(
+                          onPressed: _isDonated ? null : _deleteRecipe,
+                          icon: const Icon(Symbols.delete),
+                          label: Text(l10n.removeRecipeTooltip),
+                          style: TextButton.styleFrom(
+                            foregroundColor:
+                                _isDonated ? Colors.grey : Colors.red,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-              ],
+                    ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
             ),
-          ),
+            if (_isAiCalculating)
+              IgnorePointer(
+                child: Container(
+                  color: Colors.black.withOpacity(0.12),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -1126,6 +1141,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               controller: _descriptionController,
               decoration: AppStyles.underlineInputDecoration(
                   label: l10n.recipeDescriptionLabel),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _clarificationController,
+              minLines: 2,
+              maxLines: 5,
+              decoration: AppStyles.underlineInputDecoration(
+                label: l10n.aiClarificationLabel,
+              ).copyWith(
+                hintText: l10n.aiClarificationHint,
+                alignLabelWithHint: true,
+              ),
             ),
           ],
         ),
@@ -1295,91 +1322,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ('vitamin_c', l10n.vitaminC, l10n.mg),
               ('vitamin_d', l10n.vitaminD, l10n.mcg)
             ]),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAiClarificationCard() {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0.5,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.28),
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Symbols.auto_awesome,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.aiClarificationTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.aiClarificationDescription,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.42),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-              child: TextField(
-                controller: _clarificationController,
-                minLines: 2,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  labelText: l10n.aiClarificationLabel,
-                  hintText: l10n.aiClarificationHint,
-                  alignLabelWithHint: true,
-                  labelStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.72),
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

@@ -956,6 +956,15 @@ class AppLocalizationsUk extends AppLocalizations {
   String get signIn => 'Увійти';
 
   @override
+  String get confirmYes => 'Так';
+
+  @override
+  String get confirmNo => 'Ні';
+
+  @override
+  String get syncConfirmTitle => 'Ви впевнені?';
+
+  @override
   String get signOut => 'Вийти';
 
   @override

@@ -954,6 +954,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signIn => 'Войти';
 
   @override
+  String get confirmYes => 'Да';
+
+  @override
+  String get confirmNo => 'Нет';
+
+  @override
+  String get syncConfirmTitle => 'Вы уверены?';
+
+  @override
   String get signOut => 'Выйти';
 
   @override

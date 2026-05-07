@@ -1828,6 +1828,24 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signIn;
 
+  /// No description provided for @confirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get confirmYes;
+
+  /// No description provided for @confirmNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get confirmNo;
+
+  /// No description provided for @syncConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure?'**
+  String get syncConfirmTitle;
+
   /// No description provided for @signOut.
   ///
   /// In en, this message translates to:

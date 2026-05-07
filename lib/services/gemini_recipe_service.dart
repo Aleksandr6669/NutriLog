@@ -239,9 +239,7 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
-- clarification: detailed text for "Important details" field (3-7 short lines) that includes as much as known:
-  product/dish type, likely cooking method/thermal processing, fat level, sauces/additives, brand/type hints, and key assumptions.
-  If data is uncertain, explicitly mark assumptions with words like "possibly" / "likely".
+- clarification: short direct description for "Important details" field (2-4 lines). Write directly: what it is, possible brand or name, brief composition or cooking method in 2-3 words, key characteristics. Style: direct, no third-person, no filler phrases. Example: "Энергетик. Возможный бренд: Monster. Состав: кофеин, таурин, сахар, витамины группы B."
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0.
@@ -342,10 +340,7 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
-- clarification: detailed text for "Important details" field (4-9 short lines), include:
-  product type/category, likely cooking method/thermal processing, fat level, sauces/syrups/additives,
-  brand or product-family hints (if visible/inferable), and key assumptions that affect nutrients.
-  If uncertain, mark assumptions explicitly.
+- clarification: short direct description for "Important details" field (2-5 lines). Write directly: what it is, visible brand if any, brief composition or cooking method, key details. Style: direct, no third-person, no filler phrases. Example: "Суп. Томатный, домашний. Ингредиенты: помидоры, лук, морковь, масло. Без сметаны."
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0. If needed, quantity >= 0.0001 (for spices, supplements, etc.).
@@ -407,6 +402,14 @@ Rules:
       throw GeminiRecipeException(
         _messages(locale).aiFailedToExtractIngredientsError,
       );
+    }
+
+    final ingredientIssue = _validateIngredientPlausibility(
+      ingredients: ingredients,
+      locale: locale,
+    );
+    if (ingredientIssue != null) {
+      throw GeminiRecipeException(ingredientIssue);
     }
 
     final apiKey = _resolveApiKey();
@@ -517,9 +520,10 @@ Rules:
     final localIssueBeforeRecheck = _validateEstimatedNutrients(
       nutrients: firstPass,
       ingredients: ingredients,
+      locale: locale,
     );
 
-    final rechecked = await _recheckEstimatedNutrientsWithAi(
+    var rechecked = await _recheckEstimatedNutrientsWithAi(
       recipeName: recipeName,
       recipeDescription: recipeDescription,
       clarification: clarification,
@@ -535,10 +539,45 @@ Rules:
           _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
     }
 
-    final localIssueAfterRecheck = _validateEstimatedNutrients(
+    var localIssueAfterRecheck = _validateEstimatedNutrients(
       nutrients: finalNutrients,
       ingredients: ingredients,
+      locale: locale,
     );
+
+    if (localIssueAfterRecheck != null) {
+      // Best-effort second pass if the first AI answer is empty/invalid.
+      rechecked = await _recheckEstimatedNutrientsWithAi(
+        recipeName: recipeName,
+        recipeDescription: recipeDescription,
+        clarification: clarification,
+        ingredientsText: ingredientsText,
+        factsJson: factsJson,
+        firstPass: finalNutrients,
+        locale: locale,
+      );
+
+      for (final key in nutrientKeys) {
+        finalNutrients[key] = _toNonNegativeDouble(
+          rechecked['nutrients']?[key] ?? finalNutrients[key],
+        );
+      }
+
+      localIssueAfterRecheck = _validateEstimatedNutrients(
+        nutrients: finalNutrients,
+        ingredients: ingredients,
+        locale: locale,
+      );
+    }
+
+    if (localIssueAfterRecheck != null) {
+      _applyNutrientsBestEffortFallback(finalNutrients);
+      localIssueAfterRecheck = _validateEstimatedNutrients(
+        nutrients: finalNutrients,
+        ingredients: ingredients,
+        locale: locale,
+      );
+    }
 
     final aiApproved = rechecked['approved'] == true;
     final aiReason = (rechecked['reason'] as String? ?? '').trim();
@@ -557,32 +596,36 @@ Rules:
   String? _validateEstimatedNutrients({
     required Map<String, double> nutrients,
     required List<RecipeIngredient> ingredients,
+    String? locale,
   }) {
     if (ingredients.isEmpty) {
-      return 'Валидация не пройдена: отсутствуют ингредиенты.';
+      return _localizedText(
+        locale: locale,
+        ru: 'Валидация не пройдена: отсутствуют ингредиенты.',
+        uk: 'Валідація не пройдена: відсутні інгредієнти.',
+        en: 'Validation failed: ingredients are missing.',
+      );
     }
 
     final calories = nutrients['calories'] ?? 0;
-    final protein = nutrients['protein'] ?? 0;
-    final carbs = nutrients['carbs'] ?? 0;
-    final fat = nutrients['fat'] ?? 0;
 
     final allZeros = nutrientKeys.every((key) => (nutrients[key] ?? 0) <= 0);
     if (allZeros) {
-      return 'Валидация не пройдена: расчет вернул нулевые нутриенты.';
-    }
-
-    final expectedCalories = protein * 4 + carbs * 4 + fat * 9;
-    if (expectedCalories > 1) {
-      final delta = (calories - expectedCalories).abs();
-      final rel = delta / expectedCalories;
-      if (rel > 0.35) {
-        return 'Валидация не пройдена: калории сильно расходятся с БЖУ (>${(rel * 100).toStringAsFixed(0)}%).';
-      }
+      return _localizedText(
+        locale: locale,
+        ru: 'Валидация не пройдена: расчет вернул нулевые нутриенты.',
+        uk: 'Валідація не пройдена: розрахунок повернув нульові нутрієнти.',
+        en: 'Validation failed: calculated nutrients are all zeros.',
+      );
     }
 
     if (calories <= 0) {
-      return 'Валидация не пройдена: калории должны быть больше нуля.';
+      return _localizedText(
+        locale: locale,
+        ru: 'Валидация не пройдена: калории должны быть больше нуля.',
+        uk: 'Валідація не пройдена: калорії мають бути більші за нуль.',
+        en: 'Validation failed: calories must be greater than zero.',
+      );
     }
 
     return null;
@@ -648,6 +691,8 @@ Rules:
 - validate with original input first, not only with candidate output.
 - all nutrient values must be numeric and >= 0.
 - keep values realistic for one serving.
+- allow normal branded/packaged products (for example energy drinks, bars, factory products) if quantities are plausible.
+- reject only clearly non-food/trolling input or absurd one-serving quantities (for example salt in hundreds of grams/kilograms).
 ''';
 
     try {
@@ -672,7 +717,12 @@ Rules:
       if (text.isEmpty) {
         return {
           'approved': false,
-          'reason': 'Валидация не пройдена: пустой ответ AI-проверки.',
+          'reason': _localizedText(
+            locale: locale,
+            ru: 'Валидация не пройдена: пустой ответ AI-проверки.',
+            uk: 'Валідація не пройдена: порожня відповідь AI-перевірки.',
+            en: 'Validation failed: empty AI recheck response.',
+          ),
           'nutrients': firstPass,
         };
       }
@@ -696,7 +746,12 @@ Rules:
     } catch (_) {
       return {
         'approved': false,
-        'reason': 'Валидация не пройдена: ошибка повторной AI-проверки.',
+        'reason': _localizedText(
+          locale: locale,
+          ru: 'Валидация не пройдена: ошибка повторной AI-проверки.',
+          uk: 'Валідація не пройдена: помилка повторної AI-перевірки.',
+          en: 'Validation failed: AI recheck error.',
+        ),
         'nutrients': firstPass,
       };
     }
@@ -713,6 +768,19 @@ Rules:
     if (recipeName.trim().isEmpty || ingredients.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiFailedToExtractIngredientsError,
+      );
+    }
+
+    final ingredientIssue = _validateIngredientPlausibility(
+      ingredients: ingredients,
+      locale: locale,
+    );
+    if (ingredientIssue != null) {
+      return DonateRecipeModerationResult(
+        approved: false,
+        reason: ingredientIssue,
+        confidence: 0.99,
+        flags: const ['nonsense'],
       );
     }
 
@@ -733,8 +801,10 @@ Task: decide whether this recipe can be permanently published to a public commun
 Reject the recipe if ANY of these is true:
 - contains profanity, insults, obscene/sexual terms, hateful content, harassment;
 - contains obvious nonsense, trolling, spam, gibberish, or fake recipe text;
-- is clearly not a food recipe (or not meaningful enough for users);
-- ingredient list is implausible for cooking/eating.
+- is clearly not a food recipe;
+- ingredient list contains absurd quantities for one serving (for example salt in hundreds of grams/kilograms).
+
+Do NOT reject only because a product is branded/packaged/store-bought (energy drink, soda, protein bar, yogurt, etc.) if it is a plausible food item.
 
 Allow only if recipe looks legitimate, understandable, and safe for a public food community.
 
@@ -1372,25 +1442,34 @@ Rules:
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
     final text = _extractText(payload, locale).trim();
     if (text.isEmpty) {
-      throw GeminiRecipeException(
-        _messages(locale).aiEmptyReportError,
-      );
+      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
     }
 
-    final decoded = _decodeJsonObject(text, locale);
-    final overview = (decoded['overview'] as String? ?? '').trim();
-    final recommendations =
-        (decoded['recommendations'] as List<dynamic>? ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(
-              (item) => {
-                'when': (item['when'] as String? ?? '').trim(),
-                'action': (item['action'] as String? ?? '').trim(),
-                'recipeName': (item['recipeName'] as String? ?? '').trim(),
-              },
-            )
-            .where((item) => (item['action'] ?? '').isNotEmpty)
-            .toList(growable: true);
+    Map<String, dynamic> decoded;
+    String overview;
+    List<Map<String, dynamic>> recommendations;
+    try {
+      decoded = _decodeJsonObject(text, locale);
+      overview = (decoded['overview'] as String? ?? '').trim();
+      recommendations =
+          (decoded['recommendations'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .map(
+                (item) => {
+                  'when': (item['when'] as String? ?? '').trim(),
+                  'action': (item['action'] as String? ?? '').trim(),
+                  'recipeName': (item['recipeName'] as String? ?? '').trim(),
+                },
+              )
+              .where((item) => (item['action'] ?? '').isNotEmpty)
+              .toList(growable: true);
+    } catch (_) {
+      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
+    }
+
+    if (overview.isEmpty) {
+      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
+    }
 
     final fallbackSnackRecipeName = snackPriorityRecipes
         .map((r) => (r['name'] as String? ?? '').trim())
@@ -1409,9 +1488,7 @@ Rules:
     }
 
     if (overview.isEmpty) {
-      throw GeminiRecipeException(
-        _messages(locale).aiEmptyReportError,
-      );
+      return {'overview': '', 'recommendations': <Map<String, dynamic>>[]};
     }
 
     final initialResult = {
@@ -1966,16 +2043,16 @@ Rules:
 
     String? inferType() {
       if (_containsAny(lowerDescription, const ['энергет', 'energy drink'])) {
-        return 'Тип продукта: энергетический напиток.';
+        return 'Энергетик.';
       }
       if (_containsAny(lowerDescription, const ['газиров', 'soda'])) {
-        return 'Тип продукта: газированный напиток.';
+        return 'Газированный напиток.';
       }
       if (_containsAny(lowerDescription, const ['суп', 'soup', 'broth'])) {
-        return 'Тип блюда: суп / жидкое горячее блюдо.';
+        return 'Суп.';
       }
       if (_containsAny(lowerDescription, const ['салат', 'salad'])) {
-        return 'Тип блюда: салат.';
+        return 'Салат.';
       }
       return null;
     }
@@ -1983,15 +2060,15 @@ Rules:
     String inferThermalProcessing() {
       if (_containsAny(lowerDescription,
           const ['запеч', 'baked', 'печ', 'гриль', 'grill'])) {
-        return 'Термообработка: запекание/гриль.';
+        return 'Запекание/гриль.';
       }
       if (_containsAny(lowerDescription, const ['жар', 'fried', 'fry'])) {
-        return 'Термообработка: жарка.';
+        return 'Жарка.';
       }
       if (_containsAny(lowerDescription, const ['вар', 'boiled', 'steam'])) {
-        return 'Термообработка: варка/пар.';
+        return 'Варка/пар.';
       }
-      return 'Термообработка: не указана, вероятно базовая домашняя.';
+      return 'Способ приготовления: базовый домашний (уточнить по контексту).';
     }
 
     final ambiguous = ingredients
@@ -2013,18 +2090,17 @@ Rules:
     final typeLine = inferType();
     if (typeLine != null) lines.add(typeLine);
     if (normalizedDescription.isNotEmpty) {
-      lines.add('Ключевой контекст: $normalizedDescription');
+      lines.add(normalizedDescription);
     }
     lines.add(inferThermalProcessing());
-    lines.add('Жирность/соусы/добавки: учитывать по описанию и типу блюда.');
     if (ambiguous.isNotEmpty) {
-      lines.add('Неопределенные позиции (влияют на точность): $ambiguous.');
+      lines.add('Уточнить: $ambiguous.');
     }
     if (keyIngredients.isNotEmpty) {
-      lines.add('Ключевые ингредиенты:\n$keyIngredients');
+      lines.add('Состав:\n$keyIngredients');
     }
     lines.add(
-      'Предположения: если бренд/точная технология не указаны, использовать наиболее типичный состав для этого типа продукта.',
+      'Если бренд неизвестен — использовать типичный состав для этого типа.',
     );
     return lines.join('\n');
   }
@@ -2268,6 +2344,87 @@ Rules:
         return quantity * 1000;
       default:
         return null;
+    }
+  }
+
+  String? _validateIngredientPlausibility({
+    required List<RecipeIngredient> ingredients,
+    String? locale,
+  }) {
+    for (final ingredient in ingredients) {
+      final name = ingredient.name.trim().toLowerCase();
+      if (name.isEmpty) continue;
+
+      final nonFoodWords = [
+        'какаш',
+        'говн',
+        'дерьм',
+        'shit',
+        'poop',
+        'feces',
+        'фекал',
+      ];
+      if (_containsAny(name, nonFoodWords)) {
+        return _localizedText(
+          locale: locale,
+          ru: 'Похоже, в ингредиентах есть неедобный или мусорный текст. Проверьте название продукта.',
+          uk: 'Схоже, в інгредієнтах є неїстівний або сміттєвий текст. Перевірте назву продукту.',
+          en: 'Ingredients contain non-food or nonsense text. Please check the product name.',
+        );
+      }
+
+      final grams = _toGramsEquivalent(
+        ingredient.quantity,
+        ingredient.unit.trim().toLowerCase(),
+      );
+      if (grams == null) continue;
+
+      final isSalt = _containsAny(name, ['salt', 'соль', 'солі', 'сiль']);
+      if (isSalt && grams > 120) {
+        return _localizedText(
+          locale: locale,
+          ru: 'Количество соли выглядит нереалистичным для одной порции. Проверьте граммовку.',
+          uk: 'Кількість солі виглядає нереалістичною для однієї порції. Перевірте грамовку.',
+          en: 'Salt amount looks unrealistic for one serving. Please check the quantity.',
+        );
+      }
+    }
+
+    return null;
+  }
+
+  void _applyNutrientsBestEffortFallback(Map<String, double> nutrients) {
+    final protein = nutrients['protein'] ?? 0;
+    final carbs = nutrients['carbs'] ?? 0;
+    final fat = nutrients['fat'] ?? 0;
+    final allZeros = nutrientKeys.every((key) => (nutrients[key] ?? 0) <= 0);
+    if (allZeros) {
+      nutrients['calories'] = nutrients['calories'] ?? 1;
+      nutrients['protein'] = nutrients['protein'] ?? 0.1;
+      nutrients['carbs'] = nutrients['carbs'] ?? 0.1;
+      nutrients['fat'] = nutrients['fat'] ?? 0.1;
+      return;
+    }
+
+    if ((nutrients['calories'] ?? 0) <= 0) {
+      final estimatedCalories = protein * 4 + carbs * 4 + fat * 9;
+      nutrients['calories'] = estimatedCalories > 0 ? estimatedCalories : 1;
+    }
+  }
+
+  String _localizedText({
+    required String? locale,
+    required String ru,
+    required String uk,
+    required String en,
+  }) {
+    switch (_languageCode(locale)) {
+      case 'ru':
+        return ru;
+      case 'uk':
+        return uk;
+      default:
+        return en;
     }
   }
 

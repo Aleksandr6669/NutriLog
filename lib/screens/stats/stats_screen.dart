@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
@@ -436,7 +437,10 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _loadAiReport(
-      Map<String, dynamic> aiInput, int requestId) async {
+    Map<String, dynamic> aiInput,
+    int requestId, {
+    required String sourceSignature,
+  }) async {
     try {
       final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
@@ -546,6 +550,7 @@ class _StatsScreenState extends State<StatsScreen> {
             generatedAt: DateTime.now(),
             overview: overview,
             recommendations: normalizedRecommendations,
+            sourceSignature: sourceSignature,
           ),
         );
         await _loadHistory();
@@ -569,6 +574,117 @@ class _StatsScreenState extends State<StatsScreen> {
         _aiError = true;
       });
     }
+  }
+
+  String _buildAiSourceSignature(Map<String, dynamic> aiInput) {
+    final signaturePayload = <String, dynamic>{
+      // Period is part of cache key.
+      'periodLabel': aiInput['periodLabel'],
+
+      // Profile-dependent fields.
+      'goalType': aiInput['goalType'],
+      'activityTypes': aiInput['activityTypes'],
+      'aiContext': aiInput['aiContext'],
+      'calorieGoal': aiInput['calorieGoal'],
+      'proteinGoal': aiInput['proteinGoal'],
+      'fatGoal': aiInput['fatGoal'],
+      'carbsGoal': aiInput['carbsGoal'],
+      'stepsGoal': aiInput['stepsGoal'],
+      'weightGoal': aiInput['weightGoal'],
+      'waterGoalLiters': aiInput['waterGoalLiters'],
+      'userName': aiInput['userName'],
+
+      // Diary/stat-dependent fields.
+      'avgCalories': aiInput['avgCalories'],
+      'avgProteinGrams': aiInput['avgProteinGrams'],
+      'avgFatGrams': aiInput['avgFatGrams'],
+      'avgCarbsGrams': aiInput['avgCarbsGrams'],
+      'avgFiberGrams': aiInput['avgFiberGrams'],
+      'avgSugarGrams': aiInput['avgSugarGrams'],
+      'avgSaturatedFatGrams': aiInput['avgSaturatedFatGrams'],
+      'avgPolyunsaturatedFatGrams': aiInput['avgPolyunsaturatedFatGrams'],
+      'avgMonounsaturatedFatGrams': aiInput['avgMonounsaturatedFatGrams'],
+      'avgTransFatGrams': aiInput['avgTransFatGrams'],
+      'avgCholesterolMg': aiInput['avgCholesterolMg'],
+      'avgSodiumMg': aiInput['avgSodiumMg'],
+      'avgPotassiumMg': aiInput['avgPotassiumMg'],
+      'avgVitaminAMcg': aiInput['avgVitaminAMcg'],
+      'avgVitaminCMg': aiInput['avgVitaminCMg'],
+      'avgVitaminDMcg': aiInput['avgVitaminDMcg'],
+      'avgCalciumMg': aiInput['avgCalciumMg'],
+      'avgIronMg': aiInput['avgIronMg'],
+      'totalCalories': aiInput['totalCalories'],
+      'totalProteinGrams': aiInput['totalProteinGrams'],
+      'totalFatGrams': aiInput['totalFatGrams'],
+      'totalCarbsGrams': aiInput['totalCarbsGrams'],
+      'totalFiberGrams': aiInput['totalFiberGrams'],
+      'totalSugarGrams': aiInput['totalSugarGrams'],
+      'totalSaturatedFatGrams': aiInput['totalSaturatedFatGrams'],
+      'totalPolyunsaturatedFatGrams': aiInput['totalPolyunsaturatedFatGrams'],
+      'totalMonounsaturatedFatGrams': aiInput['totalMonounsaturatedFatGrams'],
+      'totalTransFatGrams': aiInput['totalTransFatGrams'],
+      'totalCholesterolMg': aiInput['totalCholesterolMg'],
+      'totalSodiumMg': aiInput['totalSodiumMg'],
+      'totalPotassiumMg': aiInput['totalPotassiumMg'],
+      'totalVitaminAMcg': aiInput['totalVitaminAMcg'],
+      'totalVitaminCMg': aiInput['totalVitaminCMg'],
+      'totalVitaminDMcg': aiInput['totalVitaminDMcg'],
+      'totalCalciumMg': aiInput['totalCalciumMg'],
+      'totalIronMg': aiInput['totalIronMg'],
+      'avgSteps': aiInput['avgSteps'],
+      'latestWeight': aiInput['latestWeight'],
+      'avgWaterLiters': aiInput['avgWaterLiters'],
+      'workouts': aiInput['workouts'],
+      'avgActivityCalories': aiInput['avgActivityCalories'],
+      'topFoods': aiInput['topFoods'],
+    };
+    return jsonEncode(signaturePayload);
+  }
+
+  AiReportEntry? _findCachedReportForSignature({
+    required String period,
+    required String sourceSignature,
+  }) {
+    for (final entry in _aiReportHistory) {
+      if (entry.period != period) continue;
+      if (entry.sourceSignature != sourceSignature) continue;
+      if (entry.overview.trim().isEmpty) continue;
+      if (entry.recommendations.isEmpty) continue;
+      return entry;
+    }
+    return null;
+  }
+
+  void _ensureAiReportForCurrentData(
+    Map<String, dynamic> aiInput,
+    int requestId,
+  ) {
+    final period = (aiInput['periodLabel'] as String? ?? _period.name).trim();
+    final sourceSignature = _buildAiSourceSignature(aiInput);
+    final cached = _findCachedReportForSignature(
+      period: period,
+      sourceSignature: sourceSignature,
+    );
+
+    if (cached != null) {
+      final normalizedRecommendations =
+          _normalizeSortAndMergeRecommendations(cached.recommendations);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || requestId != _dataRequestId) return;
+        setState(() {
+          _aiOverview = cached.overview;
+          _aiRecommendations = normalizedRecommendations;
+          _aiError = false;
+        });
+      });
+      return;
+    }
+
+    _loadAiReport(
+      aiInput,
+      requestId,
+      sourceSignature: sourceSignature,
+    );
   }
 
   String _periodLabel(BuildContext context) {
@@ -687,7 +803,10 @@ class _StatsScreenState extends State<StatsScreen> {
           final requestId = _dataRequestId;
           if (aiAssistantEnabled && _aiStartedForRequestId != requestId) {
             _aiStartedForRequestId = requestId;
-            _loadAiReport(data['aiInput'] as Map<String, dynamic>, requestId);
+            _ensureAiReportForCurrentData(
+              data['aiInput'] as Map<String, dynamic>,
+              requestId,
+            );
           }
 
           final profile = data['profile'] as UserProfile;

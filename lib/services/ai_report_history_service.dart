@@ -6,12 +6,14 @@ class AiReportEntry {
   final DateTime generatedAt;
   final String overview;
   final List<Map<String, String>> recommendations;
+  final String sourceSignature;
 
   const AiReportEntry({
     required this.period,
     required this.generatedAt,
     required this.overview,
     required this.recommendations,
+    this.sourceSignature = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -19,6 +21,7 @@ class AiReportEntry {
         'generatedAt': generatedAt.toIso8601String(),
         'overview': overview,
         'recommendations': recommendations,
+        'sourceSignature': sourceSignature,
       };
 
   factory AiReportEntry.fromJson(Map<String, dynamic> json) => AiReportEntry(
@@ -31,6 +34,7 @@ class AiReportEntry {
             .map((e) => Map<String, String>.from(
                 e.map((k, v) => MapEntry(k.toString(), v.toString()))))
             .toList(growable: false),
+        sourceSignature: json['sourceSignature'] as String? ?? '',
       );
 }
 

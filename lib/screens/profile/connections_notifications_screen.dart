@@ -39,6 +39,7 @@ class _ConnectionsNotificationsScreenState
   bool _loading = true;
   bool _authBusy = false;
   bool _connectionsExpanded = false;
+  bool _confirmSignOut = false;
   User? _user;
   DateTime? _lastSyncAt;
   late NotificationSettings _settings;
@@ -292,9 +293,20 @@ class _ConnectionsNotificationsScreenState
     _autoSyncInBackground();
   }
 
+  Future<void> _onSignOutTap() async {
+    setState(() => _confirmSignOut = true);
+  }
+
+  void _cancelSignOut() {
+    setState(() => _confirmSignOut = false);
+  }
+
   Future<void> _handleSignOut() async {
     final l10n = AppLocalizations.of(context)!;
-    setState(() => _authBusy = true);
+    setState(() {
+      _confirmSignOut = false;
+      _authBusy = true;
+    });
     try {
       final uid = _authService.currentUser?.uid;
       await _authService.signOut();
@@ -302,8 +314,6 @@ class _ConnectionsNotificationsScreenState
       if (uid != null) {
         await AvatarCacheService.clearCache(uid);
       }
-      // После выхода — если была выбрана локальная аватарка до входа, восстановить её (логика восстановления должна быть реализована в UI/сервисе)
-      // Остальные пользовательские данные не трогаем
     } catch (e) {
       if (!mounted) return;
       _showSnack(
@@ -540,7 +550,35 @@ class _ConnectionsNotificationsScreenState
               ),
               if (status != SyncStatus.syncing)
                 GestureDetector(
-                  onTap: () => LocalFirstSyncService.instance.syncNow(),
+                  onTap: () async {
+                    final l10n = AppLocalizations.of(context)!;
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text(l10n.syncConfirmTitle),
+                        actions: [
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red.shade600,
+                            ),
+                            child: Text(l10n.confirmYes),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black87,
+                            ),
+                            child: Text(l10n.confirmNo),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      LocalFirstSyncService.instance.syncNow();
+                    }
+                  },
                   child: Icon(Symbols.refresh, size: 16, color: color),
                 ),
             ],
@@ -581,17 +619,53 @@ class _ConnectionsNotificationsScreenState
               title: Text(l10n.loginToAccount),
               subtitle: Text(
                   _user == null ? l10n.cloudSyncLocalOnly : _user!.email ?? ''),
-              trailing: FilledButton(
-                onPressed: _authBusy
-                    ? null
-                    : (_user == null ? _handleSignIn : _handleSignOut),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _user == null
-                      ? Colors.green.shade600
-                      : Colors.red.shade600,
-                ),
-                child: Text(_user == null ? l10n.signIn : l10n.signOut),
-              ),
+              trailing: _authBusy
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : _user == null
+                      ? FilledButton(
+                          onPressed: _handleSignIn,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.green.shade600,
+                          ),
+                          child: Text(l10n.signIn),
+                        )
+                      : _confirmSignOut
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                FilledButton(
+                                  onPressed: _handleSignOut,
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.red.shade600,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
+                                  ),
+                                  child: Text(l10n.confirmYes),
+                                ),
+                                const SizedBox(width: 8),
+                                FilledButton(
+                                  onPressed: _cancelSignOut,
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.black87,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
+                                  ),
+                                  child: Text(l10n.confirmNo),
+                                ),
+                              ],
+                            )
+                          : FilledButton(
+                              onPressed: _onSignOutTap,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.red.shade600,
+                              ),
+                              child: Text(l10n.signOut),
+                            ),
             ),
           ),
           if (_user != null) ...[
