@@ -779,10 +779,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get makePublic => 'Make public';
 
   @override
+  String get myRecipe => 'My recipe';
+
+  @override
   String get publicRecipe => 'Public recipe';
 
   @override
   String get privateRecipe => 'Private recipe';
+
+  @override
+  String get donatedRecipe => 'Donated';
+
+  @override
+  String get recipeCreated => 'Created';
+
+  @override
+  String get recipeDateUnknown => 'Not specified';
 
   @override
   String get unitLabel => 'Unit';
@@ -1343,6 +1355,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get donateRecipeError => 'Error donating recipe';
+
+  @override
+  String get donateRecipePermissionDenied =>
+      'No permission to donate recipe. Check Firestore rules.';
 
   @override
   String get donateRecipeAlreadyDonated => 'Recipe already donated';

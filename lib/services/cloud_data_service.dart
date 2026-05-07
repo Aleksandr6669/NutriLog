@@ -22,7 +22,8 @@ class CloudDataService {
   String? get currentUserId => _uid;
   bool get isLocalOnlyMode => _forceLocalOnly;
 
-  bool get isSignedIn => !_forceLocalOnly && FirebaseAuthService.instance.isSignedIn;
+  bool get isSignedIn =>
+      !_forceLocalOnly && FirebaseAuthService.instance.isSignedIn;
 
   DocumentReference<Map<String, dynamic>> _docRef(String key) {
     final uid = _uid;
@@ -44,15 +45,21 @@ class CloudDataService {
     final user = FirebaseAuthService.instance.currentUser;
     if (uid == null || uid.isEmpty || user == null) return;
 
-    await _firestore.collection('users').doc(uid).set({
-      'uid': uid,
-      'email': user.email,
-      'displayName': user.displayName,
-      'cloudSyncEnabled': true,
-      'appDataMirror': FieldValue.delete(),
-      'appDataMirrorMeta': FieldValue.delete(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true)).timeout(_cloudTimeout);
+    try {
+      await _firestore.collection('users').doc(uid).set({
+        'uid': uid,
+        'email': user.email,
+        'displayName': user.displayName,
+        'cloudSyncEnabled': true,
+        'appDataMirror': FieldValue.delete(),
+        'appDataMirrorMeta': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)).timeout(_cloudTimeout);
+    } on FirebaseException catch (e) {
+      // В некоторых проектах запись в корень users/{uid} может быть запрещена
+      // правилами, но subcollection users/{uid}/appData при этом разрешена.
+      if (e.code != 'permission-denied') rethrow;
+    }
   }
 
   Future<Map<String, dynamic>?> readMap(String key) async {
@@ -96,8 +103,10 @@ class CloudDataService {
 
     try {
       await FirebaseBootstrapService.ensureInitialized();
-      final snapshot =
-          await _firestore.collection(collectionPath).get().timeout(_cloudTimeout);
+      final snapshot = await _firestore
+          .collection(collectionPath)
+          .get()
+          .timeout(_cloudTimeout);
       await markSyncNow();
       return snapshot.docs
           .map((doc) => <String, dynamic>{
@@ -164,16 +173,20 @@ class CloudDataService {
   /// Real-time stream для коллекции Firestore.
   Stream<List<Map<String, dynamic>>> collectionStream(String collectionPath) {
     if (_forceLocalOnly) return Stream.value(const <Map<String, dynamic>>[]);
-    return _firestore.collection(collectionPath).snapshots().map(
+    return _firestore
+        .collection(collectionPath)
+        .snapshots()
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => <String, dynamic>{
                     ...doc.data(),
                     '__docId': doc.id,
                   })
               .toList(growable: false),
-        ).handleError((_) {
-          // Офлайн/permission ошибки стрима игнорируем: UI работает с локальным кешем.
-        });
+        )
+        .handleError((_) {
+      // Офлайн/permission ошибки стрима игнорируем: UI работает с локальным кешем.
+    });
   }
 
   /// Real-time stream для одного документа `users/{uid}/appData/{key}`.

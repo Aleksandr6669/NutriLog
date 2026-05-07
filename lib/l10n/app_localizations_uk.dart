@@ -782,10 +782,22 @@ class AppLocalizationsUk extends AppLocalizations {
   String get makePublic => 'Зробити публічним';
 
   @override
+  String get myRecipe => 'Мій рецепт';
+
+  @override
   String get publicRecipe => 'Публічний рецепт';
 
   @override
   String get privateRecipe => 'Приватний рецепт';
+
+  @override
+  String get donatedRecipe => 'Донат';
+
+  @override
+  String get recipeCreated => 'Створено';
+
+  @override
+  String get recipeDateUnknown => 'Не вказано';
 
   @override
   String get unitLabel => 'Од.';
@@ -1347,6 +1359,10 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get donateRecipeError => 'Помилка при передачі рецепту';
+
+  @override
+  String get donateRecipePermissionDenied =>
+      'Немає прав для передачі рецепта. Перевірте правила Firestore.';
 
   @override
   String get donateRecipeAlreadyDonated => 'Рецепт вже передано';

@@ -89,13 +89,17 @@ class RecipeService {
       // При дублях оставляем более «богатую» и приоритетную запись.
       final merged = existing.copyWith(
         name: recipe.name.isNotEmpty ? recipe.name : existing.name,
-        description:
-            recipe.description.isNotEmpty ? recipe.description : existing.description,
-        nutrients: recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
-        ingredients:
-            recipe.ingredients.isNotEmpty ? recipe.ingredients : existing.ingredients,
-        instructions:
-            recipe.instructions.isNotEmpty ? recipe.instructions : existing.instructions,
+        description: recipe.description.isNotEmpty
+            ? recipe.description
+            : existing.description,
+        nutrients:
+            recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
+        ingredients: recipe.ingredients.isNotEmpty
+            ? recipe.ingredients
+            : existing.ingredients,
+        instructions: recipe.instructions.isNotEmpty
+            ? recipe.instructions
+            : existing.instructions,
         icon: recipe.icon,
         isUserRecipe: existing.isUserRecipe || recipe.isUserRecipe,
         isPublic: existing.isPublic || recipe.isPublic,
@@ -120,22 +124,11 @@ class RecipeService {
         .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: true))
         .toList(growable: false);
 
-    final cloudMap = await cloudService.readMap('recipes');
-    final cloudRecipes = cloudMap?['recipes'];
-
-    if (localPrivateRecipes.isEmpty && cloudRecipes is List) {
-      final cloudPrivateRecipes = cloudRecipes
-          .whereType<Map>()
-          .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
-          .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: false))
-          .toList(growable: false);
-      await _savePrivateRecipesToPrefs(cloudPrivateRecipes);
-    } else {
-      await cloudService.writeMap('recipes', {
-        'recipes':
-            localPrivateRecipes.map((r) => r.toJson()).toList(growable: false),
-      });
-    }
+    // Phone-first: приватные рецепты в облаке всегда переписываются локальными.
+    await cloudService.writeMap('recipes', {
+      'recipes':
+          localPrivateRecipes.map((r) => r.toJson()).toList(growable: false),
+    });
 
     await _syncOwnPublicRecipesToCloud(ownPublicRecipes);
 
@@ -224,7 +217,8 @@ class RecipeService {
     if (!syncCloud) return;
 
     // Не ждём сеть: UI должен работать офлайн без задержек.
-    unawaited(_syncRecipesToCloudInBackground(privateRecipes, ownPublicRecipes));
+    unawaited(
+        _syncRecipesToCloudInBackground(privateRecipes, ownPublicRecipes));
   }
 
   Future<void> _syncRecipesToCloudInBackground(
@@ -324,6 +318,13 @@ class RecipeService {
     return CloudDataService.instance
         .docStream('recipes')
         .asyncMap((data) async {
+      final localPrivate = await _loadLocalPrivateRecipes();
+
+      // Если на телефоне уже есть данные, не перетираем их облаком.
+      if (localPrivate.isNotEmpty) {
+        return localPrivate;
+      }
+
       if (data == null) return <Recipe>[];
       final cloudRecipes = data['recipes'];
       if (cloudRecipes is! List) return <Recipe>[];
@@ -332,6 +333,8 @@ class RecipeService {
           .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
           .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
           .toList(growable: false);
+
+      // Инициализация с облака только когда локально пусто.
       await _savePrivateRecipesToPrefs(recipes);
       return recipes;
     });

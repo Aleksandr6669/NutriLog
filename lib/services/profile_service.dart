@@ -38,21 +38,7 @@ class ProfileService {
     if (!cloud.isSignedIn) return;
 
     final localProfile = await loadProfile();
-    final cloudMap = await cloud.readMap('profile');
-
-    if (cloudMap != null && cloudMap.isNotEmpty) {
-      final cloudProfile = UserProfile.fromJson(cloudMap);
-      // Локальные данные приоритетны: облаком заполняем только пустой профиль.
-      final hasMeaningfulLocalData = localProfile.name.trim().isNotEmpty ||
-          localProfile.height > 0 ||
-          localProfile.weight > 0 ||
-          localProfile.calorieGoal > 0;
-      if (!hasMeaningfulLocalData) {
-        await saveProfile(cloudProfile);
-        return;
-      }
-    }
-
+    // Phone-first: облако всегда обновляется локальным состоянием.
     await cloud.writeMap('profile', localProfile.toJson());
   }
 

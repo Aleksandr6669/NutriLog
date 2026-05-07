@@ -1504,6 +1504,12 @@ abstract class AppLocalizations {
   /// **'Make public'**
   String get makePublic;
 
+  /// No description provided for @myRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'My recipe'**
+  String get myRecipe;
+
   /// No description provided for @publicRecipe.
   ///
   /// In en, this message translates to:
@@ -1515,6 +1521,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Private recipe'**
   String get privateRecipe;
+
+  /// No description provided for @donatedRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Donated'**
+  String get donatedRecipe;
+
+  /// No description provided for @recipeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get recipeCreated;
+
+  /// No description provided for @recipeDateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get recipeDateUnknown;
 
   /// No description provided for @unitLabel.
   ///
@@ -2541,6 +2565,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error donating recipe'**
   String get donateRecipeError;
+
+  /// No description provided for @donateRecipePermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'No permission to donate recipe. Check Firestore rules.'**
+  String get donateRecipePermissionDenied;
 
   /// No description provided for @donateRecipeAlreadyDonated.
   ///

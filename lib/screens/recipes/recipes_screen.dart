@@ -1030,15 +1030,15 @@ class _RecipeListItem extends StatelessWidget {
     Color? badgeColor;
     Color? badgeTextColor;
     if (isOwnRecipe) {
-      badgeText = 'Мой рецепт';
+      badgeText = l10n.myRecipe;
       badgeColor = AppColors.primary.withValues(alpha: 0.1);
       badgeTextColor = AppColors.primary;
     } else if (isPublic) {
-      badgeText = 'Публичный';
+      badgeText = l10n.publicRecipe;
       badgeColor = Colors.blue.withOpacity(0.10);
       badgeTextColor = Colors.blue.shade700;
     } else if (isDonated) {
-      badgeText = 'Стандартный';
+      badgeText = l10n.donatedRecipe;
       badgeColor = Colors.green.withOpacity(0.10);
       badgeTextColor = Colors.green.shade700;
     }
@@ -1051,7 +1051,7 @@ class _RecipeListItem extends StatelessWidget {
         borderRadius: AppStyles.cardRadius,
         side: BorderSide.none,
       ),
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppStyles.cardRadius,
@@ -1164,10 +1164,16 @@ class _RecipeListItem extends StatelessWidget {
       ),
     );
 
-    if (!isHighlighted) return card;
-    return _AppearedRecipeHighlight(
-      onCompleted: onHighlightCompleted,
-      child: card,
+    final highlightedCard = isHighlighted
+        ? _AppearedRecipeHighlight(
+            onCompleted: onHighlightCompleted,
+            child: card,
+          )
+        : card;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: highlightedCard,
     );
   }
 }

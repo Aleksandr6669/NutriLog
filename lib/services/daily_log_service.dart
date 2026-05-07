@@ -60,16 +60,8 @@ class DailyLogService {
     final cloud = CloudDataService.instance;
     if (!cloud.isSignedIn) return;
 
-    final prefs = await SharedPreferences.getInstance();
     final localData = await _loadRawData();
-    final cloudMap = await cloud.readMap('daily_logs');
-    final cloudLogs = cloudMap?['logs'];
-
-    if (localData.isEmpty && cloudLogs is Map<String, dynamic>) {
-      await prefs.setString(_storageKey, json.encode(cloudLogs));
-      return;
-    }
-
+    // Phone-first: облако всегда обновляется локальным состоянием дневника.
     await cloud.writeMap('daily_logs', {'logs': localData});
   }
 

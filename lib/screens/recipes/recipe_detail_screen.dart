@@ -46,9 +46,7 @@ class RecipeDetailScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Symbols.add_circle),
               onPressed: () => Navigator.of(context).pop(true),
-              tooltip: isSelected
-                  ? l10n.addOneMoreToMeal
-                  : l10n.addToMeal,
+              tooltip: isSelected ? l10n.addOneMoreToMeal : l10n.addToMeal,
             )
           else if (recipe.isUserRecipe)
             IconButton(
@@ -83,18 +81,19 @@ class RecipeDetailScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final createdAt = _tryParseCreatedAt(recipe.id);
     final locale = Localizations.localeOf(context).languageCode;
     final createdAtLabel = createdAt != null
-      ? DateFormat.yMd(locale).add_Hm().format(createdAt)
-      : 'Не указано';
+        ? DateFormat.yMd(locale).add_Hm().format(createdAt)
+        : l10n.recipeDateUnknown;
 
     final statusLabel = recipe.isDonated
-      ? 'Подаренный'
-      : (recipe.isPublic ? 'Публичный' : 'Приватный');
+        ? l10n.donatedRecipe
+        : (recipe.isPublic ? l10n.publicRecipe : l10n.privateRecipe);
     final statusColor = recipe.isDonated
-      ? Colors.green.shade700
-      : (recipe.isPublic ? Colors.blue.shade700 : Colors.grey.shade700);
+        ? Colors.green.shade700
+        : (recipe.isPublic ? Colors.blue.shade700 : Colors.grey.shade700);
 
     return Card(
       color: Colors.white,
@@ -137,7 +136,7 @@ class RecipeDetailScreen extends StatelessWidget {
                 children: [
                   _metaChip(
                     icon: Symbols.schedule,
-                    text: 'Создан: $createdAtLabel',
+                    text: '${l10n.recipeCreated}: $createdAtLabel',
                     textColor: Colors.grey.shade700,
                     background: Colors.grey.shade100,
                   ),
@@ -270,10 +269,12 @@ class RecipeDetailScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _nutrientRow(l10n.calories, recipe.nutrients['calories'], l10n.kcal),
+            _nutrientRow(
+                l10n.calories, recipe.nutrients['calories'], l10n.kcal),
             const Divider(height: 24),
             _nutrientGroup(l10n.mainNutrients, [
-              _nutrientRow(l10n.protein, recipe.nutrients['protein'], l10n.grams),
+              _nutrientRow(
+                  l10n.protein, recipe.nutrients['protein'], l10n.grams),
               _nutrientRow(l10n.carbs, recipe.nutrients['carbs'], l10n.grams,
                   subRows: [
                     _nutrientSubRow(
@@ -281,31 +282,36 @@ class RecipeDetailScreen extends StatelessWidget {
                     _nutrientSubRow(
                         l10n.fiberSub, recipe.nutrients['fiber'], l10n.grams),
                   ]),
-              _nutrientRow(l10n.fat, recipe.nutrients['fat'], l10n.grams, subRows: [
-                _nutrientSubRow(
-                    l10n.saturatedFatSub, recipe.nutrients['saturated_fat'], l10n.grams),
-                _nutrientSubRow(l10n.polyunsaturatedFatSub,
-                    recipe.nutrients['polyunsaturated_fat'], l10n.grams),
-                _nutrientSubRow(l10n.monounsaturatedFatSub,
-                    recipe.nutrients['monounsaturated_fat'], l10n.grams),
-                _nutrientSubRow(
-                    l10n.transFatSub, recipe.nutrients['trans_fat'], l10n.grams),
-                _nutrientSubRow(
-                    l10n.cholesterolSub, recipe.nutrients['cholesterol'], l10n.mg),
-              ]),
+              _nutrientRow(l10n.fat, recipe.nutrients['fat'], l10n.grams,
+                  subRows: [
+                    _nutrientSubRow(l10n.saturatedFatSub,
+                        recipe.nutrients['saturated_fat'], l10n.grams),
+                    _nutrientSubRow(l10n.polyunsaturatedFatSub,
+                        recipe.nutrients['polyunsaturated_fat'], l10n.grams),
+                    _nutrientSubRow(l10n.monounsaturatedFatSub,
+                        recipe.nutrients['monounsaturated_fat'], l10n.grams),
+                    _nutrientSubRow(l10n.transFatSub,
+                        recipe.nutrients['trans_fat'], l10n.grams),
+                    _nutrientSubRow(l10n.cholesterolSub,
+                        recipe.nutrients['cholesterol'], l10n.mg),
+                  ]),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.minerals, [
               _nutrientRow(l10n.sodium, recipe.nutrients['sodium'], l10n.mg),
-              _nutrientRow(l10n.potassium, recipe.nutrients['potassium'], l10n.mg),
+              _nutrientRow(
+                  l10n.potassium, recipe.nutrients['potassium'], l10n.mg),
               _nutrientRow(l10n.calcium, recipe.nutrients['calcium'], l10n.mg),
               _nutrientRow(l10n.iron, recipe.nutrients['iron'], l10n.mg),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.vitamins, [
-              _nutrientRow(l10n.vitaminA, recipe.nutrients['vitamin_a'], l10n.mcg),
-              _nutrientRow(l10n.vitaminC, recipe.nutrients['vitamin_c'], l10n.mg),
-              _nutrientRow(l10n.vitaminD, recipe.nutrients['vitamin_d'], l10n.mcg),
+              _nutrientRow(
+                  l10n.vitaminA, recipe.nutrients['vitamin_a'], l10n.mcg),
+              _nutrientRow(
+                  l10n.vitaminC, recipe.nutrients['vitamin_c'], l10n.mg),
+              _nutrientRow(
+                  l10n.vitaminD, recipe.nutrients['vitamin_d'], l10n.mcg),
             ]),
           ],
         ),

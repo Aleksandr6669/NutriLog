@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -670,6 +671,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      setState(() => _isDonating = false);
+      final message = e.code == 'permission-denied'
+          ? l10n.donateRecipePermissionDenied
+          : '${l10n.donateRecipeError}: ${e.message ?? e.code}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDonating = false);
@@ -685,6 +699,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Widget _buildDonateCard() {
     final theme = Theme.of(context);
+    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
     final isEnabled = _isFormReadyForDonate &&
         !_isDonated &&
         _isDonateAiApproved &&
@@ -705,6 +720,45 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.makePublic,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _isPublic,
+                  onChanged: canManageVisibility
+                      ? (value) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _isPublic = value);
+                        }
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(
+              height: 1,
+              color: theme.colorScheme.outline.withValues(alpha: 0.18),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Icon(
@@ -927,7 +981,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildNutrientsCard() {
-    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -980,35 +1033,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 8),
             ],
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.makePublic,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch.adaptive(
-                  value: _isPublic,
-                  onChanged: canManageVisibility
-                      ? (value) => setState(() => _isPublic = value)
-                      : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -1053,6 +1077,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       value: _autoCalculateCalories,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (value) {
+                        HapticFeedback.selectionClick();
                         setState(() => _autoCalculateCalories = value);
                         if (value) _applyAutoCalories();
                       },
