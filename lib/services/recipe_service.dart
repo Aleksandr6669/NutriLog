@@ -62,16 +62,62 @@ class RecipeService {
   }
 
   Future<List<Recipe>> _loadOwnedRecipesForMutation() async {
-    final allRecipes = await loadUserRecipes();
+    final allRecipes = await loadUserRecipes(refreshPublicInBackground: false);
     return allRecipes.where((recipe) => recipe.isUserRecipe).toList();
   }
 
   // Загружает приватные рецепты пользователя + публичные рецепты всех пользователей.
-  Future<List<Recipe>> loadUserRecipes() async {
+  Future<List<Recipe>> loadUserRecipes({
+    bool refreshPublicInBackground = true,
+  }) async {
     final localPrivateRecipes = await _loadLocalPrivateRecipes();
     final localPublicRecipes = await _loadLocalPublicRecipes();
 
+    if (refreshPublicInBackground && CloudDataService.instance.isSignedIn) {
+      // Не блокируем UI: свежие публичные рецепты подтянутся и обновят локальный кэш.
+      unawaited(_refreshPublicRecipesCacheFromCloud());
+    }
+
     return _dedupeRecipesById([...localPrivateRecipes, ...localPublicRecipes]);
+  }
+
+  Recipe _mapPublicRecipeFromCloud(Map rawMap, String uid) {
+    final map = Map<String, dynamic>.from(rawMap);
+    final ownerId = map['userId'] as String?;
+    final docId = map['__docId'] as String?;
+    map.remove('userId');
+    map.remove('__docId');
+
+    if ((map['id'] as String?)?.trim().isEmpty != false &&
+        docId != null &&
+        docId.isNotEmpty) {
+      map['id'] = docId;
+    }
+
+    final recipe = Recipe.fromJson(map);
+    return recipe.copyWith(
+      isPublic: true,
+      isUserRecipe: ownerId != null && ownerId == uid,
+    );
+  }
+
+  Future<void> _refreshPublicRecipesCacheFromCloud() async {
+    final cloudService = CloudDataService.instance;
+    if (!cloudService.isSignedIn) return;
+
+    final uid = cloudService.currentUserId;
+    if (uid == null || uid.isEmpty) return;
+
+    try {
+      final publicDocs = await cloudService.readCollection('publicRecipes');
+      final publicRecipes = publicDocs
+          .whereType<Map>()
+          .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
+          .toList(growable: false);
+      await _savePublicRecipesToPrefs(publicRecipes);
+    } catch (_) {
+      // Офлайн/permission: остаёмся на локальном кэше, повтор при следующем цикле.
+    }
   }
 
   List<Recipe> _dedupeRecipesById(List<Recipe> recipes) {
@@ -132,31 +178,11 @@ class RecipeService {
 
     await _syncOwnPublicRecipesToCloud(ownPublicRecipes);
 
-    final publicDocs = await cloudService.readCollection('publicRecipes');
-    final publicRecipes = publicDocs.whereType<Map>().map((rawMap) {
-      final map = Map<String, dynamic>.from(rawMap);
-      final ownerId = map['userId'] as String?;
-      final docId = map['__docId'] as String?;
-      map.remove('userId');
-      map.remove('__docId');
-
-      if ((map['id'] as String?)?.trim().isEmpty != false &&
-          docId != null &&
-          docId.isNotEmpty) {
-        map['id'] = docId;
-      }
-
-      final recipe = Recipe.fromJson(map);
-      return recipe.copyWith(
-        isPublic: true,
-        isUserRecipe: ownerId != null && ownerId == uid,
-      );
-    }).toList(growable: false);
-
-    await _savePublicRecipesToPrefs(publicRecipes);
+    // Публичные рецепты других пользователей подтягиваем отдельной фоновой задачей.
+    unawaited(_refreshPublicRecipesCacheFromCloud());
 
     final totalPrivate = localPrivateRecipes.length;
-    final totalPublic = publicRecipes.where((r) => r.isUserRecipe).length;
+    final totalPublic = ownPublicRecipes.length;
     return totalPrivate + totalPublic;
   }
 
@@ -207,7 +233,7 @@ class RecipeService {
 
     await _savePrivateRecipesToPrefs(privateRecipes);
 
-    final allRecipes = await loadUserRecipes();
+    final allRecipes = await loadUserRecipes(refreshPublicInBackground: false);
     final publicOthers = allRecipes
         .where((recipe) => recipe.isPublic && !recipe.isUserRecipe)
         .map((recipe) => recipe.copyWith(isUserRecipe: false, isPublic: true))
@@ -287,23 +313,7 @@ class RecipeService {
         .collectionStream('publicRecipes')
         .asyncMap((docs) async {
       final publicRecipes = docs.whereType<Map>().map((rawMap) {
-        final map = Map<String, dynamic>.from(rawMap);
-        final ownerId = map['userId'] as String?;
-        final docId = map['__docId'] as String?;
-        map.remove('userId');
-        map.remove('__docId');
-
-        if ((map['id'] as String?)?.trim().isEmpty != false &&
-            docId != null &&
-            docId.isNotEmpty) {
-          map['id'] = docId;
-        }
-
-        final recipe = Recipe.fromJson(map);
-        return recipe.copyWith(
-          isPublic: true,
-          isUserRecipe: ownerId != null && uid != null && ownerId == uid,
-        );
+        return _mapPublicRecipeFromCloud(rawMap, uid ?? '');
       }).toList(growable: false);
 
       // Сохраняем в локальный кеш для оффлайн-использования
