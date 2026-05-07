@@ -509,11 +509,197 @@ Rules:
     final text = _extractText(payload, locale);
     final decoded = _decodeJsonObject(text, locale);
 
-    final normalized = <String, double>{};
+    final firstPass = <String, double>{};
     for (final key in nutrientKeys) {
-      normalized[key] = _toNonNegativeDouble(decoded[key]);
+      firstPass[key] = _toNonNegativeDouble(decoded[key]);
     }
-    return normalized;
+
+    final localIssueBeforeRecheck = _validateEstimatedNutrients(
+      nutrients: firstPass,
+      ingredients: ingredients,
+    );
+
+    final rechecked = await _recheckEstimatedNutrientsWithAi(
+      recipeName: recipeName,
+      recipeDescription: recipeDescription,
+      clarification: clarification,
+      ingredientsText: ingredientsText,
+      factsJson: factsJson,
+      firstPass: firstPass,
+      locale: locale,
+    );
+
+    final finalNutrients = <String, double>{};
+    for (final key in nutrientKeys) {
+      finalNutrients[key] =
+          _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
+    }
+
+    final localIssueAfterRecheck = _validateEstimatedNutrients(
+      nutrients: finalNutrients,
+      ingredients: ingredients,
+    );
+
+    final aiApproved = rechecked['approved'] == true;
+    final aiReason = (rechecked['reason'] as String? ?? '').trim();
+    if (!aiApproved || localIssueAfterRecheck != null) {
+      final reason = localIssueAfterRecheck ??
+          (aiReason.isNotEmpty
+              ? aiReason
+              : (localIssueBeforeRecheck ??
+                  _messages(locale).aiFailedToExtractIngredientsError));
+      throw GeminiRecipeException(reason);
+    }
+
+    return finalNutrients;
+  }
+
+  String? _validateEstimatedNutrients({
+    required Map<String, double> nutrients,
+    required List<RecipeIngredient> ingredients,
+  }) {
+    if (ingredients.isEmpty) {
+      return 'Валидация не пройдена: отсутствуют ингредиенты.';
+    }
+
+    final calories = nutrients['calories'] ?? 0;
+    final protein = nutrients['protein'] ?? 0;
+    final carbs = nutrients['carbs'] ?? 0;
+    final fat = nutrients['fat'] ?? 0;
+
+    final allZeros = nutrientKeys.every((key) => (nutrients[key] ?? 0) <= 0);
+    if (allZeros) {
+      return 'Валидация не пройдена: расчет вернул нулевые нутриенты.';
+    }
+
+    final expectedCalories = protein * 4 + carbs * 4 + fat * 9;
+    if (expectedCalories > 1) {
+      final delta = (calories - expectedCalories).abs();
+      final rel = delta / expectedCalories;
+      if (rel > 0.35) {
+        return 'Валидация не пройдена: калории сильно расходятся с БЖУ (>${(rel * 100).toStringAsFixed(0)}%).';
+      }
+    }
+
+    if (calories <= 0) {
+      return 'Валидация не пройдена: калории должны быть больше нуля.';
+    }
+
+    return null;
+  }
+
+  Future<Map<String, dynamic>> _recheckEstimatedNutrientsWithAi({
+    required String recipeName,
+    required String recipeDescription,
+    required String clarification,
+    required String ingredientsText,
+    required Map<String, Map<String, double>> factsJson,
+    required Map<String, double> firstPass,
+    String? locale,
+  }) async {
+    final prompt = '''
+You are a strict nutrition QA validator.
+${_languageInstruction(locale)}
+
+Re-check the candidate nutrition result against ORIGINAL user input and ingredient constraints.
+
+ORIGINAL INPUT:
+- clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
+- recipe name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
+- recipe description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
+- ingredients:
+$ingredientsText
+
+USDA references:
+${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available)'}
+
+Candidate nutrients JSON:
+${jsonEncode(firstPass)}
+
+Validate and fix if needed. Return ONLY JSON in this exact format:
+{
+  "approved": true or false,
+  "reason": "short reason in response language",
+  "nutrients": {
+    "calories": 0,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "saturated_fat": 0,
+    "polyunsaturated_fat": 0,
+    "monounsaturated_fat": 0,
+    "trans_fat": 0,
+    "cholesterol": 0,
+    "sodium": 0,
+    "potassium": 0,
+    "vitamin_a": 0,
+    "vitamin_c": 0,
+    "vitamin_d": 0,
+    "calcium": 0,
+    "iron": 0
+  }
+}
+
+Rules:
+- no markdown, no extra text.
+- reason must clearly explain why validation failed when approved=false.
+- validate with original input first, not only with candidate output.
+- all nutrient values must be numeric and >= 0.
+- keep values realistic for one serving.
+''';
+
+    try {
+      final response = await _requestWithFallback(
+        body: {
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.1,
+          'max_completion_tokens': 600,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+      );
+
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      final text = _extractText(payload, locale).trim();
+      if (text.isEmpty) {
+        return {
+          'approved': false,
+          'reason': 'Валидация не пройдена: пустой ответ AI-проверки.',
+          'nutrients': firstPass,
+        };
+      }
+
+      final decoded = _decodeJsonObject(text, locale);
+      final approved = decoded['approved'] == true;
+      final reason = (decoded['reason'] as String? ?? '').trim();
+      final decodedNutrients = decoded['nutrients'] as Map<String, dynamic>?;
+
+      final normalized = <String, double>{};
+      for (final key in nutrientKeys) {
+        normalized[key] =
+            _toNonNegativeDouble(decodedNutrients?[key] ?? firstPass[key]);
+      }
+
+      return {
+        'approved': approved,
+        'reason': reason,
+        'nutrients': normalized,
+      };
+    } catch (_) {
+      return {
+        'approved': false,
+        'reason': 'Валидация не пройдена: ошибка повторной AI-проверки.',
+        'nutrients': firstPass,
+      };
+    }
   }
 
   Future<DonateRecipeModerationResult> validateRecipeForCommunityDonation({

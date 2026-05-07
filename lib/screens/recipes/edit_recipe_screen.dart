@@ -423,6 +423,23 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
   }
 
+  void _cancelAiNutritionCalculation() {
+    if (!_isAiCalculating) return;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final canceledMessage = languageCode == 'uk'
+        ? 'Розрахунок харчової цінності зупинено.'
+        : (languageCode == 'en'
+            ? 'Nutrition calculation stopped.'
+            : 'Расчет пищевой ценности остановлен.');
+
+    setState(() {
+      _aiRequestId++;
+      _isAiCalculating = false;
+      _isAiError = true;
+      _aiStatus = canceledMessage;
+    });
+  }
+
   @override
   void dispose() {
     _donateAiDebounce?.cancel();
@@ -994,51 +1011,72 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.save, weight: 600),
-            onPressed: _isDonated ? null : _saveRecipe,
-            tooltip: l10n.save,
+            icon: _isAiCalculating
+                ? SizedBox(
+                    width: 26,
+                    height: 26,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        Icon(Symbols.close, weight: 700, size: 18),
+                      ],
+                    ),
+                  )
+                : const Icon(Symbols.save, weight: 600),
+            onPressed: _isAiCalculating
+                ? _cancelAiNutritionCalculation
+                : (_isDonated ? null : _saveRecipe),
+            tooltip: _isAiCalculating ? l10n.cancel : l10n.save,
           ),
         ],
       ),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          padding: glassBodyPadding(
-            context,
-            left: 16,
-            top: 8,
-            right: 16,
-            bottom: 110,
-          ),
-          child: Column(
-            children: [
-              _buildMainInfoCard(),
-              const SizedBox(height: 20),
-              _buildAiClarificationCard(),
-              const SizedBox(height: 20),
-              _buildIngredientsCard(),
-              const SizedBox(height: 20),
-              _buildNutrientsCard(),
-              const SizedBox(height: 24),
-              _buildVisibilityCard(),
-              const SizedBox(height: 12),
-              _buildDonateCard(),
-              if (widget.recipe != null) ...[
+        child: AbsorbPointer(
+          absorbing: _isAiCalculating,
+          child: SingleChildScrollView(
+            padding: glassBodyPadding(
+              context,
+              left: 16,
+              top: 8,
+              right: 16,
+              bottom: 110,
+            ),
+            child: Column(
+              children: [
+                _buildMainInfoCard(),
+                const SizedBox(height: 20),
+                _buildAiClarificationCard(),
+                const SizedBox(height: 20),
+                _buildIngredientsCard(),
+                const SizedBox(height: 20),
+                _buildNutrientsCard(),
+                const SizedBox(height: 24),
+                _buildVisibilityCard(),
                 const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.center,
-                  child: TextButton.icon(
-                    onPressed: _isDonated ? null : _deleteRecipe,
-                    icon: const Icon(Symbols.delete),
-                    label: Text(l10n.removeRecipeTooltip),
-                    style: TextButton.styleFrom(
-                      foregroundColor: _isDonated ? Colors.grey : Colors.red,
+                _buildDonateCard(),
+                if (widget.recipe != null) ...[
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.center,
+                    child: TextButton.icon(
+                      onPressed: _isDonated ? null : _deleteRecipe,
+                      icon: const Icon(Symbols.delete),
+                      label: Text(l10n.removeRecipeTooltip),
+                      style: TextButton.styleFrom(
+                        foregroundColor: _isDonated ? Colors.grey : Colors.red,
+                      ),
                     ),
                   ),
-                ),
+                ],
+                const SizedBox(height: 16),
               ],
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         ),
       ),
