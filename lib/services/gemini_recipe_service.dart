@@ -439,7 +439,7 @@ Rules:
 
   CRITICAL RULES:
   1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
-  2. The specified amounts are exactly what goes into this single serving.
+  2. The specified amounts are exactly what goes into this single serving. NEVER question or adjust the quantities — treat them as precise user input.
     2.1. USER CLARIFICATION is the PRIMARY source of truth for product type, preparation method, fat level, sauces, and hidden ingredients.
       If clarification conflicts with recipe name/description assumptions, follow clarification first.
       Use ingredients list as SECONDARY quantitative constraints (amounts/units) and for consistency checks.
@@ -452,6 +452,9 @@ Rules:
 
   UNIT CONVERSION (to grams):
   - Milliliters: water/juice ≈ 1 g/ml, milk ≈ 1.03 g/ml, oil ≈ 0.9 g/ml, honey ≈ 1.4 g/ml
+  - стакан/стак (Russian/Ukrainian glass): EXACTLY 200 ml. Do NOT use 240 ml (US cup). 1 стакан = 200 ml always.
+  - cup (US): 240 ml. Use only if the unit is explicitly "cup", not "стакан".
+  - tbsp/столовая ложка: 15 ml. tsp/чайная ложка: 5 ml.
   - Pieces (pcs): apple ≈ 150 g, egg ≈ 55 g, banana ≈ 120 g, orange ≈ 180 g; use common sense for others
   - Pack/package: use the typical standard weight for that product category ONLY when no explicit net weight/volume is provided in name/description
 
@@ -636,6 +639,11 @@ Before calculating, carefully determine the ACTUAL state of each ingredient usin
 - Dry oats/flakes: ~370 kcal/100g. Cooked oatmeal: ~70 kcal/100g.
 - If ingredient name contains "сухой/dry/сырой/raw" → use dry/raw values. If "варёный/cooked/готовый/prepared" → use cooked values.
 
+UNIT CONVERSION (mandatory):
+- стакан/стак (Russian/Ukrainian glass): EXACTLY 200 ml. Do NOT use 240 ml. 1 стакан = 200 ml always.
+- cup (US): 240 ml. Use only if unit is explicitly "cup", not "стакан".
+- tbsp/ст.л.: 15 ml. tsp/ч.л.: 5 ml.
+
 INPUT:
 - clarification (HIGHEST PRIORITY for food state): ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
 - recipe name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
@@ -651,11 +659,12 @@ ${jsonEncode(firstPass)}
 
 Instructions:
 1. First, determine preparation state for each ingredient from clarification → description → name → default assumption (see rules above).
-2. Use USDA data (adjusted for the correct state) as reference to spot obvious errors (e.g. off by 2x or more).
-3. Recalculate if preparation state or USDA data clearly shows the candidate is wrong.
-4. If candidate looks reasonable and state matches, keep candidate values.
-5. Always return approved: true with your best nutrient values.
-6. Cross-check: calories ≈ protein×4 + carbs×4 + fat×9. Adjust if off by more than 10%.
+2. Use USDA data (adjusted for the correct state) as reference to spot obvious errors in nutrient density (e.g. calories per 100g off by 2x or more).
+3. IMPORTANT: NEVER change or question the ingredient quantities/amounts specified by the user. Treat them as exact and correct.
+4. Only adjust nutrient values if the preparation state is clearly wrong (e.g. dry vs cooked). Do NOT adjust because the quantity "seems too much or too little".
+5. If candidate looks reasonable and state matches, keep candidate values unchanged.
+6. Always return approved: true with your best nutrient values.
+7. Cross-check: calories ≈ protein×4 + carbs×4 + fat×9. Adjust if off by more than 10%.
 
 Return ONLY JSON:
 {
@@ -760,6 +769,7 @@ Task: decide whether this recipe can be permanently published to a public commun
 Reject the recipe if ANY of these is true:
 - contains profanity, insults, obscene/sexual terms, hateful content, harassment;
 - contains obvious nonsense, trolling, spam, gibberish, or fake recipe text;
+- contains meaningless letter sequences, keyboard mashing, random characters, or unreadable fragments in the name, description, clarification, or ingredient names;
 - is clearly not a food recipe;
 - ingredient list contains absurd quantities for one serving (for example salt in hundreds of grams/kilograms).
 
@@ -787,7 +797,8 @@ Return ONLY JSON:
 Rules:
 - No markdown, no extra text.
 - reason must be concise and understandable.
-- Treat examples like "какашка", "рецепт мусора", random symbols or obvious trolling as nonsense and reject.
+- Treat examples like "какашка", "рецепт мусора", random symbols, obvious trolling, or meaningless text like "asdasd", "qwerty", "zxcv", "ыфвфыв", "фывфыв", repeated random letters/syllables as nonsense and reject.
+- If any important user-facing field looks like gibberish or has no clear semantic meaning, reject with flag "nonsense".
 - If uncertain, set approved=false.
 ''';
 
@@ -2552,6 +2563,9 @@ Rules:
         return quantity * 15;
       case 'tsp':
         return quantity * 5;
+      case 'стакан':
+      case 'стак':
+        return quantity * 200;
       case 'cup':
         return quantity * 240;
       default:
@@ -2571,6 +2585,9 @@ Rules:
         return grams / 15;
       case 'tsp':
         return grams / 5;
+      case 'стакан':
+      case 'стак':
+        return grams / 200;
       case 'cup':
         return grams / 240;
       default:

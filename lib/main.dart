@@ -14,6 +14,7 @@ import 'services/app_notification_service.dart';
 import 'services/notification_settings_service.dart';
 import 'services/app_startup_service.dart';
 import 'services/firebase_bootstrap_service.dart';
+import 'services/community_moderation_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/screens/profile/user_agreement_screen.dart';
@@ -207,6 +208,9 @@ Future<void> _bootstrapServices() async {
     _reportStartupWarning(
         'Не удалось загрузить .env. AI-функции могут быть недоступны.');
   }
+
+  // Фоновая модерация публичных рецептов: локальный blocklist + AI-повторные проверки.
+  unawaited(CommunityModerationService.runStartupCheck());
 
   try {
     await initializeDateFormatting('ru_RU', null);
@@ -589,7 +593,6 @@ class _MainScreenShellState extends State<MainScreenShell>
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
-
 
   void _onItemTapped(int index) {
     HapticFeedback.selectionClick();

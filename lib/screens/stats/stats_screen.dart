@@ -584,12 +584,25 @@ class _StatsScreenState extends State<StatsScreen> {
     } on GeminiRecipeException catch (e) {
       developer.log('AI report error: ${e.message}', name: 'StatsScreen');
       if (!mounted || requestId != _dataRequestId) return;
-      setState(() {
-        _aiError = true;
-      });
+      _fallbackToLastCachedReport();
     } catch (e) {
       developer.log('AI report error: $e', name: 'StatsScreen');
       if (!mounted || requestId != _dataRequestId) return;
+      _fallbackToLastCachedReport();
+    }
+  }
+
+  /// При недоступности AI показываем последний сохранённый отчёт из истории.
+  void _fallbackToLastCachedReport() {
+    final lastReport =
+        _aiReportHistory.isNotEmpty ? _aiReportHistory.first : null;
+    if (lastReport != null) {
+      setState(() {
+        _aiOverview = lastReport.overview;
+        _aiRecommendations = lastReport.recommendations;
+        _aiError = false;
+      });
+    } else {
       setState(() {
         _aiError = true;
       });
