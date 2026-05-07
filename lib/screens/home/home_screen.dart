@@ -207,18 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         controller: controller,
                         autofocus: true,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText:
-                              AppLocalizations.of(context)!.enterStepsCount,
+                        decoration: AppStyles.inputDecoration(
+                          AppLocalizations.of(context)!.enterStepsCount,
+                          Symbols.footprint,
+                        ).copyWith(
                           hintText: '8500',
                           errorText: errorText,
-                          filled: true,
-                          fillColor: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.45),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
                         ),
                         onSubmitted: (_) {
                           final parsed = int.tryParse(controller.text.trim());

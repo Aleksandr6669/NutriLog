@@ -89,7 +89,6 @@ class GeminiRecipeService {
   }
 
   static const List<String> _models = [
-    'llama-3.3-70b-versatile',
     'meta-llama/llama-4-scout-17b-16e-instruct',
     'meta-llama/llama-4-maverick-17b-128e-instruct',
   ];
@@ -1887,11 +1886,19 @@ Rules:
               body: jsonEncode({
                 ...body,
                 'model': model,
+                'response_format': {'type': 'json_object'},
               }),
             )
             .timeout(_requestTimeout);
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
+          final validForSystem = _isResponseValidForSystem(response.body);
+          if (!validForSystem) {
+            if (model != _models.last) continue;
+            throw GeminiRecipeException(
+              _messages(locale).aiUnexpectedResponseFormatError,
+            );
+          }
           return response;
         }
 
@@ -1921,6 +1928,30 @@ Rules:
     throw GeminiRecipeException(
       _messages(locale).aiNoResponseError,
     );
+  }
+
+  bool _isResponseValidForSystem(String body) {
+    try {
+      final payload = jsonDecode(body);
+      if (payload is! Map<String, dynamic>) return false;
+
+      final choices = payload['choices'];
+      if (choices is! List || choices.isEmpty) return false;
+
+      final first = choices.first;
+      if (first is! Map<String, dynamic>) return false;
+
+      final message = first['message'];
+      if (message is! Map<String, dynamic>) return false;
+
+      final content = message['content'];
+      if (content is! String || content.trim().isEmpty) return false;
+
+      final decodedContent = jsonDecode(content.trim());
+      return decodedContent is Map<String, dynamic>;
+    } catch (_) {
+      return false;
+    }
   }
 
   String _resolveApiKey() {
@@ -2510,6 +2541,9 @@ Rules:
     final code = response.statusCode;
     final apiMessage = _extractApiErrorMessage(response.body);
 
+    if (code == 404) {
+      return _messages(locale).aiHttpNotFoundError;
+    }
     if (code == 403) {
       return '${_messages(locale).aiHttpForbiddenError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
     }

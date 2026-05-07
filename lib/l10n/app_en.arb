@@ -337,6 +337,7 @@
   "aiHttpForbiddenError": "Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.",
   "aiHttpUnauthorizedError": "Groq returned 401 (unauthorized). Check GROQ_API_KEY.",
   "aiHttpRateLimitError": "Groq returned 429 (rate limit). Please try again later.",
+  "aiHttpNotFoundError": "Failed to connect to the AI service.",
   "aiHttpGenericError": "Groq returned an error ({code}).",
   "@aiHttpGenericError": {
     "placeholders": { "code": { "type": "Object" } }

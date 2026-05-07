@@ -336,6 +336,7 @@
   "aiHttpForbiddenError": "Groq вернул 403 (доступ запрещен). Проверьте GROQ_API_KEY и ограничения доступа.",
   "aiHttpUnauthorizedError": "Groq вернул 401 (неавторизован). Проверьте корректность GROQ_API_KEY.",
   "aiHttpRateLimitError": "Groq вернул 429 (лимит запросов). Попробуйте позже.",
+  "aiHttpNotFoundError": "Не удалось подключиться к нейросети.",
   "aiHttpGenericError": "Groq вернул ошибку ({code}).",
   "@aiHttpGenericError": {
     "placeholders": { "code": { "type": "Object" } }

@@ -952,6 +952,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Groq вернул 429 (лимит запросов). Попробуйте позже.';
 
   @override
+  String get aiHttpNotFoundError => 'Не удалось подключиться к нейросети.';
+
+  @override
   String aiHttpGenericError(Object code) {
     return 'Groq вернул ошибку ($code).';
   }

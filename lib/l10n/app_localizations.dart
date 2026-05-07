@@ -1810,6 +1810,12 @@ abstract class AppLocalizations {
   /// **'Groq returned 429 (rate limit). Please try again later.'**
   String get aiHttpRateLimitError;
 
+  /// No description provided for @aiHttpNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to the AI service.'**
+  String get aiHttpNotFoundError;
+
   /// No description provided for @aiHttpGenericError.
   ///
   /// In en, this message translates to:

@@ -16,6 +16,7 @@ import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/avatar_cache_service.dart';
 import 'package:nutri_log/screens/onboarding/whats_new_screen.dart';
 import 'package:nutri_log/styles/app_colors.dart';
+import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/locale_provider.dart';
@@ -228,15 +229,27 @@ class _ConnectionsNotificationsScreenState
   }
 
   Future<void> _loadCachedPhoto(String uid) async {
+    // Мгновенно показываем кеш
     final photo = await AvatarCacheService.getCachedPhoto(uid);
     if (!mounted) return;
     setState(() => _cachedPhotoBase64 = photo);
-    // Если ещё нет кеша — попробуем скачать из Google
-    if (photo == null && _user?.photoURL != null) {
-      await AvatarCacheService.cacheGooglePhoto(_user!.photoURL, uid);
+
+    // Фоновое обновление: всегда скачиваем свежее из Google (если URL есть)
+    // Обновит UI только если картинка изменилась
+    if (_user?.photoURL != null) {
+      _refreshAvatarInBackground(uid);
+    }
+  }
+
+  void _refreshAvatarInBackground(String uid) {
+    AvatarCacheService.cacheGooglePhoto(_user?.photoURL, uid)
+        .then((changed) async {
+      if (!changed || !mounted) return;
       final downloaded = await AvatarCacheService.getCachedPhoto(uid);
       if (mounted) setState(() => _cachedPhotoBase64 = downloaded);
-    }
+    }).catchError((_) {
+      // Ошибка сети — оставляем кешированное фото
+    });
   }
 
   Future<void> _syncCloudDataAfterSignIn() async {
@@ -550,34 +563,8 @@ class _ConnectionsNotificationsScreenState
               ),
               if (status != SyncStatus.syncing)
                 GestureDetector(
-                  onTap: () async {
-                    final l10n = AppLocalizations.of(context)!;
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text(l10n.syncConfirmTitle),
-                        actions: [
-                          FilledButton(
-                            onPressed: () => Navigator.pop(ctx, true),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.red.shade600,
-                            ),
-                            child: Text(l10n.confirmYes),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
-                            ),
-                            child: Text(l10n.confirmNo),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true) {
-                      LocalFirstSyncService.instance.syncNow();
-                    }
+                  onTap: () {
+                    LocalFirstSyncService.instance.syncNow();
                   },
                   child: Icon(Symbols.refresh, size: 16, color: color),
                 ),
@@ -611,61 +598,93 @@ class _ConnectionsNotificationsScreenState
           _buildSectionTitle(theme, l10n.connectionsSection),
           const SizedBox(height: 10),
           Card(
-            child: ListTile(
+            child: InkWell(
+              borderRadius: AppStyles.cardRadius,
               onTap: () => setState(
                 () => _connectionsExpanded = !_connectionsExpanded,
               ),
-              leading: _buildAccountAvatar(),
-              title: Text(l10n.loginToAccount),
-              subtitle: Text(
-                  _user == null ? l10n.cloudSyncLocalOnly : _user!.email ?? ''),
-              trailing: _authBusy
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : _user == null
-                      ? FilledButton(
-                          onPressed: _handleSignIn,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.green.shade600,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Row(
+                  children: [
+                    _buildAccountAvatar(),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.loginToAccount,
+                            style: theme.textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w500),
                           ),
-                          child: Text(l10n.signIn),
-                        )
-                      : _confirmSignOut
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                FilledButton(
-                                  onPressed: _handleSignOut,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.red.shade600,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                  ),
-                                  child: Text(l10n.confirmYes),
-                                ),
-                                const SizedBox(width: 8),
-                                FilledButton(
-                                  onPressed: _cancelSignOut,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: Colors.black87,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                  ),
-                                  child: Text(l10n.confirmNo),
-                                ),
-                              ],
-                            )
-                          : FilledButton(
-                              onPressed: _onSignOutTap,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.red.shade600,
-                              ),
-                              child: Text(l10n.signOut),
+                          const SizedBox(height: 2),
+                          Text(
+                            _user == null
+                                ? l10n.cloudSyncLocalOnly
+                                : _user!.email ?? '',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
                             ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (_authBusy)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else if (_user == null)
+                      FilledButton(
+                        onPressed: _handleSignIn,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                        ),
+                        child: Text(l10n.signIn),
+                      )
+                    else if (_confirmSignOut)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton(
+                            onPressed: _handleSignOut,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red.shade600,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
+                            ),
+                            child: Text(l10n.confirmYes),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: _cancelSignOut,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.green.shade50,
+                              foregroundColor: Colors.black87,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
+                            ),
+                            child: Text(l10n.confirmNo),
+                          ),
+                        ],
+                      )
+                    else
+                      FilledButton(
+                        onPressed: _onSignOutTap,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.red.shade600,
+                        ),
+                        child: Text(l10n.signOut),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           if (_user != null) ...[

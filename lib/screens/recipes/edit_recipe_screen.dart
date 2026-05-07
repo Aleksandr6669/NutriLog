@@ -1018,12 +1018,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         actions: [
           IconButton(
             icon: _isAiCalculating
-                ? SizedBox(
+                ? const SizedBox(
                     width: 26,
                     height: 26,
                     child: Stack(
                       alignment: Alignment.center,
-                      children: const [
+                      children: [
                         SizedBox(
                           width: 26,
                           height: 26,

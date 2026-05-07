@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_auth_service.dart';
 import 'firebase_bootstrap_service.dart';
+import 'data_encryption_service.dart';
 
 class CloudDataService {
   CloudDataService._();
@@ -73,7 +74,15 @@ class CloudDataService {
       if (!snapshot.exists) return null;
 
       await markSyncNow();
-      return snapshot.data();
+      final data = snapshot.data();
+      
+      // Дешифруем данные если они зашифрованы
+      if (data != null && _uid != null) {
+        return DataEncryptionService.instance
+            .decryptMapFromCloud(key, data, _uid!);
+      }
+      
+      return data;
     } catch (_) {
       // Офлайн/таймаут: вызывающий код должен продолжать работать по локальным данным.
       return null;
@@ -87,8 +96,15 @@ class CloudDataService {
     try {
       await FirebaseBootstrapService.ensureInitialized();
       await _ensureUserRootDocument();
+      
+      // Шифруем данные если это приватный документ
+      final dataToWrite = _uid != null
+          ? DataEncryptionService.instance
+              .encryptMapForCloud(key, data, _uid!)
+          : data;
+      
       await _docRef(key)
-          .set(data, SetOptions(merge: false))
+          .set(dataToWrite, SetOptions(merge: false))
           .timeout(_cloudTimeout);
       await markSyncNow();
     } catch (_) {
@@ -108,12 +124,21 @@ class CloudDataService {
           .get()
           .timeout(_cloudTimeout);
       await markSyncNow();
-      return snapshot.docs
+      
+      var docs = snapshot.docs
           .map((doc) => <String, dynamic>{
                 ...doc.data(),
                 '__docId': doc.id,
               })
           .toList(growable: false);
+      
+      // Дешифруем документы если это приватная коллекция
+      if (_uid != null) {
+        docs = DataEncryptionService.instance
+            .decryptListFromCloud(collectionPath, docs, _uid!);
+      }
+      
+      return docs;
     } catch (_) {
       return const [];
     }
@@ -129,10 +154,17 @@ class CloudDataService {
 
     try {
       await FirebaseBootstrapService.ensureInitialized();
+      
+      // Шифруем данные если это приватная коллекция
+      final dataToWrite = _uid != null
+          ? DataEncryptionService.instance
+              .encryptMapForCloud(collectionPath, data, _uid!)
+          : data;
+      
       await _firestore
           .collection(collectionPath)
           .doc(docId)
-          .set(data, SetOptions(merge: false))
+          .set(dataToWrite, SetOptions(merge: false))
           .timeout(_cloudTimeout);
       await markSyncNow();
     } catch (_) {

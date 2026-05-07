@@ -954,6 +954,9 @@ class AppLocalizationsUk extends AppLocalizations {
       'Groq повернув 429 (ліміт запитів). Спробуйте пізніше.';
 
   @override
+  String get aiHttpNotFoundError => 'Не вдалося підключитися до нейромережі.';
+
+  @override
   String aiHttpGenericError(Object code) {
     return 'Groq повернув помилку ($code).';
   }

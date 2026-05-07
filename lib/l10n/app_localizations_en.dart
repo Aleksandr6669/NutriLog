@@ -947,6 +947,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Groq returned 401 (unauthorized). Check GROQ_API_KEY.';
 
   @override
+  String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
+
+  @override
   String get aiHttpRateLimitError =>
       'Groq returned 429 (rate limit). Please try again later.';
 
