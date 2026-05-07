@@ -465,15 +465,23 @@ class _FoodListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.name,
-                        style: const TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w500)),
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 4),
-                    Text(item.description,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.textTheme.bodySmall?.color),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
+                    Text(
+                      item.description,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.textTheme.bodySmall?.color),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
