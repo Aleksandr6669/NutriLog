@@ -1156,6 +1156,12 @@ abstract class AppLocalizations {
   /// **'Loading AI report...'**
   String get statsAiLoading;
 
+  /// No description provided for @statsAiUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary changed — updating report...'**
+  String get statsAiUpdating;
+
   /// No description provided for @statsAiError.
   ///
   /// In en, this message translates to:

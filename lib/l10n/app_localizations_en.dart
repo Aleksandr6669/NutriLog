@@ -565,6 +565,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiLoading => 'Loading AI report...';
 
   @override
+  String get statsAiUpdating => 'Diary changed — updating report...';
+
+  @override
   String get statsAiError =>
       'Could not generate AI report. Please try again later.';
 

@@ -567,6 +567,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiLoading => 'Завантаження звіту від нейромережі...';
 
   @override
+  String get statsAiUpdating => 'Щоденник змінився — оновлюю звіт...';
+
+  @override
   String get statsAiError =>
       'Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.';
 

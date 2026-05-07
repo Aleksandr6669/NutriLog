@@ -567,6 +567,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiLoading => 'Загрузка отчета от нейросети...';
 
   @override
+  String get statsAiUpdating => 'Дневник изменился — обновляю отчёт...';
+
+  @override
   String get statsAiError =>
       'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
 

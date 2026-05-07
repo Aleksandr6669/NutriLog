@@ -181,6 +181,7 @@
   "statsAiDisclaimer": "AI may be off by ~10%. Use the report as a reference.",
     "statsAiNotMedicalAdvice": "This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.",
   "statsAiLoading": "Loading AI report...",
+  "statsAiUpdating": "Diary changed — updating report...",
   "statsAiError": "Could not generate AI report. Please try again later.",
   "statsPeriodLabelWeek": "the week",
   "statsPeriodLabelMonth": "the month",

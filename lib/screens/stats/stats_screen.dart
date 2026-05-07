@@ -52,12 +52,21 @@ class _StatsScreenState extends State<StatsScreen> {
   Locale? _lastLocale;
   final AiReportHistoryService _historyService = AiReportHistoryService();
   List<AiReportEntry> _aiReportHistory = const [];
+  StreamSubscription<void>? _logCacheSubscription;
+  Timer? _reloadDebounce;
 
   @override
   void initState() {
     super.initState();
     _reloadStats();
     _loadHistory();
+    _logCacheSubscription = DailyLogService.cacheUpdates.listen((_) {
+      if (!mounted) return;
+      _reloadDebounce?.cancel();
+      _reloadDebounce = Timer(const Duration(seconds: 3), () {
+        if (mounted) _reloadStats();
+      });
+    });
   }
 
   Future<void> _loadHistory() async {
@@ -68,6 +77,8 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   void dispose() {
+    _reloadDebounce?.cancel();
+    _logCacheSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
