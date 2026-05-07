@@ -37,7 +37,6 @@ enum _StatsPeriod { week, month, year }
 
 class _StatsScreenState extends State<StatsScreen> {
   _StatsPeriod _period = _StatsPeriod.week;
-  bool _isAverageMetricsExpanded = false;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
   final GeminiRecipeService _geminiRecipeService = GeminiRecipeService();
@@ -81,7 +80,6 @@ class _StatsScreenState extends State<StatsScreen> {
     }
     if (isVisible && !_isCurrentlyVisible) {
       _isCurrentlyVisible = true;
-      _isAverageMetricsExpanded = false;
       _reloadStats();
     } else if (!isVisible) {
       _isCurrentlyVisible = false;
@@ -1405,34 +1403,30 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
     ];
 
-    Widget buildMetricChip(({String label, String value}) item) {
+    Widget buildMetricRow(({String label, String value}) item, int index) {
+      final isEven = index.isEven;
       return Container(
-        constraints: const BoxConstraints(minWidth: 145),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         decoration: BoxDecoration(
-          color:
-              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.48),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.12),
-          ),
+          color: isEven
+              ? theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.28)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              item.label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Expanded(
+              child: Text(
+                item.label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-            const SizedBox(height: 4),
             Text(
               item.value,
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -1453,62 +1447,18 @@ class _StatsScreenState extends State<StatsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                setState(() {
-                  _isAverageMetricsExpanded = !_isAverageMetricsExpanded;
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${l10n.statsAverageValuesPeriod}: ${_periodLabel(context)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    AnimatedRotation(
-                      turns: _isAverageMetricsExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeInOut,
-                      child: Icon(
-                        Symbols.expand_more,
-                        size: 22,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            Text(
+              '${l10n.statsAverageValuesPeriod}: ${_periodLabel(context)}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 12),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOutCubic,
-              alignment: Alignment.topCenter,
-              child: _isAverageMetricsExpanded
-                  ? Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children:
-                          metrics.map(buildMetricChip).toList(growable: false),
-                    )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: metrics.map((item) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: buildMetricChip(item),
-                          );
-                        }).toList(growable: false),
-                      ),
-                    ),
+            Column(
+              children: [
+                for (var i = 0; i < metrics.length; i++)
+                  buildMetricRow(metrics[i], i),
+              ],
             ),
           ],
         ),

@@ -46,16 +46,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _saveNameFromController();
       }
     });
-    _syncGoogleNameIfAuthorized();
-    // Слушаем изменения в авторизации
+    // Загружаем фото и имя сразу при инициализации
+    _loadGooglePhotoAndNameImmediately();
+    // Слушаем изменения в авторизации на случай логина/выхода
     FirebaseAuthService.instance.authStateChanges().listen((_) {
       if (mounted) {
-        _syncGoogleNameIfAuthorized();
+        _loadGooglePhotoAndNameImmediately();
       }
     });
   }
 
-  Future<void> _syncGoogleNameIfAuthorized() async {
+  Future<void> _loadGooglePhotoAndNameImmediately() async {
     final authService = FirebaseAuthService.instance;
     final googleUser = authService.currentUser;
     if (googleUser == null) {
@@ -77,13 +78,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
-    // Загружаем и кешируем фото
+    // Загружаем и кешируем фото сразу — сначала пытаемся получить из кеша,
+    // потом загружаем с сервера, если нет кеша
     if (googleUser.photoURL != null && googleUser.photoURL!.isNotEmpty) {
+      final cachedFirst =
+          await AvatarCacheService.getCachedPhoto(googleUser.uid);
+      if (cachedFirst != null && mounted) {
+        setState(() => _cachedPhotoBase64 = cachedFirst);
+      }
+      // Асинхронно обновляем кеш с сервера
       await AvatarCacheService.cacheGooglePhoto(
           googleUser.photoURL, googleUser.uid);
-      final cached = await AvatarCacheService.getCachedPhoto(googleUser.uid);
+      final updated = await AvatarCacheService.getCachedPhoto(googleUser.uid);
       if (mounted) {
-        setState(() => _cachedPhotoBase64 = cached);
+        setState(() => _cachedPhotoBase64 = updated);
       }
     }
   }
