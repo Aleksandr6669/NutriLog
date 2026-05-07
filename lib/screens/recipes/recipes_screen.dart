@@ -1029,26 +1029,6 @@ class _RecipeListItem extends StatelessWidget {
     final rawCalories = recipe.nutrients['calories'];
     final calories = ((rawCalories as num?) ?? 0).round();
     final isOwnRecipe = recipe.isUserRecipe;
-    final isPublic = recipe.isPublic;
-    final isDonated = recipe.isDonated;
-    final showStatusBadge = !isSelectionMode;
-
-    String? badgeText;
-    Color? badgeColor;
-    Color? badgeTextColor;
-    if (showStatusBadge && isOwnRecipe) {
-      badgeText = l10n.myRecipe;
-      badgeColor = AppColors.primary.withValues(alpha: 0.1);
-      badgeTextColor = AppColors.primary;
-    } else if (showStatusBadge && isPublic) {
-      badgeText = l10n.publicRecipe;
-      badgeColor = Colors.blue.withOpacity(0.10);
-      badgeTextColor = Colors.blue.shade700;
-    } else if (showStatusBadge && isDonated) {
-      badgeText = l10n.donatedRecipe;
-      badgeColor = Colors.green.withOpacity(0.10);
-      badgeTextColor = Colors.green.shade700;
-    }
 
     final card = Card(
       color: Colors.white,
@@ -1110,37 +1090,41 @@ class _RecipeListItem extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        if (badgeText != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: badgeColor,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                badgeText,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: badgeTextColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
                         Text(
                           '$calories ${l10n.kcal}',
                           style: theme.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        Icon(
-                          Symbols.info,
-                          color: theme.colorScheme.primary,
-                          size: 18,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isOwnRecipe)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  l10n.myRecipe,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            if (isOwnRecipe) const SizedBox(width: 6),
+                            Icon(
+                              Symbols.info,
+                              color: theme.colorScheme.primary,
+                              size: 18,
+                            ),
+                          ],
                         ),
                       ],
                     )

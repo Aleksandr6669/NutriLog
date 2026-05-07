@@ -1960,6 +1960,48 @@ abstract class AppLocalizations {
   /// **'Show smart analysis and recommendations in Analytics'**
   String get statsAiAssistantToggleSubtitle;
 
+  /// No description provided for @recipeAiAutoNutritionToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI auto-calculate nutrition for recipes'**
+  String get recipeAiAutoNutritionToggleTitle;
+
+  /// No description provided for @recipeAiAutoNutritionToggleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When creating from photo or description, AI automatically calculates calories and macros.'**
+  String get recipeAiAutoNutritionToggleSubtitle;
+
+  /// No description provided for @syncStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get syncStatusSyncing;
+
+  /// No description provided for @syncStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncStatusSynced;
+
+  /// No description provided for @syncStatusSyncedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced at {time}'**
+  String syncStatusSyncedAt(String time);
+
+  /// No description provided for @syncStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync error — retry on next connection'**
+  String get syncStatusError;
+
+  /// No description provided for @syncStatusIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for sync…'**
+  String get syncStatusIdle;
+
   /// No description provided for @changelogTitle.
   ///
   /// In en, this message translates to:

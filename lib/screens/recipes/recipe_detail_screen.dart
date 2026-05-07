@@ -88,12 +88,10 @@ class RecipeDetailScreen extends StatelessWidget {
         ? DateFormat.yMd(locale).add_Hm().format(createdAt)
         : l10n.recipeDateUnknown;
 
-    final statusLabel = recipe.isDonated
-        ? l10n.donatedRecipe
-        : (recipe.isPublic ? l10n.publicRecipe : l10n.privateRecipe);
-    final statusColor = recipe.isDonated
-        ? Colors.green.shade700
-        : (recipe.isPublic ? Colors.blue.shade700 : Colors.grey.shade700);
+    final isPublicRecipe = recipe.isPublic || recipe.isDonated;
+    final statusLabel = isPublicRecipe ? l10n.publicRecipe : l10n.privateRecipe;
+    final statusColor =
+        isPublicRecipe ? Colors.blue.shade700 : Colors.green.shade700;
 
     return Card(
       color: Colors.white,
@@ -238,7 +236,7 @@ class RecipeDetailScreen extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        ingredient.displayValue,
+                        _ingredientDisplayValue(context, ingredient),
                         style: const TextStyle(fontSize: 15, height: 1.35),
                       ),
                     ),
@@ -250,6 +248,56 @@ class RecipeDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _ingredientDisplayValue(
+    BuildContext context,
+    RecipeIngredient ingredient,
+  ) {
+    if (ingredient.quantity <= 0 && ingredient.unit.isEmpty) {
+      return ingredient.name;
+    }
+
+    final isInteger =
+        ingredient.quantity.truncateToDouble() == ingredient.quantity;
+    final quantityText = isInteger
+        ? ingredient.quantity.toInt().toString()
+        : ingredient.quantity.toStringAsFixed(1);
+    final localizedUnit = _localizedUnitLabel(context, ingredient.unit);
+    final amountText =
+        localizedUnit.isEmpty ? quantityText : '$quantityText $localizedUnit';
+    return '${ingredient.name} — $amountText';
+  }
+
+  String _localizedUnitLabel(BuildContext context, String unit) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (unit.trim().toLowerCase()) {
+      case 'g':
+        return l10n.grams;
+      case 'mg':
+        return l10n.mg;
+      case 'kg':
+        return l10n.kilograms;
+      case 'pcs':
+        return l10n.pieces;
+      case 'pack':
+        return l10n.pack;
+      case 'pkg':
+      case 'package':
+        return l10n.package;
+      case 'l':
+        return l10n.liters;
+      case 'ml':
+        return l10n.milliliters;
+      case 'tsp':
+        return l10n.teaspoon;
+      case 'tbsp':
+        return l10n.tablespoon;
+      case 'cup':
+        return l10n.glass;
+      default:
+        return unit;
+    }
   }
 
   Widget _buildNutrientsCard(BuildContext context) {

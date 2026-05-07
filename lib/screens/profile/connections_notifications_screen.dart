@@ -482,6 +482,7 @@ class _ConnectionsNotificationsScreenState
     return ValueListenableBuilder<SyncStatus>(
       valueListenable: LocalFirstSyncService.instance.statusNotifier,
       builder: (context, status, _) {
+        final l10n = AppLocalizations.of(context)!;
         final Color color;
         final IconData icon;
         final String label;
@@ -491,7 +492,7 @@ class _ConnectionsNotificationsScreenState
           case SyncStatus.syncing:
             color = Colors.blue.shade600;
             icon = Symbols.sync;
-            label = 'Синхронизация…';
+            label = l10n.syncStatusSyncing;
             leading = SizedBox(
               width: 14,
               height: 14,
@@ -507,16 +508,16 @@ class _ConnectionsNotificationsScreenState
             final timeStr =
                 syncedAt != null ? DateFormat.Hm().format(syncedAt) : '';
             label = timeStr.isNotEmpty
-                ? 'Синхронизировано в $timeStr'
-                : 'Синхронизировано';
+                ? l10n.syncStatusSyncedAt(timeStr)
+                : l10n.syncStatusSynced;
           case SyncStatus.error:
             color = Colors.orange.shade700;
             icon = Symbols.sync_problem;
-            label = 'Ошибка синхронизации — повтор при следующем подключении';
+            label = l10n.syncStatusError;
           case SyncStatus.idle:
             color = theme.colorScheme.onSurface.withValues(alpha: 0.4);
             icon = Symbols.cloud_queue;
-            label = 'Ожидание синхронизации…';
+            label = l10n.syncStatusIdle;
         }
 
         return Container(
@@ -741,6 +742,39 @@ class _ConnectionsNotificationsScreenState
                       HapticFeedback.selectionClick();
                       final updated =
                           _settings.copyWith(statsAiAssistantEnabled: enabled);
+                      setState(() => _settings = updated);
+                      await _settingsService.save(updated);
+                    },
+                  ),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.orange.withValues(alpha: 0.12),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.auto_fix_high,
+                      size: 18,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  title: Text(l10n.recipeAiAutoNutritionToggleTitle),
+                  subtitle: Text(l10n.recipeAiAutoNutritionToggleSubtitle),
+                  trailing: Switch.adaptive(
+                    value: _settings.recipeAiAutoNutritionEnabled,
+                    onChanged: (enabled) async {
+                      HapticFeedback.selectionClick();
+                      final updated = _settings.copyWith(
+                        recipeAiAutoNutritionEnabled: enabled,
+                      );
                       setState(() => _settings = updated);
                       await _settingsService.save(updated);
                     },

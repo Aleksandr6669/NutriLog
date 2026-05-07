@@ -376,6 +376,18 @@
   "appSettingsSection": "App",
   "statsAiAssistantToggleTitle": "Analytics AI assistant",
   "statsAiAssistantToggleSubtitle": "Show smart analysis and recommendations in Analytics",
+  "recipeAiAutoNutritionToggleTitle": "AI auto-calculate nutrition for recipes",
+  "recipeAiAutoNutritionToggleSubtitle": "When creating from photo or description, AI automatically calculates calories and macros.",
+  "syncStatusSyncing": "Syncing…",
+  "syncStatusSynced": "Synced",
+  "syncStatusSyncedAt": "Synced at {time}",
+  "@syncStatusSyncedAt": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "syncStatusError": "Sync error — retry on next connection",
+  "syncStatusIdle": "Waiting for sync…",
   "changelogTitle": "Version history",
   "userAgreementSubtitle": "Data, storage and AI",
   "notificationSettingsError": "Could not apply notification settings. Details: {error}",

@@ -1032,6 +1032,32 @@ class AppLocalizationsUk extends AppLocalizations {
       'Показувати розумний аналіз і рекомендації в розділі аналітики';
 
   @override
+  String get recipeAiAutoNutritionToggleTitle =>
+      'Авторозрахунок поживності AI для рецептів';
+
+  @override
+  String get recipeAiAutoNutritionToggleSubtitle =>
+      'Під час створення з фото або опису нейромережа автоматично рахує калорії та БЖВ.';
+
+  @override
+  String get syncStatusSyncing => 'Синхронізація…';
+
+  @override
+  String get syncStatusSynced => 'Синхронізовано';
+
+  @override
+  String syncStatusSyncedAt(String time) {
+    return 'Синхронізовано о $time';
+  }
+
+  @override
+  String get syncStatusError =>
+      'Помилка синхронізації — повтор при наступному підключенні';
+
+  @override
+  String get syncStatusIdle => 'Очікування синхронізації…';
+
+  @override
   String get changelogTitle => 'Історія версій';
 
   @override

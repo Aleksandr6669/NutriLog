@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/cloud_data_service.dart';
+import '../services/firebase_bootstrap_service.dart';
 import '../services/profile_service.dart';
 
 import '../services/daily_log_service.dart';
@@ -22,7 +23,17 @@ class ProfileProvider with ChangeNotifier {
       _profile = await _service.loadProfile();
       notifyListeners();
     });
-    _startRealtimeSync();
+    unawaited(_startRealtimeSyncSafely());
+  }
+
+  Future<void> _startRealtimeSyncSafely() async {
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      _startRealtimeSync();
+    } catch (_) {
+      // Firebase может быть недоступен на раннем старте/оффлайн:
+      // профиль продолжит работать в local-first режиме.
+    }
   }
 
   /// Подписывается на Firestore-документ профиля.

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
@@ -10,6 +11,7 @@ import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/cloud_data_service.dart';
 import 'package:nutri_log/services/firebase_auth_service.dart';
 import 'package:nutri_log/services/firebase_bootstrap_service.dart';
+import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
@@ -146,13 +148,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['carbs']?.addListener(_onMacroChanged);
     _nutrientControllers['fat']?.addListener(_onMacroChanged);
 
-    // Если initialDraft (создание по фото/описанию) — сразу запускаем расчет пищевой ценности
-    if (isFromDraft && _ingredientItems.isNotEmpty) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
-    } else if (_autoCalculateCalories) {
-      _applyAutoCalories();
-    }
+    unawaited(_applyInitialAutomation(isFromDraft: isFromDraft));
 
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _onDonateValidationInputChanged());
@@ -161,6 +157,29 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _attachIngredientListeners(_IngredientFormItem item) {
     item.nameController.addListener(_onDonateValidationInputChanged);
     item.quantityController.addListener(_onDonateValidationInputChanged);
+  }
+
+  Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
+    if (isFromDraft) {
+      bool isAutoAiEnabled = true;
+      try {
+        final settings = await NotificationSettingsService().load();
+        isAutoAiEnabled = settings.recipeAiAutoNutritionEnabled;
+      } catch (_) {
+        // Если настройки недоступны, используем безопасное поведение по умолчанию.
+      }
+
+      if (!mounted) return;
+      if (isAutoAiEnabled && _ingredientItems.isNotEmpty) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
+      }
+      return;
+    }
+
+    if (_autoCalculateCalories) {
+      _applyAutoCalories();
+    }
   }
 
   void _detachIngredientListeners(_IngredientFormItem item) {
@@ -660,18 +679,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       );
 
       if (!mounted) return;
-      setState(() {
-        _isDonated = true;
-        _isPublic = true;
-        _isDonating = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.donateRecipeSuccess),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green.shade700,
-        ),
-      );
+      context.go('/recipes');
     } on StateError {
       if (!mounted) return;
       setState(() => _isDonating = false);
@@ -1015,6 +1023,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed:
+                    _isAiCalculating ? null : _recalculateNutrientsWithAi,
+                icon: const Icon(Symbols.calculate),
+                label: Text(l10n.calculateNutrition),
+              ),
+            ),
+            const SizedBox(height: 8),
             if (_aiStatus != null) ...[
               Container(
                 width: double.infinity,
@@ -1054,15 +1072,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 8),
             ],
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed:
-                    _isAiCalculating ? null : _recalculateNutrientsWithAi,
-                icon: const Icon(Symbols.calculate),
-                label: Text(l10n.calculateNutrition),
-              ),
-            ),
             const SizedBox(height: 10),
             Container(
               width: double.infinity,

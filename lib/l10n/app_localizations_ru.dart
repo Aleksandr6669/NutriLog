@@ -754,7 +754,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Добавьте ингредиенты, чтобы рассчитать пищевую ценность.';
 
   @override
-  String get recipeAiCalculating => 'Идет расчет пищевой ценности...';
+  String get recipeAiCalculating => 'Рассчитываем пищевую ценность...';
 
   @override
   String get recipeAiUpdated => 'Пищевые значения обновлены.';
@@ -1029,6 +1029,32 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get statsAiAssistantToggleSubtitle =>
       'Показывать умный анализ и рекомендации в разделе аналитики';
+
+  @override
+  String get recipeAiAutoNutritionToggleTitle =>
+      'Авторасчет пищевой ценности AI для рецептов';
+
+  @override
+  String get recipeAiAutoNutritionToggleSubtitle =>
+      'При создании по фото или описанию нейросеть автоматически считает калории и БЖУ.';
+
+  @override
+  String get syncStatusSyncing => 'Синхронизация…';
+
+  @override
+  String get syncStatusSynced => 'Синхронизировано';
+
+  @override
+  String syncStatusSyncedAt(String time) {
+    return 'Синхронизировано в $time';
+  }
+
+  @override
+  String get syncStatusError =>
+      'Ошибка синхронизации — повтор при следующем подключении';
+
+  @override
+  String get syncStatusIdle => 'Ожидание синхронизации…';
 
   @override
   String get changelogTitle => 'История версий';

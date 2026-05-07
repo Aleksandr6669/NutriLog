@@ -230,11 +230,14 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
+- ingredient quantities must be realistic for ONE serving (1 person).
+- If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0.
 - unit as a short string like: g, ml, pcs, tbsp, tsp.
 - nutrients as numbers only >= 0.
 - If exact data is unavailable, provide a realistic estimate.
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
+- Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly mentioned by the user or clearly required by the dish/product type.
 ''';
 
     final response = await _requestWithFallback(
@@ -326,6 +329,8 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
+- ingredient quantities must be realistic for ONE serving (1 person).
+- If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0. If needed, quantity >= 0.0001 (for spices, supplements, etc.).
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat, fresh vs canned). Set "ambiguous": false otherwise.
    If given in pieces, estimate the weight of one piece based on reference tables or common sense (e.g., average apple ~150 g, average egg ~50 g). If given in milliliters, estimate weight based on product density (e.g., 1 ml water ~ 1 g, 1 ml oil ~ 0.9 g). If weight cannot be precisely estimated, provide a realistic estimate based on similar products.
@@ -333,6 +338,7 @@ Rules:
 - nutrients as numbers only >= 0. If needed, values >= 0.0001 (for micronutrients, vitamins, supplements, etc.) are allowed.
 - If exact data is unavailable, provide a realistic estimate.
 - If exact composition cannot be determined, estimate by analogy with typical products of this type.
+- Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly visible/mentioned or clearly required by the dish/product type.
 ''';
 
     final response = await _requestWithFallback(
@@ -1284,6 +1290,16 @@ Rules:
       }
     }
 
+    final sanitizedIngredients = _sanitizeDraftIngredients(
+      ingredients,
+      sourceText: '$fallbackDescription ${rawName.trim()}'.trim(),
+    );
+    if (sanitizedIngredients.isNotEmpty) {
+      ingredients
+        ..clear()
+        ..addAll(sanitizedIngredients);
+    }
+
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiFailedToExtractIngredientsError,
@@ -1308,6 +1324,315 @@ Rules:
       ingredients: ingredients,
       nutrients: nutrients,
     );
+  }
+
+  List<RecipeIngredient> _sanitizeDraftIngredients(
+    List<RecipeIngredient> ingredients, {
+    required String sourceText,
+  }) {
+    if (ingredients.isEmpty) return ingredients;
+
+    final normalizedSource = sourceText.toLowerCase();
+    final dishSuggestsLiquidBase = _containsAny(
+      normalizedSource,
+      const [
+        'суп',
+        'бульон',
+        'борщ',
+        'уха',
+        'чай',
+        'кофе',
+        'напит',
+        'смузи',
+        'компот',
+        'лимонад',
+        'drink',
+        'beverage',
+        'soup',
+        'broth',
+        'tea',
+        'coffee',
+        'smoothie',
+        'juice',
+        'soda',
+        'sup',
+        'бульй',
+        'напій',
+        'чай',
+        'кава',
+        'сік',
+      ],
+    );
+
+    bool isExplicitlyMentioned(RecipeIngredient ingredient) {
+      final name = ingredient.name.toLowerCase();
+      if (_containsAny(name, const ['water', 'вода', 'воду', 'вода'])) {
+        return _containsAny(
+            normalizedSource, const ['water', 'вода', 'вод', 'воду']);
+      }
+      if (_containsAny(
+          name, const ['broth', 'bouillon', 'бульон', 'бульйон'])) {
+        return _containsAny(
+          normalizedSource,
+          const ['broth', 'bouillon', 'бульон', 'бульйон', 'бульй'],
+        );
+      }
+      return true;
+    }
+
+    bool shouldDrop(RecipeIngredient ingredient) {
+      final name = ingredient.name.toLowerCase();
+      final isWater =
+          _containsAny(name, const ['water', 'вода', 'воду', 'вода']);
+      final isBroth = _containsAny(
+        name,
+        const ['broth', 'bouillon', 'бульон', 'бульйон'],
+      );
+      if (!isWater && !isBroth) return false;
+      if (isExplicitlyMentioned(ingredient)) return false;
+      if (dishSuggestsLiquidBase) return false;
+      return true;
+    }
+
+    final filtered =
+        ingredients.where((i) => !shouldDrop(i)).toList(growable: false);
+    final base = filtered.isEmpty ? ingredients : filtered;
+    final withLiquidNormalization = _normalizeLiquidBaseForServing(
+      base,
+      dishSuggestsLiquidBase: dishSuggestsLiquidBase,
+    );
+    final hasExplicitYieldInfo =
+        _hasExplicitYieldOrVolumeInfo(normalizedSource);
+    if (hasExplicitYieldInfo) {
+      return withLiquidNormalization;
+    }
+    return _normalizeSingleServingIngredients(
+      withLiquidNormalization,
+      dishSuggestsLiquidBase: dishSuggestsLiquidBase,
+    );
+  }
+
+  List<RecipeIngredient> _normalizeSingleServingIngredients(
+    List<RecipeIngredient> ingredients, {
+    required bool dishSuggestsLiquidBase,
+  }) {
+    if (ingredients.isEmpty) return ingredients;
+
+    final totalMaxGrams = dishSuggestsLiquidBase ? 900.0 : 650.0;
+    final perItemMaxGrams = dishSuggestsLiquidBase ? 500.0 : 350.0;
+
+    final normalized = <RecipeIngredient>[];
+    final scalableIndexes = <int>[];
+    var totalGrams = 0.0;
+
+    for (final ingredient in ingredients) {
+      final unit = ingredient.unit.trim().toLowerCase();
+      var quantity = ingredient.quantity;
+
+      // Piece-like units are often overestimated by AI; keep realistic per serving defaults.
+      if (unit == 'pcs' && quantity > 4) {
+        quantity = 4;
+      } else if ((unit == 'pack' || unit == 'pkg' || unit == 'package') &&
+          quantity > 2) {
+        quantity = 2;
+      }
+
+      final normalizedIngredient = RecipeIngredient(
+        name: ingredient.name,
+        quantity: quantity,
+        unit: ingredient.unit,
+        isAmbiguous: ingredient.isAmbiguous,
+      );
+      normalized.add(normalizedIngredient);
+
+      final grams = _toGramsEquivalent(quantity, unit);
+      if (grams == null) continue;
+
+      final cappedGrams = grams > perItemMaxGrams ? perItemMaxGrams : grams;
+      final scaledBack = _fromGramsEquivalent(cappedGrams, unit);
+      normalized[normalized.length - 1] = RecipeIngredient(
+        name: ingredient.name,
+        quantity: double.parse(scaledBack.toStringAsFixed(1)),
+        unit: ingredient.unit,
+        isAmbiguous: ingredient.isAmbiguous,
+      );
+
+      scalableIndexes.add(normalized.length - 1);
+      totalGrams += cappedGrams;
+    }
+
+    if (scalableIndexes.isEmpty || totalGrams <= totalMaxGrams) {
+      return normalized;
+    }
+
+    final scale = totalMaxGrams / totalGrams;
+    for (final idx in scalableIndexes) {
+      final item = normalized[idx];
+      final unit = item.unit.trim().toLowerCase();
+      final grams = _toGramsEquivalent(item.quantity, unit);
+      if (grams == null) continue;
+      final scaledGrams = (grams * scale).clamp(5.0, perItemMaxGrams);
+      final scaledQuantity = _fromGramsEquivalent(scaledGrams, unit);
+      normalized[idx] = RecipeIngredient(
+        name: item.name,
+        quantity: double.parse(scaledQuantity.toStringAsFixed(1)),
+        unit: item.unit,
+        isAmbiguous: item.isAmbiguous,
+      );
+    }
+
+    return normalized;
+  }
+
+  List<RecipeIngredient> _normalizeLiquidBaseForServing(
+    List<RecipeIngredient> ingredients, {
+    required bool dishSuggestsLiquidBase,
+  }) {
+    if (ingredients.isEmpty) return ingredients;
+
+    final perItemMaxMl = dishSuggestsLiquidBase ? 500.0 : 300.0;
+    final totalMaxMl = dishSuggestsLiquidBase ? 700.0 : 400.0;
+
+    final normalized = <RecipeIngredient>[];
+    final liquidIndexes = <int>[];
+    var totalLiquidMl = 0.0;
+
+    for (final ingredient in ingredients) {
+      final lowerName = ingredient.name.toLowerCase();
+      final isWater = _containsAny(lowerName, const ['water', 'вода', 'воду']);
+      final isBroth = _containsAny(
+        lowerName,
+        const ['broth', 'bouillon', 'бульон', 'бульйон'],
+      );
+
+      if (!isWater && !isBroth) {
+        normalized.add(ingredient);
+        continue;
+      }
+
+      final ml = _toMilliliters(ingredient.quantity, ingredient.unit);
+      if (ml == null) {
+        normalized.add(ingredient);
+        continue;
+      }
+
+      final cappedMl = ml > perItemMaxMl ? perItemMaxMl : ml;
+      totalLiquidMl += cappedMl;
+      liquidIndexes.add(normalized.length);
+      normalized.add(
+        RecipeIngredient(
+          name: ingredient.name,
+          quantity: double.parse(cappedMl.toStringAsFixed(1)),
+          unit: 'ml',
+          isAmbiguous: ingredient.isAmbiguous,
+        ),
+      );
+    }
+
+    if (liquidIndexes.isEmpty || totalLiquidMl <= totalMaxMl) {
+      return normalized;
+    }
+
+    final scale = totalMaxMl / totalLiquidMl;
+    for (final idx in liquidIndexes) {
+      final item = normalized[idx];
+      final scaledMl = (item.quantity * scale).clamp(10.0, perItemMaxMl);
+      normalized[idx] = RecipeIngredient(
+        name: item.name,
+        quantity: double.parse(scaledMl.toStringAsFixed(1)),
+        unit: 'ml',
+        isAmbiguous: item.isAmbiguous,
+      );
+    }
+
+    return normalized;
+  }
+
+  double? _toMilliliters(double quantity, String unit) {
+    if (quantity <= 0) return null;
+    switch (unit.trim().toLowerCase()) {
+      case 'ml':
+        return quantity;
+      case 'l':
+      case 'liter':
+      case 'litre':
+      case 'литр':
+      case 'літр':
+        return quantity * 1000;
+      case 'g':
+        return quantity;
+      case 'kg':
+        return quantity * 1000;
+      default:
+        return null;
+    }
+  }
+
+  bool _hasExplicitYieldOrVolumeInfo(String sourceText) {
+    final text = sourceText.toLowerCase();
+
+    final explicitAmount = RegExp(
+      r'\b\d+(?:[\.,]\d+)?\s*(?:порц|порци|serv|serving|г|гр|kg|кг|ml|мл|l|л|литр|літр)\b',
+      caseSensitive: false,
+    );
+    if (explicitAmount.hasMatch(text)) return true;
+
+    final phrases = [
+      'на двоих',
+      'на троих',
+      'for two',
+      'for three',
+      'для компании',
+      'на семью',
+      'для сім',
+    ];
+    return _containsAny(text, phrases);
+  }
+
+  double? _toGramsEquivalent(double quantity, String unit) {
+    if (quantity <= 0) return null;
+    switch (unit) {
+      case 'g':
+      case 'ml':
+        return quantity;
+      case 'kg':
+      case 'l':
+        return quantity * 1000;
+      case 'tbsp':
+        return quantity * 15;
+      case 'tsp':
+        return quantity * 5;
+      case 'cup':
+        return quantity * 240;
+      default:
+        return null;
+    }
+  }
+
+  double _fromGramsEquivalent(double grams, String unit) {
+    switch (unit) {
+      case 'g':
+      case 'ml':
+        return grams;
+      case 'kg':
+      case 'l':
+        return grams / 1000;
+      case 'tbsp':
+        return grams / 15;
+      case 'tsp':
+        return grams / 5;
+      case 'cup':
+        return grams / 240;
+      default:
+        return grams;
+    }
+  }
+
+  bool _containsAny(String source, List<String> needles) {
+    for (final needle in needles) {
+      if (needle.isNotEmpty && source.contains(needle)) return true;
+    }
+    return false;
   }
 
   IconData _resolveDraftIcon(

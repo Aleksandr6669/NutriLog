@@ -380,9 +380,21 @@
   "weightReminderSubtitle": "Увімкнути щоденне нагадування внести вагу",
   "weightReminderTimeTitle": "Час нагадування про зважування",
   "appSettingsSection": "Додаток",
+  "statsAiAssistantToggleTitle": "AI-асистент аналітики",
+  "statsAiAssistantToggleSubtitle": "Показувати розумний аналіз і рекомендації в розділі аналітики",
+  "recipeAiAutoNutritionToggleTitle": "Авторозрахунок поживності AI для рецептів",
+  "recipeAiAutoNutritionToggleSubtitle": "Під час створення з фото або опису нейромережа автоматично рахує калорії та БЖВ.",
+  "syncStatusSyncing": "Синхронізація…",
+  "syncStatusSynced": "Синхронізовано",
+  "syncStatusSyncedAt": "Синхронізовано о {time}",
+  "@syncStatusSyncedAt": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "syncStatusError": "Помилка синхронізації — повтор при наступному підключенні",
+  "syncStatusIdle": "Очікування синхронізації…",
   "changelogTitle": "Історія версій",
-    "statsAiAssistantToggleTitle": "AI-асистент аналітики",
-    "statsAiAssistantToggleSubtitle": "Показувати розумний аналіз і рекомендації в розділі аналітики",
   "userAgreementSubtitle": "Дані, зберігання та нейромережі",
   "notificationSettingsError": "Не вдалося застосувати налаштування сповіщень. Детальніше: {error}",
   "@notificationSettingsError": {

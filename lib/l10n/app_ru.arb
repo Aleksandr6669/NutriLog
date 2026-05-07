@@ -382,6 +382,18 @@
   "appSettingsSection": "Приложение",
   "statsAiAssistantToggleTitle": "AI-ассистент аналитики",
   "statsAiAssistantToggleSubtitle": "Показывать умный анализ и рекомендации в разделе аналитики",
+  "recipeAiAutoNutritionToggleTitle": "Авторасчет пищевой ценности AI для рецептов",
+  "recipeAiAutoNutritionToggleSubtitle": "При создании по фото или описанию нейросеть автоматически считает калории и БЖУ.",
+  "syncStatusSyncing": "Синхронизация…",
+  "syncStatusSynced": "Синхронизировано",
+  "syncStatusSyncedAt": "Синхронизировано в {time}",
+  "@syncStatusSyncedAt": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "syncStatusError": "Ошибка синхронизации — повтор при следующем подключении",
+  "syncStatusIdle": "Ожидание синхронизации…",
   "changelogTitle": "История версий",
   "userAgreementSubtitle": "Данные, хранение и нейросети",
   "notificationSettingsError": "Не удалось применить настройки уведомлений. Подробнее: {error}",
@@ -490,7 +502,6 @@
   "addMore": "Добавить еще",
   "add": "Добавить",
   "swipeToDeleteHint": "Чтобы удалить, сделайте свайп влево",
-  "recipeAiCalculating": "Идет расчет пищевой ценности...",
   "selectIconDialogTitle": "Выберите иконку",
   "nameFromGoogleAccount": "Имя синхронизируется из вашего Google-аккаунта",
   "cloudSyncInfo": "При подключении Google-аккаунта автоматически синхронизируются: профиль, рецепты, логи питания и активности. Фото профиля кешируется и доступно офлайн. При выходе данные остаются локальными на устройстве.",

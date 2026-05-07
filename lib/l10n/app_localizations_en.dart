@@ -1028,6 +1028,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show smart analysis and recommendations in Analytics';
 
   @override
+  String get recipeAiAutoNutritionToggleTitle =>
+      'AI auto-calculate nutrition for recipes';
+
+  @override
+  String get recipeAiAutoNutritionToggleSubtitle =>
+      'When creating from photo or description, AI automatically calculates calories and macros.';
+
+  @override
+  String get syncStatusSyncing => 'Syncing…';
+
+  @override
+  String get syncStatusSynced => 'Synced';
+
+  @override
+  String syncStatusSyncedAt(String time) {
+    return 'Synced at $time';
+  }
+
+  @override
+  String get syncStatusError => 'Sync error — retry on next connection';
+
+  @override
+  String get syncStatusIdle => 'Waiting for sync…';
+
+  @override
   String get changelogTitle => 'Version history';
 
   @override

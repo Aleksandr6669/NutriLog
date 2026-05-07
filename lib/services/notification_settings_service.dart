@@ -12,6 +12,7 @@ class NotificationSettings {
   final bool weightReminderEnabled; // Включено ли напоминание о взвешивании
   final TimeOfDay weightReminderTime; // Время напоминания о взвешивании
   final bool statsAiAssistantEnabled;
+  final bool recipeAiAutoNutritionEnabled;
 
   const NotificationSettings({
     required this.waterReminderEnabled,
@@ -24,6 +25,7 @@ class NotificationSettings {
     required this.weightReminderEnabled,
     required this.weightReminderTime,
     required this.statsAiAssistantEnabled,
+    required this.recipeAiAutoNutritionEnabled,
   });
 
   NotificationSettings copyWith({
@@ -37,6 +39,7 @@ class NotificationSettings {
     bool? weightReminderEnabled,
     TimeOfDay? weightReminderTime,
     bool? statsAiAssistantEnabled,
+    bool? recipeAiAutoNutritionEnabled,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -51,6 +54,8 @@ class NotificationSettings {
       weightReminderTime: weightReminderTime ?? this.weightReminderTime,
       statsAiAssistantEnabled:
           statsAiAssistantEnabled ?? this.statsAiAssistantEnabled,
+      recipeAiAutoNutritionEnabled:
+          recipeAiAutoNutritionEnabled ?? this.recipeAiAutoNutritionEnabled,
     );
   }
 }
@@ -66,6 +71,8 @@ class NotificationSettingsService {
   static const _weightReminderEnabledKey = 'notif_weight_enabled';
   static const _weightReminderMinutesKey = 'notif_weight_minutes';
   static const _statsAiAssistantEnabledKey = 'stats_ai_assistant_enabled';
+  static const _recipeAiAutoNutritionEnabledKey =
+      'recipe_ai_auto_nutrition_enabled';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: true,
@@ -78,6 +85,7 @@ class NotificationSettingsService {
     weightReminderEnabled: true,
     weightReminderTime: TimeOfDay(hour: 21, minute: 30),
     statsAiAssistantEnabled: true,
+    recipeAiAutoNutritionEnabled: true,
   );
 
   Future<NotificationSettings> load() async {
@@ -111,6 +119,9 @@ class NotificationSettingsService {
       ),
       statsAiAssistantEnabled: prefs.getBool(_statsAiAssistantEnabledKey) ??
           defaults.statsAiAssistantEnabled,
+      recipeAiAutoNutritionEnabled:
+          prefs.getBool(_recipeAiAutoNutritionEnabledKey) ??
+              defaults.recipeAiAutoNutritionEnabled,
     );
   }
 
@@ -130,7 +141,11 @@ class NotificationSettingsService {
         _weightReminderMinutesKey, _toMinutes(settings.weightReminderTime));
     await prefs.setBool(_messagesEnabledKey, settings.messagesEnabled);
     await prefs.setBool(
-      _statsAiAssistantEnabledKey, settings.statsAiAssistantEnabled);
+        _statsAiAssistantEnabledKey, settings.statsAiAssistantEnabled);
+    await prefs.setBool(
+      _recipeAiAutoNutritionEnabledKey,
+      settings.recipeAiAutoNutritionEnabled,
+    );
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {
