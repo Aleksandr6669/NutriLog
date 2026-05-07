@@ -135,8 +135,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _addRecipeSelection(Recipe recipe) {
     HapticFeedback.lightImpact();
     setState(() {
-      _selectedRecipeCounts[recipe.id] =
-          (_selectedRecipeCounts[recipe.id] ?? 0) + 1;
+      _selectedRecipeCounts[recipe.id] = 1;
 
       // Перемещаем в начало, так как это последнее добавленное/измененное
       _selectedOrder.remove(recipe.id);
@@ -146,17 +145,19 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   void _removeRecipeSelection(Recipe recipe) {
     HapticFeedback.lightImpact();
-    final currentCount = _selectedRecipeCounts[recipe.id] ?? 0;
-    if (currentCount <= 0) return;
-
     setState(() {
-      if (currentCount == 1) {
-        _selectedRecipeCounts.remove(recipe.id);
-        _selectedOrder.remove(recipe.id);
-      } else {
-        _selectedRecipeCounts[recipe.id] = currentCount - 1;
-      }
+      _selectedRecipeCounts.remove(recipe.id);
+      _selectedOrder.remove(recipe.id);
     });
+  }
+
+  void _toggleRecipeSelection(Recipe recipe) {
+    final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
+    if (isSelected) {
+      _removeRecipeSelection(recipe);
+    } else {
+      _addRecipeSelection(recipe);
+    }
   }
 
   Future<void> _openRecipeDetail(Recipe recipe) async {
@@ -193,11 +194,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       final recipe = _allRecipes.firstWhere((r) => r.id == id,
           orElse: () => Recipe.empty());
       if (recipe.id.isEmpty) continue;
-
-      final count = _selectedRecipeCounts[recipe.id] ?? 0;
-      for (var i = 0; i < count; i++) {
-        selectedRecipes.add(recipe);
-      }
+      selectedRecipes.add(recipe);
     }
     Navigator.of(context).pop(selectedRecipes);
   }
@@ -212,8 +209,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
             orElse: () => Recipe.empty()))
         .where((r) => r.id.isNotEmpty)
         .toList();
-    final totalSelected =
-        _selectedRecipeCounts.values.fold<int>(0, (a, b) => a + b);
     final canCollapse = selectedRecipes.length > 3;
     final visibleRecipes = selectedRecipes;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -227,7 +222,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
     const iconColor = AppColors.primary;
     final recipeTiles = visibleRecipes.map(
       (recipe) {
-        final count = _selectedRecipeCounts[recipe.id] ?? 0;
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Container(
@@ -246,7 +240,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${recipe.name} x$count',
+                    recipe.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -256,7 +250,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   color: iconColor,
                   visualDensity: VisualDensity.compact,
                   onPressed: () => _removeRecipeSelection(recipe),
-                  tooltip: AppLocalizations.of(context)!.removeOnePortion,
+                  tooltip: AppLocalizations.of(context)!.deselect,
                 ),
               ],
             ),
@@ -277,14 +271,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${AppLocalizations.of(context)!.added}: $totalSelected',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 6),
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -328,7 +314,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       const SizedBox(width: 5),
                       Text(
                         _selectedRecipesCollapsed
-                            ? '${AppLocalizations.of(context)!.showAll} (${selectedRecipes.length})'
+                            ? AppLocalizations.of(context)!.showAll
                             : AppLocalizations.of(context)!.collapse,
                         style: const TextStyle(
                           color: AppColors.primary,
@@ -846,7 +832,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
               onTap: () {
                 if (widget.selectionMode) {
-                  _addRecipeSelection(recipe);
+                  _toggleRecipeSelection(recipe);
                   return;
                 }
                 if (_isDeleteSelectionMode) {
@@ -857,7 +843,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 _openRecipeDetail(recipe);
               },
               onActionTap: widget.selectionMode
-                  ? () => _addRecipeSelection(recipe)
+                  ? () => _toggleRecipeSelection(recipe)
                   : (_isDeleteSelectionMode &&
                           recipe.isUserRecipe &&
                           !recipe.isDonated
@@ -872,11 +858,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 background: _buildSwipeBackground(
                   alignment: Alignment.centerRight,
                   color: AppColors.primary,
-                  icon: Symbols.add_circle,
-                  label: AppLocalizations.of(context)!.added,
+                  icon: Symbols.check_circle,
+                  label: AppLocalizations.of(context)!.add,
                 ),
                 confirmDismiss: (_) async {
-                  _addRecipeSelection(recipe);
+                  _toggleRecipeSelection(recipe);
                   return false;
                 },
                 child: item,
@@ -1145,7 +1131,7 @@ class _RecipeListItem extends StatelessWidget {
                       onPressed: onActionTap,
                       tooltip: isDeleteMode
                           ? (isDeleteSelected ? l10n.deselect : l10n.select)
-                          : (isSelected ? l10n.addMore : l10n.add),
+                          : l10n.add,
                     ),
                 ],
               ),

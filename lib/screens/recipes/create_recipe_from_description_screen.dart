@@ -48,12 +48,28 @@ class _CreateRecipeFromDescriptionScreenState
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: draft.name,
       description: draft.description,
+      clarification: draft.clarification,
       nutrients: draft.nutrients,
       ingredients: draft.ingredients,
       icon: draft.icon,
       isUserRecipe: true,
       instructions: const [],
     );
+  }
+
+  String _buildDetailedClarification(
+    GeminiRecipeDraft draft,
+    String userDescription,
+  ) {
+    final userText = userDescription.trim();
+    final parts = <String>[];
+    if (draft.clarification.trim().isNotEmpty) {
+      parts.add(draft.clarification.trim());
+    }
+    if (userText.isNotEmpty) {
+      parts.add('Дополнение пользователя: $userText');
+    }
+    return parts.join('\n\n').trim();
   }
 
   Future<void> _generateAndOpenEditor() async {
@@ -76,7 +92,8 @@ class _CreateRecipeFromDescriptionScreenState
         MaterialPageRoute(
           builder: (_) => EditRecipeScreen(
             initialDraft: _buildDraftRecipe(draft),
-            initialClarification: _descriptionController.text.trim(),
+            initialClarification:
+                _buildDetailedClarification(draft, description),
           ),
         ),
       );

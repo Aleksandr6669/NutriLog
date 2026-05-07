@@ -354,6 +354,9 @@ class _StatsScreenState extends State<StatsScreen> {
       'recipes': allRecipes,
       'aiInput': {
         'periodLabel': _period.name,
+        'goalType': profile.goalType.enLabel,
+        'activityTypes': profile.activityTypes,
+        'aiContext': profile.aiContext,
         'calorieGoal': profile.calorieGoal,
         'proteinGoal': profile.proteinGoal,
         'fatGoal': profile.fatGoal,
@@ -437,6 +440,9 @@ class _StatsScreenState extends State<StatsScreen> {
     try {
       final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
+        goalType: (aiInput['goalType'] as String? ?? '').trim(),
+        activityTypes: (aiInput['activityTypes'] as String? ?? '').trim(),
+        aiContext: (aiInput['aiContext'] as String? ?? '').trim(),
         calorieGoal: aiInput['calorieGoal'] as int,
         proteinGoal: aiInput['proteinGoal'] as int,
         fatGoal: aiInput['fatGoal'] as int,

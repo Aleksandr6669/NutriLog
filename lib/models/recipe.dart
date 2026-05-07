@@ -55,6 +55,7 @@ class Recipe {
   String id;
   String name;
   String description;
+  String clarification;
   // Changed to double to accommodate fractional values from new design
   Map<String, double> nutrients;
   List<RecipeIngredient> ingredients;
@@ -68,6 +69,7 @@ class Recipe {
     required this.id,
     required this.name,
     this.description = '',
+    this.clarification = '',
     this.nutrients = const {},
     this.ingredients = const [],
     this.instructions = const [],
@@ -96,6 +98,7 @@ class Recipe {
           : 'recipe_${DateTime.now().microsecondsSinceEpoch}_${fallbackName.hashCode}',
       name: json['name'] ?? 'Без названия',
       description: json['description'] ?? '',
+      clarification: (json['clarification'] as String? ?? '').trim(),
       nutrients: nutrients,
       ingredients: ingredients,
       instructions: json['instructions'] != null
@@ -121,6 +124,7 @@ class Recipe {
       'id': id,
       'name': name,
       'description': description,
+      'clarification': clarification,
       'nutrients': nutrients, // Already Map<String, double>
       'ingredients':
           ingredients.map((ingredient) => ingredient.toJson()).toList(),
@@ -136,6 +140,7 @@ class Recipe {
     String? id,
     String? name,
     String? description,
+    String? clarification,
     Map<String, double>? nutrients,
     List<RecipeIngredient>? ingredients,
     List<String>? instructions,
@@ -148,6 +153,7 @@ class Recipe {
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
+      clarification: clarification ?? this.clarification,
       nutrients: nutrients ?? this.nutrients,
       ingredients: ingredients ?? this.ingredients,
       instructions: instructions ?? this.instructions,

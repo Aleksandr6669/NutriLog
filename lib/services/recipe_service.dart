@@ -93,6 +93,8 @@ class RecipeService {
     final localPublicRecipes = await _loadLocalPublicRecipes();
 
     if (refreshPublicInBackground && CloudDataService.instance.isSignedIn) {
+      // Приватные рецепты тоже подтягиваем из облака, чтобы синхронизировать изменения между устройствами.
+      unawaited(_refreshPrivateRecipesCacheFromCloud());
       // Не блокируем UI: свежие публичные рецепты подтянутся и обновят локальный кэш.
       unawaited(_refreshPublicRecipesCacheFromCloud());
     }
@@ -139,6 +141,31 @@ class RecipeService {
     }
   }
 
+  Future<void> _refreshPrivateRecipesCacheFromCloud() async {
+    final cloudService = CloudDataService.instance;
+    if (!cloudService.isSignedIn) return;
+
+    try {
+      final data = await cloudService.readMap('recipes');
+      if (data == null) return;
+
+      final cloudRecipesRaw = data['recipes'];
+      if (cloudRecipesRaw is! List) return;
+
+      final cloudPrivateRecipes = cloudRecipesRaw
+          .whereType<Map>()
+          .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
+          .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
+          .toList(growable: false);
+
+      // Если документ в облаке существует, считаем его источником истины
+      // для приватных рецептов (это обеспечивает удаление/обновление между устройствами).
+      await _savePrivateRecipesToPrefs(cloudPrivateRecipes);
+    } catch (_) {
+      // Офлайн/permission: остаёмся на локальном кэше.
+    }
+  }
+
   List<Recipe> _dedupeRecipesById(List<Recipe> recipes) {
     final byId = <String, Recipe>{};
     for (final recipe in recipes) {
@@ -157,6 +184,9 @@ class RecipeService {
         description: recipe.description.isNotEmpty
             ? recipe.description
             : existing.description,
+        clarification: recipe.clarification.isNotEmpty
+            ? recipe.clarification
+            : existing.clarification,
         nutrients:
             recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
         ingredients: recipe.ingredients.isNotEmpty
@@ -362,21 +392,16 @@ class RecipeService {
         .asyncMap((data) async {
       final localPrivate = await _loadLocalPrivateRecipes();
 
-      // Если на телефоне уже есть данные, не перетираем их облаком.
-      if (localPrivate.isNotEmpty) {
-        return localPrivate;
-      }
-
-      if (data == null) return <Recipe>[];
+      if (data == null) return localPrivate;
       final cloudRecipes = data['recipes'];
-      if (cloudRecipes is! List) return <Recipe>[];
+      if (cloudRecipes is! List) return localPrivate;
       final recipes = cloudRecipes
           .whereType<Map>()
           .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
           .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
           .toList(growable: false);
 
-      // Инициализация с облака только когда локально пусто.
+      // Облако — источник истины для межустройственной синхронизации приватных рецептов.
       await _savePrivateRecipesToPrefs(recipes);
       return recipes;
     });

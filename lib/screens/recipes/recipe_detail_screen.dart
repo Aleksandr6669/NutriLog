@@ -46,7 +46,7 @@ class RecipeDetailScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Symbols.add_circle),
               onPressed: () => Navigator.of(context).pop(true),
-              tooltip: isSelected ? l10n.addOneMoreToMeal : l10n.addToMeal,
+              tooltip: l10n.addToMeal,
             )
           else if (recipe.isUserRecipe && !recipe.isDonated)
             IconButton(

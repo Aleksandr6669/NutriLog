@@ -104,7 +104,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _descriptionController =
         TextEditingController(text: sourceRecipe?.description ?? '');
     _clarificationController =
-        TextEditingController(text: widget.initialClarification ?? '');
+      TextEditingController(
+        text: widget.initialClarification ?? sourceRecipe?.clarification ?? '');
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
@@ -565,6 +566,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
         name: _nameController.text,
         description: _descriptionController.text,
+        clarification: _clarificationController.text,
         nutrients: nutrients,
         icon: _selectedIcon,
         isUserRecipe: true,
@@ -651,6 +653,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
         name: _nameController.text.trim(),
         description: _descriptionController.text,
+        clarification: _clarificationController.text,
         nutrients: nutrients,
         icon: _selectedIcon,
         isUserRecipe: true,
@@ -1186,12 +1189,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: AppStyles.cardRadius,
-        side: BorderSide(
-          color: AppColors.primary.withValues(alpha: 0.18),
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
         child: Column(
@@ -1237,11 +1235,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
+                color: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.42),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.16),
-                ),
               ),
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
               child: TextField(

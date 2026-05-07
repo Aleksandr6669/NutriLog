@@ -1,4 +1,5 @@
 import 'usda_food_data_service.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,6 +14,11 @@ import 'recipe_loader.dart';
 import 'dart:ui' as ui;
 
 class GeminiRecipeService {
+  static const int _usdaFactsCacheMaxEntries = 300;
+  static final Map<String, Map<String, double>> _usdaFactsCache = {};
+  static final Map<String, Future<Map<String, double>?>> _usdaFactsInFlight =
+      {};
+
   /// Get a nutrient value by key from nutrMap (with synonym support)
   double _usdaNutrientValue(String key, Map<String, double> nutrMap) {
     // Synonym map for nutrient keys
@@ -83,10 +89,12 @@ class GeminiRecipeService {
   }
 
   static const List<String> _models = [
+    'llama-3.3-70b-versatile',
     'meta-llama/llama-4-scout-17b-16e-instruct',
     'meta-llama/llama-4-maverick-17b-128e-instruct',
-    'llama-3.3-70b-versatile',
   ];
+
+  static const Duration _requestTimeout = Duration(seconds: 12);
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -201,6 +209,7 @@ Format:
 {
   "name": "...",
   "description": "...",
+  "clarification": "...",
   "icon": "restaurant",
   "ingredients": [
     {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
@@ -230,6 +239,9 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
+- clarification: detailed text for "Important details" field (3-7 short lines) that includes as much as known:
+  product/dish type, likely cooking method/thermal processing, fat level, sauces/additives, brand/type hints, and key assumptions.
+  If data is uncertain, explicitly mark assumptions with words like "possibly" / "likely".
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0.
@@ -300,6 +312,7 @@ Format:
 {
   "name": "...", // product or dish name
   "description": "...", // brief description, be sure to indicate type (e.g., energy drink, soda, protein bar, soup, etc.)
+  "clarification": "...", // detailed "Important details" text for nutrition accuracy
   "icon": "restaurant",
   "ingredients": [
     {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
@@ -329,6 +342,10 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - ingredients must contain at least 1 item.
+- clarification: detailed text for "Important details" field (4-9 short lines), include:
+  product type/category, likely cooking method/thermal processing, fat level, sauces/syrups/additives,
+  brand or product-family hints (if visible/inferable), and key assumptions that affect nutrients.
+  If uncertain, mark assumptions explicitly.
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0. If needed, quantity >= 0.0001 (for spices, supplements, etc.).
@@ -408,38 +425,13 @@ Rules:
     // Build a JSON nutrient table for each ingredient
     final Map<String, Map<String, double>> factsJson = {};
     for (final ingredient in ingredients) {
-      final queries = await _buildIngredientSearchQueries(
-        ingredient.name,
-        locale,
+      final facts = await _getUsdaFactsForIngredient(
+        ingredientName: ingredient.name,
+        locale: locale,
+        usdaService: usdaService,
       );
-
-      Map<String, dynamic>? product;
-      for (final query in queries) {
-        final searchResults = await usdaService.searchProducts(query);
-        if (searchResults.isEmpty) continue;
-
-        final candidate =
-            await usdaService.getProductInfo(searchResults.first['fdcId']);
-        if (candidate != null && candidate['foodNutrients'] != null) {
-          product = candidate;
-          break;
-        }
-      }
-
-      if (product != null && product['foodNutrients'] != null) {
-        final nutr = product['foodNutrients'] as List<dynamic>;
-        final nutrMap = <String, double>{};
-        for (final n in nutr) {
-          final name = (n['nutrientName'] as String? ?? '').toLowerCase();
-          final amount = (n['value'] as num?)?.toDouble() ?? 0.0;
-          nutrMap[name] = amount;
-        }
-        // Keep only keys from nutrientKeys
-        final filtered = <String, double>{};
-        for (final k in nutrientKeys) {
-          filtered[k] = _usdaNutrientValue(k, nutrMap);
-        }
-        factsJson[ingredient.name] = filtered;
+      if (facts != null && facts.isNotEmpty) {
+        factsJson[ingredient.name] = facts;
       }
     }
 
@@ -452,11 +444,14 @@ Rules:
   CRITICAL RULES:
   1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
   2. The specified amounts are exactly what goes into this single serving.
+    2.1. USER CLARIFICATION is the PRIMARY source of truth for product type, preparation method, fat level, sauces, and hidden ingredients.
+      If clarification conflicts with recipe name/description assumptions, follow clarification first.
+      Use ingredients list as SECONDARY quantitative constraints (amounts/units) and for consistency checks.
   3. For packaged products (bottle, can, pack, bar, etc.): treat the quantity as the actual content.
      Examples: "1 bottle of energy drink (500 ml)" = 500 ml, "1 pack of butter (200 g)" = 200 g, "1 protein bar (60 g)" = 60 g.
     3.1. If the ingredient name/description contains explicit net amount (for example: 500 ml, 330ml, 0.5 l, 200 g, 90g), ALWAYS use that explicit value.
        Never replace an explicit label value with a "typical" package size.
-  4. Use the recipe NAME and DESCRIPTION as additional context to identify the product type and infer missing nutrient data.
+  4. Use the recipe NAME and DESCRIPTION as supporting context only.
      Example: if description says "energy drink", include caffeine-related vitamins and typical energy drink composition.
 
   UNIT CONVERSION (to grams):
@@ -475,11 +470,11 @@ Rules:
   ${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available — use your knowledge of food databases)'}
 
   Recipe details:
+  - User clarification (PRIMARY): ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
   - Name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
   - Description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
-  - User clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
   - Serving size: all ingredients below = 1 serving for 1 person
-  - Ingredients:
+  - Ingredients (SECONDARY: quantities and consistency constraints):
   $ingredientsText
 
   Ingredient names may be in any language (English, Russian, Ukrainian, mixed spellings). Correctly interpret them as food products before calculation.
@@ -695,6 +690,109 @@ Ingredient: $source
     }
   }
 
+  String _usdaCacheKey(String ingredientName, String? locale) {
+    final normalized = ingredientName
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return '${_languageCode(locale)}::$normalized';
+  }
+
+  void _putUsdaFactsCache(String key, Map<String, double> value) {
+    if (_usdaFactsCache.length >= _usdaFactsCacheMaxEntries) {
+      _usdaFactsCache.remove(_usdaFactsCache.keys.first);
+    }
+    _usdaFactsCache[key] = value;
+  }
+
+  Future<Map<String, double>?> _getUsdaFactsForIngredient({
+    required String ingredientName,
+    required String? locale,
+    required UsdaFoodDataService usdaService,
+  }) async {
+    final key = _usdaCacheKey(ingredientName, locale);
+    final cached = _usdaFactsCache[key];
+    if (cached != null) {
+      return Map<String, double>.from(cached);
+    }
+
+    final inFlight = _usdaFactsInFlight[key];
+    if (inFlight != null) {
+      final shared = await inFlight;
+      return shared == null ? null : Map<String, double>.from(shared);
+    }
+
+    final future = _loadUsdaFactsForIngredient(
+      ingredientName: ingredientName,
+      locale: locale,
+      usdaService: usdaService,
+    );
+    _usdaFactsInFlight[key] = future;
+
+    try {
+      final result = await future;
+      if (result != null && result.isNotEmpty) {
+        _putUsdaFactsCache(key, result);
+      }
+      return result == null ? null : Map<String, double>.from(result);
+    } finally {
+      _usdaFactsInFlight.remove(key);
+    }
+  }
+
+  Future<Map<String, double>?> _loadUsdaFactsForIngredient({
+    required String ingredientName,
+    required String? locale,
+    required UsdaFoodDataService usdaService,
+  }) async {
+    final queries = await _buildIngredientSearchQueries(ingredientName, locale);
+
+    Map<String, dynamic>? product;
+    for (final query in queries) {
+      final searchResults = await usdaService.searchProducts(query);
+      if (searchResults.isEmpty) continue;
+
+      final candidate =
+          await usdaService.getProductInfo(searchResults.first['fdcId']);
+      if (candidate != null && candidate['foodNutrients'] != null) {
+        product = candidate;
+        break;
+      }
+    }
+
+    if (product == null || product['foodNutrients'] == null) {
+      return null;
+    }
+
+    final nutr = product['foodNutrients'] as List<dynamic>;
+    final nutrMap = <String, double>{};
+    for (final n in nutr) {
+      if (n is! Map<String, dynamic>) continue;
+
+      final nestedNutrient = n['nutrient'];
+      final nestedName = nestedNutrient is Map<String, dynamic>
+          ? nestedNutrient['name'] as String?
+          : null;
+
+      final rawName = (n['nutrientName'] as String? ?? nestedName ?? '').trim();
+      if (rawName.isEmpty) continue;
+
+      final amount = (n['value'] as num?)?.toDouble() ??
+          (n['amount'] as num?)?.toDouble() ??
+          0.0;
+
+      nutrMap[rawName.toLowerCase()] = amount;
+    }
+
+    final filtered = <String, double>{};
+    for (final k in nutrientKeys) {
+      filtered[k] = _usdaNutrientValue(k, nutrMap);
+    }
+    return filtered;
+  }
+
   Future<String> generateStatsReport({
     required String periodLabel,
     String? locale,
@@ -823,6 +921,9 @@ Response format:
   Future<Map<String, dynamic>> generateStructuredStatsReport({
     required String periodLabel,
     String? locale,
+    required String goalType,
+    required String activityTypes,
+    required String aiContext,
     required int calorieGoal,
     required int proteinGoal,
     required int fatGoal,
@@ -908,8 +1009,10 @@ Response format:
         .where((line) => !line.startsWith('-  ('))
         .join('\n');
 
-    final previousReportsContext = previousReports
-        .take(12)
+    final recentPreviousReports =
+        previousReports.take(2).toList(growable: false);
+
+    final previousReportsContext = recentPreviousReports
         .map((report) {
           final period = (report['period'] as String? ?? '').trim();
           final overview = (report['overview'] as String? ?? '').trim();
@@ -930,7 +1033,7 @@ Response format:
         .where((line) => !line.startsWith('- period: ;'))
         .join('\n');
 
-    final previousRecipeNames = previousReports
+    final previousRecipeNames = recentPreviousReports
         .expand((report) =>
             (report['recommendations'] as List<dynamic>? ?? const []))
         .whereType<Map>()
@@ -947,6 +1050,9 @@ You are a supportive fitness assistant and nutritionist.
 ${_languageInstruction(locale)}
 Analyze user progress for the period: $periodLabel.
 User name: ${userName.trim().isEmpty ? 'friend' : userName.trim()}
+Primary goal type: $goalType
+User activity types: ${activityTypes.trim().isEmpty ? 'not specified' : activityTypes.trim()}
+User context/preferences: ${aiContext.trim().isEmpty ? 'not specified' : aiContext.trim()}
 
 Goals and progress:
 - Calorie goal: $calorieGoal kcal
@@ -1027,6 +1133,12 @@ Task:
 11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
 12) Use previous reports memory to keep recommendations consistent and progressive.
 13) Reuse previously recommended recipes when still relevant, otherwise suggest better alternatives from current list.
+14) Personalization priority: use foods the user actually eats often first, then gently correct preparation/portion/frequency instead of replacing everything.
+15) If a frequently consumed product is not ideal, suggest a nearby alternative from available recipes or a modification of the same product.
+16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks),
+    UNLESS goal type is muscle gain or weight gain.
+17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
+18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
@@ -1154,6 +1266,13 @@ Rules:
 - stepsGoal in steps.
 - Goals must be realistic for daily achievement.
 - Consider the user's goal type, activity level, sports, and additional conditions.
+- Keep goals internally consistent: calories should roughly match macros using kcal formula.
+- Macro energy equation: calories ≈ protein*4 + carbs*4 + fat*9.
+- Align macro split with goal type:
+  loseWeight: keep protein relatively high, control carbs/fat.
+  gainMuscle: allow higher protein and adequate carbs for training.
+  gainWeight: mild surplus, balanced but calorie-dense enough.
+  healthyEating/energetic: balanced distribution and sustainability.
 - Do not add any explanations outside the JSON.
 ''';
 
@@ -1182,13 +1301,126 @@ Rules:
       return parsed <= 0 ? fallback : parsed;
     }
 
-    return DailyGoalsDraft(
+    final aiDraft = DailyGoalsDraft(
       calorieGoal: normalizeInt(decoded['calorieGoal'], profile.calorieGoal),
       proteinGoal: normalizeInt(decoded['proteinGoal'], profile.proteinGoal),
       fatGoal: normalizeInt(decoded['fatGoal'], profile.fatGoal),
       carbsGoal: normalizeInt(decoded['carbsGoal'], profile.carbsGoal),
       waterGoal: normalizeInt(decoded['waterGoal'], profile.waterGoal),
       stepsGoal: normalizeInt(decoded['stepsGoal'], profile.stepsGoal),
+    );
+
+    return _normalizeDailyGoalsWithProfile(profile, aiDraft);
+  }
+
+  DailyGoalsDraft _normalizeDailyGoalsWithProfile(
+    UserProfile profile,
+    DailyGoalsDraft aiDraft,
+  ) {
+    double activityFactor() {
+      switch (profile.activityFrequency) {
+        case ActivityFrequency.sedentary:
+          return 1.2;
+        case ActivityFrequency.light:
+          return 1.35;
+        case ActivityFrequency.moderate:
+          return 1.5;
+        case ActivityFrequency.active:
+          return 1.7;
+        case ActivityFrequency.veryActive:
+          return 1.9;
+      }
+    }
+
+    final weight = profile.weight.clamp(35.0, 250.0);
+    final height = profile.height.clamp(130, 230).toDouble();
+    final age = profile.age.clamp(14, 90);
+    final base = profile.gender == Gender.male
+        ? 10 * weight + 6.25 * height - 5 * age + 5
+        : 10 * weight + 6.25 * height - 5 * age - 161;
+    final tdee = (base * activityFactor()).clamp(1200.0, 5000.0);
+
+    double targetCalories = aiDraft.calorieGoal.toDouble();
+    switch (profile.goalType) {
+      case GoalType.loseWeight:
+        targetCalories = targetCalories.clamp(tdee * 0.75, tdee * 0.92);
+        break;
+      case GoalType.gainMuscle:
+        targetCalories = targetCalories.clamp(tdee * 1.03, tdee * 1.18);
+        break;
+      case GoalType.gainWeight:
+        targetCalories = targetCalories.clamp(tdee * 1.05, tdee * 1.2);
+        break;
+      case GoalType.healthyEating:
+        targetCalories = targetCalories.clamp(tdee * 0.9, tdee * 1.08);
+        break;
+      case GoalType.energetic:
+        targetCalories = targetCalories.clamp(tdee * 0.95, tdee * 1.12);
+        break;
+    }
+
+    final hardMinCalories = profile.gender == Gender.male ? 1400 : 1200;
+    final calorieGoal = targetCalories.round().clamp(hardMinCalories, 5000);
+
+    (double, double) proteinRangePerKg() {
+      switch (profile.goalType) {
+        case GoalType.loseWeight:
+          return (1.6, 2.2);
+        case GoalType.gainMuscle:
+          return (1.8, 2.4);
+        case GoalType.gainWeight:
+          return (1.4, 2.0);
+        case GoalType.healthyEating:
+          return (1.2, 1.8);
+        case GoalType.energetic:
+          return (1.4, 2.0);
+      }
+    }
+
+    (double, double) fatRangePerKg() {
+      switch (profile.goalType) {
+        case GoalType.loseWeight:
+          return (0.7, 1.1);
+        case GoalType.gainMuscle:
+          return (0.8, 1.2);
+        case GoalType.gainWeight:
+          return (0.8, 1.3);
+        case GoalType.healthyEating:
+          return (0.8, 1.1);
+        case GoalType.energetic:
+          return (0.8, 1.2);
+      }
+    }
+
+    final proteinMin = proteinRangePerKg().$1 * weight;
+    final proteinMax = proteinRangePerKg().$2 * weight;
+    final fatMin = fatRangePerKg().$1 * weight;
+    final fatMax = fatRangePerKg().$2 * weight;
+
+    var proteinGoal =
+        aiDraft.proteinGoal.toDouble().clamp(proteinMin, proteinMax);
+    var fatGoal = aiDraft.fatGoal.toDouble().clamp(fatMin, fatMax);
+
+    final minCarbs = profile.goalType == GoalType.gainMuscle ? 130.0 : 90.0;
+    final caloriesLeft = calorieGoal - (proteinGoal * 4 + fatGoal * 9);
+    var carbsGoal = (caloriesLeft / 4).clamp(minCarbs, 650.0);
+
+    // Re-balance fats if carbs had to be clamped due to very low/high calorie targets.
+    final adjustedFatCalories = calorieGoal - (proteinGoal * 4 + carbsGoal * 4);
+    if (adjustedFatCalories > 0) {
+      fatGoal = (adjustedFatCalories / 9).clamp(fatMin, fatMax);
+    }
+
+    final waterGoal = aiDraft.waterGoal.clamp(1200, 6000);
+    final stepsGoal = aiDraft.stepsGoal.clamp(3000, 25000);
+
+    return DailyGoalsDraft(
+      calorieGoal: calorieGoal,
+      proteinGoal: proteinGoal.round().clamp(60, 320),
+      fatGoal: fatGoal.round().clamp(35, 220),
+      carbsGoal: carbsGoal.round().clamp(70, 700),
+      waterGoal: waterGoal,
+      stepsGoal: stepsGoal,
     );
   }
 
@@ -1287,28 +1519,42 @@ Rules:
     for (final model in _models) {
       final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode({
-          ...body,
-          'model': model,
-        }),
-      );
+      try {
+        final response = await http
+            .post(
+              uri,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $apiKey',
+              },
+              body: jsonEncode({
+                ...body,
+                'model': model,
+              }),
+            )
+            .timeout(_requestTimeout);
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return response;
-      }
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return response;
+        }
 
-      lastErrorResponse = response;
-      if ((response.statusCode == 403 || response.statusCode == 404) &&
-          model != _models.last) {
-        continue;
+        lastErrorResponse = response;
+        final isRetryableStatus = response.statusCode == 403 ||
+            response.statusCode == 404 ||
+            response.statusCode == 408 ||
+            response.statusCode == 429 ||
+            response.statusCode >= 500;
+        if (isRetryableStatus && model != _models.last) {
+          continue;
+        }
+        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
+      } on TimeoutException {
+        if (model != _models.last) continue;
+        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+      } on http.ClientException {
+        if (model != _models.last) continue;
+        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
       }
-      throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
     }
 
     if (lastErrorResponse != null) {
@@ -1346,6 +1592,7 @@ Rules:
   }) {
     final rawName = (decoded['name'] as String? ?? '').trim();
     final rawDescription = (decoded['description'] as String? ?? '').trim();
+    final rawClarification = (decoded['clarification'] as String? ?? '').trim();
     final rawIconName = (decoded['icon'] as String? ?? '').trim();
 
     final ingredients = <RecipeIngredient>[];
@@ -1398,11 +1645,90 @@ Rules:
       name: rawName.isEmpty ? _messages(locale).newRecipeTitle : rawName,
       description:
           rawDescription.isEmpty ? fallbackDescription : rawDescription,
+      clarification: rawClarification.isEmpty
+          ? _buildDenseClarificationFallback(
+              description:
+                  rawDescription.isEmpty ? fallbackDescription : rawDescription,
+              ingredients: ingredients,
+            )
+          : rawClarification,
       icon:
           _resolveDraftIcon(rawIconName, rawName, rawDescription, ingredients),
       ingredients: ingredients,
       nutrients: nutrients,
     );
+  }
+
+  String _buildDenseClarificationFallback({
+    required String description,
+    required List<RecipeIngredient> ingredients,
+  }) {
+    final normalizedDescription = description.trim();
+    final lowerDescription = normalizedDescription.toLowerCase();
+
+    String? inferType() {
+      if (_containsAny(lowerDescription, const ['энергет', 'energy drink'])) {
+        return 'Тип продукта: энергетический напиток.';
+      }
+      if (_containsAny(lowerDescription, const ['газиров', 'soda'])) {
+        return 'Тип продукта: газированный напиток.';
+      }
+      if (_containsAny(lowerDescription, const ['суп', 'soup', 'broth'])) {
+        return 'Тип блюда: суп / жидкое горячее блюдо.';
+      }
+      if (_containsAny(lowerDescription, const ['салат', 'salad'])) {
+        return 'Тип блюда: салат.';
+      }
+      return null;
+    }
+
+    String inferThermalProcessing() {
+      if (_containsAny(lowerDescription,
+          const ['запеч', 'baked', 'печ', 'гриль', 'grill'])) {
+        return 'Термообработка: запекание/гриль.';
+      }
+      if (_containsAny(lowerDescription, const ['жар', 'fried', 'fry'])) {
+        return 'Термообработка: жарка.';
+      }
+      if (_containsAny(lowerDescription, const ['вар', 'boiled', 'steam'])) {
+        return 'Термообработка: варка/пар.';
+      }
+      return 'Термообработка: не указана, вероятно базовая домашняя.';
+    }
+
+    final ambiguous = ingredients
+        .where((i) => i.isAmbiguous)
+        .map((i) => i.name)
+        .where((name) => name.trim().isNotEmpty)
+        .take(4)
+        .join(', ');
+
+    final keyIngredients = ingredients.take(8).map((i) {
+      final amount = i.quantity > 0
+          ? ' ${i.quantity % 1 == 0 ? i.quantity.toInt() : i.quantity.toStringAsFixed(1)} ${i.unit}'
+              .trim()
+          : '';
+      return '- ${i.name}$amount';
+    }).join('\n');
+
+    final lines = <String>[];
+    final typeLine = inferType();
+    if (typeLine != null) lines.add(typeLine);
+    if (normalizedDescription.isNotEmpty) {
+      lines.add('Ключевой контекст: $normalizedDescription');
+    }
+    lines.add(inferThermalProcessing());
+    lines.add('Жирность/соусы/добавки: учитывать по описанию и типу блюда.');
+    if (ambiguous.isNotEmpty) {
+      lines.add('Неопределенные позиции (влияют на точность): $ambiguous.');
+    }
+    if (keyIngredients.isNotEmpty) {
+      lines.add('Ключевые ингредиенты:\n$keyIngredients');
+    }
+    lines.add(
+      'Предположения: если бренд/точная технология не указаны, использовать наиболее типичный состав для этого типа продукта.',
+    );
+    return lines.join('\n');
   }
 
   List<RecipeIngredient> _sanitizeDraftIngredients(
@@ -1961,6 +2287,7 @@ Rules:
 class GeminiRecipeDraft {
   final String name;
   final String description;
+  final String clarification;
   final IconData icon;
   final List<RecipeIngredient> ingredients;
   final Map<String, double> nutrients;
@@ -1968,6 +2295,7 @@ class GeminiRecipeDraft {
   const GeminiRecipeDraft({
     required this.name,
     required this.description,
+    required this.clarification,
     required this.icon,
     required this.ingredients,
     required this.nutrients,
