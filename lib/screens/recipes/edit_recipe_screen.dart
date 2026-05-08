@@ -161,8 +161,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _attachIngredientListeners(_IngredientFormItem item) {
     item.nameController.addListener(_onDonateValidationInputChanged);
     item.quantityController.addListener(_onDonateValidationInputChanged);
-    item.nameController.addListener(_scheduleNutritionAiRecalculation);
-    item.quantityController.addListener(_scheduleNutritionAiRecalculation);
   }
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
@@ -191,8 +189,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _detachIngredientListeners(_IngredientFormItem item) {
     item.nameController.removeListener(_onDonateValidationInputChanged);
     item.quantityController.removeListener(_onDonateValidationInputChanged);
-    item.nameController.removeListener(_scheduleNutritionAiRecalculation);
-    item.quantityController.removeListener(_scheduleNutritionAiRecalculation);
   }
 
   void _onDonateValidationInputChanged() {
@@ -414,12 +410,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     // При удалении ингредиента запускаем AI-реакцию так же, как после изменений.
     _onDonateValidationInputChanged();
-
-    final hasNamedIngredients =
-        _ingredientItems.any((i) => i.nameController.text.trim().isNotEmpty);
-    if (_isAutoAiNutritionEnabled && hasNamedIngredients && !_isAiCalculating) {
-      _scheduleNutritionAiRecalculation();
-    }
   }
 
   void _scheduleNutritionAiRecalculation() {
