@@ -90,11 +90,11 @@ class GeminiRecipeService {
   }
 
   /// Стабильная JSON-модель для большинства операций.
-  static const String _stableJsonModel = 'openai/gpt-oss-120b';
+  static const String _stableJsonModel = 'llama-3.3-70b-versatile';
 
   /// Стабильная vision-модель для задач с фото.
   static const String _stablePhotoJsonModel =
-      'meta-llama/llama-4-maverick-17b-128e-instruct';
+      'meta-llama/llama-4-scout-17b-16e-instruct';
 
   /// Базовый набор по умолчанию (одна модель = один запрос без лишнего фолбэка).
   static const List<String> _models = [_stableJsonModel];
@@ -105,26 +105,22 @@ class GeminiRecipeService {
   static const List<String> _statsModels = [_stableJsonModel];
   static const List<String> _dailyGoalsModels = [_stableJsonModel];
   static const List<String> _activityModels = [_stableJsonModel];
-  static const List<String> _translationModels = ['openai/gpt-oss-20b'];
+  static const List<String> _translationModels = ['llama-3.1-8b-instant'];
 
   /// Модели с поддержкой изображений.
   /// Фото никогда не должно уходить в текстовую модель.
   static const List<String> _photoModels = [_stablePhotoJsonModel];
 
   /// Быстрые модели — для recheck (самопроверки результата).
-  /// Llama 3.3 70B быстрее и дешевле Llama 4, достаточно для корректировки.
-  /// Qwen 3 32B — как запасная: хорошо рассуждает, подходит для самопроверки.
-  static const List<String> _recheckModels = ['openai/gpt-oss-20b'];
+  static const List<String> _recheckModels = ['llama-3.1-8b-instant'];
 
   /// Специализированные модели для модерации рецептов.
-  /// GPT OSS 20B — специализированная модель для контент-фильтрации.
-  /// llama-guard-4-12b — альтернатива для safety-проверок.
-  static const List<String> _moderationModels = ['openai/gpt-oss-20b'];
+  static const List<String> _moderationModels = ['llama-3.1-8b-instant'];
 
   /// Router models are used only to choose model order (speed vs accuracy).
   /// If router fails, the regular deterministic fallback chain is used.
   static const List<String> _routerModels = [
-    'openai/gpt-oss-20b',
+    'llama-3.1-8b-instant',
     'meta-llama/llama-4-scout-17b-16e-instruct',
   ];
 

@@ -230,24 +230,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   String _quickDonateValidationMessage() {
     final code = Localizations.localeOf(context).languageCode;
-    if (code == 'uk') {
-      return 'Швидка перевірка пройдена. Виконуємо AI-перевірку...';
-    }
-    if (code == 'en') {
-      return 'Quick check passed. Running AI verification...';
-    }
-    return 'Быстрая проверка пройдена. Запускаем AI-проверку...';
+    if (code == 'uk') return 'Перевірка...';
+    if (code == 'en') return 'Checking...';
+    return 'Идёт проверка...';
   }
 
   String _defaultModerationIndicatorText() {
     final code = Localizations.localeOf(context).languageCode;
-    if (code == 'uk') {
-      return 'Перевіряємо, що рецепт нормальний: без образ, спаму і безглуздого тексту.';
-    }
-    if (code == 'en') {
-      return 'We only check that the recipe is normal: no abuse, spam, or gibberish.';
-    }
-    return 'Проверяем только, что рецепт нормальный: без оскорблений, спама и бессмысленного текста.';
+    if (code == 'uk') return 'Перевірка не пройдена.';
+    if (code == 'en') return 'Not verified.';
+    return 'Проверка не пройдена.';
   }
 
   bool _passesQuickDonateValidation() {
@@ -258,6 +250,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return itemName.isNotEmpty;
     });
     return hasValidIngredient;
+  }
+
+  String _moderationResultText(bool approved) {
+    final code = Localizations.localeOf(context).languageCode;
+    if (approved) {
+      if (code == 'uk') return 'Перевірка пройдена.';
+      if (code == 'en') return 'Check passed.';
+      return 'Проверка пройдена.';
+    } else {
+      if (code == 'uk') return 'Перевірка не пройдена.';
+      if (code == 'en') return 'Check failed.';
+      return 'Проверка не пройдена.';
+    }
   }
 
   String _aiUnavailableShortText() {
@@ -320,7 +325,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       setState(() {
         _isDonateAiChecking = false;
         _isDonateAiApproved = result.approved;
-        _donateAiStatus = result.reason;
+        _donateAiStatus = _moderationResultText(result.approved);
         if (result.approved &&
             _publicIntentEnabled &&
             !_isDonated &&
