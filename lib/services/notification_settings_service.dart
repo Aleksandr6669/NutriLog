@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationSettings {
+  static const String aiProviderGroq = 'groq';
+  static const String aiProviderGemini = 'gemini';
+  static const String geminiModelFlashLite = 'gemini-2.5-flash-lite';
+  static const String geminiModelFlash = 'gemini-2.5-flash';
+  static const String geminiModelPro = 'gemini-2.5-pro';
+
   final bool waterReminderEnabled;
   final TimeOfDay waterReminderTime;
   final bool mealRemindersEnabled;
@@ -13,6 +19,8 @@ class NotificationSettings {
   final TimeOfDay weightReminderTime; // Время напоминания о взвешивании
   final bool statsAiAssistantEnabled;
   final bool recipeAiAutoNutritionEnabled;
+  final String aiProvider;
+  final String geminiModel;
 
   const NotificationSettings({
     required this.waterReminderEnabled,
@@ -26,6 +34,8 @@ class NotificationSettings {
     required this.weightReminderTime,
     required this.statsAiAssistantEnabled,
     required this.recipeAiAutoNutritionEnabled,
+    required this.aiProvider,
+    required this.geminiModel,
   });
 
   NotificationSettings copyWith({
@@ -40,6 +50,8 @@ class NotificationSettings {
     TimeOfDay? weightReminderTime,
     bool? statsAiAssistantEnabled,
     bool? recipeAiAutoNutritionEnabled,
+    String? aiProvider,
+    String? geminiModel,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -56,6 +68,8 @@ class NotificationSettings {
           statsAiAssistantEnabled ?? this.statsAiAssistantEnabled,
       recipeAiAutoNutritionEnabled:
           recipeAiAutoNutritionEnabled ?? this.recipeAiAutoNutritionEnabled,
+      aiProvider: aiProvider ?? this.aiProvider,
+      geminiModel: geminiModel ?? this.geminiModel,
     );
   }
 }
@@ -73,6 +87,8 @@ class NotificationSettingsService {
   static const _statsAiAssistantEnabledKey = 'stats_ai_assistant_enabled';
   static const _recipeAiAutoNutritionEnabledKey =
       'recipe_ai_auto_nutrition_enabled';
+  static const _aiProviderKey = 'ai_provider_v1';
+  static const _geminiModelKey = 'gemini_model_v1';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: true,
@@ -86,6 +102,8 @@ class NotificationSettingsService {
     weightReminderTime: TimeOfDay(hour: 21, minute: 30),
     statsAiAssistantEnabled: true,
     recipeAiAutoNutritionEnabled: true,
+    aiProvider: NotificationSettings.aiProviderGroq,
+    geminiModel: NotificationSettings.geminiModelFlash,
   );
 
   Future<NotificationSettings> load() async {
@@ -122,6 +140,10 @@ class NotificationSettingsService {
       recipeAiAutoNutritionEnabled:
           prefs.getBool(_recipeAiAutoNutritionEnabledKey) ??
               defaults.recipeAiAutoNutritionEnabled,
+        aiProvider:
+          prefs.getString(_aiProviderKey) ?? defaults.aiProvider,
+        geminiModel:
+          prefs.getString(_geminiModelKey) ?? defaults.geminiModel,
     );
   }
 
@@ -146,6 +168,8 @@ class NotificationSettingsService {
       _recipeAiAutoNutritionEnabledKey,
       settings.recipeAiAutoNutritionEnabled,
     );
+    await prefs.setString(_aiProviderKey, settings.aiProvider);
+    await prefs.setString(_geminiModelKey, settings.geminiModel);
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {

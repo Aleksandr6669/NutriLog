@@ -247,19 +247,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return hasValidIngredient;
   }
 
-  String _moderationResultText(bool approved) {
-    final code = Localizations.localeOf(context).languageCode;
-    if (approved) {
-      if (code == 'uk') return 'Перевірка пройдена.';
-      if (code == 'en') return 'Check passed.';
-      return 'Проверка пройдена.';
-    } else {
-      if (code == 'uk') return 'Перевірка не пройдена.';
-      if (code == 'en') return 'Check failed.';
-      return 'Проверка не пройдена.';
-    }
-  }
-
   String _aiUnavailableShortText() {
     final code = Localizations.localeOf(context).languageCode;
     if (code == 'uk') return 'Нейромережа тимчасово недоступна.';
@@ -269,6 +256,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<DonateRecipeModerationResult?> _runDonateAiModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return null;
+
+    final sanityError = _localRecipeSanityError();
+    if (sanityError != null) {
+      if (mounted) {
+        setState(() {
+          _isDonateAiChecking = false;
+          _isDonateAiApproved = false;
+          _isPublic = false;
+          _donateAiStatus = sanityError;
+        });
+      }
+      return null;
+    }
 
     if (!_passesQuickDonateValidation()) {
       if (mounted) {
@@ -320,7 +320,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       setState(() {
         _isDonateAiChecking = false;
         _isDonateAiApproved = result.approved;
-        _donateAiStatus = _moderationResultText(result.approved);
+        _donateAiStatus = result.reason;
         if (result.approved &&
             _publicIntentEnabled &&
             !_isDonated &&
@@ -376,6 +376,328 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return rounded.toInt().toString();
     }
     return rounded.toStringAsFixed(1);
+  }
+
+  String _localizeInline({
+    required String ru,
+    required String en,
+    required String uk,
+  }) {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'en') return en;
+    if (code == 'uk') return uk;
+    return ru;
+  }
+
+  String _nutrientLabel(String key) {
+    switch (key) {
+      case 'calories':
+        return l10n.calories;
+      case 'protein':
+        return l10n.protein;
+      case 'carbs':
+        return l10n.carbs;
+      case 'fat':
+        return l10n.fat;
+      case 'fiber':
+        return l10n.fiberSub;
+      case 'sugar':
+        return l10n.sugarSub;
+      case 'saturated_fat':
+        return l10n.saturatedFatSub;
+      case 'polyunsaturated_fat':
+        return l10n.polyunsaturatedFatSub;
+      case 'monounsaturated_fat':
+        return l10n.monounsaturatedFatSub;
+      case 'trans_fat':
+        return l10n.transFatSub;
+      case 'cholesterol':
+        return l10n.cholesterolSub;
+      case 'sodium':
+        return l10n.sodium;
+      case 'potassium':
+        return l10n.potassium;
+      case 'vitamin_a':
+        return l10n.vitaminA;
+      case 'vitamin_c':
+        return l10n.vitaminC;
+      case 'vitamin_d':
+        return l10n.vitaminD;
+      case 'calcium':
+        return l10n.calcium;
+      case 'iron':
+        return l10n.iron;
+      default:
+        return key;
+    }
+  }
+
+  String _nutrientUnit(String key) {
+    switch (key) {
+      case 'calories':
+        return l10n.kcal;
+      case 'cholesterol':
+      case 'sodium':
+      case 'potassium':
+      case 'calcium':
+      case 'iron':
+        return l10n.mg;
+      case 'vitamin_a':
+      case 'vitamin_d':
+        return l10n.mcg;
+      default:
+        return l10n.grams;
+    }
+  }
+
+  Map<String, double> _collectCurrentNutrients() {
+    final nutrients = <String, double>{};
+    for (final key in _nutrientKeys) {
+      nutrients[key] = _parseAmount(_nutrientControllers[key]?.text ?? '0');
+    }
+    return nutrients;
+  }
+
+  double? _ingredientAsGramsEquivalent(_IngredientFormItem item) {
+    final quantity = _parseAmount(item.quantityController.text);
+    if (quantity <= 0) return null;
+
+    final unit = item.unit.trim().toLowerCase();
+    switch (unit) {
+      case 'g':
+      case 'ml':
+        return quantity;
+      case 'kg':
+      case 'l':
+        return quantity * 1000;
+      case 'mg':
+        return quantity / 1000;
+      case 'tsp':
+        return quantity * 5;
+      case 'tbsp':
+        return quantity * 15;
+      case 'cup':
+        return quantity * 240;
+      case 'pcs':
+        return quantity * 80;
+      case 'pack':
+      case 'pkg':
+        return quantity * 400;
+      default:
+        return null;
+    }
+  }
+
+  static const List<String> _blockedWords = [
+    'говно',
+    'дерьм',
+    'какаш',
+    'ссан',
+    'моча',
+    'блев',
+    'shit',
+    'poop',
+    'piss',
+    'vomit',
+    'semen',
+    'cum',
+    'feces',
+  ];
+
+  String? _findBlockedWord(String text) {
+    final normalized = text.toLowerCase().trim();
+    if (normalized.isEmpty) return null;
+    for (final word in _blockedWords) {
+      if (word.isNotEmpty && normalized.contains(word)) {
+        return word;
+      }
+    }
+    return null;
+  }
+
+  String? _blockedWordErrorInAllInputs() {
+    String? checkField(String fieldLabel, String value) {
+      final blockedWord = _findBlockedWord(value);
+      if (blockedWord == null) return null;
+      return _localizeInline(
+        ru: 'Недопустимое слово в поле "$fieldLabel".',
+        en: 'Inappropriate word found in "$fieldLabel".',
+        uk: 'Недопустиме слово у полі "$fieldLabel".',
+      );
+    }
+
+    final directFields = <(String, String)>[
+      (l10n.recipeNameLabel, _nameController.text),
+      (l10n.recipeDescriptionLabel, _descriptionController.text),
+      (l10n.aiClarificationLabel, _clarificationController.text),
+    ];
+
+    for (final field in directFields) {
+      final issue = checkField(field.$1, field.$2);
+      if (issue != null) return issue;
+    }
+
+    for (var i = 0; i < _ingredientItems.length; i++) {
+      final item = _ingredientItems[i];
+      final indexHuman = i + 1;
+      final ingredientNameLabel =
+          _localizeInline(ru: 'Ингредиент $indexHuman', en: 'Ingredient $indexHuman', uk: 'Інгредієнт $indexHuman');
+      final ingredientQtyLabel =
+          _localizeInline(ru: 'Количество $indexHuman', en: 'Amount $indexHuman', uk: 'Кількість $indexHuman');
+      final ingredientUnitLabel =
+          _localizeInline(ru: 'Единица $indexHuman', en: 'Unit $indexHuman', uk: 'Одиниця $indexHuman');
+
+      final issueName = checkField(ingredientNameLabel, item.nameController.text);
+      if (issueName != null) return issueName;
+      final issueQty = checkField(ingredientQtyLabel, item.quantityController.text);
+      if (issueQty != null) return issueQty;
+      final issueUnit = checkField(ingredientUnitLabel, item.unit);
+      if (issueUnit != null) return issueUnit;
+    }
+
+    for (final key in _nutrientKeys) {
+      final value = _nutrientControllers[key]?.text ?? '';
+      final issue = checkField(_nutrientLabel(key), value);
+      if (issue != null) return issue;
+    }
+
+    return null;
+  }
+
+  String? _localRecipeSanityError() {
+    final blockedWordIssue = _blockedWordErrorInAllInputs();
+    if (blockedWordIssue != null) return blockedWordIssue;
+
+    final ingredients = _ingredientItems
+        .where((item) => item.nameController.text.trim().isNotEmpty)
+        .toList(growable: false);
+
+    if (ingredients.isEmpty) {
+      return _localizeInline(
+        ru: 'Добавьте хотя бы один ингредиент.',
+        en: 'Add at least one ingredient.',
+        uk: 'Додайте хоча б один інгредієнт.',
+      );
+    }
+
+    var totalGrams = 0.0;
+    for (final item in ingredients) {
+      final ingredientName = item.nameController.text.trim();
+
+      final qty = _parseAmount(item.quantityController.text);
+      final unit = item.unit.trim().toLowerCase();
+      if (qty > 0) {
+        final tooLargeByUnit = (unit == 'pcs' && qty > 60) ||
+            ((unit == 'pack' || unit == 'pkg') && qty > 12) ||
+            (unit == 'l' && qty > 10) ||
+            (unit == 'ml' && qty > 10000) ||
+            (unit == 'kg' && qty > 8) ||
+            (unit == 'g' && qty > 8000);
+        if (tooLargeByUnit) {
+          return _localizeInline(
+            ru: 'Количество у ингредиента "$ingredientName" выглядит нереалистично. Проверьте единицы и число.',
+            en: 'Amount for ingredient "$ingredientName" looks unrealistic. Please check unit and value.',
+            uk: 'Кількість у інгредієнта "$ingredientName" виглядає нереалістично. Перевірте одиниці та число.',
+          );
+        }
+      }
+
+      final grams = _ingredientAsGramsEquivalent(item);
+      if (grams == null) continue;
+
+      totalGrams += grams;
+      if (grams > 3500) {
+        return _localizeInline(
+          ru: 'Слишком большое количество у ингредиента "$ingredientName". Проверьте количество.',
+          en: 'Ingredient "$ingredientName" has too large amount. Please review quantity.',
+          uk: 'Занадто велика кількість у інгредієнта "$ingredientName". Перевірте кількість.',
+        );
+      }
+    }
+
+    if (totalGrams > 12000) {
+      return _localizeInline(
+        ru: 'Суммарный вес рецепта выглядит слишком большим. Проверьте количества ингредиентов.',
+        en: 'Total recipe amount looks too large. Please review ingredient quantities.',
+        uk: 'Сумарна вага рецепта виглядає занадто великою. Перевірте кількість інгредієнтів.',
+      );
+    }
+
+    final nutrients = _collectCurrentNutrients();
+    const maxValues = <String, double>{
+      'calories': 5000,
+      'protein': 350,
+      'carbs': 600,
+      'fat': 300,
+      'fiber': 120,
+      'sugar': 250,
+      'saturated_fat': 150,
+      'polyunsaturated_fat': 200,
+      'monounsaturated_fat': 200,
+      'trans_fat': 25,
+      'cholesterol': 2500,
+      'sodium': 20000,
+      'potassium': 25000,
+      'vitamin_a': 10000,
+      'vitamin_c': 5000,
+      'vitamin_d': 1000,
+      'calcium': 5000,
+      'iron': 200,
+    };
+
+    for (final entry in maxValues.entries) {
+      final value = nutrients[entry.key] ?? 0;
+      if (value > entry.value) {
+        final label = _nutrientLabel(entry.key);
+        final unit = _nutrientUnit(entry.key);
+        final shown = _formatNumber(value);
+        return _localizeInline(
+          ru: '$label выглядит слишком большим ($shown $unit). Проверьте ввод.',
+          en: '$label looks too high ($shown $unit). Please review input.',
+          uk: '$label виглядає занадто великим ($shown $unit). Перевірте введення.',
+        );
+      }
+    }
+
+    final carbs = nutrients['carbs'] ?? 0;
+    final sugar = nutrients['sugar'] ?? 0;
+    if (sugar > carbs + 5) {
+      return _localizeInline(
+        ru: 'Сахар не может быть заметно больше углеводов. Проверьте значения.',
+        en: 'Sugar cannot be significantly higher than carbs. Please review values.',
+        uk: 'Цукор не може бути помітно більшим за вуглеводи. Перевірте значення.',
+      );
+    }
+
+    final fat = nutrients['fat'] ?? 0;
+    final fatParts = (nutrients['saturated_fat'] ?? 0) +
+        (nutrients['polyunsaturated_fat'] ?? 0) +
+        (nutrients['monounsaturated_fat'] ?? 0) +
+        (nutrients['trans_fat'] ?? 0);
+    if (fat > 0 && fatParts > fat * 1.4 && fatParts > 10) {
+      return _localizeInline(
+        ru: 'Сумма типов жиров слишком большая относительно общего жира. Проверьте детали жиров.',
+        en: 'Fat subtypes sum is too high compared to total fat. Please review fat details.',
+        uk: 'Сума типів жирів занадто велика відносно загального жиру. Перевірте деталі жирів.',
+      );
+    }
+
+    final calories = nutrients['calories'] ?? 0;
+    final macroCalories = (nutrients['protein'] ?? 0) * 4 +
+        (nutrients['carbs'] ?? 0) * 4 +
+        (nutrients['fat'] ?? 0) * 9;
+    if (calories > 0 && macroCalories > 0) {
+      final ratio = calories / macroCalories;
+      if (ratio < 0.5 || ratio > 1.8) {
+        return _localizeInline(
+          ru: 'Калории сильно расходятся с БЖУ. Проверьте калории, белки, жиры и углеводы.',
+          en: 'Calories differ too much from macros. Please review calories, protein, fat, and carbs.',
+          uk: 'Калорії сильно розходяться з БЖВ. Перевірте калорії, білки, жири та вуглеводи.',
+        );
+      }
+    }
+
+    return null;
   }
 
   void _onMacroChanged() {
@@ -657,6 +979,35 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
 
     if (_formKey.currentState!.validate()) {
+      if (_isPublic) {
+        final moderation = await _runDonateAiModeration();
+        if (!mounted) return;
+        if (moderation == null || !moderation.approved) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_donateAiStatus ?? l10n.recipeAiFailed),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+          return;
+        }
+
+        final sanityError = _localRecipeSanityError();
+        if (sanityError != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(sanityError),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red.shade700,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       final Map<String, double> nutrients = {};
       for (var key in _nutrientKeys) {
         nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
@@ -804,7 +1155,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       setState(() => _isDonating = false);
       final message = e.code == 'permission-denied'
           ? l10n.donateRecipePermissionDenied
-          : '${l10n.donateRecipeError}: ${e.message ?? e.code}';
+          : l10n.donateRecipeError;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
@@ -812,12 +1163,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           backgroundColor: Colors.red.shade700,
         ),
       );
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() => _isDonating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${l10n.donateRecipeError}: $e'),
+          content: Text(l10n.donateRecipeError),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red.shade700,
         ),

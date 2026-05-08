@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
+import 'notification_settings_service.dart';
 import 'recipe_loader.dart';
 import 'dart:ui' as ui;
 
@@ -125,6 +126,12 @@ class GeminiRecipeService {
     'meta-llama/llama-4-scout-17b-16e-instruct',
   ];
 
+  static const List<String> _geminiModels = [
+    NotificationSettings.geminiModelFlashLite,
+    NotificationSettings.geminiModelFlash,
+    NotificationSettings.geminiModelPro,
+  ];
+
   static const Duration _requestTimeout = Duration(seconds: 12);
   static const Duration _routerRequestTimeout = Duration(seconds: 4);
   static const int _jsonRetryMaxAttempts = 2;
@@ -140,14 +147,6 @@ class GeminiRecipeService {
   static const String _routerLastFailAtPrefsKey = 'ai.router.fail.last_at.v1';
   static const String _routerLastCleanupAtPrefsKey =
       'ai.router.history.last_cleanup_at.v1';
-  static const String _groqTokenIndexPrefsKey = 'ai.groq.token.index.v1';
-  static const List<String> _groqTokens = [
-    String.fromEnvironment('GROQ_API_KEY_1'),
-    String.fromEnvironment('GROQ_API_KEY_2'),
-    String.fromEnvironment('GROQ_API_KEY_3'),
-    String.fromEnvironment('GROQ_API_KEY_4'),
-    String.fromEnvironment('GROQ_API_KEY_5'),
-  ];
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -2089,7 +2088,16 @@ Rules:
     String? locale,
     List<String>? modelsOverride,
   }) async {
-    var apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
+    final aiSettings = await _loadAiSettings();
+    if (aiSettings.aiProvider == NotificationSettings.aiProviderGemini) {
+      return _requestWithGemini(
+        body: body,
+        locale: locale,
+        selectedModel: aiSettings.geminiModel,
+      );
+    }
+
+    final apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiKeyMissingError,
@@ -2112,7 +2120,6 @@ Rules:
       locale: locale,
     );
     http.Response? lastErrorResponse;
-    var tokenSwitchAttempted = false;
 
     for (final model in models) {
       final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
@@ -2146,21 +2153,6 @@ Rules:
         }
 
         lastErrorResponse = response;
-        
-        // Проверка на ошибку rate limit - автопереключение на другой токен
-        if (_isRateLimitError(response) && !tokenSwitchAttempted) {
-          await _switchToNextGroqToken();
-          tokenSwitchAttempted = true;
-          // Перезагружаем API ключ и пересчитываем модели
-          apiKey = _resolveApiKey().trim();
-          if (apiKey.isEmpty) {
-            throw GeminiRecipeException(
-              _messages(locale).aiKeyMissingError,
-            );
-          }
-          // Продолжаем цикл со следующей моделью, используя новый токен
-          continue;
-        }
 
         final isRetryableStatus = response.statusCode == 400 ||
             response.statusCode == 403 ||
@@ -2188,6 +2180,195 @@ Rules:
     throw GeminiRecipeException(
       _messages(locale).aiNoResponseError,
     );
+  }
+
+  Future<NotificationSettings> _loadAiSettings() async {
+    try {
+      return await NotificationSettingsService().load();
+    } catch (_) {
+      return NotificationSettingsService.defaults;
+    }
+  }
+
+  String _resolveGeminiApiKey() {
+    const fromDefine = String.fromEnvironment('GEMINI_API_KEY');
+    final candidates = [
+      dotenv.env['GEMINI_API_KEY'],
+      fromDefine,
+    ];
+    for (final raw in candidates) {
+      final key = (raw ?? '').trim();
+      if (key.isNotEmpty) return key;
+    }
+    return '';
+  }
+
+  String _resolveGeminiModel(String selectedModel) {
+    if (_geminiModels.contains(selectedModel)) return selectedModel;
+    return NotificationSettings.geminiModelFlash;
+  }
+
+  List<Map<String, dynamic>> _geminiPartsFromMessages(dynamic messages) {
+    final parts = <Map<String, dynamic>>[];
+
+    void addText(String text) {
+      final normalized = text.trim();
+      if (normalized.isEmpty) return;
+      parts.add({'text': normalized});
+    }
+
+    void addImageUrl(String url) {
+      final normalized = url.trim();
+      if (normalized.isEmpty) return;
+      final dataUrlMatch = RegExp(r'^data:([^;]+);base64,(.+)$').firstMatch(normalized);
+      if (dataUrlMatch == null) return;
+      final mimeType = (dataUrlMatch.group(1) ?? 'image/jpeg').trim();
+      final data = (dataUrlMatch.group(2) ?? '').trim();
+      if (data.isEmpty) return;
+      parts.add({
+        'inlineData': {
+          'mimeType': mimeType,
+          'data': data,
+        }
+      });
+    }
+
+    void visit(dynamic value) {
+      if (value is String) {
+        addText(value);
+        return;
+      }
+      if (value is List) {
+        for (final item in value) {
+          visit(item);
+        }
+        return;
+      }
+      if (value is Map) {
+        final type = value['type'];
+        if (type == 'text' && value['text'] is String) {
+          addText(value['text'] as String);
+          return;
+        }
+        if (type == 'image_url') {
+          final imageUrl = value['image_url'];
+          if (imageUrl is Map && imageUrl['url'] is String) {
+            addImageUrl(imageUrl['url'] as String);
+          }
+          return;
+        }
+        if (value['content'] != null) {
+          visit(value['content']);
+        }
+      }
+    }
+
+    visit(messages);
+    return parts;
+  }
+
+  String _extractTextFromGeminiPayload(Map<String, dynamic> payload, [String? locale]) {
+    final candidates = payload['candidates'];
+    if (candidates is! List || candidates.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).aiEmptyResponseError);
+    }
+    final first = candidates.first;
+    if (first is! Map<String, dynamic>) {
+      throw GeminiRecipeException(_messages(locale).aiUnexpectedResponseFormatError);
+    }
+    final content = first['content'];
+    if (content is! Map<String, dynamic>) {
+      throw GeminiRecipeException(_messages(locale).aiFailedToReadResponseError);
+    }
+    final parts = content['parts'];
+    if (parts is! List || parts.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
+    }
+    final buffer = StringBuffer();
+    for (final part in parts) {
+      if (part is Map<String, dynamic> && part['text'] is String) {
+        final text = (part['text'] as String).trim();
+        if (text.isNotEmpty) {
+          if (buffer.isNotEmpty) buffer.writeln();
+          buffer.write(text);
+        }
+      }
+    }
+    final result = buffer.toString().trim();
+    if (result.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
+    }
+    return result;
+  }
+
+  Future<http.Response> _requestWithGemini({
+    required Map<String, dynamic> body,
+    String? locale,
+    required String selectedModel,
+  }) async {
+    final apiKey = _resolveGeminiApiKey();
+    if (apiKey.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).aiKeyMissingError);
+    }
+
+    final model = _resolveGeminiModel(selectedModel);
+    final parts = _geminiPartsFromMessages(body['messages']);
+    if (parts.isEmpty) {
+      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+    }
+
+    final uri = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+    );
+
+    final usesImageInput = _requestUsesImageInput(body);
+    final payload = <String, dynamic>{
+      'contents': [
+        {
+          'role': 'user',
+          'parts': parts,
+        }
+      ],
+      'generationConfig': {
+        'temperature': body['temperature'] ?? 0.2,
+        'topP': body['top_p'] ?? 1,
+        'maxOutputTokens': body['max_tokens'] ?? 2048,
+        if (!usesImageInput) 'responseMimeType': 'application/json',
+      },
+    };
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(payload),
+          )
+          .timeout(_requestTimeout);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
+      }
+
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final text = _extractTextFromGeminiPayload(decoded, locale);
+      final syntheticOpenAiPayload = jsonEncode({
+        'choices': [
+          {
+            'message': {'content': text}
+          }
+        ]
+      });
+      return http.Response(
+        syntheticOpenAiPayload,
+        200,
+        headers: const {'content-type': 'application/json'},
+      );
+    } on TimeoutException {
+      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+    } on http.ClientException {
+      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+    }
   }
 
   Future<List<String>> _selectAdaptiveModelOrder({
@@ -2631,10 +2812,6 @@ Rules:
     const groqFromDefine = String.fromEnvironment('GROQ_API_KEY');
     const legacyFromDefine = String.fromEnvironment('GEMINI_API_KEY');
 
-    // Сначала проверяем текущий токен из списка (автопереключение)
-    final currentToken = _getCurrentGroqToken();
-    if (currentToken.isNotEmpty) return currentToken;
-
     final candidates = [
       dotenv.env['GROQ_API_KEY'],
       groqFromDefine,
@@ -2648,50 +2825,6 @@ Rules:
     }
 
     return '';
-  }
-
-  String _getCurrentGroqToken() {
-    for (final token in _groqTokens) {
-      final normalized = token.trim();
-      if (normalized.isNotEmpty) return normalized;
-    }
-    return '';
-  }
-
-  Future<int> _getCurrentTokenIndex() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getInt(_groqTokenIndexPrefsKey) ?? 0;
-    } catch (_) {
-      return 0;
-    }
-  }
-
-  Future<void> _switchToNextGroqToken() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final currentIndex = prefs.getInt(_groqTokenIndexPrefsKey) ?? 0;
-      final nextIndex = (currentIndex + 1) % _groqTokens.length;
-      await prefs.setInt(_groqTokenIndexPrefsKey, nextIndex);
-      debugPrint('[Groq Token Switch] Switched from index $currentIndex to $nextIndex');
-    } catch (_) {
-      // Ignore token switching errors.
-    }
-  }
-
-  bool _isRateLimitError(http.Response response) {
-    if (response.statusCode == 429) return true;
-    try {
-      final body = response.body.toLowerCase();
-      return body.contains('rate limit') ||
-          body.contains('quota') ||
-          body.contains('limit exceeded') ||
-          body.contains('too many requests') ||
-          body.contains('exceeded') ||
-          body.contains('rate_limit_exceeded');
-    } catch (_) {
-      return false;
-    }
   }
 
   GeminiRecipeDraft _draftFromDecodedJson(
@@ -3266,39 +3399,30 @@ Rules:
 
   String _buildHttpErrorMessage(http.Response response, [String? locale]) {
     final code = response.statusCode;
-    final apiMessage = _extractApiErrorMessage(response.body);
 
     if (code == 404) {
       return _messages(locale).aiHttpNotFoundError;
     }
     if (code == 403) {
-      return '${_messages(locale).aiHttpForbiddenError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
+      return _messages(locale).aiHttpForbiddenError;
     }
     if (code == 401) {
-      return '${_messages(locale).aiHttpUnauthorizedError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
+      return _messages(locale).aiHttpUnauthorizedError;
     }
     if (code == 429) {
-      return '${_messages(locale).aiHttpRateLimitError}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
+      return _messages(locale).aiHttpRateLimitError;
+    }
+    if (code == 400 || code == 422) {
+      return _messages(locale).aiUnexpectedResponseFormatError;
+    }
+    if (code == 408 || code == 504) {
+      return _messages(locale).aiNoResponseError;
+    }
+    if (code >= 500) {
+      return _messages(locale).aiNoResponseError;
     }
 
-    return '${_messages(locale).aiHttpGenericError(code)}${apiMessage.isEmpty ? '' : ' ${_messages(locale).detailsLabel}: $apiMessage'}';
-  }
-
-  String _extractApiErrorMessage(String body) {
-    try {
-      final payload = jsonDecode(body);
-      if (payload is Map<String, dynamic>) {
-        final error = payload['error'];
-        if (error is Map<String, dynamic>) {
-          final message = error['message'];
-          if (message is String) return message.trim();
-        }
-      }
-    } catch (_) {
-      // Ignore non-JSON error body.
-    }
-
-    return '';
+    return _messages(locale).aiHttpGenericError(code);
   }
 
   String _extractText(Map<String, dynamic> payload, [String? locale]) {

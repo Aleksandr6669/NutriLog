@@ -53,6 +53,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _cachedDefaultRecipes = const [];
   String? _cachedDefaultRecipesLocale;
 
+  String _cloudAccessErrorText() {
+    final l10n = AppLocalizations.of(context)!;
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'uk') {
+      return 'Немає доступу до хмари. Спробуйте пізніше.';
+    }
+    if (code == 'en') {
+      return 'No cloud access right now. Please try again later.';
+    }
+    return 'Нет доступа к облаку. Попробуйте позже.';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -89,11 +101,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
           _loadAllRecipes();
         }
       },
-      onError: (error) {
+      onError: (_) {
         if (mounted) {
           setState(() {
-            _streamErrorMessage =
-                'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+            _streamErrorMessage = _cloudAccessErrorText();
           });
         }
       },
@@ -113,11 +124,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
           _loadAllRecipes();
         }
       },
-      onError: (error) {
+      onError: (_) {
         if (mounted) {
           setState(() {
-            _streamErrorMessage =
-                'Ошибка доступа к облаку: ${error is Exception ? error.toString() : 'Нет доступа к данным'}';
+            _streamErrorMessage = _cloudAccessErrorText();
           });
         }
       },

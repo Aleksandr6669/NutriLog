@@ -36,6 +36,7 @@ class LocalFirstSyncService {
   bool _started = false;
   bool _isSyncing = false;
   bool _isApplyingRemote = false;
+  bool _signInConflictResolutionPending = false;
   bool _wasConnected = false;
   String? _preparedUid;
 
@@ -51,6 +52,7 @@ class LocalFirstSyncService {
       (user) async {
         if (user == null) {
           _preparedUid = null;
+          _signInConflictResolutionPending = false;
           _cancelRealtimeSubscriptions();
           return;
         }
@@ -94,6 +96,7 @@ class LocalFirstSyncService {
       statusNotifier.value = SyncStatus.idle;
       return;
     }
+    if (_signInConflictResolutionPending) return;
     if (_isSyncing || !FirebaseAuthService.instance.isSignedIn) return;
 
     _isSyncing = true;
@@ -154,18 +157,28 @@ class LocalFirstSyncService {
   Future<bool> needsSignInConflictResolution() async {
     if (!FirebaseAuthService.instance.isSignedIn) return false;
     final local = await hasLocalData();
-    if (!local) return false;
+    if (!local) {
+      _signInConflictResolutionPending = false;
+      return false;
+    }
     final cloud = await hasCloudData();
+    _signInConflictResolutionPending = cloud;
     return cloud;
   }
 
   Future<void> resolveSignInDataConflict(SignInDataResolution resolution) async {
-    if (resolution == SignInDataResolution.useCloud) {
-      await _resetLocalAndPullFromCloud();
-      return;
-    }
+    try {
+      if (resolution == SignInDataResolution.useCloud) {
+        _signInConflictResolutionPending = false;
+        await _resetLocalAndPullFromCloud();
+        return;
+      }
 
-    await syncNow();
+      _signInConflictResolutionPending = false;
+      await syncNow();
+    } finally {
+      _signInConflictResolutionPending = false;
+    }
   }
 
   Future<void> _resetLocalAndPullFromCloud() async {
@@ -236,7 +249,10 @@ class LocalFirstSyncService {
   }
 
   Future<void> _pullFromCloudInBackground() async {
-    if (_isSyncing || _isApplyingRemote || !FirebaseAuthService.instance.isSignedIn) {
+    if (_signInConflictResolutionPending ||
+        _isSyncing ||
+        _isApplyingRemote ||
+        !FirebaseAuthService.instance.isSignedIn) {
       return;
     }
 

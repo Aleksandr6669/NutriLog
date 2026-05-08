@@ -573,17 +573,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiError => 'Нейросеть временно недоступна.';
 
   @override
-  String get accountDataConflictTitle => 'Обнаружен конфликт данных';
+    String get accountDataConflictTitle =>
+            'Есть данные и в облаке, и на телефоне';
 
   @override
   String get accountDataConflictMessage =>
-      'В аккаунте уже есть данные в облаке, и на устройстве тоже есть локальные данные.\n\nВыберите, какие данные оставить основными.';
+      'Мы нашли два набора данных:\n• в облаке\n• на этом устройстве\n\nЧто использовать?\n\nИспользовать облако — загрузить данные из облака на телефон.\nОставить данные телефона — отправить текущие данные телефона в облако.';
 
   @override
-  String get accountDataConflictUseCloud => 'Использовать данные из облака';
+    String get accountDataConflictUseCloud => 'Использовать облако';
 
   @override
-  String get accountDataConflictUseLocal => 'Заменить облако локальными';
+    String get accountDataConflictUseLocal => 'Оставить данные телефона';
 
   @override
   String statsStructuredFallbackOverview(

@@ -183,10 +183,10 @@
   "statsAiLoading": "Loading AI report...",
   "statsAiUpdating": "Diary changed — updating report...",
   "statsAiError": "AI is temporarily unavailable.",
-  "accountDataConflictTitle": "Data conflict detected",
-  "accountDataConflictMessage": "Cloud data already exists for this account, and local data is also present on this device.\n\nChoose which data should be kept as primary.",
+  "accountDataConflictTitle": "Data found in cloud and on this phone",
+  "accountDataConflictMessage": "We found two sets of data:\n• in the cloud\n• on this device\n\nWhat should we use?\n\nUse cloud data: download cloud data to this phone.\nKeep phone data: upload current phone data to the cloud.",
   "accountDataConflictUseCloud": "Use cloud data",
-  "accountDataConflictUseLocal": "Replace cloud with local data",
+  "accountDataConflictUseLocal": "Keep phone data",
   "statsStructuredFallbackOverview": "Report for {periodLabel} was generated in fallback mode. Average calories: {avgCalories} kcal vs goal {calorieGoal} kcal; protein: {avgProteinGrams} g vs goal {proteinGoal} g. Steps: {avgSteps} vs goal {stepsGoal}. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.",
   "@statsStructuredFallbackOverview": {
     "placeholders": {

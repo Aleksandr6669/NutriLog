@@ -40,6 +40,7 @@ class _ConnectionsNotificationsScreenState
 
   bool _loading = true;
   bool _authBusy = false;
+  bool _isResolvingSignInFlow = false;
   bool _connectionsExpanded = false;
   bool _confirmSignOut = false;
   late final AnimationController _btnAnimController;
@@ -101,7 +102,11 @@ class _ConnectionsNotificationsScreenState
         }
       });
       if (user != null) {
-        _autoSyncInBackground();
+        // During sign-in conflict flow we must not push local data to cloud
+        // before the user chooses conflict resolution strategy.
+        if (!_isResolvingSignInFlow) {
+          _autoSyncInBackground();
+        }
         _loadCachedPhoto(user.uid);
       }
     });
@@ -144,6 +149,38 @@ class _ConnectionsNotificationsScreenState
         return l10n.languageEnglish;
       default:
         return l10n.languageSystem;
+    }
+  }
+
+  String _inlineLocalized({
+    required String ru,
+    required String en,
+    required String uk,
+  }) {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'en') return en;
+    if (code == 'uk') return uk;
+    return ru;
+  }
+
+  String _aiProviderLabel(String provider) {
+    switch (provider) {
+      case NotificationSettings.aiProviderGemini:
+        return 'Gemini';
+      default:
+        return 'Groq';
+    }
+  }
+
+  String _geminiModelLabel(String model) {
+    switch (model) {
+      case NotificationSettings.geminiModelPro:
+        return 'Gemini 2.5 Pro';
+      case NotificationSettings.geminiModelFlashLite:
+        return 'Gemini 2.5 Flash-Lite';
+      case NotificationSettings.geminiModelFlash:
+      default:
+        return 'Gemini 2.5 Flash';
     }
   }
 
@@ -313,7 +350,10 @@ class _ConnectionsNotificationsScreenState
 
   Future<void> _handleSignIn() async {
     final l10n = AppLocalizations.of(context)!;
-    setState(() => _authBusy = true);
+    setState(() {
+      _authBusy = true;
+      _isResolvingSignInFlow = true;
+    });
     try {
       // Только вход — ошибки тут реальные (отменил, сеть и т.д.)
       await _authService.signInWithGoogle();
@@ -323,7 +363,12 @@ class _ConnectionsNotificationsScreenState
         l10n.googleSignInFailed,
         backgroundColor: Colors.red.shade700,
       );
-      if (mounted) setState(() => _authBusy = false);
+      if (mounted) {
+        setState(() {
+          _authBusy = false;
+          _isResolvingSignInFlow = false;
+        });
+      }
       return;
     }
 
@@ -342,6 +387,12 @@ class _ConnectionsNotificationsScreenState
       }
     } catch (_) {
       // Не блокируем вход из-за ошибки разрешения конфликта.
+    } finally {
+      if (mounted) {
+        setState(() => _isResolvingSignInFlow = false);
+      } else {
+        _isResolvingSignInFlow = false;
+      }
     }
 
     // Синхронизация в фоне — ошибки не показываем пользователю
@@ -966,6 +1017,124 @@ class _ConnectionsNotificationsScreenState
                     },
                   ),
                 ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blue.withValues(alpha: 0.12),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Symbols.tune,
+                      size: 18,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  title: Text(
+                    _inlineLocalized(
+                      ru: 'AI провайдер',
+                      en: 'AI provider',
+                      uk: 'AI провайдер',
+                    ),
+                  ),
+                  subtitle: Text(
+                    _inlineLocalized(
+                      ru: 'Выберите сервис для AI функций',
+                      en: 'Choose service for AI features',
+                      uk: 'Оберіть сервіс для AI функцій',
+                    ),
+                  ),
+                  trailing: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _settings.aiProvider,
+                      items: const [
+                        DropdownMenuItem(
+                          value: NotificationSettings.aiProviderGroq,
+                          child: Text('Groq'),
+                        ),
+                        DropdownMenuItem(
+                          value: NotificationSettings.aiProviderGemini,
+                          child: Text('Gemini'),
+                        ),
+                      ],
+                      onChanged: (value) async {
+                        if (value == null) return;
+                        HapticFeedback.selectionClick();
+                        final updated = _settings.copyWith(aiProvider: value);
+                        setState(() => _settings = updated);
+                        await _settingsService.save(updated);
+                      },
+                    ),
+                  ),
+                ),
+                if (_settings.aiProvider == NotificationSettings.aiProviderGemini) ...[
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.deepPurple.withValues(alpha: 0.12),
+                        border: Border.all(
+                          color: Colors.deepPurple.withValues(alpha: 0.28),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Symbols.model_training,
+                        size: 18,
+                        color: Colors.deepPurple,
+                      ),
+                    ),
+                    title: Text(
+                      _inlineLocalized(
+                        ru: 'Модель Gemini',
+                        en: 'Gemini model',
+                        uk: 'Модель Gemini',
+                      ),
+                    ),
+                    subtitle: Text(
+                      _inlineLocalized(
+                        ru: 'Только новые модели',
+                        en: 'New models only',
+                        uk: 'Лише нові моделі',
+                      ),
+                    ),
+                    trailing: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _settings.geminiModel,
+                        items: const [
+                          DropdownMenuItem(
+                            value: NotificationSettings.geminiModelFlashLite,
+                            child: Text('Gemini 2.5 Flash-Lite'),
+                          ),
+                          DropdownMenuItem(
+                            value: NotificationSettings.geminiModelFlash,
+                            child: Text('Gemini 2.5 Flash'),
+                          ),
+                          DropdownMenuItem(
+                            value: NotificationSettings.geminiModelPro,
+                            child: Text('Gemini 2.5 Pro'),
+                          ),
+                        ],
+                        onChanged: (value) async {
+                          if (value == null) return;
+                          HapticFeedback.selectionClick();
+                          final updated = _settings.copyWith(geminiModel: value);
+                          setState(() => _settings = updated);
+                          await _settingsService.save(updated);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
                 const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Symbols.language),
