@@ -210,20 +210,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
-    // Do not trigger expensive AI moderation on every field edit.
-    // Run it only when user intends to make recipe public or donate it.
-    if (!_publicIntentEnabled && !_isDonating) {
-      return;
-    }
-
     _donateAiDebounce?.cancel();
-    if (_isDonateAiApproved || _donateAiStatus != l10n.recipeAiCalculating) {
+    final checkingText = _quickDonateValidationMessage();
+    if (_isDonateAiApproved || _donateAiStatus != checkingText) {
       setState(() {
         _isDonateAiApproved = false;
-        _donateAiStatus = l10n.recipeAiCalculating;
+        _donateAiStatus = checkingText;
       });
     }
-    _donateAiDebounce = Timer(const Duration(milliseconds: 350), () {
+    _donateAiDebounce = Timer(const Duration(seconds: 1), () {
       _runDonateAiModeration();
     });
   }
