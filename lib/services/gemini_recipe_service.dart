@@ -1507,7 +1507,7 @@ Rules:
             }
           ],
           'temperature': 0.4,
-          'max_completion_tokens': 860,
+          'max_completion_tokens': 1500,
           'top_p': 1,
           'stream': false,
         },
@@ -2121,7 +2121,8 @@ Rules:
               body: jsonEncode({
                 ...body,
                 'model': model,
-                'response_format': {'type': 'json_object'},
+                if (!usesImageInput)
+                  'response_format': {'type': 'json_object'},
               }),
             )
             .timeout(_requestTimeout);
@@ -2138,7 +2139,8 @@ Rules:
         }
 
         lastErrorResponse = response;
-        final isRetryableStatus = response.statusCode == 403 ||
+        final isRetryableStatus = response.statusCode == 400 ||
+            response.statusCode == 403 ||
             response.statusCode == 404 ||
             response.statusCode == 408 ||
             response.statusCode == 429 ||

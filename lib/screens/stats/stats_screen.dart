@@ -59,6 +59,9 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   bool _isDebouncePending = false;
   Map<String, dynamic>? _lastLoadedStats;
   ModalRoute<dynamic>? _subscribedRoute;
+  // Per-period in-memory AI cache: avoids redundant AI calls on period switch.
+  final Map<String, ({String? overview, List<Map<String, String>> recs, bool error})>
+      _aiCacheByPeriod = {};
 
   @override
   void initState() {
@@ -138,9 +141,16 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     setState(() {
       _isDebouncePending = false;
       if (!soft) {
-        _aiOverview = null;
-        _aiRecommendations = const [];
-        _aiError = false;
+        final cached = _aiCacheByPeriod[_period.name];
+        if (cached != null) {
+          _aiOverview = cached.overview;
+          _aiRecommendations = cached.recs;
+          _aiError = cached.error;
+        } else {
+          _aiOverview = null;
+          _aiRecommendations = const [];
+          _aiError = false;
+        }
       }
       _statsFuture = _loadData();
     });
@@ -606,6 +616,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         _aiOverview = overview;
         _aiRecommendations = normalizedRecommendations;
         _aiError = false;
+        final periodKey = aiInput['periodLabel'] as String? ?? _period.name;
+        _aiCacheByPeriod[periodKey] = (
+          overview: overview,
+          recs: normalizedRecommendations,
+          error: false,
+        );
       });
     } on GeminiRecipeException catch (e) {
       developer.log('AI report error: ${e.message}', name: 'StatsScreen');
@@ -726,6 +742,11 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           _aiOverview = cached.overview;
           _aiRecommendations = normalizedRecommendations;
           _aiError = false;
+          _aiCacheByPeriod[period] = (
+            overview: cached.overview,
+            recs: normalizedRecommendations,
+            error: false,
+          );
         });
       });
       return;
@@ -790,6 +811,13 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   }
 
   void _onPeriodChanged(_StatsPeriod period) {
+    if (period == _period) return;
+    // Save current AI state before switching period.
+    _aiCacheByPeriod[_period.name] = (
+      overview: _aiOverview,
+      recs: List<Map<String, String>>.from(_aiRecommendations),
+      error: _aiError,
+    );
     setState(() => _period = period);
     _reloadStats();
   }
