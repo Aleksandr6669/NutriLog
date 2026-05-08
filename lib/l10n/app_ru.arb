@@ -158,7 +158,7 @@
   "statsProgress": "Прогресс",
   "statsAiReportTitle": "Отчет от AI",
   "statsAiOverviewTitle": "Часть 1. Анализ по целям",
-  "statsAiPlanTitle": "Часть 2. Что и когда есть",
+  "statsAiPlanTitle": "Часть 2. Практические шаги",
   "statsAiNoPlan": "План пока не сформирован.",
   "statsAiMealTimeAny": "Время: любое",
   "statsAiMealTimeLabel": "Время",
@@ -182,7 +182,7 @@
     "statsAiNotMedicalAdvice": "Это не рекомендации врача или диетолога — только совет нейросети. Не является медицинским руководством.",
   "statsAiLoading": "Загрузка отчета от нейросети...",
   "statsAiUpdating": "Дневник изменился — обновляю отчёт...",
-  "statsAiError": "Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.",
+  "statsAiError": "Нейросеть временно недоступна.",
   "statsStructuredFallbackOverview": "Отчет за период {periodLabel} сформирован в упрощенном режиме. Средние калории: {avgCalories} ккал при цели {calorieGoal} ккал; белок: {avgProteinGrams} г при цели {proteinGoal} г. Шаги: {avgSteps} при цели {stepsGoal}. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.",
   "@statsStructuredFallbackOverview": {
     "placeholders": {
@@ -294,7 +294,7 @@
   "recipeAiCalculating": "Рассчитываем пищевую ценность...",
   "recipeAiPendingUpdate": "Ингредиенты изменились — пересчитываю пищевую ценность...",
   "recipeAiUpdated": "Пищевые значения обновлены.",
-  "recipeAiFailed": "Не удалось рассчитать пищевую ценность AI.",
+  "recipeAiFailed": "Нейросеть временно недоступна.",
   "recipeAiDisclaimer": "Оценки AI могут отличаться примерно на 10%; проверьте значения перед сохранением.",
   "recipeClarificationHint": "Уточнение для AI (напр., варёная, с молоком, 100г сухого)",
   "recipeClarificationDescription": "Опишите способ приготовления, форму или другие детали — AI учтёт это при расчёте.",

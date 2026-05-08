@@ -506,7 +506,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiOverviewTitle => 'Part 1. Goal Analysis';
 
   @override
-  String get statsAiPlanTitle => 'Part 2. What and When to Eat';
+  String get statsAiPlanTitle => 'Part 2. Practical Steps';
 
   @override
   String get statsAiNoPlan => 'Meal plan is not available yet.';
@@ -568,8 +568,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiUpdating => 'Diary changed — updating report...';
 
   @override
-  String get statsAiError =>
-      'Could not generate AI report. Please try again later.';
+  String get statsAiError => 'AI is temporarily unavailable.';
 
   @override
   String statsStructuredFallbackOverview(
@@ -777,7 +776,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeAiUpdated => 'Nutrition values updated.';
 
   @override
-  String get recipeAiFailed => 'AI nutrition calculation failed.';
+  String get recipeAiFailed => 'AI is temporarily unavailable.';
 
   @override
   String get recipeAiDisclaimer =>

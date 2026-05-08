@@ -508,7 +508,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiOverviewTitle => 'Частина 1. Аналіз за цілями';
 
   @override
-  String get statsAiPlanTitle => 'Частина 2. Що і коли їсти';
+  String get statsAiPlanTitle => 'Частина 2. Практичні кроки';
 
   @override
   String get statsAiNoPlan => 'План поки не сформовано.';
@@ -570,8 +570,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiUpdating => 'Щоденник змінився — оновлюю звіт...';
 
   @override
-  String get statsAiError =>
-      'Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.';
+  String get statsAiError => 'Нейромережа тимчасово недоступна.';
 
   @override
   String statsStructuredFallbackOverview(
@@ -780,7 +779,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get recipeAiUpdated => 'Харчові значення оновлені.';
 
   @override
-  String get recipeAiFailed => 'Не вдалося розрахувати харчову цінність AI.';
+  String get recipeAiFailed => 'Нейромережа тимчасово недоступна.';
 
   @override
   String get recipeAiDisclaimer =>

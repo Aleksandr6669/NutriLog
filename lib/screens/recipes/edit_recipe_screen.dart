@@ -214,6 +214,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
+    // Do not trigger expensive AI moderation on every field edit.
+    // Run it only when user intends to make recipe public or donate it.
+    if (!_publicIntentEnabled && !_isDonating) {
+      return;
+    }
+
     _donateAiDebounce?.cancel();
     if (_isDonateAiApproved || _donateAiStatus != l10n.recipeAiCalculating) {
       setState(() {
@@ -221,29 +227,80 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _donateAiStatus = l10n.recipeAiCalculating;
       });
     }
-    _donateAiDebounce = Timer(const Duration(seconds: 2), () {
+    _donateAiDebounce = Timer(const Duration(milliseconds: 350), () {
       _runDonateAiModeration();
     });
+  }
+
+  String _quickDonateValidationMessage() {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'uk') {
+      return 'Швидка перевірка пройдена. Виконуємо AI-перевірку...';
+    }
+    if (code == 'en') {
+      return 'Quick check passed. Running AI verification...';
+    }
+    return 'Быстрая проверка пройдена. Запускаем AI-проверку...';
+  }
+
+  String _defaultModerationIndicatorText() {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'uk') {
+      return 'Перевіряємо, що рецепт нормальний: без образ, спаму і безглуздого тексту.';
+    }
+    if (code == 'en') {
+      return 'We only check that the recipe is normal: no abuse, spam, or gibberish.';
+    }
+    return 'Проверяем только, что рецепт нормальный: без оскорблений, спама и бессмысленного текста.';
+  }
+
+  bool _passesQuickDonateValidation() {
+    final name = _nameController.text.trim();
+    if (name.length < 3) return false;
+    final hasValidIngredient = _ingredientItems.any((item) {
+      final itemName = item.nameController.text.trim();
+      return itemName.isNotEmpty;
+    });
+    return hasValidIngredient;
+  }
+
+  String _aiUnavailableShortText() {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'uk') return 'Нейромережа тимчасово недоступна.';
+    if (code == 'en') return 'AI is temporarily unavailable.';
+    return 'Нейросеть временно недоступна.';
   }
 
   Future<DonateRecipeModerationResult?> _runDonateAiModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return null;
 
+    if (!_passesQuickDonateValidation()) {
+      if (mounted) {
+        setState(() {
+          _isDonateAiChecking = false;
+          _isDonateAiApproved = false;
+          _isPublic = false;
+          _donateAiStatus = null;
+        });
+      }
+      return null;
+    }
+
     final requestId = ++_donateAiRequestId;
     if (mounted) {
       setState(() {
         _isDonateAiChecking = true;
-        _isDonateAiApproved = false;
-        _donateAiStatus = l10n.recipeAiCalculating;
+        _isDonateAiApproved = true;
+        _donateAiStatus = _quickDonateValidationMessage();
+        if (_publicIntentEnabled &&
+            !_isDonated &&
+            (widget.recipe?.isUserRecipe ?? true)) {
+          _isPublic = true;
+        }
       });
     }
 
     try {
-      final nutrients = <String, double>{};
-      for (final key in _nutrientKeys) {
-        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
-      }
-
       final ingredients = _ingredientItems
           .map((item) => RecipeIngredient(
                 name: item.nameController.text.trim(),
@@ -259,7 +316,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         recipeDescription: _descriptionController.text.trim(),
         clarification: _clarificationController.text.trim(),
         ingredients: ingredients,
-        nutrients: nutrients,
         locale: Localizations.localeOf(context).languageCode,
       );
 
@@ -280,12 +336,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         }
       });
       return result;
-    } on GeminiRecipeException catch (e) {
+    } on GeminiRecipeException {
       if (!mounted || requestId != _donateAiRequestId) return null;
       setState(() {
         _isDonateAiChecking = false;
         _isDonateAiApproved = false;
-        _donateAiStatus = e.message;
+        _donateAiStatus = _aiUnavailableShortText();
         _isPublic = false;
       });
       return null;
@@ -666,9 +722,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final hasName = _nameController.text.trim().isNotEmpty;
     final hasIngredients = _ingredientItems
         .any((item) => item.nameController.text.trim().isNotEmpty);
-    final hasCalories =
-        _parseAmount(_nutrientControllers['calories']?.text ?? '') > 0;
-    return hasName && hasIngredients && hasCalories;
+    return hasName && hasIngredients;
   }
 
   Future<void> _donateRecipe() async {
@@ -740,16 +794,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         isPublic: true,
         isDonated: true,
       );
-      await cloudService.donateRecipe(donationRecipe.toJson());
-
-      // Помечаем локальную копию как переданную сообществу.
-      await _recipeService.updateRecipe(
-        localRecipe.copyWith(
-          isUserRecipe: false,
-          isPublic: true,
-          isDonated: true,
-        ),
-      );
+      // Сразу отражаем в UI локально, а публикацию в облако отправляем параллельно.
+      await _recipeService.updateRecipe(donationRecipe);
+      unawaited(_publishDonationInBackground(cloudService, donationRecipe));
 
       if (!mounted) return;
       context.go('/recipes');
@@ -785,6 +832,17 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           backgroundColor: Colors.red.shade700,
         ),
       );
+    }
+  }
+
+  Future<void> _publishDonationInBackground(
+    CloudDataService cloudService,
+    Recipe donationRecipe,
+  ) async {
+    try {
+      await cloudService.donateRecipe(donationRecipe.toJson());
+    } catch (_) {
+      // Локальная пометка уже обновлена мгновенно; облако дожмется следующей синхронизацией.
     }
   }
 
@@ -882,7 +940,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       _isDonated
                           ? l10n.donateRecipeAlreadyDonated
                           : (_donateAiStatus ??
-                              'Для передачи рецепта в сообщество требуется полная AI-проверка на цензуру и валидность.'),
+                              _defaultModerationIndicatorText()),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -930,8 +988,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     final visibilityStatusText = _isDonated
         ? l10n.donateRecipeAlreadyDonated
-        : (_donateAiStatus ??
-            'Для публикации рецепта требуется успешная AI-проверка на цензуру и валидность.');
+        : (_donateAiStatus ?? _defaultModerationIndicatorText());
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -981,6 +1038,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             _publicIntentEnabled = value;
                             _isPublic = value;
                           });
+                          if (!value) {
+                            _donateAiDebounce?.cancel();
+                          }
+                          _onDonateValidationInputChanged();
                         }
                       : null,
                 ),

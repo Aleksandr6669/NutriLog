@@ -50,6 +50,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final Set<String> _knownRealtimeRecipeIds = <String>{};
   String? _highlightedAppearedRecipeId;
   bool _isRecipeFeedInitialized = false;
+  List<Recipe> _cachedDefaultRecipes = const [];
+  String? _cachedDefaultRecipesLocale;
 
   @override
   void initState() {
@@ -358,9 +360,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _loadAllRecipes() async {
-    setState(() => _isLoading = true);
-    final defaultRecipes =
-        await RecipeLoader.loadRecipesFromAssets(locale: _locale);
+    final shouldShowLoader = _allRecipes.isEmpty;
+    if (shouldShowLoader) {
+      setState(() => _isLoading = true);
+    }
+
+    if (_cachedDefaultRecipesLocale != _locale || _cachedDefaultRecipes.isEmpty) {
+      _cachedDefaultRecipes =
+          await RecipeLoader.loadRecipesFromAssets(locale: _locale);
+      _cachedDefaultRecipesLocale = _locale;
+    }
+
     final userRecipes = await _recipeService.loadUserRecipes();
 
     // Дата создания закодирована в ID: recipe_{microseconds}_{hash}
@@ -382,11 +392,30 @@ class _RecipesScreenState extends State<RecipesScreen> {
           byId[id] = recipe;
           continue;
         }
+        final preferIncoming = recipe.isUserRecipe && !existing.isUserRecipe;
+        final preferExisting = existing.isUserRecipe && !recipe.isUserRecipe;
+        final preferExistingPrivateOverIncomingPublic =
+            existing.isUserRecipe && !existing.isPublic &&
+                recipe.isUserRecipe && recipe.isPublic;
+        final preferIncomingPrivateOverExistingPublic =
+            recipe.isUserRecipe && !recipe.isPublic &&
+                existing.isUserRecipe && existing.isPublic;
+
+        String pickString(String current, String next) {
+          if (preferExistingPrivateOverIncomingPublic) {
+            return current.isNotEmpty ? current : next;
+          }
+          if (preferIncomingPrivateOverExistingPublic) {
+            return next.isNotEmpty ? next : current;
+          }
+          if (preferIncoming) return next.isNotEmpty ? next : current;
+          if (preferExisting) return current.isNotEmpty ? current : next;
+          return next.isNotEmpty ? next : current;
+        }
+
         byId[id] = existing.copyWith(
-          name: recipe.name.isNotEmpty ? recipe.name : existing.name,
-          description: recipe.description.isNotEmpty
-              ? recipe.description
-              : existing.description,
+          name: pickString(existing.name, recipe.name),
+          description: pickString(existing.description, recipe.description),
           nutrients: recipe.nutrients.isNotEmpty
               ? recipe.nutrients
               : existing.nutrients,
@@ -441,12 +470,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _isRecipeFeedInitialized = true;
 
     // 3. Встроенные рецепты из ассетов
-    final allRecipes = [...ownRecipes, ...othersRecipes, ...defaultRecipes];
+    final allRecipes = [...ownRecipes, ...othersRecipes, ..._cachedDefaultRecipes];
 
     setState(() {
       _highlightedAppearedRecipeId = nextHighlightedRecipeId;
       _allRecipes = allRecipes;
-      _filteredRecipes = _allRecipes;
+      final query = _searchController.text.toLowerCase();
+      _filteredRecipes = query.isEmpty
+          ? _allRecipes
+          : _allRecipes.where((recipe) {
+              return recipe.name.toLowerCase().contains(query) ||
+                  recipe.description.toLowerCase().contains(query);
+            }).toList(growable: false);
       _isLoading = false;
     });
   }

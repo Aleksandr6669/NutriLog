@@ -158,7 +158,7 @@
   "statsProgress": "Progress",
   "statsAiReportTitle": "AI Report",
   "statsAiOverviewTitle": "Part 1. Goal Analysis",
-  "statsAiPlanTitle": "Part 2. What and When to Eat",
+  "statsAiPlanTitle": "Part 2. Practical Steps",
   "statsAiNoPlan": "Meal plan is not available yet.",
   "statsAiMealTimeAny": "Time: any",
   "statsAiMealTimeLabel": "Time",
@@ -182,7 +182,7 @@
     "statsAiNotMedicalAdvice": "This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.",
   "statsAiLoading": "Loading AI report...",
   "statsAiUpdating": "Diary changed — updating report...",
-  "statsAiError": "Could not generate AI report. Please try again later.",
+  "statsAiError": "AI is temporarily unavailable.",
   "statsStructuredFallbackOverview": "Report for {periodLabel} was generated in fallback mode. Average calories: {avgCalories} kcal vs goal {calorieGoal} kcal; protein: {avgProteinGrams} g vs goal {proteinGoal} g. Steps: {avgSteps} vs goal {stepsGoal}. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.",
   "@statsStructuredFallbackOverview": {
     "placeholders": {
@@ -294,7 +294,7 @@
   "recipeAiCalculating": "Calculating nutrition...",
   "recipeAiPendingUpdate": "Ingredients changed — recalculating nutrition...",
   "recipeAiUpdated": "Nutrition values updated.",
-  "recipeAiFailed": "AI nutrition calculation failed.",
+  "recipeAiFailed": "AI is temporarily unavailable.",
   "recipeAiDisclaimer": "AI estimates may be inaccurate by about 10%; verify values before saving.",
   "recipeClarificationHint": "Clarification for AI (e.g., boiled, with milk, 100g dry)",
   "recipeClarificationDescription": "Describe preparation method, form or other details — AI will use this when calculating.",

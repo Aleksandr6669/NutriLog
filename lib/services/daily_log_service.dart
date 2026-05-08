@@ -84,6 +84,16 @@ class DailyLogService {
     await cloud.writeMap('daily_logs', {'logs': localData});
   }
 
+  Future<void> pullFromCloudReplaceLocal() async {
+    final cloud = CloudDataService.instance;
+    if (!cloud.isSignedIn) return;
+
+    final remote = await cloud.readMap('daily_logs');
+    final logs = remote?['logs'];
+    if (logs is! Map<String, dynamic>) return;
+    await saveRawDataFromCloud(logs);
+  }
+
   Map<String, dynamic> _emptyMealsJson() {
     return {
       'breakfast': [],

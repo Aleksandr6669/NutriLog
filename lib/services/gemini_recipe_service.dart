@@ -133,7 +133,7 @@ class GeminiRecipeService {
   static const Duration _routerRequestTimeout = Duration(seconds: 4);
   static const int _jsonRetryMaxAttempts = 5;
   static const int _recheckRetryMaxAttempts = 2;
-  static const int _moderationRetryMaxAttempts = 3;
+  static const int _moderationRetryMaxAttempts = 1;
   static const Duration _jsonRetryDelay = Duration(seconds: 10);
   static const Duration _routerHistoryRetention = Duration(days: 30);
   static const Duration _routerErrorBypassWindow = Duration(hours: 6);
@@ -832,7 +832,7 @@ Rules:
     required String recipeDescription,
     required String clarification,
     required List<RecipeIngredient> ingredients,
-    required Map<String, double> nutrients,
+    Map<String, double>? nutrients,
     String? locale,
   }) async {
     if (recipeName.trim().isEmpty || ingredients.isEmpty) {
@@ -845,9 +845,12 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\n');
 
-    final nutrientsText = nutrientKeys
-        .map((k) => '$k=${(nutrients[k] ?? 0).toStringAsFixed(2)}')
-        .join(', ');
+    final hasNutrients = nutrients != null && nutrients.isNotEmpty;
+    final nutrientsText = hasNutrients
+        ? nutrientKeys
+            .map((k) => '$k=${(nutrients[k] ?? 0).toStringAsFixed(2)}')
+            .join(', ')
+        : '(not provided)';
 
     final prompt = '''
 You are a strict content moderation and culinary validation assistant.
@@ -859,10 +862,10 @@ Reject the recipe if ANY of these is true:
 - contains profanity, insults, obscene/sexual terms, hateful content, harassment;
 - contains obvious nonsense, trolling, spam, gibberish, or fake recipe text;
 - contains meaningless letter sequences, keyboard mashing, random characters, or unreadable fragments in the name, description, clarification, or ingredient names;
-- is clearly not a food recipe;
-- ingredient list contains absurd quantities for one serving (for example salt in hundreds of grams/kilograms).
+- is clearly not a food recipe.
 
 Do NOT reject only because a product is branded/packaged/store-bought (energy drink, soda, protein bar, yogurt, etc.) if it is a plausible food item.
+Do NOT reject because units, quantities, or weight values may be imprecise, unusual, missing, or inconsistent.
 
 Allow only if recipe looks legitimate, understandable, and safe for a public food community.
 
@@ -872,7 +875,7 @@ Recipe data:
 - clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
 - ingredients:
 $ingredientsText
-- nutrients: $nutrientsText
+- nutrients (optional context): $nutrientsText
 
 Return ONLY JSON:
 {
@@ -900,7 +903,7 @@ Rules:
           }
         ],
         'temperature': 0,
-        'max_completion_tokens': 300,
+        'max_completion_tokens': 160,
         'top_p': 1,
         'stream': false,
       },
@@ -1237,52 +1240,7 @@ Rules:
         _messages(locale).aiEmptyReportError,
       );
     }
-    // Recheck accuracy with a faster model
-    return _recheckStatsReportWithAi(report, locale: locale);
-  }
-
-  Future<String> _recheckStatsReportWithAi(
-    String report, {
-    String? locale,
-  }) async {
-    final recheckPrompt = '''
-You are a strict QA checker for nutrition and fitness reports.
-${_languageInstruction(locale)}
-
-Check the report for factual inconsistencies, contradictions, or clearly wrong statements.
-If it looks correct, return it unchanged.
-If there are issues, return a corrected version.
-
-Report:
-$report
-
-Return ONLY JSON:
-{ "report": "..." }
-
-Rules:
-- report must be non-empty
-- no markdown, no extra keys
-''';
-    try {
-      final recheckDecoded = await _requestDecodedJsonWithAutoRetry(
-        body: {
-          'messages': [
-            {'role': 'user', 'content': recheckPrompt}
-          ],
-          'temperature': 0.1,
-          'max_completion_tokens': 500,
-          'top_p': 1,
-          'stream': false,
-        },
-        locale: locale,
-        modelsOverride: _recheckModels,
-        maxAttempts: _recheckRetryMaxAttempts,
-      );
-      final rechecked = (recheckDecoded['report'] as String? ?? '').trim();
-      return rechecked.isEmpty ? report : rechecked;
-    } catch (_) {
-      return report;
-    }
+    return report;
   }
 
   Future<Map<String, dynamic>> generateStructuredStatsReport({
@@ -1412,12 +1370,6 @@ Rules:
     final previousRecommendedRecipesContext =
         previousRecipeNames.take(40).map((name) => '- $name').join('\n');
 
-    final allowedRecipeNames = availableRecipes
-        .map((r) => (r['name'] as String? ?? '').trim())
-        .where((name) => name.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-
     final prompt = '''
 You are a supportive fitness assistant and nutritionist.
 ${_languageInstruction(locale)}
@@ -1493,10 +1445,10 @@ Previously recommended recipes (prefer continuity when still relevant):
 ${previousRecommendedRecipesContext.isEmpty ? '- none' : previousRecommendedRecipesContext}
 
 Task:
-1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 6-10 sentences.
+1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 10-16 sentences.
 2) Start with personal addressing using the user's name naturally.
 3) Mention key achievements and where user is behind goals.
-4) Mention what foods/dishes are consumed most often and what to improve.
+4) Mention what foods/dishes are consumed most often.
 5) Give concrete improvement tips for nutrition balance, including snack ideas (for example, vegetables if suitable).
 6) Add practical meal plan recommendations for the next period (what and when to eat) focused on deficits/excesses.
 7) If suitable recipes from the list exist, include exact recipe names from the provided list.
@@ -1512,6 +1464,13 @@ Task:
     UNLESS goal type is muscle gain or weight gain.
 17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
 18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
+19) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
+20) Build overview in 3 mini-paragraphs separated by blank lines:
+  A) progress snapshot and positive reinforcement,
+  B) diagnosis of nutrition/activity bottlenecks,
+  C) specific plan for the next period.
+21) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
+22) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
@@ -1528,7 +1487,7 @@ Return ONLY JSON object in this format:
 }
 
 Rules:
-- recommendations: 3 to 6 items
+- recommendations: 4 to 8 items
 - no markdown, no extra keys, no text outside JSON
 - do not output labels like "Part 1" or "Part 2"
 - do not add snack recommendation if snack is not needed
@@ -1545,7 +1504,7 @@ Rules:
             }
           ],
           'temperature': 0.4,
-          'max_completion_tokens': 520,
+          'max_completion_tokens': 860,
           'top_p': 1,
           'stream': false,
         },
@@ -1585,17 +1544,10 @@ Rules:
       }
     }
 
-    final initialResult = {
+    final reviewed = {
       'overview': overview,
       'recommendations': recommendations,
     };
-
-    final reviewed = await _recheckStructuredStatsReportWithAi(
-      initialResult: initialResult,
-      snackLikelyNeeded: snackLikelyNeeded,
-      allowedRecipeNames: allowedRecipeNames,
-      locale: locale,
-    );
 
     final reviewedOverview = (reviewed['overview'] as String? ?? '').trim();
     final reviewedRecommendations =
@@ -1647,77 +1599,8 @@ Rules:
 
     return {
       'overview': overview,
-      'recommendations': recommendations.take(6).toList(growable: false),
+      'recommendations': recommendations.take(8).toList(growable: false),
     };
-  }
-
-  Future<Map<String, dynamic>> _recheckStructuredStatsReportWithAi({
-    required Map<String, dynamic> initialResult,
-    required bool snackLikelyNeeded,
-    required List<String> allowedRecipeNames,
-    String? locale,
-  }) async {
-    final allowedRecipesText = allowedRecipeNames.isEmpty
-        ? '(none)'
-        : allowedRecipeNames.map((name) => '- $name').join('\n');
-
-    final prompt = '''
-You are a strict QA validator for AI nutrition reports.
-${_languageInstruction(locale)}
-
-Read the candidate JSON report below, verify consistency, and return a corrected JSON if needed.
-
-Candidate report JSON:
-${jsonEncode(initialResult)}
-
-Validation rules:
-- Keep ONLY this structure:
-  {
-    "overview": "...",
-    "recommendations": [
-      {"when": "breakfast|lunch|dinner|snack|any", "action": "...", "recipeName": "..."}
-    ]
-  }
-- overview must be non-empty.
-- recommendations must contain 3 to 6 items.
-- each recommendation action must be non-empty.
-- If snackLikelyNeeded = no, do NOT include snack recommendations.
-- If recipeName is not empty, it must be one of allowed recipe names below; otherwise set recipeName to empty string.
-- Remove duplicates and contradictory recommendations when possible.
-- No markdown, no extra keys, no text outside JSON.
-
-snackLikelyNeeded: ${snackLikelyNeeded ? 'yes' : 'no'}
-
-Allowed recipe names:
-$allowedRecipesText
-''';
-
-    try {
-      final decoded = await _requestDecodedJsonWithAutoRetry(
-        body: {
-          'messages': [
-            {
-              'role': 'user',
-              'content': prompt,
-            }
-          ],
-          'temperature': 0.1,
-          'max_completion_tokens': 520,
-          'top_p': 1,
-          'stream': false,
-        },
-        locale: locale,
-        modelsOverride: _recheckModels,
-        maxAttempts: _recheckRetryMaxAttempts,
-      );
-      if (decoded['overview'] is! String ||
-          decoded['recommendations'] is! List) {
-        return initialResult;
-      }
-      return decoded;
-    } catch (_) {
-      return initialResult;
-    }
   }
 
   List<Map<String, dynamic>> _ensureApproximateRecommendations({
@@ -1789,32 +1672,122 @@ $allowedRecipesText
     required bool snackLikelyNeeded,
     String? locale,
   }) {
-    final sample = _ensureApproximateRecommendations(
-      recommendations: [
+    final topFoodName = topFoods
+        .map((f) => (f['name'] as String? ?? '').trim())
+        .firstWhere((name) => name.isNotEmpty, orElse: () => '');
+
+    final base = <Map<String, dynamic>>[
+      {
+        'when': 'breakfast',
+        'action': _fallbackRecommendationAction(
+          when: 'breakfast',
+          locale: locale,
+          topFoodName: topFoodName,
+        ),
+        'recipeName': '',
+      },
+      {
+        'when': 'lunch',
+        'action': _fallbackRecommendationAction(
+          when: 'lunch',
+          locale: locale,
+          topFoodName: topFoodName,
+        ),
+        'recipeName': '',
+      },
+      {
+        'when': 'dinner',
+        'action': _fallbackRecommendationAction(
+          when: 'dinner',
+          locale: locale,
+          topFoodName: topFoodName,
+        ),
+        'recipeName': '',
+      },
+      if (snackLikelyNeeded)
         {
-          'when': 'breakfast',
-          'action': '',
+          'when': 'snack',
+          'action': _fallbackRecommendationAction(
+            when: 'snack',
+            locale: locale,
+            topFoodName: topFoodName,
+          ),
           'recipeName': '',
         },
-        {
-          'when': snackLikelyNeeded ? 'snack' : 'lunch',
-          'action': '',
-          'recipeName': '',
-        },
-        {
-          'when': 'dinner',
-          'action': '',
-          'recipeName': '',
-        },
-      ],
+    ];
+
+    final normalized = _ensureApproximateRecommendations(
+      recommendations: base,
       topFoods: topFoods,
       snackLikelyNeeded: snackLikelyNeeded,
       locale: locale,
     );
 
-    return sample
+    return normalized
         .where((item) => (item['action'] as String? ?? '').trim().isNotEmpty)
         .toList(growable: false);
+  }
+
+  String _fallbackRecommendationAction({
+    required String when,
+    required String? locale,
+    required String topFoodName,
+  }) {
+    final hasTopFood = topFoodName.trim().isNotEmpty;
+    final code = _languageCode(locale);
+
+    if (code == 'uk') {
+      switch (when) {
+        case 'breakfast':
+          return hasTopFood
+              ? 'Залиш сніданок простим: додай білок і клітковину, а ранкове солодке зменш.'
+              : 'Залиш сніданок регулярним: білок, складні вуглеводи та вода.';
+        case 'lunch':
+          return hasTopFood
+              ? 'В обід залиш звичні страви, але додай овочі й контролюй порцію $topFoodName.'
+              : 'На обід збирай тарілку: білок, гарнір і овочі.';
+        case 'dinner':
+          return 'Роби вечерю легшою: менше швидких вуглеводів, більше овочів і стабільний час.';
+        case 'snack':
+          return 'Для перекусу обирай варіанти з білком або клітковиною та меншим вмістом цукру.';
+      }
+    }
+
+    if (code == 'en') {
+      switch (when) {
+        case 'breakfast':
+          return hasTopFood
+              ? 'Keep breakfast simple: add protein and fiber, and limit sweet items in the morning.'
+              : 'Keep breakfast consistent with protein, complex carbs, and water.';
+        case 'lunch':
+          return hasTopFood
+              ? 'For lunch, keep familiar foods but add vegetables and portion control around $topFoodName.'
+              : 'Build lunch around a balanced plate: protein, carbs, and vegetables.';
+        case 'dinner':
+          return 'Make dinner lighter: fewer fast carbs, more vegetables, and stable meal timing.';
+        case 'snack':
+          return 'Choose snacks with more protein or fiber and less sugar.';
+      }
+    }
+
+    switch (when) {
+      case 'breakfast':
+        return hasTopFood
+            ? 'Оставь завтрак простым: добавь белок и клетчатку, а сладкое утром сократи.'
+            : 'Сделай завтрак стабильным: белок, сложные углеводы и вода.';
+      case 'lunch':
+        return hasTopFood
+            ? 'В обед сохрани привычные блюда, но добавь овощи и контроль порции для $topFoodName.'
+            : 'В обед собирай сбалансированную тарелку: белок, гарнир и овощи.';
+      case 'dinner':
+        return 'Ужин делай легче: меньше быстрых углеводов, больше овощей и стабильное время.';
+      case 'snack':
+        return 'Для перекуса выбирай варианты с белком или клетчаткой и меньшим количеством сахара.';
+      default:
+        return hasTopFood
+            ? 'Сохрани хорошие привычки и постепенно улучшай рацион вокруг $topFoodName.'
+            : 'Сохрани хорошие привычки и постепенно улучшай баланс рациона.';
+    }
   }
 
   Future<DailyGoalsDraft> generateDailyGoals({
@@ -1865,93 +1838,7 @@ Rules:
 - Do not add any explanations outside the JSON.
 ''';
 
-    final decoded = await _requestDecodedJsonWithAutoRetry(
-      body: {
-        'messages': [
-          {
-            'role': 'user',
-            'content': prompt,
-          }
-        ],
-        'temperature': 0.3,
-        'max_completion_tokens': 400,
-        'top_p': 1,
-        'stream': false,
-      },
-      locale: locale,
-    );
-
-    int normalizeInt(dynamic value, int fallback) {
-      final parsed = _toNonNegativeDouble(value).round();
-      return parsed <= 0 ? fallback : parsed;
-    }
-
-    final aiDraft = DailyGoalsDraft(
-      calorieGoal: normalizeInt(decoded['calorieGoal'], profile.calorieGoal),
-      proteinGoal: normalizeInt(decoded['proteinGoal'], profile.proteinGoal),
-      fatGoal: normalizeInt(decoded['fatGoal'], profile.fatGoal),
-      carbsGoal: normalizeInt(decoded['carbsGoal'], profile.carbsGoal),
-      waterGoal: normalizeInt(decoded['waterGoal'], profile.waterGoal),
-      stepsGoal: normalizeInt(decoded['stepsGoal'], profile.stepsGoal),
-    );
-
-    final recheckedDraft = await _recheckDailyGoalsWithAi(
-      profile: profile,
-      firstPass: aiDraft,
-      locale: locale,
-    );
-
-    return _normalizeDailyGoalsWithProfile(profile, recheckedDraft);
-  }
-
-  Future<DailyGoalsDraft> _recheckDailyGoalsWithAi({
-    required UserProfile profile,
-    required DailyGoalsDraft firstPass,
-    String? locale,
-  }) async {
-    final prompt = '''
-You are a strict QA validator for daily nutrition and activity goals.
-${_languageInstruction(locale)}
-
-Validate the candidate goals for realism and internal consistency.
-If values look good, keep them unchanged.
-If there are inconsistencies, correct them conservatively.
-
-User profile:
-- Gender: ${profile.gender.enLabel}
-- Age: ${profile.age}
-- Height: ${profile.height} cm
-- Current weight: ${profile.weight.toStringAsFixed(1)} kg
-- Target weight: ${profile.weightGoal.toStringAsFixed(1)} kg
-- Goal type: ${profile.goalType.enLabel}
-- Physical activity frequency: ${profile.activityFrequency.enLabel}
-- Activity types / sports: ${profile.activityTypes.isEmpty ? 'not specified' : profile.activityTypes}
-
-Candidate goals:
-- calorieGoal: ${firstPass.calorieGoal}
-- proteinGoal: ${firstPass.proteinGoal}
-- fatGoal: ${firstPass.fatGoal}
-- carbsGoal: ${firstPass.carbsGoal}
-- waterGoal: ${firstPass.waterGoal}
-- stepsGoal: ${firstPass.stepsGoal}
-
-Return ONLY JSON:
-{
-  "calorieGoal": 0,
-  "proteinGoal": 0,
-  "fatGoal": 0,
-  "carbsGoal": 0,
-  "waterGoal": 0,
-  "stepsGoal": 0
-}
-
-Rules:
-- all values must be positive integers
-- keep values realistic for daily adherence
-- keep goals internally consistent: calories ≈ protein*4 + carbs*4 + fat*9
-- no markdown, no extra keys, no extra text
-''';
-
+    DailyGoalsDraft aiDraft;
     try {
       final decoded = await _requestDecodedJsonWithAutoRetry(
         body: {
@@ -1961,34 +1848,40 @@ Rules:
               'content': prompt,
             }
           ],
-          'temperature': 0.1,
-          'max_completion_tokens': 220,
+          'temperature': 0.2,
+          'max_completion_tokens': 260,
           'top_p': 1,
           'stream': false,
         },
         locale: locale,
-        modelsOverride: _recheckModels,
-        maxAttempts: _recheckRetryMaxAttempts,
+        maxAttempts: 1,
       );
 
-      int normalizedInt(dynamic value, int fallback) {
+      int normalizeInt(dynamic value, int fallback) {
         final parsed = _toNonNegativeDouble(value).round();
         return parsed <= 0 ? fallback : parsed;
       }
 
-      return DailyGoalsDraft(
-        calorieGoal:
-            normalizedInt(decoded['calorieGoal'], firstPass.calorieGoal),
-        proteinGoal:
-            normalizedInt(decoded['proteinGoal'], firstPass.proteinGoal),
-        fatGoal: normalizedInt(decoded['fatGoal'], firstPass.fatGoal),
-        carbsGoal: normalizedInt(decoded['carbsGoal'], firstPass.carbsGoal),
-        waterGoal: normalizedInt(decoded['waterGoal'], firstPass.waterGoal),
-        stepsGoal: normalizedInt(decoded['stepsGoal'], firstPass.stepsGoal),
+      aiDraft = DailyGoalsDraft(
+        calorieGoal: normalizeInt(decoded['calorieGoal'], profile.calorieGoal),
+        proteinGoal: normalizeInt(decoded['proteinGoal'], profile.proteinGoal),
+        fatGoal: normalizeInt(decoded['fatGoal'], profile.fatGoal),
+        carbsGoal: normalizeInt(decoded['carbsGoal'], profile.carbsGoal),
+        waterGoal: normalizeInt(decoded['waterGoal'], profile.waterGoal),
+        stepsGoal: normalizeInt(decoded['stepsGoal'], profile.stepsGoal),
       );
     } catch (_) {
-      return firstPass;
+      aiDraft = DailyGoalsDraft(
+        calorieGoal: profile.calorieGoal,
+        proteinGoal: profile.proteinGoal,
+        fatGoal: profile.fatGoal,
+        carbsGoal: profile.carbsGoal,
+        waterGoal: profile.waterGoal,
+        stepsGoal: profile.stepsGoal,
+      );
     }
+
+    return _normalizeDailyGoalsWithProfile(profile, aiDraft);
   }
 
   DailyGoalsDraft _normalizeDailyGoalsWithProfile(
@@ -2159,66 +2052,13 @@ Rules:
     }
 
     final firstPassCalories = calories.clamp(30, 2500);
-    final correctedCalories = await _recheckActivityCaloriesWithAi(
-      description: normalized,
-      firstPassCalories: firstPassCalories,
-      locale: locale,
-    );
+    final correctedCalories = firstPassCalories;
 
     return ActivityAiDraft(
       name: parsedName.isEmpty ? normalized : parsedName,
       description: parsedDescription.isEmpty ? normalized : parsedDescription,
       calories: correctedCalories,
     );
-  }
-
-  Future<int> _recheckActivityCaloriesWithAi({
-    required String description,
-    required int firstPassCalories,
-    String? locale,
-  }) async {
-    final prompt = '''
-You are a sports science expert.
-${_languageInstruction(locale)}
-
-Verify the calorie estimate for the activity below.
-If it looks reasonable, return it unchanged.
-If it is clearly too high or too low for a typical session, correct it.
-
-Input data:
-- activity: $description
-- proposed_calories: $firstPassCalories
-
-Return ONLY JSON:
-{ "calories": 0 }
-
-Rules:
-- calories must be a positive integer
-- be realistic for one session
-- no markdown, no extra text
-''';
-    try {
-      final recheckDecoded = await _requestDecodedJsonWithAutoRetry(
-        body: {
-          'messages': [
-            {'role': 'user', 'content': prompt}
-          ],
-          'temperature': 0.1,
-          'max_completion_tokens': 60,
-          'top_p': 1,
-          'stream': false,
-        },
-        locale: locale,
-        modelsOverride: _recheckModels,
-        maxAttempts: _recheckRetryMaxAttempts,
-      );
-      final corrected =
-          _toNonNegativeDouble(recheckDecoded['calories']).round();
-      if (corrected <= 0) return firstPassCalories;
-      return corrected.clamp(30, 2500);
-    } catch (_) {
-      return firstPassCalories;
-    }
   }
 
   Future<int> estimateActivityCaloriesFromDescription({

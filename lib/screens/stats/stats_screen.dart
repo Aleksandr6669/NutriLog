@@ -56,6 +56,7 @@ class _StatsScreenState extends State<StatsScreen> {
   StreamSubscription<void>? _profileCacheSubscription;
   Timer? _reloadDebounce;
   bool _isDebouncePending = false;
+  Map<String, dynamic>? _lastLoadedStats;
 
   @override
   void initState() {
@@ -113,9 +114,6 @@ class _StatsScreenState extends State<StatsScreen> {
     unawaited(LocalFirstSyncService.instance.syncNow());
     setState(() {
       _isDebouncePending = false;
-      _aiOverview = null;
-      _aiRecommendations = const [];
-      _aiError = false;
       _statsFuture = _loadData();
     });
   }
@@ -818,19 +816,27 @@ class _StatsScreenState extends State<StatsScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _statsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          final hasFreshData = snapshot.hasData && snapshot.data!.isNotEmpty;
+          if (hasFreshData) {
+            _lastLoadedStats = snapshot.data!;
+          }
+          final effectiveData =
+              hasFreshData ? snapshot.data! : _lastLoadedStats;
+
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              effectiveData == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
+          if (snapshot.hasError && effectiveData == null) {
             return Center(
               child: Text(l10n.statsErrorLoading(snapshot.error.toString())),
             );
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (effectiveData == null || effectiveData.isEmpty) {
             return Center(child: Text(l10n.statsNoDataForAnalysis));
           }
 
-          final data = snapshot.data!;
+          final data = effectiveData;
           final aiAssistantEnabled =
               data['aiAssistantEnabled'] as bool? ?? true;
           final requestId = _dataRequestId;
@@ -1534,7 +1540,7 @@ class _StatsScreenState extends State<StatsScreen> {
     } else if (_aiError) {
       overviewText = l10n.statsAiError;
     } else if (_aiOverview == null) {
-      overviewText = l10n.statsAiLoading;
+      overviewText = '';
     } else {
       overviewText = _aiOverview!;
     }
@@ -1555,16 +1561,20 @@ class _StatsScreenState extends State<StatsScreen> {
                     color: theme.colorScheme.onSurface.withAlpha(255),
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            Text(
-              overviewText,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 13,
-                  color: theme.colorScheme.onSurface.withAlpha(204)),
-            ),
+            if (overviewText.trim().isNotEmpty)
+              _buildAiOverviewSections(theme, overviewText),
             const SizedBox(height: 8),
-            if (_isDebouncePending || _aiError || _aiOverview == null)
+            if (_isDebouncePending || (_aiOverview == null && !_aiError))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: const LinearProgressIndicator(minHeight: 3),
+                ),
+              )
+            else if (_aiError)
               Text(
-                l10n.statsAiLoading,
+                l10n.statsAiError,
                 style: theme.textTheme.bodySmall,
               )
             else if (_aiRecommendations.isEmpty)
@@ -1655,6 +1665,50 @@ class _StatsScreenState extends State<StatsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAiOverviewSections(ThemeData theme, String text) {
+    final paragraphs = text
+        .split(RegExp(r'\n\s*\n'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList(growable: false);
+
+    if (paragraphs.isEmpty) {
+      return Text(
+        text,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 13,
+          color: theme.colorScheme.onSurface.withAlpha(204),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (var i = 0; i < paragraphs.length; i++)
+          Container(
+            width: double.infinity,
+            margin: EdgeInsets.only(bottom: i == paragraphs.length - 1 ? 0 : 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.52),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.16),
+              ),
+            ),
+            child: Text(
+              paragraphs[i],
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 13,
+                height: 1.35,
+                color: theme.colorScheme.onSurface.withAlpha(214),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

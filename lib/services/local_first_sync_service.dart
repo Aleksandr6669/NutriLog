@@ -26,6 +26,7 @@ class LocalFirstSyncService {
   bool _started = false;
   bool _isSyncing = false;
   bool _wasConnected = false;
+  String? _preparedUid;
 
   void start() {
     if (_started) return;
@@ -36,16 +37,24 @@ class LocalFirstSyncService {
     _started = true;
 
     _authSubscription = FirebaseAuthService.instance.authStateChanges().listen(
-      (user) {
-        if (user == null) return;
+      (user) async {
+        if (user == null) {
+          _preparedUid = null;
+          return;
+        }
+
+        if (_preparedUid != user.uid) {
+          _preparedUid = user.uid;
+          await _resetLocalAndPullFromCloud();
+        }
+
         syncNow();
       },
     );
 
     _connectivitySubscription =
         Connectivity().onConnectivityChanged.listen((results) {
-      final hasConnection =
-          results.any((r) => r != ConnectivityResult.none);
+      final hasConnection = results.any((r) => r != ConnectivityResult.none);
       if (hasConnection && !_wasConnected) {
         _wasConnected = true;
         syncNow();
@@ -85,6 +94,29 @@ class LocalFirstSyncService {
     } catch (_) {
       statusNotifier.value = SyncStatus.error;
       // Все данные уже записаны локально. Следующий retry догонит облако.
+    } finally {
+      _isSyncing = false;
+    }
+  }
+
+  Future<void> _resetLocalAndPullFromCloud() async {
+    if (_isSyncing || !FirebaseAuthService.instance.isSignedIn) return;
+
+    _isSyncing = true;
+    statusNotifier.value = SyncStatus.syncing;
+    try {
+      await ProfileService.clearCache();
+      await DailyLogService.clearCache();
+      await RecipeService.clearCache();
+
+      await ProfileService().pullFromCloudReplaceLocal();
+      await DailyLogService().pullFromCloudReplaceLocal();
+      await RecipeService().pullFromCloudReplaceLocal();
+
+      lastSyncedAt = DateTime.now();
+      statusNotifier.value = SyncStatus.synced;
+    } catch (_) {
+      statusNotifier.value = SyncStatus.error;
     } finally {
       _isSyncing = false;
     }

@@ -508,7 +508,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiOverviewTitle => 'Часть 1. Анализ по целям';
 
   @override
-  String get statsAiPlanTitle => 'Часть 2. Что и когда есть';
+  String get statsAiPlanTitle => 'Часть 2. Практические шаги';
 
   @override
   String get statsAiNoPlan => 'План пока не сформирован.';
@@ -570,8 +570,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiUpdating => 'Дневник изменился — обновляю отчёт...';
 
   @override
-  String get statsAiError =>
-      'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
+  String get statsAiError => 'Нейросеть временно недоступна.';
 
   @override
   String statsStructuredFallbackOverview(
@@ -779,7 +778,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recipeAiUpdated => 'Пищевые значения обновлены.';
 
   @override
-  String get recipeAiFailed => 'Не удалось рассчитать пищевую ценность AI.';
+  String get recipeAiFailed => 'Нейросеть временно недоступна.';
 
   @override
   String get recipeAiDisclaimer =>

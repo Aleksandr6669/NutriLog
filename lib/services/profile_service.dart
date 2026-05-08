@@ -54,6 +54,15 @@ class ProfileService {
     await cloud.writeMap('profile', localProfile.toJson());
   }
 
+  Future<void> pullFromCloudReplaceLocal() async {
+    final cloud = CloudDataService.instance;
+    if (!cloud.isSignedIn) return;
+
+    final remote = await cloud.readMap('profile');
+    if (remote == null || remote.isEmpty) return;
+    await saveProfileRaw(remote);
+  }
+
   Future<void> saveProfile(UserProfile profile) async {
     final prefs = await SharedPreferences.getInstance();
     final String profileString = json.encode(profile.toJson());

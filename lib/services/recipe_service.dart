@@ -10,7 +10,24 @@ class RecipeService {
   static final StreamController<void> _cacheUpdatesController =
       StreamController<void>.broadcast();
 
+  static const _legacyUserRecipesKey = 'user_recipes';
+  static const _legacyPublicRecipesKey = 'public_recipes_cache';
+
   Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
+
+  static String _scopeSuffixFromCurrentUser() {
+    final uid = CloudDataService.instance.currentUserId?.trim();
+    if (uid == null || uid.isEmpty) return 'local';
+    return uid;
+  }
+
+  static String _scopedUserRecipesKey() {
+    return 'user_recipes_${_scopeSuffixFromCurrentUser()}';
+  }
+
+  static String _scopedPublicRecipesKey() {
+    return 'public_recipes_cache_${_scopeSuffixFromCurrentUser()}';
+  }
 
   void _notifyCacheUpdated() {
     if (!_cacheUpdatesController.isClosed) {
@@ -21,12 +38,12 @@ class RecipeService {
   /// Очищает локальный кеш рецептов пользователя
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userRecipesKey);
-    await prefs.remove(_publicRecipesKey);
+    await prefs.remove(_scopedUserRecipesKey());
+    await prefs.remove(_scopedPublicRecipesKey());
+    if (!_cacheUpdatesController.isClosed) {
+      _cacheUpdatesController.add(null);
+    }
   }
-
-  static const _userRecipesKey = 'user_recipes';
-  static const _publicRecipesKey = 'public_recipes_cache';
 
   List<Recipe> _loadRecipesFromJsonString(String? jsonString) {
     if (jsonString == null || jsonString.isEmpty) return <Recipe>[];
@@ -38,9 +55,31 @@ class RecipeService {
         .toList(growable: false);
   }
 
+  Future<String?> _readWithLegacyMigration(
+    SharedPreferences prefs, {
+    required String scopedKey,
+    required String legacyKey,
+  }) async {
+    final scoped = prefs.getString(scopedKey);
+    if (scoped != null) return scoped;
+
+    final legacy = prefs.getString(legacyKey);
+    if (legacy == null || legacy.isEmpty) return null;
+
+    // One-time migration from old global key to current scoped key.
+    await prefs.setString(scopedKey, legacy);
+    await prefs.remove(legacyKey);
+    return legacy;
+  }
+
   Future<List<Recipe>> _loadLocalPrivateRecipes() async {
     final prefs = await SharedPreferences.getInstance();
-    final local = _loadRecipesFromJsonString(prefs.getString(_userRecipesKey));
+    final localJson = await _readWithLegacyMigration(
+      prefs,
+      scopedKey: _scopedUserRecipesKey(),
+      legacyKey: _legacyUserRecipesKey,
+    );
+    final local = _loadRecipesFromJsonString(localJson);
     return local
         .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: false))
         .toList(growable: false);
@@ -48,8 +87,12 @@ class RecipeService {
 
   Future<List<Recipe>> _loadLocalPublicRecipes() async {
     final prefs = await SharedPreferences.getInstance();
-    final local =
-        _loadRecipesFromJsonString(prefs.getString(_publicRecipesKey));
+    final localJson = await _readWithLegacyMigration(
+      prefs,
+      scopedKey: _scopedPublicRecipesKey(),
+      legacyKey: _legacyPublicRecipesKey,
+    );
+    final local = _loadRecipesFromJsonString(localJson);
     // Не переопределяем isUserRecipe — значение из JSON сохраняет права автора.
     return local
         .map((recipe) => recipe.copyWith(isPublic: true))
@@ -58,25 +101,27 @@ class RecipeService {
 
   Future<void> _savePrivateRecipesToPrefs(List<Recipe> recipes) async {
     final prefs = await SharedPreferences.getInstance();
+    final key = _scopedUserRecipesKey();
     final jsonList = recipes
         .map((r) => r.copyWith(isPublic: false).toJson())
         .toList(growable: false);
     final encoded = json.encode(jsonList);
-    if (prefs.getString(_userRecipesKey) == encoded) return;
+    if (prefs.getString(key) == encoded) return;
 
-    await prefs.setString(_userRecipesKey, encoded);
+    await prefs.setString(key, encoded);
     _notifyCacheUpdated();
   }
 
   Future<void> _savePublicRecipesToPrefs(List<Recipe> recipes) async {
     final prefs = await SharedPreferences.getInstance();
+    final key = _scopedPublicRecipesKey();
     final jsonList = recipes
         .map((r) => r.copyWith(isPublic: true).toJson())
         .toList(growable: false);
     final encoded = json.encode(jsonList);
-    if (prefs.getString(_publicRecipesKey) == encoded) return;
+    if (prefs.getString(key) == encoded) return;
 
-    await prefs.setString(_publicRecipesKey, encoded);
+    await prefs.setString(key, encoded);
     _notifyCacheUpdated();
   }
 
@@ -93,8 +138,6 @@ class RecipeService {
     final localPublicRecipes = await _loadLocalPublicRecipes();
 
     if (refreshPublicInBackground && CloudDataService.instance.isSignedIn) {
-      // Приватные рецепты тоже подтягиваем из облака, чтобы синхронизировать изменения между устройствами.
-      unawaited(_refreshPrivateRecipesCacheFromCloud());
       // Не блокируем UI: свежие публичные рецепты подтянутся и обновят локальный кэш.
       unawaited(_refreshPublicRecipesCacheFromCloud());
     }
@@ -141,28 +184,33 @@ class RecipeService {
     }
   }
 
-  Future<void> _refreshPrivateRecipesCacheFromCloud() async {
+  Future<void> pullFromCloudReplaceLocal() async {
     final cloudService = CloudDataService.instance;
     if (!cloudService.isSignedIn) return;
 
+    final uid = cloudService.currentUserId;
+    if (uid == null || uid.isEmpty) return;
+
     try {
-      final data = await cloudService.readMap('recipes');
-      if (data == null) return;
+      final privateData = await cloudService.readMap('recipes');
+      final cloudRecipesRaw = privateData?['recipes'];
+      if (cloudRecipesRaw is List) {
+        final cloudPrivateRecipes = cloudRecipesRaw
+            .whereType<Map>()
+            .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
+            .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
+            .toList(growable: false);
+        await _savePrivateRecipesToPrefs(cloudPrivateRecipes);
+      }
 
-      final cloudRecipesRaw = data['recipes'];
-      if (cloudRecipesRaw is! List) return;
-
-      final cloudPrivateRecipes = cloudRecipesRaw
+      final publicDocs = await cloudService.readCollection('publicRecipes');
+      final publicRecipes = publicDocs
           .whereType<Map>()
-          .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json)))
-          .map((r) => r.copyWith(isUserRecipe: true, isPublic: false))
+          .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
           .toList(growable: false);
-
-      // Если документ в облаке существует, считаем его источником истины
-      // для приватных рецептов (это обеспечивает удаление/обновление между устройствами).
-      await _savePrivateRecipesToPrefs(cloudPrivateRecipes);
+      await _savePublicRecipesToPrefs(publicRecipes);
     } catch (_) {
-      // Офлайн/permission: остаёмся на локальном кэше.
+      // Keep local cache if pull fails.
     }
   }
 
@@ -178,15 +226,34 @@ class RecipeService {
         continue;
       }
 
-      // При дублях оставляем более «богатую» и приоритетную запись.
+      // При дублях предпочтение данным владельца, чтобы локальные правки
+      // (например, переименование) не затирались публичным кэшем.
+      final preferIncoming = recipe.isUserRecipe && !existing.isUserRecipe;
+      final preferExisting = existing.isUserRecipe && !recipe.isUserRecipe;
+      final preferExistingPrivateOverIncomingPublic = existing.isUserRecipe &&
+          !existing.isPublic &&
+          recipe.isUserRecipe &&
+          recipe.isPublic;
+      final preferIncomingPrivateOverExistingPublic = recipe.isUserRecipe &&
+          !recipe.isPublic &&
+          existing.isUserRecipe &&
+          existing.isPublic;
+      String pickString(String current, String next) {
+        if (preferExistingPrivateOverIncomingPublic) {
+          return current.isNotEmpty ? current : next;
+        }
+        if (preferIncomingPrivateOverExistingPublic) {
+          return next.isNotEmpty ? next : current;
+        }
+        if (preferIncoming) return next.isNotEmpty ? next : current;
+        if (preferExisting) return current.isNotEmpty ? current : next;
+        return next.isNotEmpty ? next : current;
+      }
+
       final merged = existing.copyWith(
-        name: recipe.name.isNotEmpty ? recipe.name : existing.name,
-        description: recipe.description.isNotEmpty
-            ? recipe.description
-            : existing.description,
-        clarification: recipe.clarification.isNotEmpty
-            ? recipe.clarification
-            : existing.clarification,
+        name: pickString(existing.name, recipe.name),
+        description: pickString(existing.description, recipe.description),
+        clarification: pickString(existing.clarification, recipe.clarification),
         nutrients:
             recipe.nutrients.isNotEmpty ? recipe.nutrients : existing.nutrients,
         ingredients: recipe.ingredients.isNotEmpty
@@ -287,8 +354,8 @@ class RecipeService {
 
     await _savePrivateRecipesToPrefs(privateRecipes);
 
-    final allRecipes = await loadUserRecipes(refreshPublicInBackground: false);
-    final publicOthers = allRecipes
+    final localPublicRecipes = await _loadLocalPublicRecipes();
+    final publicOthers = localPublicRecipes
         .where((recipe) => recipe.isPublic && !recipe.isUserRecipe)
         .map((recipe) => recipe.copyWith(isUserRecipe: false, isPublic: true))
         .toList(growable: false);
@@ -322,8 +389,14 @@ class RecipeService {
 
   Future<void> addRecipe(Recipe recipe) async {
     final recipes = await _loadOwnedRecipesForMutation();
-    recipes.add(recipe.copyWith(isUserRecipe: true));
-    await _saveUserRecipes(recipes);
+    final created = recipe.copyWith(isUserRecipe: true);
+    recipes.add(created);
+    await _saveUserRecipes(recipes, syncCloud: false);
+    unawaited(_syncSingleRecipeMutationInBackground(
+      previous: null,
+      current: created,
+      allOwnedRecipes: recipes,
+    ));
   }
 
   Future<void> updateRecipe(Recipe updatedRecipe) async {
@@ -332,9 +405,16 @@ class RecipeService {
     if (index == -1) return;
     if (recipes[index].isDonated) return;
 
+    final previous = recipes[index];
     final shouldStayOwned = !updatedRecipe.isDonated;
-    recipes[index] = updatedRecipe.copyWith(isUserRecipe: shouldStayOwned);
-    await _saveUserRecipes(recipes);
+    final current = updatedRecipe.copyWith(isUserRecipe: shouldStayOwned);
+    recipes[index] = current;
+    await _saveUserRecipes(recipes, syncCloud: false);
+    unawaited(_syncSingleRecipeMutationInBackground(
+      previous: previous,
+      current: current,
+      allOwnedRecipes: recipes,
+    ));
   }
 
   Future<void> deleteRecipe(String recipeId) async {
@@ -346,11 +426,56 @@ class RecipeService {
     if (deletedRecipe.isDonated) return;
 
     recipes.removeWhere((r) => r.id == recipeId);
-    await _saveUserRecipes(recipes);
+    await _saveUserRecipes(recipes, syncCloud: false);
+
+    unawaited(_syncSingleRecipeMutationInBackground(
+      previous: deletedRecipe,
+      current: null,
+      allOwnedRecipes: recipes,
+    ));
 
     // Удаление из облака запускаем в фоне, чтобы не блокировать офлайн-удаление.
     if (deletedRecipe.isPublic) {
       unawaited(_deletePublicRecipeInBackground(recipeId));
+    }
+  }
+
+  Future<void> _syncSingleRecipeMutationInBackground({
+    required Recipe? previous,
+    required Recipe? current,
+    required List<Recipe> allOwnedRecipes,
+  }) async {
+    try {
+      final cloudService = CloudDataService.instance;
+      if (!cloudService.isSignedIn) return;
+
+      final privateRecipes = allOwnedRecipes
+          .where((recipe) => !recipe.isPublic && !recipe.isDonated)
+          .map((recipe) => recipe.copyWith(isUserRecipe: true, isPublic: false))
+          .toList(growable: false);
+
+      await cloudService.writeMap('recipes', {
+        'recipes':
+            privateRecipes.map((r) => r.toJson()).toList(growable: false),
+      });
+
+      final shouldPublishCurrent =
+          current != null && current.isPublic && !current.isDonated;
+      final wasPublishedBefore = previous != null && previous.isPublic;
+
+      if (shouldPublishCurrent) {
+        final uid = cloudService.currentUserId;
+        if (uid != null && uid.isNotEmpty) {
+          await cloudService.upsertDocument('publicRecipes', current.id, {
+            ...current.copyWith(isPublic: true).toJson(),
+            'userId': uid,
+          });
+        }
+      } else if (wasPublishedBefore) {
+        await cloudService.deleteDocument('publicRecipes', previous.id);
+      }
+    } catch (_) {
+      // Повторная синхронизация произойдёт автоматически при следующем цикле.
     }
   }
 
