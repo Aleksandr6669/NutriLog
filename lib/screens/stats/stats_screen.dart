@@ -1672,7 +1672,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                         ),
                     ],
                   ),
-                ),
+                );
               }),
             const SizedBox(height: 8),
             Container(
