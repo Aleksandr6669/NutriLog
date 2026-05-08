@@ -89,38 +89,37 @@ class GeminiRecipeService {
     return 0.0;
   }
 
-  /// Основные модели — для первичного расчёта нутриентов, черновиков, аналитики.
-  /// GPT OSS 120B отлично справляется с логическим рассуждением.
-  static const List<String> _models = [
-    'openai/gpt-oss-120b',
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-    'meta-llama/llama-4-maverick-17b-128e-instruct',
-  ];
+  /// Стабильная JSON-модель для большинства операций.
+  static const String _stableJsonModel = 'openai/gpt-oss-120b';
+
+  /// Стабильная vision-модель для задач с фото.
+  static const String _stablePhotoJsonModel =
+      'meta-llama/llama-4-maverick-17b-128e-instruct';
+
+  /// Базовый набор по умолчанию (одна модель = один запрос без лишнего фолбэка).
+  static const List<String> _models = [_stableJsonModel];
+
+  /// Операционные наборы моделей.
+  static const List<String> _draftModels = [_stableJsonModel];
+  static const List<String> _nutritionModels = [_stableJsonModel];
+  static const List<String> _statsModels = [_stableJsonModel];
+  static const List<String> _dailyGoalsModels = [_stableJsonModel];
+  static const List<String> _activityModels = [_stableJsonModel];
+  static const List<String> _translationModels = ['openai/gpt-oss-20b'];
 
   /// Модели с поддержкой изображений.
   /// Фото никогда не должно уходить в текстовую модель.
-  static const List<String> _photoModels = [
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-    'meta-llama/llama-4-maverick-17b-128e-instruct',
-  ];
+  static const List<String> _photoModels = [_stablePhotoJsonModel];
 
   /// Быстрые модели — для recheck (самопроверки результата).
   /// Llama 3.3 70B быстрее и дешевле Llama 4, достаточно для корректировки.
   /// Qwen 3 32B — как запасная: хорошо рассуждает, подходит для самопроверки.
-  static const List<String> _recheckModels = [
-    'llama-3.3-70b-versatile',
-    'qwen/qwen3-32b',
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-  ];
+  static const List<String> _recheckModels = ['openai/gpt-oss-20b'];
 
   /// Специализированные модели для модерации рецептов.
   /// GPT OSS 20B — специализированная модель для контент-фильтрации.
   /// llama-guard-4-12b — альтернатива для safety-проверок.
-  static const List<String> _moderationModels = [
-    'openai/gpt-oss-20b',
-    'meta-llama/llama-guard-4-12b',
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-  ];
+  static const List<String> _moderationModels = ['openai/gpt-oss-20b'];
 
   /// Router models are used only to choose model order (speed vs accuracy).
   /// If router fails, the regular deterministic fallback chain is used.
@@ -131,10 +130,10 @@ class GeminiRecipeService {
 
   static const Duration _requestTimeout = Duration(seconds: 12);
   static const Duration _routerRequestTimeout = Duration(seconds: 4);
-  static const int _jsonRetryMaxAttempts = 5;
-  static const int _recheckRetryMaxAttempts = 2;
+  static const int _jsonRetryMaxAttempts = 2;
+  static const int _recheckRetryMaxAttempts = 1;
   static const int _moderationRetryMaxAttempts = 1;
-  static const Duration _jsonRetryDelay = Duration(seconds: 10);
+  static const Duration _jsonRetryDelay = Duration(seconds: 2);
   static const Duration _routerHistoryRetention = Duration(days: 30);
   static const Duration _routerErrorBypassWindow = Duration(hours: 6);
   static const int _routerErrorBypassThreshold = 5;
@@ -313,7 +312,7 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _photoModels,
+      modelsOverride: _draftModels,
     );
     final textDraft = _draftFromDecodedJson(
       decoded,
@@ -427,6 +426,7 @@ Rules:
         'stream': false,
       },
       locale: locale,
+      modelsOverride: _photoModels,
     );
     final photoDraft = _draftFromDecodedJson(
       decoded,
@@ -555,6 +555,7 @@ Rules:
       },
       apiKeyOverride: apiKey,
       locale: locale,
+      modelsOverride: _nutritionModels,
     );
 
     final firstPass = <String, double>{};
@@ -999,6 +1000,7 @@ Ingredient: $source
           'stream': false,
         },
         locale: 'en',
+        modelsOverride: _translationModels,
       );
 
       final value = (decoded['query'] as String? ?? '').trim();
@@ -1233,6 +1235,7 @@ Rules:
         'stream': false,
       },
       locale: locale,
+      modelsOverride: _statsModels,
     );
     final report = (decoded['report'] as String? ?? '').trim();
     if (report.isEmpty) {
@@ -1509,6 +1512,7 @@ Rules:
           'stream': false,
         },
         locale: locale,
+        modelsOverride: _statsModels,
       );
     } catch (_) {
       decoded = null;
@@ -1854,6 +1858,7 @@ Rules:
           'stream': false,
         },
         locale: locale,
+        modelsOverride: _dailyGoalsModels,
         maxAttempts: 1,
       );
 
@@ -2042,6 +2047,7 @@ Rules:
         'stream': false,
       },
       locale: locale,
+      modelsOverride: _activityModels,
     );
 
     final parsedName = (decoded['name'] as String? ?? '').trim();

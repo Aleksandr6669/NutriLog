@@ -1168,6 +1168,30 @@ abstract class AppLocalizations {
   /// **'Could not generate AI report. Please try again later.'**
   String get statsAiError;
 
+  /// No description provided for @accountDataConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data conflict detected'**
+  String get accountDataConflictTitle;
+
+  /// No description provided for @accountDataConflictMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud data already exists for this account, and local data is also present on this device.\n\nChoose which data should be kept as primary.'**
+  String get accountDataConflictMessage;
+
+  /// No description provided for @accountDataConflictUseCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Use cloud data'**
+  String get accountDataConflictUseCloud;
+
+  /// No description provided for @accountDataConflictUseLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace cloud with local data'**
+  String get accountDataConflictUseLocal;
+
   /// No description provided for @statsStructuredFallbackOverview.
   ///
   /// In en, this message translates to:

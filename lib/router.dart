@@ -47,11 +47,13 @@ void handleAppDeepLink(String path, [Map<String, dynamic>? extra]) {
 }
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+final RouteObserver<PageRoute<dynamic>> appRouteObserver =
+  RouteObserver<PageRoute<dynamic>>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/',
-  observers: [UnfocusOnRouteChangeObserver()],
+  observers: [UnfocusOnRouteChangeObserver(), appRouteObserver],
   routes: <RouteBase>[
     // --- Начальные экраны ---
     GoRoute(

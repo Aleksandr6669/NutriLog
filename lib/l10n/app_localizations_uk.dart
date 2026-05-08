@@ -573,6 +573,19 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiError => 'Нейромережа тимчасово недоступна.';
 
   @override
+  String get accountDataConflictTitle => 'Виявлено конфлікт даних';
+
+  @override
+  String get accountDataConflictMessage =>
+      'В акаунті вже є дані в хмарі, і на пристрої також є локальні дані.\n\nОберіть, які дані залишити основними.';
+
+  @override
+  String get accountDataConflictUseCloud => 'Використати дані з хмари';
+
+  @override
+  String get accountDataConflictUseLocal => 'Замінити хмару локальними';
+
+  @override
   String statsStructuredFallbackOverview(
       String periodLabel,
       String avgCalories,

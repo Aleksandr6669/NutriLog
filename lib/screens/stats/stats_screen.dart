@@ -20,6 +20,7 @@ import '../../services/profile_service.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
 import '../../services/local_first_sync_service.dart';
+import '../../router.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
@@ -35,7 +36,7 @@ class StatsScreen extends StatefulWidget {
 
 enum _StatsPeriod { week, month, year }
 
-class _StatsScreenState extends State<StatsScreen> {
+class _StatsScreenState extends State<StatsScreen> with RouteAware {
   _StatsPeriod _period = _StatsPeriod.week;
   final DailyLogService _logService = DailyLogService();
   final ProfileService _profileService = ProfileService();
@@ -57,6 +58,7 @@ class _StatsScreenState extends State<StatsScreen> {
   Timer? _reloadDebounce;
   bool _isDebouncePending = false;
   Map<String, dynamic>? _lastLoadedStats;
+  ModalRoute<dynamic>? _subscribedRoute;
 
   @override
   void initState() {
@@ -68,7 +70,7 @@ class _StatsScreenState extends State<StatsScreen> {
       _reloadDebounce?.cancel();
       setState(() => _isDebouncePending = true);
       _reloadDebounce = Timer(const Duration(seconds: 3), () {
-        if (mounted) _reloadStats();
+        if (mounted) _reloadStats(soft: true);
       });
     });
     _profileCacheSubscription = ProfileService.cacheUpdates.listen((_) {
@@ -76,7 +78,7 @@ class _StatsScreenState extends State<StatsScreen> {
       _reloadDebounce?.cancel();
       setState(() => _isDebouncePending = true);
       _reloadDebounce = Timer(const Duration(seconds: 3), () {
-        if (mounted) _reloadStats();
+        if (mounted) _reloadStats(soft: true);
       });
     });
   }
@@ -89,6 +91,9 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   void dispose() {
+    if (_subscribedRoute is PageRoute<dynamic>) {
+      appRouteObserver.unsubscribe(this);
+    }
     _reloadDebounce?.cancel();
     _logCacheSubscription?.cancel();
     _profileCacheSubscription?.cancel();
@@ -99,6 +104,18 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    final route = ModalRoute.of(context);
+    if (route != _subscribedRoute) {
+      if (_subscribedRoute is PageRoute<dynamic>) {
+        appRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      if (route is PageRoute<dynamic>) {
+        appRouteObserver.subscribe(this, route);
+      }
+    }
+
     final locale = Localizations.localeOf(context);
     if (_lastLocale != locale) {
       _lastLocale = locale;
@@ -108,12 +125,23 @@ class _StatsScreenState extends State<StatsScreen> {
     }
   }
 
-  void _reloadStats() {
+  @override
+  void didPopNext() {
+    if (!mounted) return;
+    _reloadStats(soft: true);
+  }
+
+  void _reloadStats({bool soft = false}) {
     _dataRequestId++;
     _aiStartedForRequestId = -1;
     unawaited(LocalFirstSyncService.instance.syncNow());
     setState(() {
       _isDebouncePending = false;
+      if (!soft) {
+        _aiOverview = null;
+        _aiRecommendations = const [];
+        _aiError = false;
+      }
       _statsFuture = _loadData();
     });
   }
@@ -592,19 +620,11 @@ class _StatsScreenState extends State<StatsScreen> {
 
   /// При недоступности AI показываем последний сохранённый отчёт из истории.
   void _fallbackToLastCachedReport() {
-    final lastReport =
-        _aiReportHistory.isNotEmpty ? _aiReportHistory.first : null;
-    if (lastReport != null) {
-      setState(() {
-        _aiOverview = lastReport.overview;
-        _aiRecommendations = lastReport.recommendations;
-        _aiError = false;
-      });
-    } else {
-      setState(() {
-        _aiError = true;
-      });
-    }
+    setState(() {
+      _aiOverview = null;
+      _aiRecommendations = const [];
+      _aiError = true;
+    });
   }
 
   String _buildAiSourceSignature(Map<String, dynamic> aiInput) {
@@ -816,12 +836,14 @@ class _StatsScreenState extends State<StatsScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _statsFuture,
         builder: (context, snapshot) {
-          final hasFreshData = snapshot.hasData && snapshot.data!.isNotEmpty;
-          if (hasFreshData) {
+          final hasCurrentData = snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData &&
+              snapshot.data!.isNotEmpty;
+          if (hasCurrentData) {
             _lastLoadedStats = snapshot.data!;
           }
           final effectiveData =
-              hasFreshData ? snapshot.data! : _lastLoadedStats;
+              hasCurrentData ? snapshot.data! : _lastLoadedStats;
 
           if (snapshot.connectionState == ConnectionState.waiting &&
               effectiveData == null) {
@@ -840,7 +862,9 @@ class _StatsScreenState extends State<StatsScreen> {
           final aiAssistantEnabled =
               data['aiAssistantEnabled'] as bool? ?? true;
           final requestId = _dataRequestId;
-          if (aiAssistantEnabled && _aiStartedForRequestId != requestId) {
+          if (hasCurrentData &&
+              aiAssistantEnabled &&
+              _aiStartedForRequestId != requestId) {
             _aiStartedForRequestId = requestId;
             _ensureAiReportForCurrentData(
               data['aiInput'] as Map<String, dynamic>,
@@ -1534,16 +1558,8 @@ class _StatsScreenState extends State<StatsScreen> {
       );
     }
 
-    final String overviewText;
-    if (_isDebouncePending) {
-      overviewText = l10n.statsAiUpdating;
-    } else if (_aiError) {
-      overviewText = l10n.statsAiError;
-    } else if (_aiOverview == null) {
-      overviewText = '';
-    } else {
-      overviewText = _aiOverview!;
-    }
+    final isPreparing = _isDebouncePending || (_aiOverview == null && !_aiError);
+    final overviewText = _aiOverview?.trim() ?? '';
     return Card(
       color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),
       shape: RoundedRectangleBorder(
@@ -1561,27 +1577,41 @@ class _StatsScreenState extends State<StatsScreen> {
                     color: theme.colorScheme.onSurface.withAlpha(255),
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            if (overviewText.trim().isNotEmpty)
+            if (!isPreparing && !_aiError && overviewText.isNotEmpty)
               _buildAiOverviewSections(theme, overviewText),
             const SizedBox(height: 8),
-            if (_isDebouncePending || (_aiOverview == null && !_aiError))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: const LinearProgressIndicator(minHeight: 3),
-                ),
+            if (isPreparing)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Подготовка',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: const LinearProgressIndicator(minHeight: 3),
+                    ),
+                  ),
+                ],
               )
             else if (_aiError)
               Text(
                 l10n.statsAiError,
                 style: theme.textTheme.bodySmall,
               )
-            else if (_aiRecommendations.isEmpty)
+            else if (_aiRecommendations.isEmpty && overviewText.isEmpty)
               Text(
-                l10n.statsAiNoPlan,
+                l10n.statsAiError,
                 style: theme.textTheme.bodySmall,
               )
+            else if (_aiRecommendations.isEmpty)
+              const SizedBox.shrink()
             else
               ..._aiRecommendations.map((item) {
                 final when = item['when'] ?? '';
@@ -1642,7 +1672,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                     ],
                   ),
-                );
+                ),
               }),
             const SizedBox(height: 8),
             Container(

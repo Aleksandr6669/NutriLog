@@ -183,6 +183,10 @@
   "statsAiLoading": "Завантаження звіту від нейромережі...",
   "statsAiUpdating": "Щоденник змінився — оновлюю звіт...",
   "statsAiError": "Нейромережа тимчасово недоступна.",
+  "accountDataConflictTitle": "Виявлено конфлікт даних",
+  "accountDataConflictMessage": "В акаунті вже є дані в хмарі, і на пристрої також є локальні дані.\n\nОберіть, які дані залишити основними.",
+  "accountDataConflictUseCloud": "Використати дані з хмари",
+  "accountDataConflictUseLocal": "Замінити хмару локальними",
   "statsStructuredFallbackOverview": "Звіт за період {periodLabel} сформовано у спрощеному режимі. Середні калорії: {avgCalories} ккал при цілі {calorieGoal} ккал; білок: {avgProteinGrams} г при цілі {proteinGoal} г. Кроки: {avgSteps} при цілі {stepsGoal}. Продовжуй стабільний режим харчування та активності, поступово вирівнюй дефіцити без різких змін.",
   "@statsStructuredFallbackOverview": {
     "placeholders": {

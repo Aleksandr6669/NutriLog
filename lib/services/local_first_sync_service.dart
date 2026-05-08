@@ -11,6 +11,11 @@ import 'recipe_service.dart';
 
 enum SyncStatus { idle, syncing, synced, error }
 
+enum SignInDataResolution {
+  keepLocal,
+  useCloud,
+}
+
 class LocalFirstSyncService {
   LocalFirstSyncService._();
 
@@ -22,9 +27,15 @@ class LocalFirstSyncService {
 
   StreamSubscription? _authSubscription;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<Map<String, dynamic>?>? _profileDocSubscription;
+  StreamSubscription<Map<String, dynamic>?>? _dailyLogsDocSubscription;
+  StreamSubscription<Map<String, dynamic>?>? _recipesDocSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _publicRecipesSubscription;
   Timer? _periodicSyncTimer;
+  Timer? _realtimePullDebounce;
   bool _started = false;
   bool _isSyncing = false;
+  bool _isApplyingRemote = false;
   bool _wasConnected = false;
   String? _preparedUid;
 
@@ -40,12 +51,14 @@ class LocalFirstSyncService {
       (user) async {
         if (user == null) {
           _preparedUid = null;
+          _cancelRealtimeSubscriptions();
           return;
         }
 
         if (_preparedUid != user.uid) {
           _preparedUid = user.uid;
-          await _resetLocalAndPullFromCloud();
+          _setupRealtimeSubscriptions();
+          return;
         }
 
         syncNow();
@@ -99,6 +112,62 @@ class LocalFirstSyncService {
     }
   }
 
+  Future<bool> hasLocalData() async {
+    final profile = await ProfileService().loadProfile();
+    final hasProfile = profile.name.trim().isNotEmpty ||
+        profile.height > 0 ||
+        profile.weight > 0 ||
+        profile.calorieGoal > 0 ||
+        profile.proteinGoal > 0 ||
+        profile.fatGoal > 0 ||
+        profile.carbsGoal > 0 ||
+        profile.waterGoal > 0 ||
+        profile.stepsGoal > 0;
+
+    final hasDiary = (await DailyLogService().getLoggedDates()).isNotEmpty;
+    final recipes =
+        await RecipeService().loadUserRecipes(refreshPublicInBackground: false);
+    final hasOwnRecipes = recipes.any((recipe) => recipe.isUserRecipe);
+
+    return hasProfile || hasDiary || hasOwnRecipes;
+  }
+
+  Future<bool> hasCloudData() async {
+    final cloud = CloudDataService.instance;
+    if (!cloud.isSignedIn) return false;
+
+    final remoteProfile = await cloud.readMap('profile');
+    final remoteDaily = await cloud.readMap('daily_logs');
+    final remoteRecipes = await cloud.readMap('recipes');
+
+    final hasProfile = remoteProfile != null && remoteProfile.isNotEmpty;
+    final hasDiary = remoteDaily != null &&
+        remoteDaily['logs'] is Map<String, dynamic> &&
+        (remoteDaily['logs'] as Map<String, dynamic>).isNotEmpty;
+    final hasRecipes = remoteRecipes != null &&
+        remoteRecipes['recipes'] is List &&
+        (remoteRecipes['recipes'] as List).isNotEmpty;
+
+    return hasProfile || hasDiary || hasRecipes;
+  }
+
+  Future<bool> needsSignInConflictResolution() async {
+    if (!FirebaseAuthService.instance.isSignedIn) return false;
+    final local = await hasLocalData();
+    if (!local) return false;
+    final cloud = await hasCloudData();
+    return cloud;
+  }
+
+  Future<void> resolveSignInDataConflict(SignInDataResolution resolution) async {
+    if (resolution == SignInDataResolution.useCloud) {
+      await _resetLocalAndPullFromCloud();
+      return;
+    }
+
+    await syncNow();
+  }
+
   Future<void> _resetLocalAndPullFromCloud() async {
     if (_isSyncing || !FirebaseAuthService.instance.isSignedIn) return;
 
@@ -122,7 +191,71 @@ class LocalFirstSyncService {
     }
   }
 
+  void _setupRealtimeSubscriptions() {
+    _cancelRealtimeSubscriptions();
+
+    _profileDocSubscription =
+        CloudDataService.instance.docStream('profile').listen((_) {
+      _scheduleRealtimePull();
+    });
+
+    _dailyLogsDocSubscription =
+        CloudDataService.instance.docStream('daily_logs').listen((_) {
+      _scheduleRealtimePull();
+    });
+
+    _recipesDocSubscription =
+        CloudDataService.instance.docStream('recipes').listen((_) {
+      _scheduleRealtimePull();
+    });
+
+    _publicRecipesSubscription =
+        CloudDataService.instance.collectionStream('publicRecipes').listen((_) {
+      _scheduleRealtimePull();
+    });
+  }
+
+  void _cancelRealtimeSubscriptions() {
+    _realtimePullDebounce?.cancel();
+    _profileDocSubscription?.cancel();
+    _dailyLogsDocSubscription?.cancel();
+    _recipesDocSubscription?.cancel();
+    _publicRecipesSubscription?.cancel();
+    _profileDocSubscription = null;
+    _dailyLogsDocSubscription = null;
+    _recipesDocSubscription = null;
+    _publicRecipesSubscription = null;
+  }
+
+  void _scheduleRealtimePull() {
+    if (!FirebaseAuthService.instance.isSignedIn) return;
+    _realtimePullDebounce?.cancel();
+    _realtimePullDebounce = Timer(const Duration(milliseconds: 900), () {
+      unawaited(_pullFromCloudInBackground());
+    });
+  }
+
+  Future<void> _pullFromCloudInBackground() async {
+    if (_isSyncing || _isApplyingRemote || !FirebaseAuthService.instance.isSignedIn) {
+      return;
+    }
+
+    _isApplyingRemote = true;
+    try {
+      await ProfileService().pullFromCloudReplaceLocal();
+      await DailyLogService().pullFromCloudReplaceLocal();
+      await RecipeService().pullFromCloudReplaceLocal();
+      lastSyncedAt = DateTime.now();
+      statusNotifier.value = SyncStatus.synced;
+    } catch (_) {
+      // Silent: local-first режим остаётся рабочим.
+    } finally {
+      _isApplyingRemote = false;
+    }
+  }
+
   void dispose() {
+    _cancelRealtimeSubscriptions();
     _authSubscription?.cancel();
     _connectivitySubscription?.cancel();
     _periodicSyncTimer?.cancel();

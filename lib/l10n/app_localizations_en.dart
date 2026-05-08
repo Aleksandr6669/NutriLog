@@ -571,6 +571,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiError => 'AI is temporarily unavailable.';
 
   @override
+  String get accountDataConflictTitle => 'Data conflict detected';
+
+  @override
+  String get accountDataConflictMessage =>
+      'Cloud data already exists for this account, and local data is also present on this device.\n\nChoose which data should be kept as primary.';
+
+  @override
+  String get accountDataConflictUseCloud => 'Use cloud data';
+
+  @override
+  String get accountDataConflictUseLocal => 'Replace cloud with local data';
+
+  @override
   String statsStructuredFallbackOverview(
       String periodLabel,
       String avgCalories,

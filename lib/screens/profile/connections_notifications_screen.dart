@@ -329,8 +329,51 @@ class _ConnectionsNotificationsScreenState
 
     if (mounted) setState(() => _authBusy = false);
 
+    final syncService = LocalFirstSyncService.instance;
+    try {
+      final needsResolution = await syncService.needsSignInConflictResolution();
+      if (needsResolution && mounted) {
+        final decision = await _showDataConflictDialog();
+        if (decision != null) {
+          await syncService.resolveSignInDataConflict(decision);
+        }
+      } else {
+        await syncService.syncNow();
+      }
+    } catch (_) {
+      // Не блокируем вход из-за ошибки разрешения конфликта.
+    }
+
     // Синхронизация в фоне — ошибки не показываем пользователю
     _autoSyncInBackground();
+  }
+
+  Future<SignInDataResolution?> _showDataConflictDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<SignInDataResolution>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.accountDataConflictTitle),
+          content: Text(l10n.accountDataConflictMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(
+                SignInDataResolution.useCloud,
+              ),
+              child: Text(l10n.accountDataConflictUseCloud),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(
+                SignInDataResolution.keepLocal,
+              ),
+              child: Text(l10n.accountDataConflictUseLocal),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _onSignOutTap() async {

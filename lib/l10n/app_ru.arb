@@ -183,6 +183,10 @@
   "statsAiLoading": "Загрузка отчета от нейросети...",
   "statsAiUpdating": "Дневник изменился — обновляю отчёт...",
   "statsAiError": "Нейросеть временно недоступна.",
+  "accountDataConflictTitle": "Обнаружен конфликт данных",
+  "accountDataConflictMessage": "В аккаунте уже есть данные в облаке, и на устройстве тоже есть локальные данные.\n\nВыберите, какие данные оставить основными.",
+  "accountDataConflictUseCloud": "Использовать данные из облака",
+  "accountDataConflictUseLocal": "Заменить облако локальными",
   "statsStructuredFallbackOverview": "Отчет за период {periodLabel} сформирован в упрощенном режиме. Средние калории: {avgCalories} ккал при цели {calorieGoal} ккал; белок: {avgProteinGrams} г при цели {proteinGoal} г. Шаги: {avgSteps} при цели {stepsGoal}. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.",
   "@statsStructuredFallbackOverview": {
     "placeholders": {
