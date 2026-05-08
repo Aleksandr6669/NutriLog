@@ -121,6 +121,7 @@ class GeminiRecipeService {
   /// If router fails, the regular deterministic fallback chain is used.
   static const List<String> _routerModels = [
     'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
     'meta-llama/llama-4-scout-17b-16e-instruct',
   ];
 
@@ -139,6 +140,14 @@ class GeminiRecipeService {
   static const String _routerLastFailAtPrefsKey = 'ai.router.fail.last_at.v1';
   static const String _routerLastCleanupAtPrefsKey =
       'ai.router.history.last_cleanup_at.v1';
+  static const String _groqTokenIndexPrefsKey = 'ai.groq.token.index.v1';
+  static const List<String> _groqTokens = [
+    String.fromEnvironment('GROQ_API_KEY_1'),
+    String.fromEnvironment('GROQ_API_KEY_2'),
+    String.fromEnvironment('GROQ_API_KEY_3'),
+    String.fromEnvironment('GROQ_API_KEY_4'),
+    String.fromEnvironment('GROQ_API_KEY_5'),
+  ];
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -2080,7 +2089,7 @@ Rules:
     String? locale,
     List<String>? modelsOverride,
   }) async {
-    final apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
+    var apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiKeyMissingError,
@@ -2103,6 +2112,8 @@ Rules:
       locale: locale,
     );
     http.Response? lastErrorResponse;
+    var tokenSwitchAttempted = false;
+
     for (final model in models) {
       final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
 
@@ -2135,6 +2146,22 @@ Rules:
         }
 
         lastErrorResponse = response;
+        
+        // Проверка на ошибку rate limit - автопереключение на другой токен
+        if (_isRateLimitError(response) && !tokenSwitchAttempted) {
+          await _switchToNextGroqToken();
+          tokenSwitchAttempted = true;
+          // Перезагружаем API ключ и пересчитываем модели
+          apiKey = _resolveApiKey().trim();
+          if (apiKey.isEmpty) {
+            throw GeminiRecipeException(
+              _messages(locale).aiKeyMissingError,
+            );
+          }
+          // Продолжаем цикл со следующей моделью, используя новый токен
+          continue;
+        }
+
         final isRetryableStatus = response.statusCode == 400 ||
             response.statusCode == 403 ||
             response.statusCode == 404 ||
@@ -2604,6 +2631,10 @@ Rules:
     const groqFromDefine = String.fromEnvironment('GROQ_API_KEY');
     const legacyFromDefine = String.fromEnvironment('GEMINI_API_KEY');
 
+    // Сначала проверяем текущий токен из списка (автопереключение)
+    final currentToken = _getCurrentGroqToken();
+    if (currentToken.isNotEmpty) return currentToken;
+
     final candidates = [
       dotenv.env['GROQ_API_KEY'],
       groqFromDefine,
@@ -2617,6 +2648,50 @@ Rules:
     }
 
     return '';
+  }
+
+  String _getCurrentGroqToken() {
+    for (final token in _groqTokens) {
+      final normalized = token.trim();
+      if (normalized.isNotEmpty) return normalized;
+    }
+    return '';
+  }
+
+  Future<int> _getCurrentTokenIndex() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt(_groqTokenIndexPrefsKey) ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<void> _switchToNextGroqToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentIndex = prefs.getInt(_groqTokenIndexPrefsKey) ?? 0;
+      final nextIndex = (currentIndex + 1) % _groqTokens.length;
+      await prefs.setInt(_groqTokenIndexPrefsKey, nextIndex);
+      debugPrint('[Groq Token Switch] Switched from index $currentIndex to $nextIndex');
+    } catch (_) {
+      // Ignore token switching errors.
+    }
+  }
+
+  bool _isRateLimitError(http.Response response) {
+    if (response.statusCode == 429) return true;
+    try {
+      final body = response.body.toLowerCase();
+      return body.contains('rate limit') ||
+          body.contains('quota') ||
+          body.contains('limit exceeded') ||
+          body.contains('too many requests') ||
+          body.contains('exceeded') ||
+          body.contains('rate_limit_exceeded');
+    } catch (_) {
+      return false;
+    }
   }
 
   GeminiRecipeDraft _draftFromDecodedJson(
