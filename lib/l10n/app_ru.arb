@@ -183,6 +183,18 @@
   "statsAiLoading": "Загрузка отчета от нейросети...",
   "statsAiUpdating": "Дневник изменился — обновляю отчёт...",
   "statsAiError": "Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.",
+  "statsStructuredFallbackOverview": "Отчет за период {periodLabel} сформирован в упрощенном режиме. Средние калории: {avgCalories} ккал при цели {calorieGoal} ккал; белок: {avgProteinGrams} г при цели {proteinGoal} г. Шаги: {avgSteps} при цели {stepsGoal}. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.",
+  "@statsStructuredFallbackOverview": {
+    "placeholders": {
+      "periodLabel": { "type": "String" },
+      "avgCalories": { "type": "String" },
+      "calorieGoal": { "type": "String" },
+      "avgProteinGrams": { "type": "String" },
+      "proteinGoal": { "type": "String" },
+      "avgSteps": { "type": "String" },
+      "stepsGoal": { "type": "String" }
+    }
+  },
   "statsPeriodLabelWeek": "недели",
   "statsPeriodLabelMonth": "месяца",
   "statsPeriodLabelYear": "года",

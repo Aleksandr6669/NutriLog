@@ -572,6 +572,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not generate AI report. Please try again later.';
 
   @override
+  String statsStructuredFallbackOverview(
+      String periodLabel,
+      String avgCalories,
+      String calorieGoal,
+      String avgProteinGrams,
+      String proteinGoal,
+      String avgSteps,
+      String stepsGoal) {
+    return 'Report for $periodLabel was generated in fallback mode. Average calories: $avgCalories kcal vs goal $calorieGoal kcal; protein: $avgProteinGrams g vs goal $proteinGoal g. Steps: $avgSteps vs goal $stepsGoal. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.';
+  }
+
+  @override
   String get statsPeriodLabelWeek => 'the week';
 
   @override
@@ -758,11 +770,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeAiCalculating => 'Calculating nutrition...';
 
   @override
-  String get recipeAiUpdated => 'Nutrition values updated.';
-
-  @override
   String get recipeAiPendingUpdate =>
       'Ingredients changed — recalculating nutrition...';
+
+  @override
+  String get recipeAiUpdated => 'Nutrition values updated.';
 
   @override
   String get recipeAiFailed => 'AI nutrition calculation failed.';
@@ -954,11 +966,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Groq returned 401 (unauthorized). Check GROQ_API_KEY.';
 
   @override
-  String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
-
-  @override
   String get aiHttpRateLimitError =>
       'Groq returned 429 (rate limit). Please try again later.';
+
+  @override
+  String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
 
   @override
   String aiHttpGenericError(Object code) {

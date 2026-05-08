@@ -574,6 +574,18 @@ class AppLocalizationsUk extends AppLocalizations {
       'Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.';
 
   @override
+  String statsStructuredFallbackOverview(
+      String periodLabel,
+      String avgCalories,
+      String calorieGoal,
+      String avgProteinGrams,
+      String proteinGoal,
+      String avgSteps,
+      String stepsGoal) {
+    return 'Звіт за період $periodLabel сформовано у спрощеному режимі. Середні калорії: $avgCalories ккал при цілі $calorieGoal ккал; білок: $avgProteinGrams г при цілі $proteinGoal г. Кроки: $avgSteps при цілі $stepsGoal. Продовжуй стабільний режим харчування та активності, поступово вирівнюй дефіцити без різких змін.';
+  }
+
+  @override
   String get statsPeriodLabelWeek => 'тижня';
 
   @override
@@ -761,11 +773,11 @@ class AppLocalizationsUk extends AppLocalizations {
   String get recipeAiCalculating => 'Обчислення харчової цінності...';
 
   @override
-  String get recipeAiUpdated => 'Харчові значення оновлені.';
-
-  @override
   String get recipeAiPendingUpdate =>
       'Інгредієнти змінились — перераховую харчову цінність...';
+
+  @override
+  String get recipeAiUpdated => 'Харчові значення оновлені.';
 
   @override
   String get recipeAiFailed => 'Не вдалося розрахувати харчову цінність AI.';

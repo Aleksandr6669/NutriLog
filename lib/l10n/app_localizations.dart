@@ -1168,6 +1168,19 @@ abstract class AppLocalizations {
   /// **'Could not generate AI report. Please try again later.'**
   String get statsAiError;
 
+  /// No description provided for @statsStructuredFallbackOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Report for {periodLabel} was generated in fallback mode. Average calories: {avgCalories} kcal vs goal {calorieGoal} kcal; protein: {avgProteinGrams} g vs goal {proteinGoal} g. Steps: {avgSteps} vs goal {stepsGoal}. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.'**
+  String statsStructuredFallbackOverview(
+      String periodLabel,
+      String avgCalories,
+      String calorieGoal,
+      String avgProteinGrams,
+      String proteinGoal,
+      String avgSteps,
+      String stepsGoal);
+
   /// No description provided for @statsPeriodLabelWeek.
   ///
   /// In en, this message translates to:
@@ -1468,17 +1481,17 @@ abstract class AppLocalizations {
   /// **'Calculating nutrition...'**
   String get recipeAiCalculating;
 
-  /// No description provided for @recipeAiUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Nutrition values updated.'**
-  String get recipeAiUpdated;
-
   /// No description provided for @recipeAiPendingUpdate.
   ///
   /// In en, this message translates to:
   /// **'Ingredients changed — recalculating nutrition...'**
   String get recipeAiPendingUpdate;
+
+  /// No description provided for @recipeAiUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition values updated.'**
+  String get recipeAiUpdated;
 
   /// No description provided for @recipeAiFailed.
   ///

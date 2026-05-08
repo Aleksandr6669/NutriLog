@@ -183,6 +183,18 @@
   "statsAiLoading": "Loading AI report...",
   "statsAiUpdating": "Diary changed — updating report...",
   "statsAiError": "Could not generate AI report. Please try again later.",
+  "statsStructuredFallbackOverview": "Report for {periodLabel} was generated in fallback mode. Average calories: {avgCalories} kcal vs goal {calorieGoal} kcal; protein: {avgProteinGrams} g vs goal {proteinGoal} g. Steps: {avgSteps} vs goal {stepsGoal}. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.",
+  "@statsStructuredFallbackOverview": {
+    "placeholders": {
+      "periodLabel": { "type": "String" },
+      "avgCalories": { "type": "String" },
+      "calorieGoal": { "type": "String" },
+      "avgProteinGrams": { "type": "String" },
+      "proteinGoal": { "type": "String" },
+      "avgSteps": { "type": "String" },
+      "stepsGoal": { "type": "String" }
+    }
+  },
   "statsPeriodLabelWeek": "the week",
   "statsPeriodLabelMonth": "the month",
   "statsPeriodLabelYear": "the year",

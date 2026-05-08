@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
@@ -89,7 +90,9 @@ class GeminiRecipeService {
   }
 
   /// Основные модели — для первичного расчёта нутриентов, черновиков, аналитики.
+  /// GPT OSS 120B отлично справляется с логическим рассуждением.
   static const List<String> _models = [
+    'openai/gpt-oss-120b',
     'meta-llama/llama-4-scout-17b-16e-instruct',
     'meta-llama/llama-4-maverick-17b-128e-instruct',
   ];
@@ -104,17 +107,36 @@ class GeminiRecipeService {
   ];
 
   /// Специализированные модели для модерации рецептов.
-  /// Safety GPT OSS 20B оптимизирован для задач контент-фильтрации.
+  /// GPT OSS 20B — специализированная модель для контент-фильтрации.
+  /// llama-guard-4-12b — альтернатива для safety-проверок.
   static const List<String> _moderationModels = [
+    'openai/gpt-oss-20b',
     'meta-llama/llama-guard-4-12b',
     'meta-llama/llama-4-scout-17b-16e-instruct',
   ];
 
+  /// Router models are used only to choose model order (speed vs accuracy).
+  /// If router fails, the regular deterministic fallback chain is used.
+  static const List<String> _routerModels = [
+    'openai/gpt-oss-20b',
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+  ];
+
   static const Duration _requestTimeout = Duration(seconds: 12);
+  static const Duration _routerRequestTimeout = Duration(seconds: 4);
   static const int _jsonRetryMaxAttempts = 5;
   static const int _recheckRetryMaxAttempts = 2;
   static const int _moderationRetryMaxAttempts = 3;
   static const Duration _jsonRetryDelay = Duration(seconds: 10);
+  static const Duration _routerHistoryRetention = Duration(days: 30);
+  static const Duration _routerErrorBypassWindow = Duration(hours: 6);
+  static const int _routerErrorBypassThreshold = 5;
+  static const int _routerHistoryMaxEntries = 240;
+  static const String _routerHistoryPrefsKey = 'ai.router.history.v1';
+  static const String _routerFailCountPrefsKey = 'ai.router.fail.count.v1';
+  static const String _routerLastFailAtPrefsKey = 'ai.router.fail.last_at.v1';
+  static const String _routerLastCleanupAtPrefsKey =
+      'ai.router.history.last_cleanup_at.v1';
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -285,11 +307,13 @@ Rules:
       },
       locale: locale,
     );
-    return _draftFromDecodedJson(
+    final textDraft = _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
       locale: locale,
     );
+    await _fixDraftNutrientsIfNeeded(textDraft, locale: locale);
+    return textDraft;
   }
 
   Future<GeminiRecipeDraft> generateRecipeFromPhoto({
@@ -396,11 +420,13 @@ Rules:
       },
       locale: locale,
     );
-    return _draftFromDecodedJson(
+    final photoDraft = _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
       locale: locale,
     );
+    await _fixDraftNutrientsIfNeeded(photoDraft, locale: locale);
+    return photoDraft;
   }
 
   Future<Map<String, double>> estimateNutrients({
@@ -627,6 +653,44 @@ Rules:
     }
 
     return null;
+  }
+
+  /// Всегда проверяет точность нутриентов в черновике через AI и корректирует,
+  /// если значения явно неверны (состояние, приготовление, плотность калорий).
+  Future<void> _fixDraftNutrientsIfNeeded(
+    GeminiRecipeDraft draft, {
+    String? locale,
+  }) async {
+    if (draft.ingredients.isEmpty) return;
+    final n = draft.nutrients;
+
+    try {
+      final ingredientsText = draft.ingredients
+          .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
+          .join('\n');
+
+      final result = await _recheckEstimatedNutrientsWithAi(
+        recipeName: draft.name,
+        recipeDescription: draft.description,
+        clarification: draft.clarification,
+        ingredientsText: ingredientsText,
+        factsJson: const {},
+        firstPass: Map<String, double>.from(n),
+        locale: locale,
+      );
+
+      final fixed = result['nutrients'];
+      if (fixed is Map<String, dynamic>) {
+        for (final key in nutrientKeys) {
+          final value = _toNonNegativeDouble(fixed[key]);
+          if (value > 0) {
+            draft.nutrients[key] = value;
+          }
+        }
+      }
+    } catch (_) {
+      // Silent: draft nutrients stay as-is
+    }
   }
 
   Future<Map<String, dynamic>> _recheckEstimatedNutrientsWithAi({
@@ -1165,7 +1229,52 @@ Rules:
         _messages(locale).aiEmptyReportError,
       );
     }
-    return report;
+    // Recheck accuracy with a faster model
+    return _recheckStatsReportWithAi(report, locale: locale);
+  }
+
+  Future<String> _recheckStatsReportWithAi(
+    String report, {
+    String? locale,
+  }) async {
+    final recheckPrompt = '''
+You are a strict QA checker for nutrition and fitness reports.
+${_languageInstruction(locale)}
+
+Check the report for factual inconsistencies, contradictions, or clearly wrong statements.
+If it looks correct, return it unchanged.
+If there are issues, return a corrected version.
+
+Report:
+$report
+
+Return ONLY JSON:
+{ "report": "..." }
+
+Rules:
+- report must be non-empty
+- no markdown, no extra keys
+''';
+    try {
+      final recheckDecoded = await _requestDecodedJsonWithAutoRetry(
+        body: {
+          'messages': [
+            {'role': 'user', 'content': recheckPrompt}
+          ],
+          'temperature': 0.1,
+          'max_completion_tokens': 500,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+        modelsOverride: _recheckModels,
+        maxAttempts: _recheckRetryMaxAttempts,
+      );
+      final rechecked = (recheckDecoded['report'] as String? ?? '').trim();
+      return rechecked.isEmpty ? report : rechecked;
+    } catch (_) {
+      return report;
+    }
   }
 
   Future<Map<String, dynamic>> generateStructuredStatsReport({
@@ -1656,16 +1765,15 @@ $allowedRecipesText
     required int stepsGoal,
     String? locale,
   }) {
-    final isRu = _languageCode(locale) == 'ru';
-    final isUk = _languageCode(locale) == 'uk';
-
-    if (isUk) {
-      return 'Звіт за період $periodLabel сформовано у спрощеному режимі. Середні калорії: ${avgCalories.toStringAsFixed(0)} ккал при цілі $calorieGoal ккал; білок: ${avgProteinGrams.toStringAsFixed(1)} г при цілі $proteinGoal г. Кроки: $avgSteps при цілі $stepsGoal. Продовжуй стабільний режим харчування та активності, поступово вирівнюй дефіцити без різких змін.';
-    }
-    if (isRu) {
-      return 'Отчет за период $periodLabel сформирован в упрощенном режиме. Средние калории: ${avgCalories.toStringAsFixed(0)} ккал при цели $calorieGoal ккал; белок: ${avgProteinGrams.toStringAsFixed(1)} г при цели $proteinGoal г. Шаги: $avgSteps при цели $stepsGoal. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.';
-    }
-    return 'Report for $periodLabel was generated in fallback mode. Average calories: ${avgCalories.toStringAsFixed(0)} kcal vs goal $calorieGoal kcal; protein: ${avgProteinGrams.toStringAsFixed(1)} g vs goal $proteinGoal g. Steps: $avgSteps vs goal $stepsGoal. Keep nutrition and activity consistent and close gaps gradually without aggressive changes.';
+    return _messages(locale).statsStructuredFallbackOverview(
+      periodLabel,
+      avgCalories.toStringAsFixed(0),
+      calorieGoal.toString(),
+      avgProteinGrams.toStringAsFixed(1),
+      proteinGoal.toString(),
+      avgSteps.toString(),
+      stepsGoal.toString(),
+    );
   }
 
   List<Map<String, dynamic>> _buildStructuredRecommendationsFallback({
@@ -1779,7 +1887,100 @@ Rules:
       stepsGoal: normalizeInt(decoded['stepsGoal'], profile.stepsGoal),
     );
 
-    return _normalizeDailyGoalsWithProfile(profile, aiDraft);
+    final recheckedDraft = await _recheckDailyGoalsWithAi(
+      profile: profile,
+      firstPass: aiDraft,
+      locale: locale,
+    );
+
+    return _normalizeDailyGoalsWithProfile(profile, recheckedDraft);
+  }
+
+  Future<DailyGoalsDraft> _recheckDailyGoalsWithAi({
+    required UserProfile profile,
+    required DailyGoalsDraft firstPass,
+    String? locale,
+  }) async {
+    final prompt = '''
+You are a strict QA validator for daily nutrition and activity goals.
+${_languageInstruction(locale)}
+
+Validate the candidate goals for realism and internal consistency.
+If values look good, keep them unchanged.
+If there are inconsistencies, correct them conservatively.
+
+User profile:
+- Gender: ${profile.gender.enLabel}
+- Age: ${profile.age}
+- Height: ${profile.height} cm
+- Current weight: ${profile.weight.toStringAsFixed(1)} kg
+- Target weight: ${profile.weightGoal.toStringAsFixed(1)} kg
+- Goal type: ${profile.goalType.enLabel}
+- Physical activity frequency: ${profile.activityFrequency.enLabel}
+- Activity types / sports: ${profile.activityTypes.isEmpty ? 'not specified' : profile.activityTypes}
+
+Candidate goals:
+- calorieGoal: ${firstPass.calorieGoal}
+- proteinGoal: ${firstPass.proteinGoal}
+- fatGoal: ${firstPass.fatGoal}
+- carbsGoal: ${firstPass.carbsGoal}
+- waterGoal: ${firstPass.waterGoal}
+- stepsGoal: ${firstPass.stepsGoal}
+
+Return ONLY JSON:
+{
+  "calorieGoal": 0,
+  "proteinGoal": 0,
+  "fatGoal": 0,
+  "carbsGoal": 0,
+  "waterGoal": 0,
+  "stepsGoal": 0
+}
+
+Rules:
+- all values must be positive integers
+- keep values realistic for daily adherence
+- keep goals internally consistent: calories ≈ protein*4 + carbs*4 + fat*9
+- no markdown, no extra keys, no extra text
+''';
+
+    try {
+      final decoded = await _requestDecodedJsonWithAutoRetry(
+        body: {
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.1,
+          'max_completion_tokens': 220,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+        modelsOverride: _recheckModels,
+        maxAttempts: _recheckRetryMaxAttempts,
+      );
+
+      int normalizedInt(dynamic value, int fallback) {
+        final parsed = _toNonNegativeDouble(value).round();
+        return parsed <= 0 ? fallback : parsed;
+      }
+
+      return DailyGoalsDraft(
+        calorieGoal:
+            normalizedInt(decoded['calorieGoal'], firstPass.calorieGoal),
+        proteinGoal:
+            normalizedInt(decoded['proteinGoal'], firstPass.proteinGoal),
+        fatGoal: normalizedInt(decoded['fatGoal'], firstPass.fatGoal),
+        carbsGoal: normalizedInt(decoded['carbsGoal'], firstPass.carbsGoal),
+        waterGoal: normalizedInt(decoded['waterGoal'], firstPass.waterGoal),
+        stepsGoal: normalizedInt(decoded['stepsGoal'], firstPass.stepsGoal),
+      );
+    } catch (_) {
+      return firstPass;
+    }
   }
 
   DailyGoalsDraft _normalizeDailyGoalsWithProfile(
@@ -1949,12 +2150,67 @@ Rules:
       throw GeminiRecipeException(_messages(locale).activityAiEstimateFailed);
     }
 
+    final firstPassCalories = calories.clamp(30, 2500);
+    final correctedCalories = await _recheckActivityCaloriesWithAi(
+      description: normalized,
+      firstPassCalories: firstPassCalories,
+      locale: locale,
+    );
+
     return ActivityAiDraft(
       name: parsedName.isEmpty ? normalized : parsedName,
       description: parsedDescription.isEmpty ? normalized : parsedDescription,
-      // Guardrails for unrealistic outputs from model.
-      calories: calories.clamp(30, 2500),
+      calories: correctedCalories,
     );
+  }
+
+  Future<int> _recheckActivityCaloriesWithAi({
+    required String description,
+    required int firstPassCalories,
+    String? locale,
+  }) async {
+    final prompt = '''
+You are a sports science expert.
+${_languageInstruction(locale)}
+
+Verify the calorie estimate for the activity below.
+If it looks reasonable, return it unchanged.
+If it is clearly too high or too low for a typical session, correct it.
+
+Input data:
+- activity: $description
+- proposed_calories: $firstPassCalories
+
+Return ONLY JSON:
+{ "calories": 0 }
+
+Rules:
+- calories must be a positive integer
+- be realistic for one session
+- no markdown, no extra text
+''';
+    try {
+      final recheckDecoded = await _requestDecodedJsonWithAutoRetry(
+        body: {
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'temperature': 0.1,
+          'max_completion_tokens': 60,
+          'top_p': 1,
+          'stream': false,
+        },
+        locale: locale,
+        modelsOverride: _recheckModels,
+        maxAttempts: _recheckRetryMaxAttempts,
+      );
+      final corrected =
+          _toNonNegativeDouble(recheckDecoded['calories']).round();
+      if (corrected <= 0) return firstPassCalories;
+      return corrected.clamp(30, 2500);
+    } catch (_) {
+      return firstPassCalories;
+    }
   }
 
   Future<int> estimateActivityCaloriesFromDescription({
@@ -1981,7 +2237,13 @@ Rules:
       );
     }
 
-    final models = modelsOverride ?? _models;
+    final baseModels = modelsOverride ?? _models;
+    final models = await _selectAdaptiveModelOrder(
+      candidates: baseModels,
+      body: body,
+      apiKey: apiKey,
+      locale: locale,
+    );
     http.Response? lastErrorResponse;
     for (final model in models) {
       final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
@@ -2039,6 +2301,345 @@ Rules:
     throw GeminiRecipeException(
       _messages(locale).aiNoResponseError,
     );
+  }
+
+  Future<List<String>> _selectAdaptiveModelOrder({
+    required List<String> candidates,
+    required Map<String, dynamic> body,
+    required String apiKey,
+    String? locale,
+  }) async {
+    final uniqueCandidates = <String>[];
+    for (final model in candidates) {
+      if (!uniqueCandidates.contains(model)) {
+        uniqueCandidates.add(model);
+      }
+    }
+
+    if (uniqueCandidates.length <= 1) {
+      return uniqueCandidates;
+    }
+
+    if (await _shouldBypassRouter()) {
+      unawaited(
+        _appendRouterHistory(
+          taskType: _detectRequestTaskType(body),
+          candidates: uniqueCandidates,
+          ordered: uniqueCandidates,
+          status: 'bypass',
+          reason: 'too_many_recent_router_errors',
+        ),
+      );
+      return uniqueCandidates;
+    }
+
+    try {
+      final taskType = _detectRequestTaskType(body);
+      final routedOrder = await _requestAdaptiveModelOrderFromRouter(
+        candidates: uniqueCandidates,
+        taskType: taskType,
+        apiKey: apiKey,
+        locale: locale,
+      );
+      if (routedOrder.isEmpty) {
+        await _registerRouterFailure();
+        unawaited(
+          _appendRouterHistory(
+            taskType: taskType,
+            candidates: uniqueCandidates,
+            ordered: uniqueCandidates,
+            status: 'fallback',
+            reason: 'empty_router_response',
+          ),
+        );
+        return uniqueCandidates;
+      }
+
+      final ordered = <String>[];
+      for (final model in routedOrder) {
+        if (uniqueCandidates.contains(model) && !ordered.contains(model)) {
+          ordered.add(model);
+        }
+      }
+      for (final model in uniqueCandidates) {
+        if (!ordered.contains(model)) {
+          ordered.add(model);
+        }
+      }
+      await _resetRouterFailureState();
+      unawaited(
+        _appendRouterHistory(
+          taskType: taskType,
+          candidates: uniqueCandidates,
+          ordered: ordered,
+          status: 'ok',
+          reason: '',
+        ),
+      );
+      return ordered;
+    } catch (_) {
+      await _registerRouterFailure();
+      unawaited(
+        _appendRouterHistory(
+          taskType: _detectRequestTaskType(body),
+          candidates: uniqueCandidates,
+          ordered: uniqueCandidates,
+          status: 'fallback',
+          reason: 'router_exception',
+        ),
+      );
+      return uniqueCandidates;
+    }
+  }
+
+  Future<List<String>> _requestAdaptiveModelOrderFromRouter({
+    required List<String> candidates,
+    required String taskType,
+    required String apiKey,
+    String? locale,
+  }) async {
+    final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
+
+    final routerPrompt = '''
+You are a model-routing planner.
+${_languageInstruction(locale)}
+
+Task type: $taskType
+Candidate models:
+${candidates.map((m) => '- $m').join('\n')}
+
+Goal:
+- Choose the best execution order for these models.
+- Balance speed and accuracy according to task type.
+- For moderation/translation: prefer speed first.
+- For nutrition/daily_goals/activity/stats/draft: prefer accuracy first, then speed.
+- Return all candidate models exactly once in priority order.
+
+Return ONLY JSON:
+{
+  "ordered_models": ["modelA", "modelB"],
+  "profile": "speed|balanced|accuracy"
+}
+
+Rules:
+- ordered_models must include only models from candidate list.
+- no duplicates.
+- no markdown, no extra text.
+''';
+
+    for (final routerModel in _routerModels) {
+      try {
+        final response = await http
+            .post(
+              uri,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $apiKey',
+              },
+              body: jsonEncode({
+                'model': routerModel,
+                'messages': [
+                  {
+                    'role': 'user',
+                    'content': routerPrompt,
+                  }
+                ],
+                'temperature': 0,
+                'max_completion_tokens': 160,
+                'top_p': 1,
+                'stream': false,
+                'response_format': {'type': 'json_object'},
+              }),
+            )
+            .timeout(_routerRequestTimeout);
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          continue;
+        }
+
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final content = _extractText(payload, locale).trim();
+        if (content.isEmpty) continue;
+
+        final decoded = _decodeJsonObject(content, locale);
+        final orderedModels =
+            (decoded['ordered_models'] as List<dynamic>? ?? const <dynamic>[])
+                .map((item) => item.toString().trim())
+                .where((item) => item.isNotEmpty)
+                .toList(growable: false);
+
+        if (orderedModels.isNotEmpty) {
+          return orderedModels;
+        }
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return const [];
+  }
+
+  String _detectRequestTaskType(Map<String, dynamic> body) {
+    final textParts = <String>[];
+
+    void addText(dynamic value) {
+      if (value is String) {
+        textParts.add(value);
+        return;
+      }
+      if (value is List) {
+        for (final item in value) {
+          addText(item);
+        }
+        return;
+      }
+      if (value is Map) {
+        for (final entry in value.entries) {
+          if (entry.key == 'content' || entry.key == 'text') {
+            addText(entry.value);
+          }
+        }
+      }
+    }
+
+    addText(body['messages']);
+    final text = textParts.join(' ').toLowerCase();
+
+    if (text.contains('moderation') ||
+        text.contains('public community feed') ||
+        text.contains('allow|reject')) {
+      return 'moderation';
+    }
+    if (text.contains('daily goals') || text.contains('caloriegoal')) {
+      return 'daily_goals';
+    }
+    if (text.contains('activity') && text.contains('calories')) {
+      return 'activity';
+    }
+    if (text.contains('structured stats') || text.contains('recommendations')) {
+      return 'stats';
+    }
+    if (text.contains('recipe draft') || text.contains('ingredients')) {
+      return 'draft';
+    }
+    if (text.contains('translate the food ingredient')) {
+      return 'translation';
+    }
+    if (text.contains('nutrition') ||
+        text.contains('nutrients') ||
+        text.contains('calories')) {
+      return 'nutrition';
+    }
+
+    return 'generic';
+  }
+
+  Future<bool> _shouldBypassRouter() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final failCount = prefs.getInt(_routerFailCountPrefsKey) ?? 0;
+      if (failCount < _routerErrorBypassThreshold) return false;
+
+      final lastFailRaw = prefs.getString(_routerLastFailAtPrefsKey) ?? '';
+      final lastFailAt = DateTime.tryParse(lastFailRaw);
+      if (lastFailAt == null) return false;
+
+      final withinWindow =
+          DateTime.now().difference(lastFailAt) < _routerErrorBypassWindow;
+      return withinWindow;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _registerRouterFailure() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+      final current = prefs.getInt(_routerFailCountPrefsKey) ?? 0;
+      await prefs.setInt(_routerFailCountPrefsKey, current + 1);
+      await prefs.setString(_routerLastFailAtPrefsKey, nowIso);
+    } catch (_) {
+      // Router diagnostics must never break business flow.
+    }
+  }
+
+  Future<void> _resetRouterFailureState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_routerFailCountPrefsKey, 0);
+      await prefs.remove(_routerLastFailAtPrefsKey);
+    } catch (_) {
+      // Ignore diagnostics storage errors.
+    }
+  }
+
+  Future<void> _appendRouterHistory({
+    required String taskType,
+    required List<String> candidates,
+    required List<String> ordered,
+    required String status,
+    required String reason,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await _cleanupRouterHistoryIfNeeded(prefs);
+
+      final now = DateTime.now().toUtc();
+      final raw = prefs.getString(_routerHistoryPrefsKey) ?? '[]';
+      final decoded = jsonDecode(raw);
+      final items = decoded is List ? List<dynamic>.from(decoded) : <dynamic>[];
+
+      items.add({
+        'ts': now.toIso8601String(),
+        'task': taskType,
+        'status': status,
+        'reason': reason,
+        'candidates': candidates,
+        'ordered': ordered,
+      });
+
+      if (items.length > _routerHistoryMaxEntries) {
+        final overflow = items.length - _routerHistoryMaxEntries;
+        items.removeRange(0, overflow);
+      }
+
+      await prefs.setString(_routerHistoryPrefsKey, jsonEncode(items));
+    } catch (_) {
+      // Ignore diagnostics storage errors.
+    }
+  }
+
+  Future<void> _cleanupRouterHistoryIfNeeded(SharedPreferences prefs) async {
+    final now = DateTime.now().toUtc();
+    final lastCleanupRaw = prefs.getString(_routerLastCleanupAtPrefsKey) ?? '';
+    final lastCleanupAt = DateTime.tryParse(lastCleanupRaw);
+
+    final shouldRunCleanup = lastCleanupAt == null ||
+        now.difference(lastCleanupAt) >= _routerHistoryRetention;
+    if (!shouldRunCleanup) return;
+
+    try {
+      final raw = prefs.getString(_routerHistoryPrefsKey) ?? '[]';
+      final decoded = jsonDecode(raw);
+      final items = decoded is List ? decoded : const [];
+      final cutoff = now.subtract(_routerHistoryRetention);
+
+      final filtered = items.whereType<Map>().where((entry) {
+        final tsRaw = (entry['ts'] ?? '').toString();
+        final ts = DateTime.tryParse(tsRaw);
+        if (ts == null) return false;
+        return ts.isAfter(cutoff);
+      }).toList(growable: false);
+
+      await prefs.setString(_routerHistoryPrefsKey, jsonEncode(filtered));
+      await prefs.setString(
+        _routerLastCleanupAtPrefsKey,
+        now.toIso8601String(),
+      );
+    } catch (_) {
+      // Ignore cleanup errors.
+    }
   }
 
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({

@@ -183,6 +183,18 @@
   "statsAiLoading": "Завантаження звіту від нейромережі...",
   "statsAiUpdating": "Щоденник змінився — оновлюю звіт...",
   "statsAiError": "Не вдалося сформувати звіт від нейромережі. Спробуйте ще раз пізніше.",
+  "statsStructuredFallbackOverview": "Звіт за період {periodLabel} сформовано у спрощеному режимі. Середні калорії: {avgCalories} ккал при цілі {calorieGoal} ккал; білок: {avgProteinGrams} г при цілі {proteinGoal} г. Кроки: {avgSteps} при цілі {stepsGoal}. Продовжуй стабільний режим харчування та активності, поступово вирівнюй дефіцити без різких змін.",
+  "@statsStructuredFallbackOverview": {
+    "placeholders": {
+      "periodLabel": { "type": "String" },
+      "avgCalories": { "type": "String" },
+      "calorieGoal": { "type": "String" },
+      "avgProteinGrams": { "type": "String" },
+      "proteinGoal": { "type": "String" },
+      "avgSteps": { "type": "String" },
+      "stepsGoal": { "type": "String" }
+    }
+  },
   "statsPeriodLabelWeek": "тижня",
   "statsPeriodLabelMonth": "місяця",
   "statsPeriodLabelYear": "року",

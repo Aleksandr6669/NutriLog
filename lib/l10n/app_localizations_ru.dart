@@ -574,6 +574,18 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сформировать отчет от нейросети. Попробуйте еще раз позже.';
 
   @override
+  String statsStructuredFallbackOverview(
+      String periodLabel,
+      String avgCalories,
+      String calorieGoal,
+      String avgProteinGrams,
+      String proteinGoal,
+      String avgSteps,
+      String stepsGoal) {
+    return 'Отчет за период $periodLabel сформирован в упрощенном режиме. Средние калории: $avgCalories ккал при цели $calorieGoal ккал; белок: $avgProteinGrams г при цели $proteinGoal г. Шаги: $avgSteps при цели $stepsGoal. Продолжай стабильный режим питания и активности, постепенно закрывая дефициты без резких изменений.';
+  }
+
+  @override
   String get statsPeriodLabelWeek => 'недели';
 
   @override
@@ -760,11 +772,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recipeAiCalculating => 'Рассчитываем пищевую ценность...';
 
   @override
-  String get recipeAiUpdated => 'Пищевые значения обновлены.';
-
-  @override
   String get recipeAiPendingUpdate =>
       'Ингредиенты изменились — пересчитываю пищевую ценность...';
+
+  @override
+  String get recipeAiUpdated => 'Пищевые значения обновлены.';
 
   @override
   String get recipeAiFailed => 'Не удалось рассчитать пищевую ценность AI.';
