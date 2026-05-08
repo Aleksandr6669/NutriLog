@@ -97,6 +97,13 @@ class GeminiRecipeService {
     'meta-llama/llama-4-maverick-17b-128e-instruct',
   ];
 
+  /// Модели с поддержкой изображений.
+  /// Фото никогда не должно уходить в текстовую модель.
+  static const List<String> _photoModels = [
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
+  ];
+
   /// Быстрые модели — для recheck (самопроверки результата).
   /// Llama 3.3 70B быстрее и дешевле Llama 4, достаточно для корректировки.
   /// Qwen 3 32B — как запасная: хорошо рассуждает, подходит для самопроверки.
@@ -306,6 +313,7 @@ Rules:
         'stream': false,
       },
       locale: locale,
+      modelsOverride: _photoModels,
     );
     final textDraft = _draftFromDecodedJson(
       decoded,
@@ -2237,7 +2245,15 @@ Rules:
       );
     }
 
-    final baseModels = modelsOverride ?? _models;
+    final usesImageInput = _requestUsesImageInput(body);
+    final baseModels = (modelsOverride ?? _models)
+        .where((model) => !usesImageInput || _supportsImageInput(model))
+        .toList(growable: false);
+    if (baseModels.isEmpty) {
+      throw GeminiRecipeException(
+        _messages(locale).aiNoResponseError,
+      );
+    }
     final models = await _selectAdaptiveModelOrder(
       candidates: baseModels,
       body: body,
@@ -2532,6 +2548,39 @@ Rules:
     }
 
     return 'generic';
+  }
+
+  bool _requestUsesImageInput(Map<String, dynamic> body) {
+    bool hasImage = false;
+
+    void visit(dynamic value) {
+      if (hasImage) return;
+      if (value is List) {
+        for (final item in value) {
+          visit(item);
+          if (hasImage) return;
+        }
+        return;
+      }
+      if (value is Map) {
+        final type = value['type'];
+        if (type == 'image_url' && value['image_url'] is Map) {
+          hasImage = true;
+          return;
+        }
+        for (final nested in value.values) {
+          visit(nested);
+          if (hasImage) return;
+        }
+      }
+    }
+
+    visit(body['messages']);
+    return hasImage;
+  }
+
+  bool _supportsImageInput(String model) {
+    return _photoModels.contains(model);
   }
 
   Future<bool> _shouldBypassRouter() async {
