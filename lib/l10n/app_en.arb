@@ -344,19 +344,19 @@
   "validationSaltExcess": "Salt amount looks unrealistic for one serving. Please check the quantity.",
   "moderationApproved": "Recipe passed AI review and can be published.",
   "moderationRejected": "AI review failed: recipe looks invalid for the community.",
-  "aiNoResponseError": "Failed to get a response from Groq.",
-  "aiFailedToReadResponseError": "Failed to read Groq response.",
-  "aiEmptyResponseError": "Empty response from Groq.",
-  "aiUnexpectedResponseFormatError": "Unexpected Groq response format.",
-  "aiEmptyTextError": "Groq returned empty text.",
+  "aiNoResponseError": "Failed to get a response from Gemini.",
+  "aiFailedToReadResponseError": "Failed to read Gemini response.",
+  "aiEmptyResponseError": "Empty response from Gemini.",
+  "aiUnexpectedResponseFormatError": "Unexpected Gemini response format.",
+  "aiEmptyTextError": "Gemini returned empty text.",
   "aiFailedToExtractIngredientsError": "Could not extract ingredients from the AI response. Clarify the description and try again.",
   "aiFailedToParseJsonError": "Could not parse JSON from the AI response. Check the ingredient list and try again. If the error repeats, rephrase the ingredients or change spelling.",
-  "aiKeyMissingError": "Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.",
-  "aiHttpForbiddenError": "Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.",
-  "aiHttpUnauthorizedError": "Groq returned 401 (unauthorized). Check GROQ_API_KEY.",
-  "aiHttpRateLimitError": "Groq returned 429 (rate limit). Please try again later.",
+  "aiKeyMissingError": "Gemini key not found. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... at launch.",
+  "aiHttpForbiddenError": "Gemini returned 403 (forbidden). Check GEMINI_API_KEY and access restrictions.",
+  "aiHttpUnauthorizedError": "Gemini returned 401 (unauthorized). Check GEMINI_API_KEY.",
+  "aiHttpRateLimitError": "Gemini returned 429 (rate limit). Please try again later.",
   "aiHttpNotFoundError": "Failed to connect to the AI service.",
-  "aiHttpGenericError": "Groq returned an error ({code}).",
+  "aiHttpGenericError": "Gemini returned an error ({code}).",
   "@aiHttpGenericError": {
     "placeholders": { "code": { "type": "Object" } }
   },
@@ -560,6 +560,23 @@
   "donateRecipeSignInRequired": "Sign in to donate a recipe to the community",
   "aiClarificationTitle": "Details",
   "aiClarificationDescription": "Describe important details: cooking method, dietary restrictions, desired dish style, or portion specifics.",
-  "aiClarificationLabel": "What to consider?",
-  "aiClarificationHint": "E.g. gluten-free, high protein, less sugar, baked, vegetarian"
+  "aiClarificationLabel": "Additional details",
+  "aiClarificationHint": "E.g. gluten-free, high protein, less sugar, baked, vegetarian",
+  "recipeClarificationTypeEnergyDrink": "Energy drink.",
+  "recipeClarificationTypeSoda": "Carbonated drink.",
+  "recipeClarificationTypeSoup": "Soup.",
+  "recipeClarificationTypeSalad": "Salad.",
+  "recipeClarificationMethodBaked": "Baking/grill.",
+  "recipeClarificationMethodFried": "Frying.",
+  "recipeClarificationMethodBoiled": "Boiling/steaming.",
+  "recipeClarificationMethodDefault": "Cooking method: basic homemade (clarify by context).",
+  "recipeClarificationClarify": "Clarify: {ambiguous}.",
+  "@recipeClarificationClarify": {
+    "placeholders": { "ambiguous": { "type": "String" } }
+  },
+  "recipeClarificationComposition": "Ingredients:\n{ingredients}",
+  "@recipeClarificationComposition": {
+    "placeholders": { "ingredients": { "type": "String" } }
+  },
+  "recipeClarificationBrandUnknown": "If brand is unknown — use typical composition for this type."
 }

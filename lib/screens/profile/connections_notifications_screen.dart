@@ -207,6 +207,7 @@ class _ConnectionsNotificationsScreenState
               ),
             ),
             ListTile(
+              leading: const Text('🇷🇺', style: TextStyle(fontSize: 24)),
               title: Text(l10n.languageRussian),
               onTap: () {
                 localeProvider.setLocale(const Locale('ru'));
@@ -217,6 +218,7 @@ class _ConnectionsNotificationsScreenState
                   : null,
             ),
             ListTile(
+              leading: const Text('🇺🇦', style: TextStyle(fontSize: 24)),
               title: Text(l10n.languageUkrainian),
               onTap: () {
                 localeProvider.setLocale(const Locale('uk'));
@@ -227,6 +229,7 @@ class _ConnectionsNotificationsScreenState
                   : null,
             ),
             ListTile(
+              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
               title: Text(l10n.languageEnglish),
               onTap: () {
                 localeProvider.setLocale(const Locale('en'));

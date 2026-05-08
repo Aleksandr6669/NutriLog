@@ -1051,7 +1051,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsAiPlanTitle.
   ///
   /// In en, this message translates to:
-  /// **'Part 2. What and When to Eat'**
+  /// **'Part 2. Practical Steps'**
   String get statsAiPlanTitle;
 
   /// No description provided for @statsAiNoPlan.
@@ -1165,19 +1165,19 @@ abstract class AppLocalizations {
   /// No description provided for @statsAiError.
   ///
   /// In en, this message translates to:
-  /// **'Could not generate AI report. Please try again later.'**
+  /// **'AI is temporarily unavailable.'**
   String get statsAiError;
 
   /// No description provided for @accountDataConflictTitle.
   ///
   /// In en, this message translates to:
-  /// **'Data conflict detected'**
+  /// **'Data found in cloud and on this phone'**
   String get accountDataConflictTitle;
 
   /// No description provided for @accountDataConflictMessage.
   ///
   /// In en, this message translates to:
-  /// **'Cloud data already exists for this account, and local data is also present on this device.\n\nChoose which data should be kept as primary.'**
+  /// **'We found two sets of data:\n• in the cloud\n• on this device\n\nWhat should we use?\n\nUse cloud data: download cloud data to this phone.\nKeep phone data: upload current phone data to the cloud.'**
   String get accountDataConflictMessage;
 
   /// No description provided for @accountDataConflictUseCloud.
@@ -1189,7 +1189,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountDataConflictUseLocal.
   ///
   /// In en, this message translates to:
-  /// **'Replace cloud with local data'**
+  /// **'Keep phone data'**
   String get accountDataConflictUseLocal;
 
   /// No description provided for @statsStructuredFallbackOverview.
@@ -1520,7 +1520,7 @@ abstract class AppLocalizations {
   /// No description provided for @recipeAiFailed.
   ///
   /// In en, this message translates to:
-  /// **'AI nutrition calculation failed.'**
+  /// **'AI is temporarily unavailable.'**
   String get recipeAiFailed;
 
   /// No description provided for @recipeAiDisclaimer.
@@ -1796,31 +1796,31 @@ abstract class AppLocalizations {
   /// No description provided for @aiNoResponseError.
   ///
   /// In en, this message translates to:
-  /// **'Failed to get a response from Groq.'**
+  /// **'Failed to get a response from Gemini.'**
   String get aiNoResponseError;
 
   /// No description provided for @aiFailedToReadResponseError.
   ///
   /// In en, this message translates to:
-  /// **'Failed to read Groq response.'**
+  /// **'Failed to read Gemini response.'**
   String get aiFailedToReadResponseError;
 
   /// No description provided for @aiEmptyResponseError.
   ///
   /// In en, this message translates to:
-  /// **'Empty response from Groq.'**
+  /// **'Empty response from Gemini.'**
   String get aiEmptyResponseError;
 
   /// No description provided for @aiUnexpectedResponseFormatError.
   ///
   /// In en, this message translates to:
-  /// **'Unexpected Groq response format.'**
+  /// **'Unexpected Gemini response format.'**
   String get aiUnexpectedResponseFormatError;
 
   /// No description provided for @aiEmptyTextError.
   ///
   /// In en, this message translates to:
-  /// **'Groq returned empty text.'**
+  /// **'Gemini returned empty text.'**
   String get aiEmptyTextError;
 
   /// No description provided for @aiFailedToExtractIngredientsError.
@@ -1838,25 +1838,25 @@ abstract class AppLocalizations {
   /// No description provided for @aiKeyMissingError.
   ///
   /// In en, this message translates to:
-  /// **'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.'**
+  /// **'Gemini key not found. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... at launch.'**
   String get aiKeyMissingError;
 
   /// No description provided for @aiHttpForbiddenError.
   ///
   /// In en, this message translates to:
-  /// **'Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.'**
+  /// **'Gemini returned 403 (forbidden). Check GEMINI_API_KEY and access restrictions.'**
   String get aiHttpForbiddenError;
 
   /// No description provided for @aiHttpUnauthorizedError.
   ///
   /// In en, this message translates to:
-  /// **'Groq returned 401 (unauthorized). Check GROQ_API_KEY.'**
+  /// **'Gemini returned 401 (unauthorized). Check GEMINI_API_KEY.'**
   String get aiHttpUnauthorizedError;
 
   /// No description provided for @aiHttpRateLimitError.
   ///
   /// In en, this message translates to:
-  /// **'Groq returned 429 (rate limit). Please try again later.'**
+  /// **'Gemini returned 429 (rate limit). Please try again later.'**
   String get aiHttpRateLimitError;
 
   /// No description provided for @aiHttpNotFoundError.
@@ -1868,7 +1868,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiHttpGenericError.
   ///
   /// In en, this message translates to:
-  /// **'Groq returned an error ({code}).'**
+  /// **'Gemini returned an error ({code}).'**
   String aiHttpGenericError(Object code);
 
   /// No description provided for @detailsLabel.
@@ -2810,7 +2810,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiClarificationLabel.
   ///
   /// In en, this message translates to:
-  /// **'What to consider?'**
+  /// **'Additional details'**
   String get aiClarificationLabel;
 
   /// No description provided for @aiClarificationHint.
@@ -2818,6 +2818,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'E.g. gluten-free, high protein, less sugar, baked, vegetarian'**
   String get aiClarificationHint;
+
+  /// No description provided for @recipeClarificationTypeEnergyDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy drink.'**
+  String get recipeClarificationTypeEnergyDrink;
+
+  /// No description provided for @recipeClarificationTypeSoda.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbonated drink.'**
+  String get recipeClarificationTypeSoda;
+
+  /// No description provided for @recipeClarificationTypeSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soup.'**
+  String get recipeClarificationTypeSoup;
+
+  /// No description provided for @recipeClarificationTypeSalad.
+  ///
+  /// In en, this message translates to:
+  /// **'Salad.'**
+  String get recipeClarificationTypeSalad;
+
+  /// No description provided for @recipeClarificationMethodBaked.
+  ///
+  /// In en, this message translates to:
+  /// **'Baking/grill.'**
+  String get recipeClarificationMethodBaked;
+
+  /// No description provided for @recipeClarificationMethodFried.
+  ///
+  /// In en, this message translates to:
+  /// **'Frying.'**
+  String get recipeClarificationMethodFried;
+
+  /// No description provided for @recipeClarificationMethodBoiled.
+  ///
+  /// In en, this message translates to:
+  /// **'Boiling/steaming.'**
+  String get recipeClarificationMethodBoiled;
+
+  /// No description provided for @recipeClarificationMethodDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking method: basic homemade (clarify by context).'**
+  String get recipeClarificationMethodDefault;
+
+  /// No description provided for @recipeClarificationClarify.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarify: {ambiguous}.'**
+  String recipeClarificationClarify(String ambiguous);
+
+  /// No description provided for @recipeClarificationComposition.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients:\n{ingredients}'**
+  String recipeClarificationComposition(String ingredients);
+
+  /// No description provided for @recipeClarificationBrandUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'If brand is unknown — use typical composition for this type.'**
+  String get recipeClarificationBrandUnknown;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,4 @@
-import 'usda_food_data_service.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutri_log/l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
@@ -16,115 +16,9 @@ import 'recipe_loader.dart';
 import 'dart:ui' as ui;
 
 class GeminiRecipeService {
-  static const int _usdaFactsCacheMaxEntries = 300;
-  static final Map<String, Map<String, double>> _usdaFactsCache = {};
-  static final Map<String, Future<Map<String, double>?>> _usdaFactsInFlight =
-      {};
 
-  /// Get a nutrient value by key from nutrMap (with synonym support)
-  double _usdaNutrientValue(String key, Map<String, double> nutrMap) {
-    // Synonym map for nutrient keys
-    const synonyms = {
-      'calories': [
-        'energy',
-        'energy, kcal',
-        'energy, kilocalories',
-      ],
-      'protein': ['protein', 'proteins'],
-      'carbs': [
-        'carbohydrate, by difference',
-        'carbohydrates',
-        'carb',
-        'carbohydrate'
-      ],
-      'fat': ['total lipid (fat)', 'fat', 'total fat'],
-      'fiber': ['fiber, total dietary', 'fiber', 'dietary fiber'],
-      'sugar': ['sugars, total including nlea', 'sugar', 'sugars'],
-      'saturated_fat': [
-        'fatty acids, total saturated',
-        'saturated fat',
-      ],
-      'polyunsaturated_fat': [
-        'fatty acids, total polyunsaturated',
-        'polyunsaturated fat',
-      ],
-      'monounsaturated_fat': [
-        'fatty acids, total monounsaturated',
-        'monounsaturated fat',
-      ],
-      'trans_fat': ['fatty acids, total trans', 'trans fat'],
-      'cholesterol': ['cholesterol'],
-      'sodium': ['sodium, na', 'sodium'],
-      'potassium': ['potassium, k', 'potassium'],
-      'vitamin_a': ['vitamin a, iu', 'vitamin a', 'retinol'],
-      'vitamin_c': [
-        'vitamin c, total ascorbic acid',
-        'vitamin c',
-        'ascorbic acid',
-      ],
-      'vitamin_d': [
-        'vitamin d (d2 + d3)',
-        'vitamin d',
-        'calciferol',
-      ],
-      'calcium': ['calcium, ca', 'calcium'],
-      'iron': ['iron, fe', 'iron'],
-    };
-    final candidates = [key, ...?synonyms[key]];
-    for (final k in candidates) {
-      if (nutrMap.containsKey(k)) {
-        final v = nutrMap[k];
-        if (v != null && v.isFinite && v >= 0) return v;
-      }
-    }
-    // Try partial match
-    for (final entry in nutrMap.entries) {
-      for (final k in candidates) {
-        if (entry.key.toLowerCase().contains(k.toLowerCase()) &&
-            entry.value.isFinite &&
-            entry.value >= 0) {
-          return entry.value;
-        }
-      }
-    }
-    return 0.0;
-  }
 
-  /// Стабильная JSON-модель для большинства операций.
-  static const String _stableJsonModel = 'llama-3.3-70b-versatile';
 
-  /// Стабильная vision-модель для задач с фото.
-  static const String _stablePhotoJsonModel =
-      'meta-llama/llama-4-scout-17b-16e-instruct';
-
-  /// Базовый набор по умолчанию (одна модель = один запрос без лишнего фолбэка).
-  static const List<String> _models = [_stableJsonModel];
-
-  /// Операционные наборы моделей.
-  static const List<String> _draftModels = [_stableJsonModel];
-  static const List<String> _nutritionModels = [_stableJsonModel];
-  static const List<String> _statsModels = [_stableJsonModel];
-  static const List<String> _dailyGoalsModels = [_stableJsonModel];
-  static const List<String> _activityModels = [_stableJsonModel];
-  static const List<String> _translationModels = ['llama-3.1-8b-instant'];
-
-  /// Модели с поддержкой изображений.
-  /// Фото никогда не должно уходить в текстовую модель.
-  static const List<String> _photoModels = [_stablePhotoJsonModel];
-
-  /// Быстрые модели — для recheck (самопроверки результата).
-  static const List<String> _recheckModels = ['llama-3.1-8b-instant'];
-
-  /// Специализированные модели для модерации рецептов.
-  static const List<String> _moderationModels = ['llama-3.1-8b-instant'];
-
-  /// Router models are used only to choose model order (speed vs accuracy).
-  /// If router fails, the regular deterministic fallback chain is used.
-  static const List<String> _routerModels = [
-    'llama-3.1-8b-instant',
-    'llama-3.3-70b-versatile',
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-  ];
 
   static const List<String> _geminiModels = [
     NotificationSettings.geminiModelFlashLite,
@@ -133,20 +27,8 @@ class GeminiRecipeService {
   ];
 
   static const Duration _requestTimeout = Duration(seconds: 12);
-  static const Duration _routerRequestTimeout = Duration(seconds: 4);
   static const int _jsonRetryMaxAttempts = 2;
-  static const int _recheckRetryMaxAttempts = 1;
-  static const int _moderationRetryMaxAttempts = 1;
   static const Duration _jsonRetryDelay = Duration(seconds: 2);
-  static const Duration _routerHistoryRetention = Duration(days: 30);
-  static const Duration _routerErrorBypassWindow = Duration(hours: 6);
-  static const int _routerErrorBypassThreshold = 5;
-  static const int _routerHistoryMaxEntries = 240;
-  static const String _routerHistoryPrefsKey = 'ai.router.history.v1';
-  static const String _routerFailCountPrefsKey = 'ai.router.fail.count.v1';
-  static const String _routerLastFailAtPrefsKey = 'ai.router.fail.last_at.v1';
-  static const String _routerLastCleanupAtPrefsKey =
-      'ai.router.history.last_cleanup_at.v1';
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -299,7 +181,7 @@ Rules:
 - nutrients as numbers only >= 0.
 - If exact data is unavailable, provide a realistic estimate.
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
-- Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly mentioned by the user or clearly required by the dish/product type.
+- You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -316,7 +198,6 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _draftModels,
     );
     final textDraft = _draftFromDecodedJson(
       decoded,
@@ -401,7 +282,7 @@ Rules:
 - nutrients as numbers only >= 0. If needed, values >= 0.0001 (for micronutrients, vitamins, supplements, etc.) are allowed.
 - If exact data is unavailable, provide a realistic estimate.
 - If exact composition cannot be determined, estimate by analogy with typical products of this type.
-- Do NOT add generic fillers like water/broth/oil/salt/sugar unless they are explicitly visible/mentioned or clearly required by the dish/product type.
+- You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish or product type.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -430,7 +311,6 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _photoModels,
     );
     final photoDraft = _draftFromDecodedJson(
       decoded,
@@ -462,7 +342,7 @@ Rules:
       throw GeminiRecipeException(ingredientIssue);
     }
 
-    final apiKey = _resolveApiKey();
+    final apiKey = _resolveGeminiApiKey();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(
         _messages(locale).aiKeyMissingError,
@@ -473,20 +353,7 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
 
-    // Fetch real ingredient data from USDA FoodData Central
-    final usdaService = UsdaFoodDataService.fromEnv();
-    // Build a JSON nutrient table for each ingredient
-    final Map<String, Map<String, double>> factsJson = {};
-    for (final ingredient in ingredients) {
-      final facts = await _getUsdaFactsForIngredient(
-        ingredientName: ingredient.name,
-        locale: locale,
-        usdaService: usdaService,
-      );
-      if (facts != null && facts.isNotEmpty) {
-        factsJson[ingredient.name] = facts;
-      }
-    }
+
 
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
@@ -509,8 +376,8 @@ Rules:
 
   UNIT CONVERSION (to grams):
   - Milliliters: water/juice ≈ 1 g/ml, milk ≈ 1.03 g/ml, oil ≈ 0.9 g/ml, honey ≈ 1.4 g/ml
-  - стакан/стак (Russian/Ukrainian glass): EXACTLY 200 ml. Do NOT use 240 ml (US cup). 1 стакан = 200 ml always.
-  - cup (US): 240 ml. Use only if the unit is explicitly "cup", not "стакан".
+  - стакан/стак (Russian/Ukrainian glass): usually 200-250 ml. Estimate the volume based on the typical context of the recipe.
+  - cup (US): 240 ml.
   - tbsp/столовая ложка: 15 ml. tsp/чайная ложка: 5 ml.
   - Pieces (pcs): apple ≈ 150 g, egg ≈ 55 g, banana ≈ 120 g, orange ≈ 180 g; use common sense for others
   - Pack/package: use the typical standard weight for that product category ONLY when no explicit net weight/volume is provided in name/description
@@ -522,8 +389,7 @@ Rules:
   4. Sum across ALL ingredients to get the total for the serving.
   5. Cross-check: calories ≈ (protein × 4) + (carbs × 4) + (fat × 9). Adjust if off by more than 5%.
 
-  USDA nutritional reference data (per 100 g) for each ingredient:
-  ${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available — use your knowledge of food databases)'}
+  Use your internal knowledge and search tools to determine nutritional reference data per 100 g for each ingredient.
 
   Recipe details:
   - User clarification (PRIMARY): ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
@@ -553,13 +419,13 @@ Rules:
           }
         ],
         'temperature': 0.2,
-        'max_completion_tokens': 1024,
+        'max_tokens': 1024,
         'top_p': 1,
-        'stream': false,
+        'enable_tools': true,
+        'thinking_level': 'MEDIUM',
       },
       apiKeyOverride: apiKey,
       locale: locale,
-      modelsOverride: _nutritionModels,
     );
 
     final firstPass = <String, double>{};
@@ -572,7 +438,6 @@ Rules:
       recipeDescription: recipeDescription,
       clarification: clarification,
       ingredientsText: ingredientsText,
-      factsJson: factsJson,
       firstPass: firstPass,
       locale: locale,
     );
@@ -601,7 +466,6 @@ Rules:
         recipeDescription: recipeDescription,
         clarification: clarification,
         ingredientsText: ingredientsText,
-        factsJson: factsJson,
         firstPass: finalNutrients,
         locale: locale,
       );
@@ -687,7 +551,6 @@ Rules:
         recipeDescription: draft.description,
         clarification: draft.clarification,
         ingredientsText: ingredientsText,
-        factsJson: const {},
         firstPass: Map<String, double>.from(n),
         locale: locale,
       );
@@ -711,7 +574,6 @@ Rules:
     required String recipeDescription,
     required String clarification,
     required String ingredientsText,
-    required Map<String, Map<String, double>> factsJson,
     required Map<String, double> firstPass,
     String? locale,
   }) async {
@@ -719,7 +581,7 @@ Rules:
 You are a nutrition calculation corrector and food state interpreter.
 ${_languageInstruction(locale)}
 
-Your task is to IMPROVE the candidate nutrition values using USDA reference data as hints.
+Your task is to IMPROVE the candidate nutrition values using your knowledge or search tools as hints.
 Do NOT reject or block the calculation — always return approved: true with your best corrected values.
 
 CRITICAL: FOOD PREPARATION STATE
@@ -732,8 +594,8 @@ Before calculating, carefully determine the ACTUAL state of each ingredient usin
 - If ingredient name contains "сухой/dry/сырой/raw" → use dry/raw values. If "варёный/cooked/готовый/prepared" → use cooked values.
 
 UNIT CONVERSION (mandatory):
-- стакан/стак (Russian/Ukrainian glass): EXACTLY 200 ml. Do NOT use 240 ml. 1 стакан = 200 ml always.
-- cup (US): 240 ml. Use only if unit is explicitly "cup", not "стакан".
+- стакан/стак (Russian/Ukrainian glass): usually 200-250 ml. Estimate the volume based on the typical context of the recipe.
+- cup (US): 240 ml.
 - tbsp/ст.л.: 15 ml. tsp/ч.л.: 5 ml.
 
 INPUT:
@@ -743,15 +605,14 @@ INPUT:
 - ingredients:
 $ingredientsText
 
-USDA nutritional reference data (per 100 g) — use as HINTS only, not as hard constraints:
-${factsJson.isNotEmpty ? jsonEncode(factsJson) : '(not available — use your food knowledge)'}
+
 
 Candidate nutrients JSON (your starting point):
 ${jsonEncode(firstPass)}
 
 Instructions:
 1. First, determine preparation state for each ingredient from clarification → description → name → default assumption (see rules above).
-2. Use USDA data (adjusted for the correct state) as reference to spot obvious errors in nutrient density (e.g. calories per 100g off by 2x or more).
+2. Use your knowledge (adjusted for the correct state) as reference to spot obvious errors in nutrient density (e.g. calories per 100g off by 2x or more).
 3. IMPORTANT: NEVER change or question the ingredient quantities/amounts specified by the user. Treat them as exact and correct.
 4. Only adjust nutrient values if the preparation state is clearly wrong (e.g. dry vs cooked). Do NOT adjust because the quantity "seems too much or too little".
 5. If candidate looks reasonable and state matches, keep candidate values unchanged.
@@ -805,8 +666,6 @@ Rules:
           'stream': false,
         },
         locale: locale,
-        modelsOverride: _recheckModels,
-        maxAttempts: _recheckRetryMaxAttempts,
       );
       final approved = decoded['approved'] == true;
       final reason = (decoded['reason'] as String? ?? '').trim();
@@ -913,8 +772,6 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _moderationModels,
-      maxAttempts: _moderationRetryMaxAttempts,
     );
 
     final decision =
@@ -942,185 +799,7 @@ Rules:
     );
   }
 
-  Future<List<String>> _buildIngredientSearchQueries(
-    String ingredientName,
-    String? locale,
-  ) async {
-    final base = ingredientName.trim();
-    if (base.isEmpty) return const [];
 
-    final candidates = <String>{base};
-
-    final simplified = base
-        .toLowerCase()
-        .replaceAll(RegExp(r'\([^)]*\)'), ' ')
-        .replaceAll(RegExp(r'[^\p{L}\p{N}\s-]', unicode: true), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    if (simplified.isNotEmpty) {
-      candidates.add(simplified);
-    }
-
-    final translated = await _translateIngredientToEnglish(base, locale);
-    if (translated != null && translated.isNotEmpty) {
-      candidates.add(translated);
-    }
-
-    return candidates.toList(growable: false);
-  }
-
-  Future<String?> _translateIngredientToEnglish(
-    String ingredientName,
-    String? locale,
-  ) async {
-    final source = ingredientName.trim();
-    if (source.isEmpty) return null;
-
-    try {
-      final decoded = await _requestDecodedJsonWithAutoRetry(
-        body: {
-          'messages': [
-            {
-              'role': 'user',
-              'content': '''
-Translate the food ingredient name to concise English for USDA food search.
-Return ONLY JSON:
-{
-  "query": "short English ingredient phrase"
-}
-
-Rules:
-- query must be 1-4 words.
-- no punctuation, no quotes inside value.
-- no extra keys, no extra text.
-
-Ingredient: $source
-''',
-            }
-          ],
-          'temperature': 0,
-          'max_completion_tokens': 40,
-          'top_p': 1,
-          'stream': false,
-        },
-        locale: 'en',
-        modelsOverride: _translationModels,
-      );
-
-      final value = (decoded['query'] as String? ?? '').trim();
-      final cleaned = value
-          .replaceAll(RegExp(r'^[\x22\x27\s]+|[\x22\x27\s]+$'), '')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-      if (cleaned.isEmpty) return null;
-      return cleaned;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _usdaCacheKey(String ingredientName, String? locale) {
-    final normalized = ingredientName
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'\([^)]*\)'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    return '${_languageCode(locale)}::$normalized';
-  }
-
-  void _putUsdaFactsCache(String key, Map<String, double> value) {
-    if (_usdaFactsCache.length >= _usdaFactsCacheMaxEntries) {
-      _usdaFactsCache.remove(_usdaFactsCache.keys.first);
-    }
-    _usdaFactsCache[key] = value;
-  }
-
-  Future<Map<String, double>?> _getUsdaFactsForIngredient({
-    required String ingredientName,
-    required String? locale,
-    required UsdaFoodDataService usdaService,
-  }) async {
-    final key = _usdaCacheKey(ingredientName, locale);
-    final cached = _usdaFactsCache[key];
-    if (cached != null) {
-      return Map<String, double>.from(cached);
-    }
-
-    final inFlight = _usdaFactsInFlight[key];
-    if (inFlight != null) {
-      final shared = await inFlight;
-      return shared == null ? null : Map<String, double>.from(shared);
-    }
-
-    final future = _loadUsdaFactsForIngredient(
-      ingredientName: ingredientName,
-      locale: locale,
-      usdaService: usdaService,
-    );
-    _usdaFactsInFlight[key] = future;
-
-    try {
-      final result = await future;
-      if (result != null && result.isNotEmpty) {
-        _putUsdaFactsCache(key, result);
-      }
-      return result == null ? null : Map<String, double>.from(result);
-    } finally {
-      _usdaFactsInFlight.remove(key);
-    }
-  }
-
-  Future<Map<String, double>?> _loadUsdaFactsForIngredient({
-    required String ingredientName,
-    required String? locale,
-    required UsdaFoodDataService usdaService,
-  }) async {
-    final queries = await _buildIngredientSearchQueries(ingredientName, locale);
-
-    Map<String, dynamic>? product;
-    for (final query in queries) {
-      final searchResults = await usdaService.searchProducts(query);
-      if (searchResults.isEmpty) continue;
-
-      final candidate =
-          await usdaService.getProductInfo(searchResults.first['fdcId']);
-      if (candidate != null && candidate['foodNutrients'] != null) {
-        product = candidate;
-        break;
-      }
-    }
-
-    if (product == null || product['foodNutrients'] == null) {
-      return null;
-    }
-
-    final nutr = product['foodNutrients'] as List<dynamic>;
-    final nutrMap = <String, double>{};
-    for (final n in nutr) {
-      if (n is! Map<String, dynamic>) continue;
-
-      final nestedNutrient = n['nutrient'];
-      final nestedName = nestedNutrient is Map<String, dynamic>
-          ? nestedNutrient['name'] as String?
-          : null;
-
-      final rawName = (n['nutrientName'] as String? ?? nestedName ?? '').trim();
-      if (rawName.isEmpty) continue;
-
-      final amount = (n['value'] as num?)?.toDouble() ??
-          (n['amount'] as num?)?.toDouble() ??
-          0.0;
-
-      nutrMap[rawName.toLowerCase()] = amount;
-    }
-
-    final filtered = <String, double>{};
-    for (final k in nutrientKeys) {
-      filtered[k] = _usdaNutrientValue(k, nutrMap);
-    }
-    return filtered;
-  }
 
   Future<String> generateStatsReport({
     required String periodLabel,
@@ -1239,7 +918,6 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _statsModels,
     );
     final report = (decoded['report'] as String? ?? '').trim();
     if (report.isEmpty) {
@@ -1516,7 +1194,6 @@ Rules:
           'stream': false,
         },
         locale: locale,
-        modelsOverride: _statsModels,
       );
     } catch (_) {
       decoded = null;
@@ -1862,7 +1539,6 @@ Rules:
           'stream': false,
         },
         locale: locale,
-        modelsOverride: _dailyGoalsModels,
         maxAttempts: 1,
       );
 
@@ -2051,7 +1727,6 @@ Rules:
         'stream': false,
       },
       locale: locale,
-      modelsOverride: _activityModels,
     );
 
     final parsedName = (decoded['name'] as String? ?? '').trim();
@@ -2082,113 +1757,9 @@ Rules:
     return draft.calories;
   }
 
-  Future<http.Response> _requestWithFallback({
-    required Map<String, dynamic> body,
-    String? apiKeyOverride,
-    String? locale,
-    List<String>? modelsOverride,
-  }) async {
-    final aiSettings = await _loadAiSettings();
-    if (aiSettings.aiProvider == NotificationSettings.aiProviderGemini) {
-      return _requestWithGemini(
-        body: body,
-        locale: locale,
-        selectedModel: aiSettings.geminiModel,
-      );
-    }
 
-    final apiKey = (apiKeyOverride ?? _resolveApiKey()).trim();
-    if (apiKey.isEmpty) {
-      throw GeminiRecipeException(
-        _messages(locale).aiKeyMissingError,
-      );
-    }
 
-    final usesImageInput = _requestUsesImageInput(body);
-    final baseModels = (modelsOverride ?? _models)
-        .where((model) => !usesImageInput || _supportsImageInput(model))
-        .toList(growable: false);
-    if (baseModels.isEmpty) {
-      throw GeminiRecipeException(
-        _messages(locale).aiNoResponseError,
-      );
-    }
-    final models = await _selectAdaptiveModelOrder(
-      candidates: baseModels,
-      body: body,
-      apiKey: apiKey,
-      locale: locale,
-    );
-    http.Response? lastErrorResponse;
 
-    for (final model in models) {
-      final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-
-      try {
-        final response = await http
-            .post(
-              uri,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $apiKey',
-              },
-              body: jsonEncode({
-                ...body,
-                'model': model,
-                if (!usesImageInput)
-                  'response_format': {'type': 'json_object'},
-              }),
-            )
-            .timeout(_requestTimeout);
-
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          final validForSystem = _isResponseValidForSystem(response.body);
-          if (!validForSystem) {
-            if (model != models.last) continue;
-            throw GeminiRecipeException(
-              _messages(locale).aiUnexpectedResponseFormatError,
-            );
-          }
-          return response;
-        }
-
-        lastErrorResponse = response;
-
-        final isRetryableStatus = response.statusCode == 400 ||
-            response.statusCode == 403 ||
-            response.statusCode == 404 ||
-            response.statusCode == 408 ||
-            response.statusCode == 429 ||
-            response.statusCode >= 500;
-        if (isRetryableStatus && model != models.last) {
-          continue;
-        }
-        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
-      } on TimeoutException {
-        if (model != models.last) continue;
-        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-      } on http.ClientException {
-        if (model != models.last) continue;
-        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-      }
-    }
-
-    if (lastErrorResponse != null) {
-      throw GeminiRecipeException(
-          _buildHttpErrorMessage(lastErrorResponse, locale));
-    }
-    throw GeminiRecipeException(
-      _messages(locale).aiNoResponseError,
-    );
-  }
-
-  Future<NotificationSettings> _loadAiSettings() async {
-    try {
-      return await NotificationSettingsService().load();
-    } catch (_) {
-      return NotificationSettingsService.defaults;
-    }
-  }
 
   String _resolveGeminiApiKey() {
     const fromDefine = String.fromEnvironment('GEMINI_API_KEY');
@@ -2304,303 +1875,115 @@ Rules:
   Future<http.Response> _requestWithGemini({
     required Map<String, dynamic> body,
     String? locale,
-    required String selectedModel,
+    required List<String> models,
   }) async {
     final apiKey = _resolveGeminiApiKey();
     if (apiKey.isEmpty) {
       throw GeminiRecipeException(_messages(locale).aiKeyMissingError);
     }
 
-    final model = _resolveGeminiModel(selectedModel);
     final parts = _geminiPartsFromMessages(body['messages']);
     if (parts.isEmpty) {
       throw GeminiRecipeException(_messages(locale).aiNoResponseError);
     }
 
-    final uri = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
-    );
-
     final usesImageInput = _requestUsesImageInput(body);
-    final payload = <String, dynamic>{
-      'contents': [
-        {
-          'role': 'user',
-          'parts': parts,
-        }
-      ],
-      'generationConfig': {
-        'temperature': body['temperature'] ?? 0.2,
-        'topP': body['top_p'] ?? 1,
-        'maxOutputTokens': body['max_tokens'] ?? 2048,
-        if (!usesImageInput) 'responseMimeType': 'application/json',
-      },
-    };
+    http.Response? lastErrorResponse;
 
-    try {
-      final response = await http
-          .post(
-            uri,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(payload),
-          )
-          .timeout(_requestTimeout);
+    for (final modelName in models) {
+      final model = _resolveGeminiModel(modelName);
+      final uri = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+      );
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
-      }
+      final systemInstruction = body['system_instruction'] as String?;
+      final enableTools = body['enable_tools'] == true;
+      final thinkingLevel = body['thinking_level'] as String?;
 
-      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      final text = _extractTextFromGeminiPayload(decoded, locale);
-      final syntheticOpenAiPayload = jsonEncode({
-        'choices': [
+      final payload = <String, dynamic>{
+        'contents': [
           {
-            'message': {'content': text}
+            'role': 'user',
+            'parts': parts,
           }
-        ]
-      });
-      return http.Response(
-        syntheticOpenAiPayload,
-        200,
-        headers: const {'content-type': 'application/json'},
-      );
-    } on TimeoutException {
-      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-    } on http.ClientException {
-      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-    }
-  }
+        ],
+        if (systemInstruction != null && systemInstruction.trim().isNotEmpty)
+          'systemInstruction': {
+            'parts': [
+              {'text': systemInstruction.trim()}
+            ]
+          },
+        if (enableTools)
+          'tools': [
+            {'googleSearch': <String, dynamic>{}},
+            {'codeExecution': <String, dynamic>{}},
+          ],
+        'generationConfig': {
+          'temperature': body['temperature'] ?? 0.2,
+          'topP': body['top_p'] ?? 1,
+          'maxOutputTokens': body['max_tokens'] ?? 2048,
+          if (!usesImageInput)
+            'responseMimeType': 'application/json',
+          if (thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
+            'thinkingConfig': {'thinkingLevel': thinkingLevel.trim()},
+        },
+      };
 
-  Future<List<String>> _selectAdaptiveModelOrder({
-    required List<String> candidates,
-    required Map<String, dynamic> body,
-    required String apiKey,
-    String? locale,
-  }) async {
-    final uniqueCandidates = <String>[];
-    for (final model in candidates) {
-      if (!uniqueCandidates.contains(model)) {
-        uniqueCandidates.add(model);
-      }
-    }
-
-    if (uniqueCandidates.length <= 1) {
-      return uniqueCandidates;
-    }
-
-    if (await _shouldBypassRouter()) {
-      unawaited(
-        _appendRouterHistory(
-          taskType: _detectRequestTaskType(body),
-          candidates: uniqueCandidates,
-          ordered: uniqueCandidates,
-          status: 'bypass',
-          reason: 'too_many_recent_router_errors',
-        ),
-      );
-      return uniqueCandidates;
-    }
-
-    try {
-      final taskType = _detectRequestTaskType(body);
-      final routedOrder = await _requestAdaptiveModelOrderFromRouter(
-        candidates: uniqueCandidates,
-        taskType: taskType,
-        apiKey: apiKey,
-        locale: locale,
-      );
-      if (routedOrder.isEmpty) {
-        await _registerRouterFailure();
-        unawaited(
-          _appendRouterHistory(
-            taskType: taskType,
-            candidates: uniqueCandidates,
-            ordered: uniqueCandidates,
-            status: 'fallback',
-            reason: 'empty_router_response',
-          ),
-        );
-        return uniqueCandidates;
-      }
-
-      final ordered = <String>[];
-      for (final model in routedOrder) {
-        if (uniqueCandidates.contains(model) && !ordered.contains(model)) {
-          ordered.add(model);
-        }
-      }
-      for (final model in uniqueCandidates) {
-        if (!ordered.contains(model)) {
-          ordered.add(model);
-        }
-      }
-      await _resetRouterFailureState();
-      unawaited(
-        _appendRouterHistory(
-          taskType: taskType,
-          candidates: uniqueCandidates,
-          ordered: ordered,
-          status: 'ok',
-          reason: '',
-        ),
-      );
-      return ordered;
-    } catch (_) {
-      await _registerRouterFailure();
-      unawaited(
-        _appendRouterHistory(
-          taskType: _detectRequestTaskType(body),
-          candidates: uniqueCandidates,
-          ordered: uniqueCandidates,
-          status: 'fallback',
-          reason: 'router_exception',
-        ),
-      );
-      return uniqueCandidates;
-    }
-  }
-
-  Future<List<String>> _requestAdaptiveModelOrderFromRouter({
-    required List<String> candidates,
-    required String taskType,
-    required String apiKey,
-    String? locale,
-  }) async {
-    final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-
-    final routerPrompt = '''
-You are a model-routing planner.
-${_languageInstruction(locale)}
-
-Task type: $taskType
-Candidate models:
-${candidates.map((m) => '- $m').join('\n')}
-
-Goal:
-- Choose the best execution order for these models.
-- Balance speed and accuracy according to task type.
-- For moderation/translation: prefer speed first.
-- For nutrition/daily_goals/activity/stats/draft: prefer accuracy first, then speed.
-- Return all candidate models exactly once in priority order.
-
-Return ONLY JSON:
-{
-  "ordered_models": ["modelA", "modelB"],
-  "profile": "speed|balanced|accuracy"
-}
-
-Rules:
-- ordered_models must include only models from candidate list.
-- no duplicates.
-- no markdown, no extra text.
-''';
-
-    for (final routerModel in _routerModels) {
       try {
         final response = await http
             .post(
               uri,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $apiKey',
-              },
-              body: jsonEncode({
-                'model': routerModel,
-                'messages': [
-                  {
-                    'role': 'user',
-                    'content': routerPrompt,
-                  }
-                ],
-                'temperature': 0,
-                'max_completion_tokens': 160,
-                'top_p': 1,
-                'stream': false,
-                'response_format': {'type': 'json_object'},
-              }),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode(payload),
             )
-            .timeout(_routerRequestTimeout);
+            .timeout(_requestTimeout);
 
-        if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          final text = _extractTextFromGeminiPayload(decoded, locale);
+          final syntheticOpenAiPayload = jsonEncode({
+            'choices': [
+              {
+                'message': {'content': text}
+              }
+            ]
+          });
+          return http.Response(
+            syntheticOpenAiPayload,
+            200,
+            headers: const {'content-type': 'application/json'},
+          );
+        }
+
+        lastErrorResponse = response;
+
+        final isRetryableStatus = response.statusCode == 400 ||
+            response.statusCode == 403 ||
+            response.statusCode == 404 ||
+            response.statusCode == 408 ||
+            response.statusCode == 429 ||
+            response.statusCode >= 500;
+        if (isRetryableStatus && modelName != models.last) {
           continue;
         }
-
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final content = _extractText(payload, locale).trim();
-        if (content.isEmpty) continue;
-
-        final decoded = _decodeJsonObject(content, locale);
-        final orderedModels =
-            (decoded['ordered_models'] as List<dynamic>? ?? const <dynamic>[])
-                .map((item) => item.toString().trim())
-                .where((item) => item.isNotEmpty)
-                .toList(growable: false);
-
-        if (orderedModels.isNotEmpty) {
-          return orderedModels;
-        }
-      } catch (_) {
-        continue;
+        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
+      } on TimeoutException {
+        if (modelName != models.last) continue;
+        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+      } on http.ClientException {
+        if (modelName != models.last) continue;
+        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
       }
     }
 
-    return const [];
+    if (lastErrorResponse != null) {
+      throw GeminiRecipeException(
+          _buildHttpErrorMessage(lastErrorResponse, locale));
+    }
+    throw GeminiRecipeException(_messages(locale).aiNoResponseError);
   }
 
-  String _detectRequestTaskType(Map<String, dynamic> body) {
-    final textParts = <String>[];
 
-    void addText(dynamic value) {
-      if (value is String) {
-        textParts.add(value);
-        return;
-      }
-      if (value is List) {
-        for (final item in value) {
-          addText(item);
-        }
-        return;
-      }
-      if (value is Map) {
-        for (final entry in value.entries) {
-          if (entry.key == 'content' || entry.key == 'text') {
-            addText(entry.value);
-          }
-        }
-      }
-    }
-
-    addText(body['messages']);
-    final text = textParts.join(' ').toLowerCase();
-
-    if (text.contains('moderation') ||
-        text.contains('public community feed') ||
-        text.contains('allow|reject')) {
-      return 'moderation';
-    }
-    if (text.contains('daily goals') || text.contains('caloriegoal')) {
-      return 'daily_goals';
-    }
-    if (text.contains('activity') && text.contains('calories')) {
-      return 'activity';
-    }
-    if (text.contains('structured stats') || text.contains('recommendations')) {
-      return 'stats';
-    }
-    if (text.contains('recipe draft') || text.contains('ingredients')) {
-      return 'draft';
-    }
-    if (text.contains('translate the food ingredient')) {
-      return 'translation';
-    }
-    if (text.contains('nutrition') ||
-        text.contains('nutrients') ||
-        text.contains('calories')) {
-      return 'nutrition';
-    }
-
-    return 'generic';
-  }
 
   bool _requestUsesImageInput(Map<String, dynamic> body) {
     bool hasImage = false;
@@ -2631,134 +2014,22 @@ Rules:
     return hasImage;
   }
 
-  bool _supportsImageInput(String model) {
-    return _photoModels.contains(model);
-  }
 
-  Future<bool> _shouldBypassRouter() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final failCount = prefs.getInt(_routerFailCountPrefsKey) ?? 0;
-      if (failCount < _routerErrorBypassThreshold) return false;
-
-      final lastFailRaw = prefs.getString(_routerLastFailAtPrefsKey) ?? '';
-      final lastFailAt = DateTime.tryParse(lastFailRaw);
-      if (lastFailAt == null) return false;
-
-      final withinWindow =
-          DateTime.now().difference(lastFailAt) < _routerErrorBypassWindow;
-      return withinWindow;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _registerRouterFailure() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final nowIso = DateTime.now().toUtc().toIso8601String();
-      final current = prefs.getInt(_routerFailCountPrefsKey) ?? 0;
-      await prefs.setInt(_routerFailCountPrefsKey, current + 1);
-      await prefs.setString(_routerLastFailAtPrefsKey, nowIso);
-    } catch (_) {
-      // Router diagnostics must never break business flow.
-    }
-  }
-
-  Future<void> _resetRouterFailureState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_routerFailCountPrefsKey, 0);
-      await prefs.remove(_routerLastFailAtPrefsKey);
-    } catch (_) {
-      // Ignore diagnostics storage errors.
-    }
-  }
-
-  Future<void> _appendRouterHistory({
-    required String taskType,
-    required List<String> candidates,
-    required List<String> ordered,
-    required String status,
-    required String reason,
-  }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await _cleanupRouterHistoryIfNeeded(prefs);
-
-      final now = DateTime.now().toUtc();
-      final raw = prefs.getString(_routerHistoryPrefsKey) ?? '[]';
-      final decoded = jsonDecode(raw);
-      final items = decoded is List ? List<dynamic>.from(decoded) : <dynamic>[];
-
-      items.add({
-        'ts': now.toIso8601String(),
-        'task': taskType,
-        'status': status,
-        'reason': reason,
-        'candidates': candidates,
-        'ordered': ordered,
-      });
-
-      if (items.length > _routerHistoryMaxEntries) {
-        final overflow = items.length - _routerHistoryMaxEntries;
-        items.removeRange(0, overflow);
-      }
-
-      await prefs.setString(_routerHistoryPrefsKey, jsonEncode(items));
-    } catch (_) {
-      // Ignore diagnostics storage errors.
-    }
-  }
-
-  Future<void> _cleanupRouterHistoryIfNeeded(SharedPreferences prefs) async {
-    final now = DateTime.now().toUtc();
-    final lastCleanupRaw = prefs.getString(_routerLastCleanupAtPrefsKey) ?? '';
-    final lastCleanupAt = DateTime.tryParse(lastCleanupRaw);
-
-    final shouldRunCleanup = lastCleanupAt == null ||
-        now.difference(lastCleanupAt) >= _routerHistoryRetention;
-    if (!shouldRunCleanup) return;
-
-    try {
-      final raw = prefs.getString(_routerHistoryPrefsKey) ?? '[]';
-      final decoded = jsonDecode(raw);
-      final items = decoded is List ? decoded : const [];
-      final cutoff = now.subtract(_routerHistoryRetention);
-
-      final filtered = items.whereType<Map>().where((entry) {
-        final tsRaw = (entry['ts'] ?? '').toString();
-        final ts = DateTime.tryParse(tsRaw);
-        if (ts == null) return false;
-        return ts.isAfter(cutoff);
-      }).toList(growable: false);
-
-      await prefs.setString(_routerHistoryPrefsKey, jsonEncode(filtered));
-      await prefs.setString(
-        _routerLastCleanupAtPrefsKey,
-        now.toIso8601String(),
-      );
-    } catch (_) {
-      // Ignore cleanup errors.
-    }
-  }
 
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
     required Map<String, dynamic> body,
     String? apiKeyOverride,
     String? locale,
     int maxAttempts = _jsonRetryMaxAttempts,
-    List<String>? modelsOverride,
   }) async {
     Object? lastError;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        final response = await _requestWithFallback(
+        final response = await _requestWithGemini(
           body: body,
-          apiKeyOverride: apiKeyOverride,
           locale: locale,
-          modelsOverride: modelsOverride,
+          models: _geminiModels,
         );
 
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
@@ -2784,48 +2055,7 @@ Rules:
     );
   }
 
-  bool _isResponseValidForSystem(String body) {
-    try {
-      final payload = jsonDecode(body);
-      if (payload is! Map<String, dynamic>) return false;
 
-      final choices = payload['choices'];
-      if (choices is! List || choices.isEmpty) return false;
-
-      final first = choices.first;
-      if (first is! Map<String, dynamic>) return false;
-
-      final message = first['message'];
-      if (message is! Map<String, dynamic>) return false;
-
-      final content = message['content'];
-      if (content is! String || content.trim().isEmpty) return false;
-
-      final decodedContent = jsonDecode(content.trim());
-      return decodedContent is Map<String, dynamic>;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  String _resolveApiKey() {
-    const groqFromDefine = String.fromEnvironment('GROQ_API_KEY');
-    const legacyFromDefine = String.fromEnvironment('GEMINI_API_KEY');
-
-    final candidates = [
-      dotenv.env['GROQ_API_KEY'],
-      groqFromDefine,
-      dotenv.env['GEMINI_API_KEY'],
-      legacyFromDefine,
-    ];
-
-    for (final candidate in candidates) {
-      final normalized = (candidate ?? '').trim();
-      if (normalized.isNotEmpty) return normalized;
-    }
-
-    return '';
-  }
 
   GeminiRecipeDraft _draftFromDecodedJson(
     Map<String, dynamic> decoded, {
@@ -2892,6 +2122,7 @@ Rules:
               description:
                   rawDescription.isEmpty ? fallbackDescription : rawDescription,
               ingredients: ingredients,
+              locale: locale,
             )
           : rawClarification,
       icon:
@@ -2904,22 +2135,24 @@ Rules:
   String _buildDenseClarificationFallback({
     required String description,
     required List<RecipeIngredient> ingredients,
+    String? locale,
   }) {
+    final msgs = _messages(locale);
     final normalizedDescription = description.trim();
     final lowerDescription = normalizedDescription.toLowerCase();
 
     String? inferType() {
       if (_containsAny(lowerDescription, const ['энергет', 'energy drink'])) {
-        return 'Энергетик.';
+        return msgs.recipeClarificationTypeEnergyDrink;
       }
       if (_containsAny(lowerDescription, const ['газиров', 'soda'])) {
-        return 'Газированный напиток.';
+        return msgs.recipeClarificationTypeSoda;
       }
       if (_containsAny(lowerDescription, const ['суп', 'soup', 'broth'])) {
-        return 'Суп.';
+        return msgs.recipeClarificationTypeSoup;
       }
       if (_containsAny(lowerDescription, const ['салат', 'salad'])) {
-        return 'Салат.';
+        return msgs.recipeClarificationTypeSalad;
       }
       return null;
     }
@@ -2927,15 +2160,15 @@ Rules:
     String inferThermalProcessing() {
       if (_containsAny(lowerDescription,
           const ['запеч', 'baked', 'печ', 'гриль', 'grill'])) {
-        return 'Запекание/гриль.';
+        return msgs.recipeClarificationMethodBaked;
       }
       if (_containsAny(lowerDescription, const ['жар', 'fried', 'fry'])) {
-        return 'Жарка.';
+        return msgs.recipeClarificationMethodFried;
       }
       if (_containsAny(lowerDescription, const ['вар', 'boiled', 'steam'])) {
-        return 'Варка/пар.';
+        return msgs.recipeClarificationMethodBoiled;
       }
-      return 'Способ приготовления: базовый домашний (уточнить по контексту).';
+      return msgs.recipeClarificationMethodDefault;
     }
 
     final ambiguous = ingredients
@@ -2961,14 +2194,12 @@ Rules:
     }
     lines.add(inferThermalProcessing());
     if (ambiguous.isNotEmpty) {
-      lines.add('Уточнить: $ambiguous.');
+      lines.add(msgs.recipeClarificationClarify(ambiguous));
     }
     if (keyIngredients.isNotEmpty) {
-      lines.add('Состав:\n$keyIngredients');
+      lines.add(msgs.recipeClarificationComposition(keyIngredients));
     }
-    lines.add(
-      'Если бренд неизвестен — использовать типичный состав для этого типа.',
-    );
+    lines.add(msgs.recipeClarificationBrandUnknown);
     return lines.join('\n');
   }
 
@@ -3457,7 +2688,7 @@ Rules:
 
   Map<String, dynamic> _decodeJsonObject(String text, [String? locale]) {
     final trimmed = text.trim();
-    debugPrint('[Groq raw response]:\n$trimmed');
+    debugPrint('[Gemini raw response]:\n$trimmed');
 
     // 1. Direct decode.
     try {

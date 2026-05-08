@@ -571,8 +571,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiError => 'AI is temporarily unavailable.';
 
   @override
-    String get accountDataConflictTitle =>
-            'Data found in cloud and on this phone';
+  String get accountDataConflictTitle =>
+      'Data found in cloud and on this phone';
 
   @override
   String get accountDataConflictMessage =>
@@ -582,7 +582,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountDataConflictUseCloud => 'Use cloud data';
 
   @override
-    String get accountDataConflictUseLocal => 'Keep phone data';
+  String get accountDataConflictUseLocal => 'Keep phone data';
 
   @override
   String statsStructuredFallbackOverview(
@@ -943,20 +943,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI review failed: recipe looks invalid for the community.';
 
   @override
-  String get aiNoResponseError => 'Failed to get a response from Groq.';
+  String get aiNoResponseError => 'Failed to get a response from Gemini.';
 
   @override
-  String get aiFailedToReadResponseError => 'Failed to read Groq response.';
+  String get aiFailedToReadResponseError => 'Failed to read Gemini response.';
 
   @override
-  String get aiEmptyResponseError => 'Empty response from Groq.';
+  String get aiEmptyResponseError => 'Empty response from Gemini.';
 
   @override
   String get aiUnexpectedResponseFormatError =>
-      'Unexpected Groq response format.';
+      'Unexpected Gemini response format.';
 
   @override
-  String get aiEmptyTextError => 'Groq returned empty text.';
+  String get aiEmptyTextError => 'Gemini returned empty text.';
 
   @override
   String get aiFailedToExtractIngredientsError =>
@@ -968,26 +968,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiKeyMissingError =>
-      'Groq key not found. Add GROQ_API_KEY to .env or pass --dart-define=GROQ_API_KEY=... at launch.';
+      'Gemini key not found. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... at launch.';
 
   @override
   String get aiHttpForbiddenError =>
-      'Groq returned 403 (forbidden). Check GROQ_API_KEY and access restrictions.';
+      'Gemini returned 403 (forbidden). Check GEMINI_API_KEY and access restrictions.';
 
   @override
   String get aiHttpUnauthorizedError =>
-      'Groq returned 401 (unauthorized). Check GROQ_API_KEY.';
+      'Gemini returned 401 (unauthorized). Check GEMINI_API_KEY.';
 
   @override
   String get aiHttpRateLimitError =>
-      'Groq returned 429 (rate limit). Please try again later.';
+      'Gemini returned 429 (rate limit). Please try again later.';
 
   @override
   String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
 
   @override
   String aiHttpGenericError(Object code) {
-    return 'Groq returned an error ($code).';
+    return 'Gemini returned an error ($code).';
   }
 
   @override
@@ -1504,9 +1504,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'Describe important details: cooking method, dietary restrictions, desired dish style, or portion specifics.';
 
   @override
-  String get aiClarificationLabel => 'What to consider?';
+  String get aiClarificationLabel => 'Additional details';
 
   @override
   String get aiClarificationHint =>
       'E.g. gluten-free, high protein, less sugar, baked, vegetarian';
+
+  @override
+  String get recipeClarificationTypeEnergyDrink => 'Energy drink.';
+
+  @override
+  String get recipeClarificationTypeSoda => 'Carbonated drink.';
+
+  @override
+  String get recipeClarificationTypeSoup => 'Soup.';
+
+  @override
+  String get recipeClarificationTypeSalad => 'Salad.';
+
+  @override
+  String get recipeClarificationMethodBaked => 'Baking/grill.';
+
+  @override
+  String get recipeClarificationMethodFried => 'Frying.';
+
+  @override
+  String get recipeClarificationMethodBoiled => 'Boiling/steaming.';
+
+  @override
+  String get recipeClarificationMethodDefault =>
+      'Cooking method: basic homemade (clarify by context).';
+
+  @override
+  String recipeClarificationClarify(String ambiguous) {
+    return 'Clarify: $ambiguous.';
+  }
+
+  @override
+  String recipeClarificationComposition(String ingredients) {
+    return 'Ingredients:\n$ingredients';
+  }
+
+  @override
+  String get recipeClarificationBrandUnknown =>
+      'If brand is unknown — use typical composition for this type.';
 }

@@ -343,19 +343,19 @@
   "validationSaltExcess": "Количество соли выглядит нереалистичным для одной порции. Проверьте граммовку.",
   "moderationApproved": "Рецепт прошел AI-проверку и может быть опубликован.",
   "moderationRejected": "AI-проверка не пройдена: рецепт выглядит невалидным для сообщества.",
-  "aiNoResponseError": "Не удалось получить ответ от Groq.",
-  "aiFailedToReadResponseError": "Не удалось прочитать ответ Groq.",
-  "aiEmptyResponseError": "Пустой ответ от Groq.",
-  "aiUnexpectedResponseFormatError": "Неожиданный формат ответа Groq.",
-  "aiEmptyTextError": "Groq вернул пустой текст.",
+  "aiNoResponseError": "Не удалось получить ответ от Gemini.",
+  "aiFailedToReadResponseError": "Не удалось прочитать ответ Gemini.",
+  "aiEmptyResponseError": "Пустой ответ от Gemini.",
+  "aiUnexpectedResponseFormatError": "Неожиданный формат ответа Gemini.",
+  "aiEmptyTextError": "Gemini вернул пустой текст.",
   "aiFailedToExtractIngredientsError": "Не удалось получить ингредиенты из ответа нейросети. Уточните описание и попробуйте снова.",
   "aiFailedToParseJsonError": "Не удалось разобрать JSON из ответа нейросети. Проверьте список ингредиентов и попробуйте еще раз. Если ошибка повторяется, переформулируйте ингредиенты или измените их написание.",
-  "aiKeyMissingError": "Не найден ключ Groq. Добавьте GROQ_API_KEY в .env или передайте --dart-define=GROQ_API_KEY=... при запуске.",
-  "aiHttpForbiddenError": "Groq вернул 403 (доступ запрещен). Проверьте GROQ_API_KEY и ограничения доступа.",
-  "aiHttpUnauthorizedError": "Groq вернул 401 (неавторизован). Проверьте корректность GROQ_API_KEY.",
-  "aiHttpRateLimitError": "Groq вернул 429 (лимит запросов). Попробуйте позже.",
+  "aiKeyMissingError": "Не найден ключ Gemini. Добавьте GEMINI_API_KEY в .env или передайте --dart-define=GEMINI_API_KEY=... при запуске.",
+  "aiHttpForbiddenError": "Gemini вернул 403 (доступ запрещен). Проверьте GEMINI_API_KEY и ограничения доступа.",
+  "aiHttpUnauthorizedError": "Gemini вернул 401 (неавторизован). Проверьте корректность GEMINI_API_KEY.",
+  "aiHttpRateLimitError": "Gemini вернул 429 (лимит запросов). Попробуйте позже.",
   "aiHttpNotFoundError": "Не удалось подключиться к нейросети.",
-  "aiHttpGenericError": "Groq вернул ошибку ({code}).",
+  "aiHttpGenericError": "Gemini вернул ошибку ({code}).",
   "@aiHttpGenericError": {
     "placeholders": { "code": { "type": "Object" } }
   },
@@ -558,6 +558,23 @@
   "donateRecipeSignInRequired": "Войдите в аккаунт, чтобы передать рецепт сообществу",
   "aiClarificationTitle": "Детали",
   "aiClarificationDescription": "Опишите важные детали: способ приготовления, ограничения, желаемый стиль блюда или особенности порции.",
-  "aiClarificationLabel": "Что важно учесть?",
-  "aiClarificationHint": "Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское"
+  "aiClarificationLabel": "Дополнительные детали",
+  "aiClarificationHint": "Например: без глютена, больше белка, меньше сахара, запечённое, вегетарианское",
+  "recipeClarificationTypeEnergyDrink": "Энергетик.",
+  "recipeClarificationTypeSoda": "Газированный напиток.",
+  "recipeClarificationTypeSoup": "Суп.",
+  "recipeClarificationTypeSalad": "Салат.",
+  "recipeClarificationMethodBaked": "Запекание/гриль.",
+  "recipeClarificationMethodFried": "Жарка.",
+  "recipeClarificationMethodBoiled": "Варка/пар.",
+  "recipeClarificationMethodDefault": "Способ приготовления: базовый домашний (уточнить по контексту).",
+  "recipeClarificationClarify": "Уточнить: {ambiguous}.",
+  "@recipeClarificationClarify": {
+    "placeholders": { "ambiguous": { "type": "String" } }
+  },
+  "recipeClarificationComposition": "Состав:\n{ingredients}",
+  "@recipeClarificationComposition": {
+    "placeholders": { "ingredients": { "type": "String" } }
+  },
+  "recipeClarificationBrandUnknown": "Если бренд неизвестен — использовать типичный состав для этого типа."
 }

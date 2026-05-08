@@ -573,18 +573,17 @@ class AppLocalizationsUk extends AppLocalizations {
   String get statsAiError => 'Нейромережа тимчасово недоступна.';
 
   @override
-    String get accountDataConflictTitle =>
-            'Є дані і в хмарі, і на телефоні';
+  String get accountDataConflictTitle => 'Є дані і в хмарі, і на телефоні';
 
   @override
   String get accountDataConflictMessage =>
       'Ми знайшли два набори даних:\n• у хмарі\n• на цьому пристрої\n\nЩо використовувати?\n\nВикористати хмару: завантажити дані з хмари на телефон.\nЗалишити дані телефону: відправити поточні дані телефону в хмару.';
 
   @override
-    String get accountDataConflictUseCloud => 'Використати хмару';
+  String get accountDataConflictUseCloud => 'Використати хмару';
 
   @override
-    String get accountDataConflictUseLocal => 'Залишити дані телефону';
+  String get accountDataConflictUseLocal => 'Залишити дані телефону';
 
   @override
   String statsStructuredFallbackOverview(
@@ -945,21 +944,21 @@ class AppLocalizationsUk extends AppLocalizations {
       'AI-перевірка не пройдена: рецепт виглядає невалідним для спільноти.';
 
   @override
-  String get aiNoResponseError => 'Не вдалося отримати відповідь від Groq.';
+  String get aiNoResponseError => 'Не вдалося отримати відповідь від Gemini.';
 
   @override
   String get aiFailedToReadResponseError =>
-      'Не вдалося прочитати відповідь Groq.';
+      'Не вдалося прочитати відповідь Gemini.';
 
   @override
-  String get aiEmptyResponseError => 'Порожня відповідь від Groq.';
+  String get aiEmptyResponseError => 'Порожня відповідь від Gemini.';
 
   @override
   String get aiUnexpectedResponseFormatError =>
-      'Неочікуваний формат відповіді Groq.';
+      'Неочікуваний формат відповіді Gemini.';
 
   @override
-  String get aiEmptyTextError => 'Groq повернув порожній текст.';
+  String get aiEmptyTextError => 'Gemini повернув порожній текст.';
 
   @override
   String get aiFailedToExtractIngredientsError =>
@@ -971,26 +970,26 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get aiKeyMissingError =>
-      'Не знайдено ключ Groq. Додайте GROQ_API_KEY у .env або передайте --dart-define=GROQ_API_KEY=... під час запуску.';
+      'Не знайдено ключ Gemini. Додайте GEMINI_API_KEY у .env або передайте --dart-define=GEMINI_API_KEY=... під час запуску.';
 
   @override
   String get aiHttpForbiddenError =>
-      'Groq повернув 403 (доступ заборонено). Перевірте GROQ_API_KEY і обмеження доступу.';
+      'Gemini повернув 403 (доступ заборонено). Перевірте GEMINI_API_KEY і обмеження доступу.';
 
   @override
   String get aiHttpUnauthorizedError =>
-      'Groq повернув 401 (неавторизовано). Перевірте коректність GROQ_API_KEY.';
+      'Gemini повернув 401 (неавторизовано). Перевірте коректність GEMINI_API_KEY.';
 
   @override
   String get aiHttpRateLimitError =>
-      'Groq повернув 429 (ліміт запитів). Спробуйте пізніше.';
+      'Gemini повернув 429 (ліміт запитів). Спробуйте пізніше.';
 
   @override
   String get aiHttpNotFoundError => 'Не вдалося підключитися до нейромережі.';
 
   @override
   String aiHttpGenericError(Object code) {
-    return 'Groq повернув помилку ($code).';
+    return 'Gemini повернув помилку ($code).';
   }
 
   @override
@@ -1510,9 +1509,48 @@ class AppLocalizationsUk extends AppLocalizations {
       'Опишіть важливі деталі: спосіб приготування, обмеження, бажаний стиль страви або особливості порції.';
 
   @override
-  String get aiClarificationLabel => 'Що важливо врахувати?';
+  String get aiClarificationLabel => 'Додаткові деталі';
 
   @override
   String get aiClarificationHint =>
       'Наприклад: без глютену, більше білка, менше цукру, запечене, вегетаріанське';
+
+  @override
+  String get recipeClarificationTypeEnergyDrink => 'Енергетик.';
+
+  @override
+  String get recipeClarificationTypeSoda => 'Газований напій.';
+
+  @override
+  String get recipeClarificationTypeSoup => 'Суп.';
+
+  @override
+  String get recipeClarificationTypeSalad => 'Салат.';
+
+  @override
+  String get recipeClarificationMethodBaked => 'Запікання/гриль.';
+
+  @override
+  String get recipeClarificationMethodFried => 'Смаження.';
+
+  @override
+  String get recipeClarificationMethodBoiled => 'Варіння/пар.';
+
+  @override
+  String get recipeClarificationMethodDefault =>
+      'Спосіб приготування: базовий домашній (уточнити за контекстом).';
+
+  @override
+  String recipeClarificationClarify(String ambiguous) {
+    return 'Уточнити: $ambiguous.';
+  }
+
+  @override
+  String recipeClarificationComposition(String ingredients) {
+    return 'Склад:\n$ingredients';
+  }
+
+  @override
+  String get recipeClarificationBrandUnknown =>
+      'Якщо бренд невідомий — використовувати типовий склад для цього типу.';
 }

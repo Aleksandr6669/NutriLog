@@ -344,19 +344,19 @@
   "validationSaltExcess": "Кількість солі виглядає нереалістичною для однієї порції. Перевірте грамовку.",
   "moderationApproved": "Рецепт пройшов AI-перевірку і може бути опублікований.",
   "moderationRejected": "AI-перевірка не пройдена: рецепт виглядає невалідним для спільноти.",
-  "aiNoResponseError": "Не вдалося отримати відповідь від Groq.",
-  "aiFailedToReadResponseError": "Не вдалося прочитати відповідь Groq.",
-  "aiEmptyResponseError": "Порожня відповідь від Groq.",
-  "aiUnexpectedResponseFormatError": "Неочікуваний формат відповіді Groq.",
-  "aiEmptyTextError": "Groq повернув порожній текст.",
+  "aiNoResponseError": "Не вдалося отримати відповідь від Gemini.",
+  "aiFailedToReadResponseError": "Не вдалося прочитати відповідь Gemini.",
+  "aiEmptyResponseError": "Порожня відповідь від Gemini.",
+  "aiUnexpectedResponseFormatError": "Неочікуваний формат відповіді Gemini.",
+  "aiEmptyTextError": "Gemini повернув порожній текст.",
   "aiFailedToExtractIngredientsError": "Не вдалося отримати інгредієнти з відповіді нейросистеми. Уточніть опис і спробуйте ще раз.",
   "aiFailedToParseJsonError": "Не вдалося розібрати JSON з відповіді нейросистеми. Перевірте список інгредієнтів і спробуйте ще раз. Якщо помилка повторюється, переформулюйте інгредієнти або змініть їх написання.",
-  "aiKeyMissingError": "Не знайдено ключ Groq. Додайте GROQ_API_KEY у .env або передайте --dart-define=GROQ_API_KEY=... під час запуску.",
-  "aiHttpForbiddenError": "Groq повернув 403 (доступ заборонено). Перевірте GROQ_API_KEY і обмеження доступу.",
-  "aiHttpUnauthorizedError": "Groq повернув 401 (неавторизовано). Перевірте коректність GROQ_API_KEY.",
-  "aiHttpRateLimitError": "Groq повернув 429 (ліміт запитів). Спробуйте пізніше.",
+  "aiKeyMissingError": "Не знайдено ключ Gemini. Додайте GEMINI_API_KEY у .env або передайте --dart-define=GEMINI_API_KEY=... під час запуску.",
+  "aiHttpForbiddenError": "Gemini повернув 403 (доступ заборонено). Перевірте GEMINI_API_KEY і обмеження доступу.",
+  "aiHttpUnauthorizedError": "Gemini повернув 401 (неавторизовано). Перевірте коректність GEMINI_API_KEY.",
+  "aiHttpRateLimitError": "Gemini повернув 429 (ліміт запитів). Спробуйте пізніше.",
   "aiHttpNotFoundError": "Не вдалося підключитися до нейромережі.",
-  "aiHttpGenericError": "Groq повернув помилку ({code}).",
+  "aiHttpGenericError": "Gemini повернув помилку ({code}).",
   "@aiHttpGenericError": {
     "placeholders": { "code": { "type": "Object" } }
   },
@@ -560,6 +560,23 @@
   "donateRecipeSignInRequired": "Увійдіть, щоб передати рецепт спільноті",
   "aiClarificationTitle": "Деталі",
   "aiClarificationDescription": "Опишіть важливі деталі: спосіб приготування, обмеження, бажаний стиль страви або особливості порції.",
-  "aiClarificationLabel": "Що важливо врахувати?",
-  "aiClarificationHint": "Наприклад: без глютену, більше білка, менше цукру, запечене, вегетаріанське"
+  "aiClarificationLabel": "Додаткові деталі",
+  "aiClarificationHint": "Наприклад: без глютену, більше білка, менше цукру, запечене, вегетаріанське",
+  "recipeClarificationTypeEnergyDrink": "Енергетик.",
+  "recipeClarificationTypeSoda": "Газований напій.",
+  "recipeClarificationTypeSoup": "Суп.",
+  "recipeClarificationTypeSalad": "Салат.",
+  "recipeClarificationMethodBaked": "Запікання/гриль.",
+  "recipeClarificationMethodFried": "Смаження.",
+  "recipeClarificationMethodBoiled": "Варіння/пар.",
+  "recipeClarificationMethodDefault": "Спосіб приготування: базовий домашній (уточнити за контекстом).",
+  "recipeClarificationClarify": "Уточнити: {ambiguous}.",
+  "@recipeClarificationClarify": {
+    "placeholders": { "ambiguous": { "type": "String" } }
+  },
+  "recipeClarificationComposition": "Склад:\n{ingredients}",
+  "@recipeClarificationComposition": {
+    "placeholders": { "ingredients": { "type": "String" } }
+  },
+  "recipeClarificationBrandUnknown": "Якщо бренд невідомий — використовувати типовий склад для цього типу."
 }
