@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
+import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
@@ -19,9 +21,71 @@ class _CreateRecipeFromDescriptionScreenState
     extends State<CreateRecipeFromDescriptionScreen> {
   final _descriptionController = TextEditingController();
   final _geminiService = GeminiRecipeService();
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isGenerating = false;
+  bool _isListening = false;
+  bool _speechEnabled = false;
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSpeech();
+  }
+
+  void _initSpeech() async {
+    try {
+      _speechEnabled = await _speechToText.initialize(
+        onError: (error) => debugPrint('Speech error: $error'),
+        onStatus: (status) {
+          debugPrint('Speech status: $status');
+          if (status == 'notListening' || status == 'done') {
+            setState(() => _isListening = false);
+          }
+        },
+      );
+      setState(() {});
+    } catch (e) {
+      debugPrint('Speech init failed: $e');
+    }
+  }
+
+  void _startListening() async {
+    if (!_speechEnabled) {
+      // Re-init if failed before
+      _initSpeech();
+      return;
+    }
+    
+    setState(() => _isListening = true);
+    await _speechToText.listen(
+      onResult: (result) {
+        setState(() {
+          if (result.finalResult) {
+            final text = result.recognizedWords;
+            if (text.isNotEmpty) {
+              final currentText = _descriptionController.text.trim();
+              _descriptionController.text = currentText.isEmpty 
+                  ? text 
+                  : '$currentText $text';
+              // Move cursor to end
+              _descriptionController.selection = TextSelection.fromPosition(
+                TextPosition(offset: _descriptionController.text.length),
+              );
+            }
+            _isListening = false;
+          }
+        });
+      },
+      localeId: Localizations.localeOf(context).toString(),
+    );
+  }
+
+  void _stopListening() async {
+    await _speechToText.stop();
+    setState(() => _isListening = false);
+  }
 
   void _showAiErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -140,23 +204,54 @@ class _CreateRecipeFromDescriptionScreenState
             const SizedBox(height: 16),
             _buildDescriptionCard(),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isGenerating ? null : _generateAndOpenEditor,
-                icon: _isGenerating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Symbols.auto_awesome),
-                label: Text(
-                  _isGenerating
-                      ? l10n.recipeGenerating
-                      : l10n.recipeGenerateAndOpenEditor,
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton.icon(
+                      onPressed: _isGenerating ? null : _generateAndOpenEditor,
+                      icon: _isGenerating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Symbols.auto_awesome),
+                      label: Text(
+                        _isGenerating
+                            ? l10n.recipeGenerating
+                            : l10n.recipeGenerateAndOpenEditor,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Material(
+                  color: _isListening ? Colors.red.shade500 : AppColors.primary,
+                  borderRadius: BorderRadius.circular(28),
+                  elevation: 2,
+                  child: InkWell(
+                    onTap: _isListening ? _stopListening : _startListening,
+                    borderRadius: BorderRadius.circular(28),
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        _isListening ? Symbols.stop : Symbols.mic,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

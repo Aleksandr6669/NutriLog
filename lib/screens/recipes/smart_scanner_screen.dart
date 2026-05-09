@@ -4,15 +4,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'dart:typed_data';
 import '../../l10n/app_localizations.dart';
 import '../../services/barcode_service.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../styles/app_colors.dart';
-import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import '../../models/recipe.dart';
-import 'edit_recipe_screen.dart';
 
 class SmartScannerScreen extends StatefulWidget {
   const SmartScannerScreen({super.key});
