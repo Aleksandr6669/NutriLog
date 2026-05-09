@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class NotificationSettings {
   static const String aiProviderGroq = 'groq';
   static const String aiProviderGemini = 'gemini';
-  static const String geminiModelFlashLite = 'gemini-2.5-flash-lite';
-  static const String geminiModelFlash = 'gemini-2.5-flash';
-  static const String geminiModelPro = 'gemini-2.5-pro';
+  static const String geminiModelFlashLite = 'gemini-3.1-flash-lite';
+  static const String geminiModelFlash = 'gemini-3-flash-preview';
+  static const String geminiModelPro = 'gemini-3.1-pro-preview';
 
   final bool waterReminderEnabled;
   final TimeOfDay waterReminderTime;
