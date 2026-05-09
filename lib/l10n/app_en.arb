@@ -354,7 +354,7 @@
   "aiKeyMissingError": "Gemini key not found. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... at launch.",
   "aiHttpForbiddenError": "Gemini returned 403 (forbidden). Check GEMINI_API_KEY and access restrictions.",
   "aiHttpUnauthorizedError": "Gemini returned 401 (unauthorized). Check GEMINI_API_KEY.",
-  "aiHttpRateLimitError": "Gemini returned 429 (rate limit). Please try again later.",
+  "aiHttpRateLimitError": "Gemini is temporarily overloaded (429). Please wait a moment and try again.",
   "aiHttpNotFoundError": "Failed to connect to the AI service.",
   "aiHttpGenericError": "Gemini returned an error ({code}).",
   "@aiHttpGenericError": {
@@ -578,5 +578,10 @@
   "@recipeClarificationComposition": {
     "placeholders": { "ingredients": { "type": "String" } }
   },
-  "recipeClarificationBrandUnknown": "If brand is unknown — use typical composition for this type."
+  "recipeClarificationBrandUnknown": "If brand is unknown — use typical composition for this type.",
+  "barcodeScannerTitle": "Barcode Scanner",
+  "barcodeNotFound": "Product not found in database",
+  "byBarcode": "By Barcode",
+  "smartScannerTitle": "Smart Scanner",
+  "bySmartScanner": "Smart Scanner"
 }

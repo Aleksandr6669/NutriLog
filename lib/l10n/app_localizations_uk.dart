@@ -982,7 +982,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get aiHttpRateLimitError =>
-      'Gemini повернув 429 (ліміт запитів). Спробуйте пізніше.';
+      'Gemini тимчасово перевантажений (помилка 429). Будь ласка, зачекайте трохи та спробуйте знову.';
 
   @override
   String get aiHttpNotFoundError => 'Не вдалося підключитися до нейромережі.';
@@ -1553,4 +1553,19 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get recipeClarificationBrandUnknown =>
       'Якщо бренд невідомий — використовувати типовий склад для цього типу.';
+
+  @override
+  String get barcodeScannerTitle => 'Сканер штрих-коду';
+
+  @override
+  String get barcodeNotFound => 'Товар не знайдено в базі даних';
+
+  @override
+  String get byBarcode => 'За штрих-кодом';
+
+  @override
+  String get smartScannerTitle => 'Розумний сканер';
+
+  @override
+  String get bySmartScanner => 'Розумний сканер';
 }

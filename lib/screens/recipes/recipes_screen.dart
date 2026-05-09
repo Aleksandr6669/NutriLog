@@ -723,14 +723,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       if (_showFabMenu) ...[
                         FabMenuItem(
                           key: UniqueKey(),
-                          icon: Symbols.photo_camera,
-                          label: AppLocalizations.of(context)!.byPhoto,
+                          icon: Symbols.barcode_scanner,
+                          label: AppLocalizations.of(context)!.bySmartScanner,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
-                            await _navigateAndRefreshRoute(
-                                '/recipe/create_photo');
+                            await _navigateAndRefreshRoute('/recipe/scanner');
                           },
-                          delay: const Duration(milliseconds: 200),
+                          delay: const Duration(milliseconds: 150),
                         ),
                         const SizedBox(height: 12),
                         FabMenuItem(

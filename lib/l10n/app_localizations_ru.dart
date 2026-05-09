@@ -982,7 +982,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get aiHttpRateLimitError =>
-      'Gemini вернул 429 (лимит запросов). Попробуйте позже.';
+      'Gemini временно перегружен (ошибка 429). Пожалуйста, подождите немного и попробуйте снова.';
 
   @override
   String get aiHttpNotFoundError => 'Не удалось подключиться к нейросети.';
@@ -1554,4 +1554,19 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get recipeClarificationBrandUnknown =>
       'Если бренд неизвестен — использовать типичный состав для этого типа.';
+
+  @override
+  String get barcodeScannerTitle => 'Сканер штрих-кода';
+
+  @override
+  String get barcodeNotFound => 'Товар не найден в базе данных';
+
+  @override
+  String get byBarcode => 'По штрих-коду';
+
+  @override
+  String get smartScannerTitle => 'Умный сканер';
+
+  @override
+  String get bySmartScanner => 'Умный сканер';
 }

@@ -27,8 +27,8 @@ class GeminiRecipeService {
   ];
 
   static const Duration _requestTimeout = Duration(seconds: 12);
-  static const int _jsonRetryMaxAttempts = 2;
-  static const Duration _jsonRetryDelay = Duration(seconds: 2);
+  static const int _jsonRetryMaxAttempts = 3;
+  static const Duration _jsonRetryDelay = Duration(seconds: 4);
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -179,7 +179,7 @@ Rules:
 - quantity as a number >= 0.
 - unit as a short string like: g, ml, pcs, tbsp, tsp.
 - nutrients as numbers only >= 0.
-- If exact data is unavailable, provide a realistic estimate.
+- If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish.
 ''';
@@ -196,6 +196,8 @@ Rules:
         'max_completion_tokens': 1024,
         'top_p': 1,
         'stream': false,
+        'enable_tools': true,
+        'thinking_level': 'MEDIUM',
       },
       locale: locale,
     );
@@ -280,7 +282,7 @@ Rules:
    If given in pieces, estimate the weight of one piece based on reference tables or common sense (e.g., average apple ~150 g, average egg ~50 g). If given in milliliters, estimate weight based on product density (e.g., 1 ml water ~ 1 g, 1 ml oil ~ 0.9 g). If weight cannot be precisely estimated, provide a realistic estimate based on similar products.
 - unit as a short string like: g, mg, kg, pcs, pack, package, l, ml, tsp, tbsp, cup.
 - nutrients as numbers only >= 0. If needed, values >= 0.0001 (for micronutrients, vitamins, supplements, etc.) are allowed.
-- If exact data is unavailable, provide a realistic estimate.
+- If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
 - If exact composition cannot be determined, estimate by analogy with typical products of this type.
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish or product type.
 ''';
@@ -319,6 +321,72 @@ Rules:
     );
     await _fixDraftNutrientsIfNeeded(photoDraft, locale: locale);
     return photoDraft;
+  }
+
+  Future<GeminiRecipeDraft> generateRecipeFromBarcode({
+    required Map<String, dynamic> productData,
+    String? locale,
+  }) async {
+    final productName = productData['product_name'] ?? '';
+    final brands = productData['brands'] ?? '';
+    final categories = productData['categories'] ?? '';
+    final ingredientsText = productData['ingredients_text'] ?? '';
+    final nutrients = productData['nutriments'] ?? {};
+
+    final prompt = '''
+You are a food database expert.
+${_languageInstruction(locale)}
+Convert the following raw product data from OpenFoodFacts into a structured recipe draft.
+Product: $productName
+Brands: $brands
+Categories: $categories
+Ingredients: $ingredientsText
+Raw Nutriments: ${jsonEncode(nutrients)}
+
+Reply ONLY in JSON format.
+Format:
+{
+  "name": "...", 
+  "description": "...", 
+  "clarification": "...", 
+  "icon": "restaurant",
+  "ingredients": [
+    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
+  ],
+  "nutrients": {
+    "calories": 0, "protein": 0, "carbs": 0, "fat": 0, "fiber": 0, "sugar": 0,
+    "saturated_fat": 0, "polyunsaturated_fat": 0, "monounsaturated_fat": 0, "trans_fat": 0,
+    "cholesterol": 0, "sodium": 0, "potassium": 0, "vitamin_a": 0, "vitamin_c": 0,
+    "vitamin_d": 0, "calcium": 0, "iron": 0
+  }
+}
+
+Rules:
+- name: combine product name and brand.
+- description: brief summary of what it is.
+- nutrients: use data from "Raw Nutriments" if available. Note that OpenFoodFacts often provides values per 100g. If the package size is known (e.g. 500ml), calculate for the full package. If nutrients are completely unknown, leave them as zero.
+- icon: pick from ${_allowedIconNames.join(', ')}.
+''';
+
+    final decoded = await _requestDecodedJsonWithAutoRetry(
+      body: {
+        'messages': [
+          {'role': 'user', 'content': prompt}
+        ],
+        'temperature': 0.1,
+        'enable_tools': true,
+        'thinking_level': 'MEDIUM',
+      },
+      locale: locale,
+    );
+
+    final draft = _draftFromDecodedJson(
+      decoded,
+      fallbackDescription: productName,
+      locale: locale,
+    );
+    await _fixDraftNutrientsIfNeeded(draft, locale: locale);
+    return draft;
   }
 
   Future<Map<String, double>> estimateNutrients({
@@ -364,15 +432,10 @@ Rules:
   CRITICAL RULES:
   1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
   2. The specified amounts are exactly what goes into this single serving. NEVER question or adjust the quantities — treat them as precise user input.
-    2.1. USER CLARIFICATION is the PRIMARY source of truth for product type, preparation method, fat level, sauces, and hidden ingredients.
-      If clarification conflicts with recipe name/description assumptions, follow clarification first.
-      Use ingredients list as SECONDARY quantitative constraints (amounts/units) and for consistency checks.
-  3. For packaged products (bottle, can, pack, bar, etc.): treat the quantity as the actual content.
-     Examples: "1 bottle of energy drink (500 ml)" = 500 ml, "1 pack of butter (200 g)" = 200 g, "1 protein bar (60 g)" = 60 g.
-    3.1. If the ingredient name/description contains explicit net amount (for example: 500 ml, 330ml, 0.5 l, 200 g, 90g), ALWAYS use that explicit value.
-       Never replace an explicit label value with a "typical" package size.
-  4. Use the recipe NAME and DESCRIPTION as supporting context only.
-     Example: if description says "energy drink", include caffeine-related vitamins and typical energy drink composition.
+  4. The Ingredients List is your PRIMARY source for quantities and composition (70% weight).
+  5. The recipe NAME, DESCRIPTION, and CLARIFICATION are supporting context (30% weight) for preparation method, specifics, or hidden ingredients not in the list.
+     Example: if description says "energy drink", include caffeine-related vitamins even if not in ingredients.
+  6. USER CLARIFICATION still provides the final word on "hidden" details (e.g. "fried in lot of oil"), but ingredient amounts must be respected.
 
   UNIT CONVERSION (to grams):
   - Milliliters: water/juice ≈ 1 g/ml, milk ≈ 1.03 g/ml, oil ≈ 0.9 g/ml, honey ≈ 1.4 g/ml
@@ -418,9 +481,8 @@ Rules:
             'content': prompt,
           }
         ],
-        'temperature': 0.2,
+        'temperature': 0.1,
         'max_tokens': 1024,
-        'top_p': 1,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
       },
@@ -428,40 +490,19 @@ Rules:
       locale: locale,
     );
 
-    final firstPass = <String, double>{};
-    for (final key in nutrientKeys) {
-      firstPass[key] = _toNonNegativeDouble(decoded[key]);
-    }
-
-    var rechecked = await _recheckEstimatedNutrientsWithAi(
-      recipeName: recipeName,
-      recipeDescription: recipeDescription,
-      clarification: clarification,
-      ingredientsText: ingredientsText,
-      firstPass: firstPass,
-      locale: locale,
-    );
-
-    final afterFirstRecheck = <String, double>{};
-    for (final key in nutrientKeys) {
-      afterFirstRecheck[key] =
-          _toNonNegativeDouble(rechecked['nutrients']?[key] ?? firstPass[key]);
-    }
-
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
-      finalNutrients[key] = _toNonNegativeDouble(afterFirstRecheck[key]);
+      finalNutrients[key] = _toNonNegativeDouble(decoded[key]);
     }
 
-    var localIssueAfterRecheck = _validateEstimatedNutrients(
+    var localIssue = _validateEstimatedNutrients(
       nutrients: finalNutrients,
       ingredients: ingredients,
       locale: locale,
     );
 
-    if (localIssueAfterRecheck != null) {
-      // Emergency third pass if result is still invalid (all zeros / no calories)
-      rechecked = await _recheckEstimatedNutrientsWithAi(
+    if (localIssue != null) {
+      final rechecked = await _recheckEstimatedNutrientsWithAi(
         recipeName: recipeName,
         recipeDescription: recipeDescription,
         clarification: clarification,
@@ -471,31 +512,28 @@ Rules:
       );
 
       for (final key in nutrientKeys) {
-        finalNutrients[key] = _toNonNegativeDouble(
-          rechecked['nutrients']?[key] ?? finalNutrients[key],
-        );
+        finalNutrients[key] =
+            _toNonNegativeDouble(rechecked['nutrients']?[key] ?? finalNutrients[key]);
       }
 
-      localIssueAfterRecheck = _validateEstimatedNutrients(
+      localIssue = _validateEstimatedNutrients(
         nutrients: finalNutrients,
         ingredients: ingredients,
         locale: locale,
       );
     }
 
-    if (localIssueAfterRecheck != null) {
+    if (localIssue != null) {
       _applyNutrientsBestEffortFallback(finalNutrients);
-      localIssueAfterRecheck = _validateEstimatedNutrients(
+      localIssue = _validateEstimatedNutrients(
         nutrients: finalNutrients,
         ingredients: ingredients,
         locale: locale,
       );
     }
 
-    // Only block if local structural validation failed (all zeros / calories=0)
-    // aiApproved is ignored — recheck is used only to improve accuracy, not to reject
-    if (localIssueAfterRecheck != null) {
-      throw GeminiRecipeException(localIssueAfterRecheck);
+    if (localIssue != null) {
+      throw GeminiRecipeException(localIssue);
     }
 
     return finalNutrients;
@@ -540,6 +578,12 @@ Rules:
   }) async {
     if (draft.ingredients.isEmpty) return;
     final n = draft.nutrients;
+    final calories = n['calories'] ?? 0.0;
+    final hasMacros = (n['protein'] ?? 0.0) + (n['carbs'] ?? 0.0) + (n['fat'] ?? 0.0) > 0;
+
+    if (calories > 0 && hasMacros) {
+      return;
+    }
 
     try {
       final ingredientsText = draft.ingredients
@@ -664,6 +708,8 @@ Rules:
           'max_completion_tokens': 600,
           'top_p': 1,
           'stream': false,
+          'enable_tools': true,
+          'thinking_level': 'MEDIUM',
         },
         locale: locale,
       );
@@ -985,7 +1031,8 @@ Rules:
     required String userName,
     required List<Map<String, dynamic>> topFoods,
     required List<Map<String, dynamic>> snackPriorityRecipes,
-    required List<Map<String, dynamic>> availableRecipes,
+    required List<String> availableRecipeNames,
+    required List<String> consumedFoodNames,
     required List<Map<String, dynamic>> previousReports,
   }) async {
     final snackLikelyNeeded = avgCalories < calorieGoal * 0.9 ||
@@ -993,21 +1040,24 @@ Rules:
         avgFiberGrams < 18;
 
     final topFoodsContext = topFoods
-        .take(8)
+        .take(5)
         .map((f) =>
             '- ${(f['name'] as String? ?? '').trim()} (${((f['count'] as num?) ?? 0).round()} times)')
         .where((line) => !line.startsWith('-  ('))
         .join('\n');
 
-    final recipesContext = availableRecipes
+    final recipesContext = availableRecipeNames
+        .take(100)
+        .map((name) => '- $name')
+        .join('\n');
+
+    final consumedContext = consumedFoodNames
         .take(60)
-        .map((r) =>
-            '- ${(r['name'] as String? ?? '').trim()} (${((r['calories'] as num?) ?? 0).round()} kcal)')
-        .where((line) => !line.startsWith('-  ('))
+        .map((name) => '- $name')
         .join('\n');
 
     final snackPriorityContext = snackPriorityRecipes
-        .take(12)
+        .take(4)
         .map((r) {
           final name = (r['name'] as String? ?? '').trim();
           final calories = ((r['calories'] as num?) ?? 0).round();
@@ -1020,7 +1070,7 @@ Rules:
         .join('\n');
 
     final recentPreviousReports =
-        previousReports.take(2).toList(growable: false);
+        previousReports.take(1).toList(growable: false);
 
     final previousReportsContext = recentPreviousReports
         .map((report) {
@@ -1053,7 +1103,7 @@ Rules:
         .toList(growable: false);
 
     final previousRecommendedRecipesContext =
-        previousRecipeNames.take(40).map((name) => '- $name').join('\n');
+        previousRecipeNames.take(15).map((name) => '- $name').join('\n');
 
     final prompt = '''
 You are a supportive fitness assistant and nutritionist.
@@ -1120,6 +1170,9 @@ ${topFoodsContext.isEmpty ? '- no clear pattern' : topFoodsContext}
 Available recipes in app:
 ${recipesContext.isEmpty ? '- none' : recipesContext}
 
+Actual food/meals consumed by user in this period:
+${consumedContext.isEmpty ? '- no consumption data' : consumedContext}
+
 Priority snack recipe candidates (prefer these for snack recommendations if suitable):
 ${snackPriorityContext.isEmpty ? '- none' : snackPriorityContext}
 
@@ -1128,6 +1181,11 @@ ${previousReportsContext.isEmpty ? '- no previous reports' : previousReportsCont
 
 Previously recommended recipes (prefer continuity when still relevant):
 ${previousRecommendedRecipesContext.isEmpty ? '- none' : previousRecommendedRecipesContext}
+
+Additional Rules for Recipes:
+- If you find a suitable recipe in the "Available recipes in app" list, provide its EXACT name in "recipeName".
+- If no suitable recipe exists in the list, but you want to suggest a specific dish, provide its name in "recipeName" and describe it in "action". The app will handle the search.
+- Do NOT make up recipe names that are similar to existing ones but not exact; if it's a new suggestion, use its common name.
 
 Task:
 1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 10-16 sentences.
@@ -1166,7 +1224,7 @@ Return ONLY JSON object in this format:
     {
       "when": "breakfast|lunch|dinner|snack|any",
       "action": "specific actionable advice",
-      "recipeName": "exact recipe name from provided list or empty string"
+      "recipeName": "exact recipe name from provided list or a new suggested dish name"
     }
   ]
 }
@@ -1192,6 +1250,8 @@ Rules:
           'max_completion_tokens': 1500,
           'top_p': 1,
           'stream': false,
+          'enable_tools': true,
+          'thinking_level': 'MEDIUM',
         },
         locale: locale,
       );

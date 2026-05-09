@@ -1856,7 +1856,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiHttpRateLimitError.
   ///
   /// In en, this message translates to:
-  /// **'Gemini returned 429 (rate limit). Please try again later.'**
+  /// **'Gemini is temporarily overloaded (429). Please wait a moment and try again.'**
   String get aiHttpRateLimitError;
 
   /// No description provided for @aiHttpNotFoundError.
@@ -2884,6 +2884,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If brand is unknown — use typical composition for this type.'**
   String get recipeClarificationBrandUnknown;
+
+  /// No description provided for @barcodeScannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode Scanner'**
+  String get barcodeScannerTitle;
+
+  /// No description provided for @barcodeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Product not found in database'**
+  String get barcodeNotFound;
+
+  /// No description provided for @byBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'By Barcode'**
+  String get byBarcode;
+
+  /// No description provided for @smartScannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Scanner'**
+  String get smartScannerTitle;
+
+  /// No description provided for @bySmartScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Scanner'**
+  String get bySmartScanner;
 }
 
 class _AppLocalizationsDelegate

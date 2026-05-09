@@ -464,14 +464,14 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         'avgActivityCalories': avgActivityCalories,
         'userName': profile.name,
         'topFoods': topFoods
-            .take(8)
+            .take(5)
             .map((entry) => {
                   'name': entry.key,
                   'count': entry.value,
                 })
             .toList(),
         'snackPriorityRecipes': snackPriorityRecipes
-            .take(12)
+            .take(6)
             .map((item) => {
                   'name': item['name'],
                   'calories': item['calories'],
@@ -480,13 +480,16 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   'sugar': (item['sugar'] as double).toStringAsFixed(1),
                 })
             .toList(),
-        'availableRecipes': allRecipes
-            .take(60)
-            .map((recipe) => {
-                  'name': recipe.name,
-                  'calories':
-                      ((recipe.nutrients['calories'] as num?) ?? 0).round(),
-                })
+        'availableRecipeNames': allRecipes
+            .map((recipe) => recipe.name.trim())
+            .where((name) => name.isNotEmpty)
+            .toSet()
+            .toList(),
+        'consumedFoodNames': filledLogs
+            .expand((log) => log.meals.values.expand((items) => items))
+            .map((item) => item.name.trim())
+            .where((name) => name.isNotEmpty)
+            .toSet()
             .toList(),
       },
     };
@@ -566,10 +569,14 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             (aiInput['snackPriorityRecipes'] as List<dynamic>? ?? const [])
                 .whereType<Map<String, dynamic>>()
                 .toList(growable: false),
-        availableRecipes:
-            (aiInput['availableRecipes'] as List<dynamic>? ?? const [])
-                .whereType<Map<String, dynamic>>()
-                .toList(growable: false),
+        availableRecipeNames: (aiInput['availableRecipeNames'] as List<dynamic>? ??
+                const [])
+            .cast<String>()
+            .toList(growable: false),
+        consumedFoodNames: (aiInput['consumedFoodNames'] as List<dynamic>? ??
+                const [])
+            .cast<String>()
+            .toList(growable: false),
         previousReports: _aiReportHistory
             .map(
               (entry) => {

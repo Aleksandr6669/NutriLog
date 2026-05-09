@@ -20,9 +20,9 @@ import 'screens/profile/user_agreement_screen.dart';
 import 'screens/profile/changelog_screen.dart';
 import 'screens/profile/connections_notifications_screen.dart';
 import 'screens/recipes/create_recipe_from_description_screen.dart';
-import 'screens/recipes/create_recipe_from_photo_screen.dart';
 import 'screens/recipes/edit_recipe_screen.dart';
 import 'screens/recipes/recipe_detail_screen.dart';
+import 'screens/recipes/smart_scanner_screen.dart';
 import 'models/daily_log.dart';
 import 'models/recipe.dart';
 import 'models/food_item.dart';
@@ -158,12 +158,12 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/recipe/create_photo',
-      builder: (context, state) => const CreateRecipeFromPhotoScreen(),
-    ),
-    GoRoute(
       path: '/recipe/create_description',
       builder: (context, state) => const CreateRecipeFromDescriptionScreen(),
+    ),
+    GoRoute(
+      path: '/recipe/scanner',
+      builder: (context, state) => const SmartScannerScreen(),
     ),
     GoRoute(
       path: '/recipe/edit',
@@ -172,6 +172,7 @@ final GoRouter appRouter = GoRouter(
         return EditRecipeScreen(
           recipe: extra?['recipe'] as Recipe?,
           initialDraft: extra?['initialDraft'] as Recipe?,
+          initialClarification: extra?['initialClarification'] as String?,
         );
       },
     ),

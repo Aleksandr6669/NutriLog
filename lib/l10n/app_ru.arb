@@ -353,7 +353,7 @@
   "aiKeyMissingError": "Не найден ключ Gemini. Добавьте GEMINI_API_KEY в .env или передайте --dart-define=GEMINI_API_KEY=... при запуске.",
   "aiHttpForbiddenError": "Gemini вернул 403 (доступ запрещен). Проверьте GEMINI_API_KEY и ограничения доступа.",
   "aiHttpUnauthorizedError": "Gemini вернул 401 (неавторизован). Проверьте корректность GEMINI_API_KEY.",
-  "aiHttpRateLimitError": "Gemini вернул 429 (лимит запросов). Попробуйте позже.",
+  "aiHttpRateLimitError": "Gemini временно перегружен (ошибка 429). Пожалуйста, подождите немного и попробуйте снова.",
   "aiHttpNotFoundError": "Не удалось подключиться к нейросети.",
   "aiHttpGenericError": "Gemini вернул ошибку ({code}).",
   "@aiHttpGenericError": {
@@ -576,5 +576,10 @@
   "@recipeClarificationComposition": {
     "placeholders": { "ingredients": { "type": "String" } }
   },
-  "recipeClarificationBrandUnknown": "Если бренд неизвестен — использовать типичный состав для этого типа."
+  "recipeClarificationBrandUnknown": "Если бренд неизвестен — использовать типичный состав для этого типа.",
+  "barcodeScannerTitle": "Сканер штрих-кода",
+  "barcodeNotFound": "Товар не найден в базе данных",
+  "byBarcode": "По штрих-коду",
+  "smartScannerTitle": "Умный сканер",
+  "bySmartScanner": "Умный сканер"
 }

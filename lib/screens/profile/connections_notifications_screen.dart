@@ -1048,96 +1048,16 @@ class _ConnectionsNotificationsScreenState
                   ),
                   subtitle: Text(
                     _inlineLocalized(
-                      ru: 'Выберите сервис для AI функций',
-                      en: 'Choose service for AI features',
-                      uk: 'Оберіть сервіс для AI функцій',
+                      ru: 'Мы используем Google Gemini',
+                      en: 'Powered by Google Gemini',
+                      uk: 'Ми використовуємо Google Gemini',
                     ),
                   ),
-                  trailing: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _settings.aiProvider,
-                      items: const [
-                        DropdownMenuItem(
-                          value: NotificationSettings.aiProviderGroq,
-                          child: Text('Groq'),
-                        ),
-                        DropdownMenuItem(
-                          value: NotificationSettings.aiProviderGemini,
-                          child: Text('Gemini'),
-                        ),
-                      ],
-                      onChanged: (value) async {
-                        if (value == null) return;
-                        HapticFeedback.selectionClick();
-                        final updated = _settings.copyWith(aiProvider: value);
-                        setState(() => _settings = updated);
-                        await _settingsService.save(updated);
-                      },
-                    ),
+                  trailing: const Text(
+                    'Gemini',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                   ),
                 ),
-                if (_settings.aiProvider == NotificationSettings.aiProviderGemini) ...[
-                  const Divider(height: 1, indent: 56),
-                  ListTile(
-                    leading: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.deepPurple.withValues(alpha: 0.12),
-                        border: Border.all(
-                          color: Colors.deepPurple.withValues(alpha: 0.28),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Symbols.model_training,
-                        size: 18,
-                        color: Colors.deepPurple,
-                      ),
-                    ),
-                    title: Text(
-                      _inlineLocalized(
-                        ru: 'Модель Gemini',
-                        en: 'Gemini model',
-                        uk: 'Модель Gemini',
-                      ),
-                    ),
-                    subtitle: Text(
-                      _inlineLocalized(
-                        ru: 'Только новые модели',
-                        en: 'New models only',
-                        uk: 'Лише нові моделі',
-                      ),
-                    ),
-                    trailing: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _settings.geminiModel,
-                        items: const [
-                          DropdownMenuItem(
-                            value: NotificationSettings.geminiModelFlashLite,
-                            child: Text('Gemini 2.5 Flash-Lite'),
-                          ),
-                          DropdownMenuItem(
-                            value: NotificationSettings.geminiModelFlash,
-                            child: Text('Gemini 2.5 Flash'),
-                          ),
-                          DropdownMenuItem(
-                            value: NotificationSettings.geminiModelPro,
-                            child: Text('Gemini 2.5 Pro'),
-                          ),
-                        ],
-                        onChanged: (value) async {
-                          if (value == null) return;
-                          HapticFeedback.selectionClick();
-                          final updated = _settings.copyWith(geminiModel: value);
-                          setState(() => _settings = updated);
-                          await _settingsService.save(updated);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
                 const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Symbols.language),

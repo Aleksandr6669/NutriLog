@@ -980,7 +980,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiHttpRateLimitError =>
-      'Gemini returned 429 (rate limit). Please try again later.';
+      'Gemini is temporarily overloaded (429). Please wait a moment and try again.';
 
   @override
   String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
@@ -1548,4 +1548,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recipeClarificationBrandUnknown =>
       'If brand is unknown — use typical composition for this type.';
+
+  @override
+  String get barcodeScannerTitle => 'Barcode Scanner';
+
+  @override
+  String get barcodeNotFound => 'Product not found in database';
+
+  @override
+  String get byBarcode => 'By Barcode';
+
+  @override
+  String get smartScannerTitle => 'Smart Scanner';
+
+  @override
+  String get bySmartScanner => 'Smart Scanner';
 }

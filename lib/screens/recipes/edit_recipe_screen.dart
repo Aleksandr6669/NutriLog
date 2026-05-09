@@ -120,12 +120,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
     final isFromDraft = widget.initialDraft != null;
 
-    // Инициализация контроллеров нутриентов
     for (var key in _nutrientKeys) {
       _nutrientControllers[key] = TextEditingController(
-        text: isFromDraft
-            ? '0.0'
-            : (sourceRecipe?.nutrients[key]?.toString() ?? '0.0'),
+        text: sourceRecipe?.nutrients[key]?.toString() ?? '0.0',
       );
     }
 
@@ -173,11 +170,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isAutoAiNutritionEnabled = true;
       }
 
-      if (!mounted) return;
-      if (_isAutoAiNutritionEnabled && _ingredientItems.isNotEmpty) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => _recalculateNutrientsWithAi());
-      }
       return;
     }
 
@@ -364,6 +356,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final calories = recipeNutrients['calories'] ?? 0;
     final calculated = protein * 4 + carbs * 4 + fat * 9;
     return (calories - calculated).abs() < 0.2;
+  }
+
+  bool get _hasAnyIngredient {
+    return _ingredientItems
+        .any((item) => item.nameController.text.trim().isNotEmpty);
   }
 
   double _parseAmount(String value) {
@@ -1083,6 +1080,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     final cloudService = CloudDataService.instance;
     await FirebaseBootstrapService.ensureInitialized();
+    if (!mounted) return;
     if (FirebaseAuthService.instance.currentUser == null ||
         !cloudService.isSignedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1526,7 +1524,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             if (_isAiCalculating)
               IgnorePointer(
                 child: Container(
-                  color: Colors.black.withOpacity(0.12),
+                  color: Colors.black.withValues(alpha: 0.12),
                 ),
               ),
           ],
@@ -1611,15 +1609,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed:
-                    _isAiCalculating ? null : _recalculateNutrientsWithAi,
-                icon: const Icon(Symbols.calculate),
-                label: Text(l10n.calculateNutrition),
-              ),
-            ),
+
             const SizedBox(height: 8),
             if (_aiStatus != null) ...[
               Container(
@@ -1759,6 +1749,25 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ('vitamin_c', l10n.vitaminC, l10n.mg),
               ('vitamin_d', l10n.vitaminD, l10n.mcg)
             ]),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: (_isAiCalculating || !_hasAnyIngredient)
+                    ? null
+                    : _recalculateNutrientsWithAi,
+                icon: const Icon(Symbols.calculate, weight: 600),
+                label: Text(l10n.calculateNutrition),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                  foregroundColor: AppColors.primary,
+                  elevation: 0,
+                  side: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
