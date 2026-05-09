@@ -5,8 +5,8 @@ class NotificationSettings {
   static const String aiProviderGroq = 'groq';
   static const String aiProviderGemini = 'gemini';
   static const String geminiModelFlashLite = 'gemini-3.1-flash-lite';
-  static const String geminiModelFlash = 'gemini-3-flash-preview';
-  static const String geminiModelPro = 'gemini-3.1-pro-preview';
+  static const String geminiModelFlash = 'gemini-3.1-flash-lite';
+  static const String geminiModelPro = 'gemini-3.1-flash-lite';
 
   final bool waterReminderEnabled;
   final TimeOfDay waterReminderTime;
