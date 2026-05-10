@@ -21,14 +21,10 @@ class GeminiRecipeService {
 
 
   static const List<String> _geminiModels = [
-    NotificationSettings.geminiModelFlashLite,
-    NotificationSettings.geminiModelFlash,
-    NotificationSettings.geminiModelPro,
+    NotificationSettings.geminiModelDefault,
   ];
 
-  static const Duration _requestTimeout = Duration(seconds: 12);
-  static const int _jsonRetryMaxAttempts = 3;
-  static const Duration _jsonRetryDelay = Duration(seconds: 4);
+  static const Duration _requestTimeout = Duration(seconds: 15);
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -1599,7 +1595,6 @@ Rules:
           'stream': false,
         },
         locale: locale,
-        maxAttempts: 1,
       );
 
       int normalizeInt(dynamic value, int fallback) {
@@ -1836,7 +1831,7 @@ Rules:
 
   String _resolveGeminiModel(String selectedModel) {
     if (_geminiModels.contains(selectedModel)) return selectedModel;
-    return NotificationSettings.geminiModelFlash;
+    return NotificationSettings.geminiModelDefault;
   }
 
   List<Map<String, dynamic>> _geminiPartsFromMessages(dynamic messages) {
@@ -2076,12 +2071,17 @@ Rules:
 
 
 
+  final NotificationSettingsService _settingsService = NotificationSettingsService();
+
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
     required Map<String, dynamic> body,
     String? apiKeyOverride,
     String? locale,
-    int maxAttempts = _jsonRetryMaxAttempts,
   }) async {
+    final settings = await _settingsService.load();
+    final maxAttempts = settings.aiRetryAttempts;
+    final retryDelay = Duration(seconds: settings.aiRetryDelaySeconds);
+    
     Object? lastError;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -2089,7 +2089,7 @@ Rules:
         final response = await _requestWithGemini(
           body: body,
           locale: locale,
-          models: _geminiModels,
+          models: [settings.geminiModel],
         );
 
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
@@ -2102,7 +2102,7 @@ Rules:
       } catch (e) {
         lastError = e;
         if (attempt < maxAttempts) {
-          await Future<void>.delayed(_jsonRetryDelay);
+          await Future<void>.delayed(retryDelay);
         }
       }
     }

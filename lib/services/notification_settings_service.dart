@@ -2,25 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationSettings {
-  static const String aiProviderGroq = 'groq';
   static const String aiProviderGemini = 'gemini';
-  static const String geminiModelFlashLite = 'gemini-3.1-flash-lite';
-  static const String geminiModelFlash = 'gemini-3.1-flash-lite';
-  static const String geminiModelPro = 'gemini-3.1-flash-lite';
-
-  final bool waterReminderEnabled;
-  final TimeOfDay waterReminderTime;
-  final bool mealRemindersEnabled;
-  final TimeOfDay breakfastTime;
-  final TimeOfDay lunchTime;
-  final TimeOfDay dinnerTime;
-  final bool messagesEnabled; // Новое поле для сообщений
-  final bool weightReminderEnabled; // Включено ли напоминание о взвешивании
-  final TimeOfDay weightReminderTime; // Время напоминания о взвешивании
-  final bool statsAiAssistantEnabled;
-  final bool recipeAiAutoNutritionEnabled;
-  final String aiProvider;
-  final String geminiModel;
+  static const String geminiModelDefault = 'gemini-3.1-flash-lite';
 
   const NotificationSettings({
     required this.waterReminderEnabled,
@@ -36,7 +19,25 @@ class NotificationSettings {
     required this.recipeAiAutoNutritionEnabled,
     required this.aiProvider,
     required this.geminiModel,
+    required this.aiRetryAttempts,
+    required this.aiRetryDelaySeconds,
   });
+
+  final bool waterReminderEnabled;
+  final TimeOfDay waterReminderTime;
+  final bool mealRemindersEnabled;
+  final TimeOfDay breakfastTime;
+  final TimeOfDay lunchTime;
+  final TimeOfDay dinnerTime;
+  final bool messagesEnabled;
+  final bool weightReminderEnabled;
+  final TimeOfDay weightReminderTime;
+  final bool statsAiAssistantEnabled;
+  final bool recipeAiAutoNutritionEnabled;
+  final String aiProvider;
+  final String geminiModel;
+  final int aiRetryAttempts;
+  final int aiRetryDelaySeconds;
 
   NotificationSettings copyWith({
     bool? waterReminderEnabled,
@@ -52,6 +53,8 @@ class NotificationSettings {
     bool? recipeAiAutoNutritionEnabled,
     String? aiProvider,
     String? geminiModel,
+    int? aiRetryAttempts,
+    int? aiRetryDelaySeconds,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -70,6 +73,8 @@ class NotificationSettings {
           recipeAiAutoNutritionEnabled ?? this.recipeAiAutoNutritionEnabled,
       aiProvider: aiProvider ?? this.aiProvider,
       geminiModel: geminiModel ?? this.geminiModel,
+      aiRetryAttempts: aiRetryAttempts ?? this.aiRetryAttempts,
+      aiRetryDelaySeconds: aiRetryDelaySeconds ?? this.aiRetryDelaySeconds,
     );
   }
 }
@@ -89,6 +94,8 @@ class NotificationSettingsService {
       'recipe_ai_auto_nutrition_enabled';
   static const _aiProviderKey = 'ai_provider_v1';
   static const _geminiModelKey = 'gemini_model_v1';
+  static const _aiRetryAttemptsKey = 'ai_retry_attempts';
+  static const _aiRetryDelayKey = 'ai_retry_delay';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: true,
@@ -102,8 +109,10 @@ class NotificationSettingsService {
     weightReminderTime: TimeOfDay(hour: 21, minute: 30),
     statsAiAssistantEnabled: true,
     recipeAiAutoNutritionEnabled: true,
-    aiProvider: NotificationSettings.aiProviderGroq,
-    geminiModel: NotificationSettings.geminiModelFlash,
+    aiProvider: NotificationSettings.aiProviderGemini,
+    geminiModel: NotificationSettings.geminiModelDefault,
+    aiRetryAttempts: 1,
+    aiRetryDelaySeconds: 5,
   );
 
   Future<NotificationSettings> load() async {
@@ -140,10 +149,12 @@ class NotificationSettingsService {
       recipeAiAutoNutritionEnabled:
           prefs.getBool(_recipeAiAutoNutritionEnabledKey) ??
               defaults.recipeAiAutoNutritionEnabled,
-        aiProvider:
-          prefs.getString(_aiProviderKey) ?? defaults.aiProvider,
-        geminiModel:
-          prefs.getString(_geminiModelKey) ?? defaults.geminiModel,
+      aiProvider: prefs.getString(_aiProviderKey) ?? defaults.aiProvider,
+      geminiModel: prefs.getString(_geminiModelKey) ?? defaults.geminiModel,
+      aiRetryAttempts:
+          prefs.getInt(_aiRetryAttemptsKey) ?? defaults.aiRetryAttempts,
+      aiRetryDelaySeconds:
+          prefs.getInt(_aiRetryDelayKey) ?? defaults.aiRetryDelaySeconds,
     );
   }
 
@@ -170,6 +181,8 @@ class NotificationSettingsService {
     );
     await prefs.setString(_aiProviderKey, settings.aiProvider);
     await prefs.setString(_geminiModelKey, settings.geminiModel);
+    await prefs.setInt(_aiRetryAttemptsKey, settings.aiRetryAttempts);
+    await prefs.setInt(_aiRetryDelayKey, settings.aiRetryDelaySeconds);
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {

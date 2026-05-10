@@ -163,26 +163,9 @@ class _ConnectionsNotificationsScreenState
     return ru;
   }
 
-  String _aiProviderLabel(String provider) {
-    switch (provider) {
-      case NotificationSettings.aiProviderGemini:
-        return 'Gemini';
-      default:
-        return 'Groq';
-    }
-  }
+  String _aiProviderLabel() => 'Gemini';
 
-  String _geminiModelLabel(String model) {
-    switch (model) {
-      case NotificationSettings.geminiModelPro:
-        return 'Gemini 2.5 Pro';
-      case NotificationSettings.geminiModelFlashLite:
-        return 'Gemini 2.5 Flash-Lite';
-      case NotificationSettings.geminiModelFlash:
-      default:
-        return 'Gemini 2.5 Flash';
-    }
-  }
+  String _geminiModelLabel() => 'Gemini 3.1 Flash-Lite';
 
   void _showLanguagePicker(BuildContext context) {
     final localeProvider = context.read<LocaleProvider>();
@@ -1121,6 +1104,16 @@ class _ConnectionsNotificationsScreenState
               subtitle: Text(l10n.userAgreementSubtitle),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () => context.push('/profile/agreement'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Symbols.developer_mode, color: Colors.purple),
+              title: const Text('Настройки разработчика'),
+              subtitle: const Text('Модели AI, лимиты и задержки'),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () => context.push('/profile/developer'),
             ),
           ),
         ],

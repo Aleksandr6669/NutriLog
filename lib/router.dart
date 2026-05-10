@@ -19,6 +19,7 @@ import 'screens/profile/edit_physical_params_screen.dart';
 import 'screens/profile/user_agreement_screen.dart';
 import 'screens/profile/changelog_screen.dart';
 import 'screens/profile/connections_notifications_screen.dart';
+import 'screens/profile/developer_settings_screen.dart';
 import 'screens/recipes/create_recipe_from_description_screen.dart';
 import 'screens/recipes/edit_recipe_screen.dart';
 import 'screens/recipes/recipe_detail_screen.dart';
@@ -204,6 +205,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/profile/changelog',
       builder: (context, state) => const ChangelogScreen(),
+    ),
+    GoRoute(
+      path: '/profile/developer',
+      builder: (context, state) => const DeveloperSettingsScreen(),
     ),
   ],
 );
