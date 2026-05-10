@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'package:nutri_log/services/notification_settings_service.dart';
-import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/styles/app_styles.dart';
+import 'package:nutri_log/services/ai_error_log_service.dart';
+import 'package:intl/intl.dart';
 
 class DeveloperSettingsScreen extends StatefulWidget {
   const DeveloperSettingsScreen({super.key});
@@ -59,7 +59,23 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           children: [
             _buildSectionHeader('Искусственный интеллект'),
             _buildAiSettingsCard(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSectionHeader('Логи ошибок AI'),
+                TextButton.icon(
+                  onPressed: () {
+                    AiErrorLogService.instance.clearLogs();
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Очистить'),
+                ),
+              ],
+            ),
+            _buildErrorLogsCard(),
+            const SizedBox(height: 24),
             _buildWarningCard(),
           ],
         ),
@@ -95,6 +111,68 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           const Divider(height: 1, indent: 56),
           _buildRetryDelayPicker(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorLogsCard() {
+    final logs = AiErrorLogService.instance.logs;
+
+    if (logs.isEmpty) {
+      return Card(
+        elevation: 0.5,
+        shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+        child: const Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Center(
+            child: Text('Логов пока нет', style: TextStyle(color: Colors.grey)),
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 0.5,
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: logs.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final log = logs[index];
+          final timeStr = DateFormat('HH:mm:ss').format(log.timestamp);
+          
+          final color = log.isError 
+            ? Colors.red 
+            : (log.message == 'Request Started' ? Colors.blue : Colors.green);
+          final icon = log.isError 
+            ? Icons.error_outline 
+            : (log.message == 'Request Started' ? Icons.upload : Icons.check_circle_outline);
+
+          return ExpansionTile(
+            leading: Icon(icon, color: color),
+            title: Text(log.feature, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('$timeStr - ${log.message}'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    log.details ?? 'Нет дополнительных данных',
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

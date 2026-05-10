@@ -72,6 +72,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isDonateAiChecking = false;
   bool _isDonateAiApproved = false;
   String? _donateAiStatus;
+  String? _donateAiFixSuggestions;
   Timer? _donateAiDebounce;
   Timer? _nutritionAiDebounce;
   int _donateAiRequestId = 0;
@@ -156,8 +157,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _attachIngredientListeners(_IngredientFormItem item) {
-    item.nameController.addListener(_onDonateValidationInputChanged);
-    item.quantityController.addListener(_onDonateValidationInputChanged);
+    // Listeners for manual triggers are not needed here anymore for auto-AI,
+    // but we can keep them if we want some local reactive UI updates.
+    // User requested AI calculation to be manual.
   }
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
@@ -184,35 +186,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onDonateValidationInputChanged() {
-    if (!mounted || _isDonated) return;
-
-    if (!_isFormReadyForDonate) {
-      _donateAiDebounce?.cancel();
-      if (_isDonateAiChecking ||
-          _isDonateAiApproved ||
-          _donateAiStatus != null ||
-          _isPublic) {
-        setState(() {
-          _isDonateAiChecking = false;
-          _isDonateAiApproved = false;
-          _donateAiStatus = null;
-          _isPublic = false;
-        });
-      }
-      return;
-    }
-
-    _donateAiDebounce?.cancel();
-    final checkingText = _quickDonateValidationMessage();
-    if (_isDonateAiApproved || _donateAiStatus != checkingText) {
-      setState(() {
-        _isDonateAiApproved = false;
-        _donateAiStatus = checkingText;
-      });
-    }
-    _donateAiDebounce = Timer(const Duration(seconds: 1), () {
-      _runDonateAiModeration();
-    });
+    // Automatic validation is disabled per user request.
+    // We now use manual buttons.
   }
 
   String _quickDonateValidationMessage() {
@@ -246,104 +221,99 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return 'Нейросеть временно недоступна.';
   }
 
-  Future<DonateRecipeModerationResult?> _runDonateAiModeration() async {
-    if (!_isFormReadyForDonate || _isDonated) return null;
+  Future<void> _runPublicModeration() async {
+    if (!_isFormReadyForDonate || _isDonated) return;
 
-    final sanityError = _localRecipeSanityError();
-    if (sanityError != null) {
-      if (mounted) {
-        setState(() {
-          _isDonateAiChecking = false;
-          _isDonateAiApproved = false;
-          _isPublic = false;
-          _donateAiStatus = sanityError;
-        });
-      }
-      return null;
-    }
-
-    if (!_passesQuickDonateValidation()) {
-      if (mounted) {
-        setState(() {
-          _isDonateAiChecking = false;
-          _isDonateAiApproved = false;
-          _isPublic = false;
-          _donateAiStatus = null;
-        });
-      }
-      return null;
-    }
-
-    final requestId = ++_donateAiRequestId;
-    if (mounted) {
-      setState(() {
-        _isDonateAiChecking = true;
-        _isDonateAiApproved = true;
-        _donateAiStatus = _quickDonateValidationMessage();
-        if (_publicIntentEnabled &&
-            !_isDonated &&
-            (widget.recipe?.isUserRecipe ?? true)) {
-          _isPublic = true;
-        }
-      });
-    }
+    setState(() {
+      _isDonateAiChecking = true;
+      _donateAiStatus = _quickDonateValidationMessage();
+      _donateAiFixSuggestions = null;
+    });
 
     try {
-      final ingredients = _ingredientItems
-          .map((item) => RecipeIngredient(
-                name: item.nameController.text.trim(),
-                quantity: _parseAmount(item.quantityController.text),
-                unit: item.unit.trim(),
-              ))
-          .where((i) => i.name.isNotEmpty)
-          .toList(growable: false);
-
-      final result =
-          await _geminiRecipeService.validateRecipeForCommunityDonation(
-        recipeName: _nameController.text.trim(),
-        recipeDescription: _descriptionController.text.trim(),
-        clarification: _clarificationController.text.trim(),
-        ingredients: ingredients,
+      final result = await _geminiRecipeService.moderateRecipeForPublic(
+        recipeName: _nameController.text,
+        recipeDescription: _descriptionController.text,
+        clarification: _clarificationController.text,
+        ingredients: _ingredientItems
+            .map((item) => RecipeIngredient(
+                  name: item.nameController.text.trim(),
+                  quantity: _parseAmount(item.quantityController.text),
+                  unit: item.unit.trim(),
+                ))
+            .where((i) => i.name.isNotEmpty)
+            .toList(),
         locale: Localizations.localeOf(context).languageCode,
       );
 
-      if (!mounted || requestId != _donateAiRequestId) return null;
+      if (!mounted) return;
 
       setState(() {
         _isDonateAiChecking = false;
         _isDonateAiApproved = result.approved;
         _donateAiStatus = result.reason;
-        if (result.approved &&
-            _publicIntentEnabled &&
-            !_isDonated &&
-            (widget.recipe?.isUserRecipe ?? true)) {
+        _donateAiFixSuggestions = result.fixSuggestions;
+        if (result.approved) {
           _isPublic = true;
-        }
-        if (!result.approved) {
-          _isPublic = false;
+          _publicIntentEnabled = true;
         }
       });
-      return result;
-    } on GeminiRecipeException {
-      if (!mounted || requestId != _donateAiRequestId) return null;
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isDonateAiChecking = false;
-        _isDonateAiApproved = false;
-        _donateAiStatus = _aiUnavailableShortText();
-        _isPublic = false;
+        _donateAiStatus = e.toString();
       });
-      return null;
-    } catch (_) {
-      if (!mounted || requestId != _donateAiRequestId) return null;
-      setState(() {
-        _isDonateAiChecking = false;
-        _isDonateAiApproved = false;
-        _donateAiStatus = l10n.recipeAiFailed;
-        _isPublic = false;
-      });
-      return null;
     }
   }
+
+  Future<void> _runCommunityModeration() async {
+    if (!_isFormReadyForDonate || _isDonated) return;
+
+    setState(() {
+      _isDonateAiChecking = true;
+      _donateAiStatus = _quickDonateValidationMessage();
+      _donateAiFixSuggestions = null;
+    });
+
+    try {
+      final result = await _geminiRecipeService.validateRecipeForCommunityDonation(
+        recipeName: _nameController.text,
+        recipeDescription: _descriptionController.text,
+        clarification: _clarificationController.text,
+        ingredients: _ingredientItems
+            .map((item) => RecipeIngredient(
+                  name: item.nameController.text.trim(),
+                  quantity: _parseAmount(item.quantityController.text),
+                  unit: item.unit.trim(),
+                ))
+            .where((i) => i.name.isNotEmpty)
+            .toList(),
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isDonateAiChecking = false;
+        _isDonateAiApproved = result.approved;
+        _donateAiStatus = result.reason;
+        _donateAiFixSuggestions = result.fixSuggestions;
+      });
+
+      if (result.approved) {
+        // Automatically proceed to donate if approved
+        await _donateRecipe();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isDonateAiChecking = false;
+        _donateAiStatus = e.toString();
+      });
+    }
+  }
+
 
   bool _shouldEnableAutoCalories() {
     final sourceRecipe = widget.recipe ?? widget.initialDraft;
@@ -727,27 +697,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     item.dispose();
     setState(() {});
 
-    // При удалении ингредиента запускаем AI-реакцию так же, как после изменений.
-    _onDonateValidationInputChanged();
+    // Manual update: no auto-AI calls.
   }
 
   void _scheduleNutritionAiRecalculation() {
-    if (!_isAutoAiNutritionEnabled || !mounted) return;
-    final hasNamedIngredients =
-        _ingredientItems.any((i) => i.nameController.text.trim().isNotEmpty);
-    if (!hasNamedIngredients) return;
-    _nutritionAiDebounce?.cancel();
-    if (!_isAiCalculating) {
-      setState(() {
-        _aiStatus = l10n.recipeAiPendingUpdate;
-        _isAiError = false;
-      });
-    }
-    _nutritionAiDebounce = Timer(const Duration(milliseconds: 1500), () {
-      if (mounted && !_isAiCalculating) {
-        unawaited(_recalculateNutrientsWithAi());
-      }
-    });
+    // Manual update only.
   }
 
   Future<void> _recalculateNutrientsWithAi() async {
@@ -977,19 +931,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     if (_formKey.currentState!.validate()) {
       if (_isPublic) {
-        final moderation = await _runDonateAiModeration();
-        if (!mounted) return;
-        if (moderation == null || !moderation.approved) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_donateAiStatus ?? l10n.recipeAiFailed),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.red.shade700,
-            ),
-          );
-          return;
-        }
-
         final sanityError = _localRecipeSanityError();
         if (sanityError != null) {
           if (mounted) {
@@ -1064,19 +1005,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Future<void> _donateRecipe() async {
-    if (!_isDonateAiApproved || _isDonateAiChecking) {
-      final moderation = await _runDonateAiModeration();
-      if (!mounted) return;
-      if (moderation == null || !moderation.approved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_donateAiStatus ?? l10n.recipeAiFailed),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
-    }
 
     final cloudService = CloudDataService.instance;
     await FirebaseBootstrapService.ensureInitialized();
@@ -1237,78 +1165,98 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: (_isDonated || _isDonateAiApproved)
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : (_isDonateAiChecking
-                        ? Colors.orange.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.08)),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
+            if (_donateAiStatus != null || _donateAiFixSuggestions != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
                   color: (_isDonated || _isDonateAiApproved)
-                      ? Colors.green.withValues(alpha: 0.35)
+                      ? Colors.green.withValues(alpha: 0.1)
                       : (_isDonateAiChecking
-                          ? Colors.orange.withValues(alpha: 0.35)
-                          : Colors.red.withValues(alpha: 0.3)),
+                          ? Colors.orange.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.08)),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: (_isDonated || _isDonateAiApproved)
+                        ? Colors.green.withValues(alpha: 0.35)
+                        : (_isDonateAiChecking
+                            ? Colors.orange.withValues(alpha: 0.35)
+                            : Colors.red.withValues(alpha: 0.3)),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (_isDonateAiChecking)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          Icon(
+                            (_isDonated || _isDonateAiApproved)
+                                ? Symbols.verified
+                                : Symbols.warning,
+                            size: 16,
+                            color: (_isDonated || _isDonateAiApproved)
+                                ? Colors.green.shade700
+                                : Colors.red.shade700,
+                          ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _isDonated
+                                ? l10n.donateRecipeAlreadyDonated
+                                : (_donateAiStatus ??
+                                    _defaultModerationIndicatorText()),
+                            style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_donateAiFixSuggestions != null && _donateAiFixSuggestions!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '${l10n.aiClarificationLabel}: $_donateAiFixSuggestions',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              child: Row(
+              const SizedBox(height: 16),
+            ],
+            if (!_isDonated) ...[
+              Row(
                 children: [
-                  if (_isDonateAiChecking)
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    Icon(
-                      (_isDonated || _isDonateAiApproved)
-                          ? Symbols.verified
-                          : Symbols.warning,
-                      size: 16,
-                      color: (_isDonated || _isDonateAiApproved)
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
-                    ),
-                  const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      _isDonated
-                          ? l10n.donateRecipeAlreadyDonated
-                          : (_donateAiStatus ??
-                              _defaultModerationIndicatorText()),
-                      style: theme.textTheme.bodySmall,
+                    child: OutlinedButton.icon(
+                      onPressed: (_isFormReadyForDonate && !_isDonateAiChecking) 
+                          ? _runPublicModeration 
+                          : null,
+                      icon: const Icon(Symbols.public, size: 18),
+                      label: Text(l10n.makePublic),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: (_isFormReadyForDonate && !_isDonateAiChecking) 
+                          ? _runCommunityModeration 
+                          : null,
+                      icon: const Icon(Symbols.volunteer_activism, size: 18),
+                      label: Text(l10n.donateRecipeButton),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.deepOrange,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: (isEnabled && !_isDonating) ? _donateRecipe : null,
-                icon: _isDonating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : Icon(_isDonated
-                        ? Symbols.check_circle
-                        : Symbols.volunteer_activism),
-                label: Text(_isDonated
-                    ? l10n.donateRecipeAlreadyDonated
-                    : l10n.donateRecipeButton),
-                style: FilledButton.styleFrom(
-                  backgroundColor: isEnabled ? accentColor : null,
-                ),
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -1609,6 +1557,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _isAiCalculating ? null : _recalculateNutrientsWithAi,
+                icon: _isAiCalculating 
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Symbols.psychology, size: 18),
+                label: Text(l10n.recipeAiUpdated),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+            ),
 
             const SizedBox(height: 8),
             if (_aiStatus != null) ...[

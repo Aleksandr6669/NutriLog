@@ -12,13 +12,14 @@ import 'package:nutri_log/l10n/app_localizations.dart';
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
 import 'notification_settings_service.dart';
+import 'ai_error_log_service.dart';
 import 'recipe_loader.dart';
 import 'dart:ui' as ui;
 
 class GeminiRecipeService {
 
 
-
+  static Future<void>? _globalRequestLock;
 
   static const List<String> _geminiModels = [
     NotificationSettings.geminiModelDefault,
@@ -114,6 +115,127 @@ class GeminiRecipeService {
     }
   }
 
+  Map<String, dynamic> _getRecipeSchema() {
+    final nutrientProps = <String, dynamic>{};
+    for (final key in nutrientKeys) {
+      nutrientProps[key] = {'type': 'number'};
+    }
+
+    return {
+      'type': 'object',
+      'properties': {
+        'name': {'type': 'string'},
+        'description': {'type': 'string'},
+        'clarification': {'type': 'string'},
+        'icon': {'type': 'string'},
+        'ingredients': {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'properties': {
+              'name': {'type': 'string'},
+              'quantity': {'type': 'number'},
+              'unit': {'type': 'string'},
+              'ambiguous': {'type': 'boolean'},
+            },
+            'required': ['name', 'quantity', 'unit', 'ambiguous'],
+          },
+        },
+        'nutrients': {
+          'type': 'object',
+          'properties': nutrientProps,
+          'required': nutrientKeys,
+        },
+      },
+      'required': ['name', 'description', 'clarification', 'icon', 'ingredients', 'nutrients'],
+    };
+  }
+
+  Map<String, dynamic> _getNutrientsOnlySchema() {
+    final nutrientProps = <String, dynamic>{};
+    for (final key in nutrientKeys) {
+      nutrientProps[key] = {'type': 'number'};
+    }
+    return {
+      'type': 'object',
+      'properties': nutrientProps,
+      'required': nutrientKeys,
+    };
+  }
+
+  Map<String, dynamic> _getModerationSchema() {
+    return {
+      'type': 'object',
+      'properties': {
+        'approved': {'type': 'boolean'},
+        'reason': {'type': 'string'},
+        'fixSuggestions': {'type': 'string'},
+      },
+      'required': ['approved', 'reason', 'fixSuggestions'],
+    };
+  }
+
+  Map<String, dynamic> _getDailyGoalsSchema() {
+    return {
+      'type': 'object',
+      'properties': {
+        'calorieGoal': {'type': 'integer'},
+        'proteinGoal': {'type': 'integer'},
+        'fatGoal': {'type': 'integer'},
+        'carbsGoal': {'type': 'integer'},
+        'waterGoal': {'type': 'integer'},
+        'stepsGoal': {'type': 'integer'},
+      },
+      'required': ['calorieGoal', 'proteinGoal', 'fatGoal', 'carbsGoal', 'waterGoal', 'stepsGoal'],
+    };
+  }
+
+  Map<String, dynamic> _getActivitySchema() {
+    return {
+      'type': 'object',
+      'properties': {
+        'name': {'type': 'string'},
+        'description': {'type': 'string'},
+        'calories': {'type': 'integer'},
+      },
+      'required': ['name', 'description', 'calories'],
+    };
+  }
+
+  Map<String, dynamic> _getStatsReportSchema() {
+    return {
+      'type': 'object',
+      'properties': {
+        'overview': {'type': 'string'},
+        'recommendations': {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'properties': {
+              'when': {'type': 'string'},
+              'action': {'type': 'string'},
+              'recipeName': {'type': 'string'},
+            },
+            'required': ['when', 'action', 'recipeName'],
+          },
+        },
+      },
+      'required': ['overview', 'recommendations'],
+    };
+  }
+
+  Map<String, dynamic> _getNutrientsRecheckSchema() {
+    return {
+      'type': 'object',
+      'properties': {
+        'approved': {'type': 'boolean'},
+        'reason': {'type': 'string'},
+        'nutrients': _getNutrientsOnlySchema(),
+      },
+      'required': ['approved', 'reason', 'nutrients'],
+    };
+  }
+
   Future<GeminiRecipeDraft> generateRecipeFromDescription({
     required String description,
     String? locale,
@@ -194,15 +316,16 @@ Rules:
         'stream': false,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
+        'response_schema': _getRecipeSchema(),
       },
       locale: locale,
+      featureName: 'Recipe From Description',
     );
     final textDraft = _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
       locale: locale,
     );
-    await _fixDraftNutrientsIfNeeded(textDraft, locale: locale);
     return textDraft;
   }
 
@@ -307,6 +430,7 @@ Rules:
         'max_completion_tokens': 1024,
         'top_p': 1,
         'stream': false,
+        'response_schema': _getRecipeSchema(),
       },
       locale: locale,
     );
@@ -315,7 +439,6 @@ Rules:
       fallbackDescription: normalizedDescription,
       locale: locale,
     );
-    await _fixDraftNutrientsIfNeeded(photoDraft, locale: locale);
     return photoDraft;
   }
 
@@ -372,6 +495,7 @@ Rules:
         'temperature': 0.1,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
+        'response_schema': _getRecipeSchema(),
       },
       locale: locale,
     );
@@ -381,7 +505,6 @@ Rules:
       fallbackDescription: productName,
       locale: locale,
     );
-    await _fixDraftNutrientsIfNeeded(draft, locale: locale);
     return draft;
   }
 
@@ -481,9 +604,11 @@ Rules:
         'max_tokens': 1024,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
+        'response_schema': _getNutrientsOnlySchema(),
       },
       apiKeyOverride: apiKey,
       locale: locale,
+      featureName: 'Generic Meal Nutrition',
     );
 
     final finalNutrients = <String, double>{};
@@ -701,28 +826,27 @@ Rules:
             }
           ],
           'temperature': 0.1,
-          'max_completion_tokens': 600,
-          'top_p': 1,
-          'stream': false,
-          'enable_tools': true,
-          'thinking_level': 'MEDIUM',
+          'max_completion_tokens': 1024,
+          'response_schema': _getNutrientsRecheckSchema(),
         },
         locale: locale,
+        featureName: 'Nutrition Correction',
       );
       final approved = decoded['approved'] == true;
       final reason = (decoded['reason'] as String? ?? '').trim();
       final decodedNutrients = decoded['nutrients'] as Map<String, dynamic>?;
 
-      final normalized = <String, double>{};
-      for (final key in nutrientKeys) {
-        normalized[key] =
-            _toNonNegativeDouble(decodedNutrients?[key] ?? firstPass[key]);
+      final correctedNutrients = <String, double>{};
+      if (decodedNutrients != null) {
+        for (final key in nutrientKeys) {
+          correctedNutrients[key] = _toNonNegativeDouble(decodedNutrients[key]);
+        }
       }
 
       return {
         'approved': approved,
         'reason': reason,
-        'nutrients': normalized,
+        'nutrients': correctedNutrients.isNotEmpty ? correctedNutrients : firstPass,
       };
     } catch (_) {
       return {
@@ -733,6 +857,63 @@ Rules:
     }
   }
 
+  Future<DonateRecipeModerationResult> moderateRecipeForPublic({
+    required String recipeName,
+    required String recipeDescription,
+    required String clarification,
+    required List<RecipeIngredient> ingredients,
+    Map<String, double>? nutrients,
+    String? locale,
+  }) async {
+    final ingredientsText = ingredients
+        .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
+        .join('\n');
+
+    final prompt = '''
+You are a content moderation assistant.
+${_languageInstruction(locale)}
+
+Task: quick safety check for a "Public" recipe.
+Reject only if:
+- contains profanity or insults;
+- contains extreme nonsense or gibberish;
+- is clearly not food.
+
+Allow if it looks like a normal recipe, even if simple or has minor issues.
+
+Recipe:
+- name: ${recipeName.trim()}
+- description: ${recipeDescription.trim()}
+- ingredients:
+$ingredientsText
+
+Return ONLY JSON:
+{
+  "approved": true|false,
+  "reason": "short explanation",
+  "fixSuggestions": "what to improve if rejected"
+}
+''';
+
+    final decoded = await _requestDecodedJsonWithAutoRetry(
+      body: {
+        'messages': [{'role': 'user', 'content': prompt}],
+        'temperature': 0,
+        'response_schema': _getModerationSchema(),
+      },
+      locale: locale,
+      featureName: 'Public Moderation',
+    );
+
+    return DonateRecipeModerationResult(
+      approved: decoded['approved'] == true,
+      reason: (decoded['reason'] as String? ?? '').trim(),
+      fixSuggestions: (decoded['fixSuggestions'] as String? ?? '').trim(),
+      confidence: 1.0,
+      flags: const [],
+    );
+  }
+
   Future<DonateRecipeModerationResult> validateRecipeForCommunityDonation({
     required String recipeName,
     required String recipeDescription,
@@ -741,103 +922,55 @@ Rules:
     Map<String, double>? nutrients,
     String? locale,
   }) async {
-    if (recipeName.trim().isEmpty || ingredients.isEmpty) {
-      throw GeminiRecipeException(
-        _messages(locale).aiFailedToExtractIngredientsError,
-      );
-    }
-
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\n');
 
-    final hasNutrients = nutrients != null && nutrients.isNotEmpty;
-    final nutrientsText = hasNutrients
-        ? nutrientKeys
-            .map((k) => '$k=${(nutrients[k] ?? 0).toStringAsFixed(2)}')
-            .join(', ')
-        : '(not provided)';
-
     final prompt = '''
-You are a strict content moderation and culinary validation assistant.
+You are a VERY STRICT culinary reviewer for a high-quality community database.
 ${_languageInstruction(locale)}
 
-Task: decide whether this recipe can be permanently published to a public community feed.
+Task: evaluate if this recipe is "Gold Standard" for the community.
+Reject if:
+- name is too generic (e.g. "Food", "Dinner");
+- description is empty or useless;
+- ingredients are incomplete (e.g. "Pizza" without "Flour" or "Dough");
+- quantities are missing or unrealistic;
+- contains any safety issues or nonsense.
 
-Reject the recipe if ANY of these is true:
-- contains profanity, insults, obscene/sexual terms, hateful content, harassment;
-- contains obvious nonsense, trolling, spam, gibberish, or fake recipe text;
-- contains meaningless letter sequences, keyboard mashing, random characters, or unreadable fragments in the name, description, clarification, or ingredient names;
-- is clearly not a food recipe.
+Be helpful but firm.
 
-Do NOT reject only because a product is branded/packaged/store-bought (energy drink, soda, protein bar, yogurt, etc.) if it is a plausible food item.
-Do NOT reject because units, quantities, or weight values may be imprecise, unusual, missing, or inconsistent.
-
-Allow only if recipe looks legitimate, understandable, and safe for a public food community.
-
-Recipe data:
+Recipe:
 - name: ${recipeName.trim()}
-- description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
-- clarification: ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
+- description: ${recipeDescription.trim()}
+- clarification: ${clarification.trim()}
 - ingredients:
 $ingredientsText
-- nutrients (optional context): $nutrientsText
 
 Return ONLY JSON:
 {
-  "decision": "allow|reject",
-  "approved": true or false,
-  "reason": "short user-facing explanation in response language",
-  "confidence": 0.0,
-  "flags": ["profanity|nonsense|not_recipe|unsafe|other"]
+  "approved": true|false,
+  "reason": "detailed explanation of decision",
+  "fixSuggestions": "specific steps to make it better (e.g. 'Add quantity for water', 'Provide a better name')"
 }
-
-Rules:
-- No markdown, no extra text.
-- reason must be concise and understandable.
-- Treat examples like "какашка", "рецепт мусора", random symbols, obvious trolling, or meaningless text like "asdasd", "qwerty", "zxcv", "ыфвфыв", "фывфыв", repeated random letters/syllables as nonsense and reject.
-- If any important user-facing field looks like gibberish or has no clear semantic meaning, reject with flag "nonsense".
-- If uncertain, set approved=false.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
-        'messages': [
-          {
-            'role': 'user',
-            'content': prompt,
-          }
-        ],
-        'temperature': 0,
-        'max_completion_tokens': 160,
-        'top_p': 1,
-        'stream': false,
+        'messages': [{'role': 'user', 'content': prompt}],
+        'temperature': 0.1,
+        'response_schema': _getModerationSchema(),
       },
       locale: locale,
+      featureName: 'Community Moderation',
     );
 
-    final decision =
-        (decoded['decision'] as String? ?? '').trim().toLowerCase();
-    final approvedByDecision =
-        decision == 'allow' ? true : (decision == 'reject' ? false : null);
-    final approvedByBool = decoded['approved'] == true;
-    final approved = approvedByDecision ?? approvedByBool;
-    final reason = (decoded['reason'] as String? ?? '').trim();
-    final confidence = _toNonNegativeDouble(decoded['confidence']);
-    final flags = ((decoded['flags'] as List<dynamic>?) ?? const [])
-        .map((f) => f.toString().trim())
-        .where((f) => f.isNotEmpty)
-        .toList(growable: false);
-
     return DonateRecipeModerationResult(
-      approved: approved,
-      reason: reason.isEmpty
-          ? (approved
-              ? _messages(locale).moderationApproved
-              : _messages(locale).moderationRejected)
-          : reason,
-      confidence: confidence,
-      flags: flags,
+      approved: decoded['approved'] == true,
+      reason: (decoded['reason'] as String? ?? '').trim(),
+      fixSuggestions: (decoded['fixSuggestions'] as String? ?? '').trim(),
+      confidence: 1.0,
+      flags: const [],
     );
   }
 
@@ -1243,13 +1376,11 @@ Rules:
             }
           ],
           'temperature': 0.4,
-          'max_completion_tokens': 1500,
-          'top_p': 1,
-          'stream': false,
-          'enable_tools': true,
-          'thinking_level': 'MEDIUM',
+          'max_completion_tokens': 2048,
+          'response_schema': _getStatsReportSchema(),
         },
         locale: locale,
+        featureName: 'Structured Stats Report',
       );
     } catch (_) {
       decoded = null;
@@ -1516,13 +1647,13 @@ Rules:
         return hasTopFood
             ? 'Оставь завтрак простым: добавь белок и клетчатку, а сладкое утром сократи.'
             : 'Сделай завтрак стабильным: белок, сложные углеводы и вода.';
-      case 'lunch':
+        case 'lunch':
         return hasTopFood
             ? 'В обед сохрани привычные блюда, но добавь овощи и контроль порции для $topFoodName.'
             : 'В обед собирай сбалансированную тарелку: белок, гарнир и овощи.';
-      case 'dinner':
+        case 'dinner':
         return 'Ужин делай легче: меньше быстрых углеводов, больше овощей и стабильное время.';
-      case 'snack':
+        case 'snack':
         return 'Для перекуса выбирай варианты с белком или клетчаткой и меньшим количеством сахара.';
       default:
         return hasTopFood
@@ -1593,8 +1724,10 @@ Rules:
           'max_completion_tokens': 260,
           'top_p': 1,
           'stream': false,
+          'response_schema': _getDailyGoalsSchema(),
         },
         locale: locale,
+        featureName: 'Daily Goals Recommendation',
       );
 
       int normalizeInt(dynamic value, int fallback) {
@@ -1780,8 +1913,10 @@ Rules:
         'max_completion_tokens': 220,
         'top_p': 1,
         'stream': false,
+        'response_schema': _getActivitySchema(),
       },
       locale: locale,
+      featureName: 'Audio Transcription Activity',
     );
 
     final parsedName = (decoded['name'] as String? ?? '').trim();
@@ -1929,113 +2064,169 @@ Rules:
 
   Future<http.Response> _requestWithGemini({
     required Map<String, dynamic> body,
+    String? apiKeyOverride,
     String? locale,
     required List<String> models,
+    String featureName = 'AI Request',
   }) async {
-    final apiKey = _resolveGeminiApiKey();
-    if (apiKey.isEmpty) {
-      throw GeminiRecipeException(_messages(locale).aiKeyMissingError);
+    // Wait for active request to finish (Simple Queue)
+    while (_globalRequestLock != null) {
+      await _globalRequestLock;
+      // Add a small breather after each request to avoid hitting RPM limits
+      await Future<void>.delayed(const Duration(milliseconds: 500));
     }
+    
+    final completer = Completer<void>();
+    _globalRequestLock = completer.future;
 
-    final parts = _geminiPartsFromMessages(body['messages']);
-    if (parts.isEmpty) {
-      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-    }
+    try {
+      final apiKey = _resolveGeminiApiKey();
+      if (apiKey.isEmpty) {
+        throw GeminiRecipeException(_messages(locale).aiKeyMissingError);
+      }
 
-    final usesImageInput = _requestUsesImageInput(body);
-    http.Response? lastErrorResponse;
-
-    for (final modelName in models) {
-      final model = _resolveGeminiModel(modelName);
-      final uri = Uri.parse(
-        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
-      );
-
-      final systemInstruction = body['system_instruction'] as String?;
-      final enableTools = body['enable_tools'] == true;
-      final thinkingLevel = body['thinking_level'] as String?;
-
-      final payload = <String, dynamic>{
-        'contents': [
-          {
-            'role': 'user',
-            'parts': parts,
-          }
-        ],
-        if (systemInstruction != null && systemInstruction.trim().isNotEmpty)
-          'systemInstruction': {
-            'parts': [
-              {'text': systemInstruction.trim()}
-            ]
-          },
-        if (enableTools)
-          'tools': [
-            {'googleSearch': <String, dynamic>{}},
-            {'codeExecution': <String, dynamic>{}},
-          ],
-        'generationConfig': {
-          'temperature': body['temperature'] ?? 0.2,
-          'topP': body['top_p'] ?? 1,
-          'maxOutputTokens': body['max_tokens'] ?? 2048,
-          if (!usesImageInput)
-            'responseMimeType': 'application/json',
-          if (thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
-            'thinkingConfig': {'thinkingLevel': thinkingLevel.trim()},
-        },
-      };
-
-      try {
-        final response = await http
-            .post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode(payload),
-            )
-            .timeout(_requestTimeout);
-
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-          final text = _extractTextFromGeminiPayload(decoded, locale);
-          final syntheticOpenAiPayload = jsonEncode({
-            'choices': [
-              {
-                'message': {'content': text}
-              }
-            ]
-          });
-          return http.Response(
-            syntheticOpenAiPayload,
-            200,
-            headers: const {'content-type': 'application/json'},
-          );
-        }
-
-        lastErrorResponse = response;
-
-        final isRetryableStatus = response.statusCode == 400 ||
-            response.statusCode == 403 ||
-            response.statusCode == 404 ||
-            response.statusCode == 408 ||
-            response.statusCode == 429 ||
-            response.statusCode >= 500;
-        if (isRetryableStatus && modelName != models.last) {
-          continue;
-        }
-        throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
-      } on TimeoutException {
-        if (modelName != models.last) continue;
-        throw GeminiRecipeException(_messages(locale).aiNoResponseError);
-      } on http.ClientException {
-        if (modelName != models.last) continue;
+      final parts = _geminiPartsFromMessages(body['messages']);
+      if (parts.isEmpty) {
         throw GeminiRecipeException(_messages(locale).aiNoResponseError);
       }
-    }
 
-    if (lastErrorResponse != null) {
-      throw GeminiRecipeException(
-          _buildHttpErrorMessage(lastErrorResponse, locale));
+      final usesImageInput = _requestUsesImageInput(body);
+      http.Response? lastErrorResponse;
+
+      AiErrorLogService.instance.logRequest(
+        feature: featureName,
+        details: usesImageInput ? 'Request contains image' : 'Text only request',
+      );
+
+      for (final modelName in models) {
+        final model = _resolveGeminiModel(modelName);
+        final uri = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+        );
+
+        final systemInstruction = body['system_instruction'] as String?;
+        final enableTools = body['enable_tools'] == true;
+        final thinkingLevel = body['thinking_level'] as String?;
+
+        final payload = <String, dynamic>{
+          'contents': [
+            {
+              'role': 'user',
+              'parts': parts,
+            }
+          ],
+          if (systemInstruction != null && systemInstruction.trim().isNotEmpty)
+            'systemInstruction': {
+              'parts': [
+                {'text': systemInstruction.trim()}
+              ]
+            },
+          'tools': [
+            {
+              'googleSearchRetrieval': {
+                'dynamicRetrievalConfig': {
+                  'mode': 'MODE_DYNAMIC',
+                  'dynamicThreshold': 0.1,
+                }
+              }
+            },
+            if (enableTools) {'codeExecution': <String, dynamic>{}},
+          ],
+          'generationConfig': {
+            'temperature': body['temperature'] ?? 0.2,
+            'topP': body['top_p'] ?? 1,
+            'maxOutputTokens': body['max_tokens'] ?? 2048,
+            'responseMimeType': 'application/json',
+            if (body['response_schema'] != null)
+              'responseSchema': body['response_schema'],
+            if (thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
+              'thinkingConfig': {'thinkingLevel': thinkingLevel.trim()},
+          },
+        };
+
+        try {
+          final response = await http
+              .post(
+                uri,
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode(payload),
+              )
+              .timeout(_requestTimeout);
+
+          if (response.statusCode >= 200 && response.statusCode < 300) {
+            AiErrorLogService.instance.logSuccess(feature: featureName);
+            
+            final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+            final text = _extractTextFromGeminiPayload(decoded, locale);
+            final syntheticOpenAiPayload = jsonEncode({
+              'choices': [
+                {
+                  'message': {'content': text}
+                }
+              ]
+            });
+            return http.Response(
+              syntheticOpenAiPayload,
+              200,
+              headers: const {'content-type': 'application/json'},
+            );
+          }
+
+          lastErrorResponse = response;
+
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'HTTP Error ${response.statusCode}',
+            details: response.body,
+            statusCode: response.statusCode,
+          );
+
+          final isRetryableStatus = response.statusCode == 400 ||
+              response.statusCode == 403 ||
+              response.statusCode == 404 ||
+              response.statusCode == 408 ||
+              response.statusCode == 429 ||
+              response.statusCode >= 500;
+          if (isRetryableStatus && modelName != models.last) {
+            continue;
+          }
+          throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
+        } on TimeoutException catch (e) {
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'Timeout Error',
+            details: e.toString(),
+          );
+          if (modelName != models.last) continue;
+          throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+        } on http.ClientException catch (e) {
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'Network Error',
+            details: e.toString(),
+          );
+          if (modelName != models.last) continue;
+          throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+        } catch (e) {
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'Unexpected Error',
+            details: e.toString(),
+          );
+          if (modelName != models.last) continue;
+          throw GeminiRecipeException(e.toString());
+        }
+      }
+
+      if (lastErrorResponse != null) {
+        throw GeminiRecipeException(
+            _buildHttpErrorMessage(lastErrorResponse, locale));
+      }
+      throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+    } finally {
+      _globalRequestLock = null;
+      completer.complete();
     }
-    throw GeminiRecipeException(_messages(locale).aiNoResponseError);
   }
 
 
@@ -2077,6 +2268,7 @@ Rules:
     required Map<String, dynamic> body,
     String? apiKeyOverride,
     String? locale,
+    String featureName = 'AI Request',
   }) async {
     final settings = await _settingsService.load();
     final maxAttempts = settings.aiRetryAttempts;
@@ -2090,11 +2282,17 @@ Rules:
           body: body,
           locale: locale,
           models: [settings.geminiModel],
+          featureName: featureName,
         );
 
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final text = _extractText(payload, locale).trim();
         if (text.isEmpty) {
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'Empty response text',
+            details: response.body,
+          );
           throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
         }
 
@@ -2750,7 +2948,6 @@ Rules:
     final trimmed = text.trim();
     debugPrint('[Gemini raw response]:\n$trimmed');
 
-    // 1. Direct decode.
     try {
       final direct = jsonDecode(trimmed);
       if (direct is Map<String, dynamic>) {
@@ -2758,95 +2955,17 @@ Rules:
       }
     } catch (_) {}
 
-    // 2. Try parsing code-fenced content first.
-    final fencedMatches =
-        RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').allMatches(trimmed);
-    for (final match in fencedMatches) {
-      final fencedBody = (match.group(1) ?? '').trim();
-      if (fencedBody.isEmpty) continue;
-
+    final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(trimmed);
+    if (fenceMatch != null) {
       try {
-        final parsed = jsonDecode(fencedBody);
-        if (parsed is Map<String, dynamic>) {
-          return parsed;
-        }
-      } catch (_) {}
-
-      final extractedFromFence = _extractFirstBalancedJsonObject(fencedBody);
-      if (extractedFromFence != null) {
-        try {
-          final parsed = jsonDecode(extractedFromFence);
-          if (parsed is Map<String, dynamic>) {
-            return parsed;
-          }
-        } catch (_) {}
-      }
-    }
-
-    // 3. Extract first balanced JSON object from free-form text.
-    final extracted = _extractFirstBalancedJsonObject(trimmed);
-    if (extracted != null) {
-      try {
-        final parsed = jsonDecode(extracted);
-        if (parsed is Map<String, dynamic>) {
-          return parsed;
-        }
+        final fenced = jsonDecode(fenceMatch.group(1)!.trim());
+        if (fenced is Map<String, dynamic>) return fenced;
       } catch (_) {}
     }
 
-    // 4. User-facing error message.
     throw GeminiRecipeException(
       _messages(locale).aiFailedToParseJsonError,
     );
-  }
-
-  String? _extractFirstBalancedJsonObject(String text) {
-    var start = -1;
-    var depth = 0;
-    var inString = false;
-    var isEscaped = false;
-
-    for (var i = 0; i < text.length; i++) {
-      final ch = text[i];
-
-      if (inString) {
-        if (isEscaped) {
-          isEscaped = false;
-          continue;
-        }
-        if (ch == '\\') {
-          isEscaped = true;
-          continue;
-        }
-        if (ch == '"') {
-          inString = false;
-        }
-        continue;
-      }
-
-      if (ch == '"') {
-        inString = true;
-        continue;
-      }
-
-      if (ch == '{') {
-        if (depth == 0) {
-          start = i;
-        }
-        depth++;
-        continue;
-      }
-
-      if (ch == '}') {
-        if (depth == 0) continue;
-        depth--;
-        if (depth == 0 && start >= 0) {
-          return text.substring(start, i + 1).trim();
-        }
-      }
-    }
-
-    return null;
   }
 
   double _toNonNegativeDouble(dynamic value) {
@@ -2909,12 +3028,14 @@ class ActivityAiDraft {
 class DonateRecipeModerationResult {
   final bool approved;
   final String reason;
+  final String fixSuggestions;
   final double confidence;
   final List<String> flags;
 
   const DonateRecipeModerationResult({
     required this.approved,
     required this.reason,
+    required this.fixSuggestions,
     required this.confidence,
     required this.flags,
   });

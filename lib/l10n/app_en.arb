@@ -354,7 +354,10 @@
   "aiKeyMissingError": "Gemini key not found. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... at launch.",
   "aiHttpForbiddenError": "Gemini returned 403 (forbidden). Check GEMINI_API_KEY and access restrictions.",
   "aiHttpUnauthorizedError": "Gemini returned 401 (unauthorized). Check GEMINI_API_KEY.",
-  "aiHttpRateLimitError": "Gemini is temporarily overloaded (429). Please wait a moment and try again.",
+  "aiHttpRateLimitError": "AI is temporarily busy. Please wait a moment.",
+  "aiNoResponseError": "AI is temporarily unavailable. Please try again.",
+  "aiUnexpectedResponseFormatError": "Data processing error. Please try again.",
+  "aiEmptyTextError": "AI could not recognize the data. Please try a different description.",
   "aiHttpNotFoundError": "Failed to connect to the AI service.",
   "aiHttpGenericError": "Gemini returned an error ({code}).",
   "@aiHttpGenericError": {

@@ -651,11 +651,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   }
 
   String _buildAiSourceSignature(Map<String, dynamic> aiInput) {
-    final signaturePayload = <String, dynamic>{
-      // Period is part of cache key.
+    final signaturePayload = {
       'periodLabel': aiInput['periodLabel'],
-
-      // Profile-dependent fields.
       'goalType': aiInput['goalType'],
       'activityTypes': aiInput['activityTypes'],
       'aiContext': aiInput['aiContext'],
@@ -663,12 +660,6 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       'proteinGoal': aiInput['proteinGoal'],
       'fatGoal': aiInput['fatGoal'],
       'carbsGoal': aiInput['carbsGoal'],
-      'stepsGoal': aiInput['stepsGoal'],
-      'weightGoal': aiInput['weightGoal'],
-      'waterGoalLiters': aiInput['waterGoalLiters'],
-      'userName': aiInput['userName'],
-
-      // Diary/stat-dependent fields.
       'avgCalories': aiInput['avgCalories'],
       'avgProteinGrams': aiInput['avgProteinGrams'],
       'avgFatGrams': aiInput['avgFatGrams'],

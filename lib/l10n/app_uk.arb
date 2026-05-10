@@ -271,6 +271,10 @@
   "@goalAbove": {
     "placeholders": { "value": { "type": "Object" } }
   },
+  "aiHttpRateLimitError": "AI тимчасово перевантажений. Будь ласка, зачекайте трохи.",
+  "aiNoResponseError": "AI тимчасово недоступний. Спробуйте ще раз.",
+  "aiUnexpectedResponseFormatError": "Помилка обробки даних AI. Спробуйте ще раз.",
+  "aiEmptyTextError": "AI не зміг розпізнати дані. Спробуйте змінити опис.",
   "goalWeightKg": "Ціль {value} кг",
   "@goalWeightKg": {
     "placeholders": { "value": { "type": "String" } }

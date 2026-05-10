@@ -156,10 +156,19 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _removeRecipeSelection(Recipe recipe) {
+    _decrementRecipeSelection(recipe);
+  }
+
+  void _decrementRecipeSelection(Recipe recipe) {
     HapticFeedback.lightImpact();
     setState(() {
-      _selectedRecipeCounts.remove(recipe.id);
-      _selectedOrder.remove(recipe.id);
+      final current = _selectedRecipeCounts[recipe.id] ?? 0;
+      if (current <= 1) {
+        _selectedRecipeCounts.remove(recipe.id);
+        _selectedOrder.remove(recipe.id);
+      } else {
+        _selectedRecipeCounts[recipe.id] = current - 1;
+      }
     });
   }
 
@@ -913,15 +922,25 @@ class _RecipesScreenState extends State<RecipesScreen> {
             if (widget.selectionMode) {
               return Dismissible(
                 key: ValueKey('recipe-select-${recipe.id}-$isSelected'),
-                direction: DismissDirection.endToStart,
+                direction: DismissDirection.horizontal,
                 background: _buildSwipeBackground(
+                  alignment: Alignment.centerLeft,
+                  color: Colors.red.shade400,
+                  icon: Symbols.remove_circle,
+                  label: AppLocalizations.of(context)!.removeOnePortion,
+                ),
+                secondaryBackground: _buildSwipeBackground(
                   alignment: Alignment.centerRight,
                   color: AppColors.primary,
-                  icon: Symbols.check_circle,
-                  label: AppLocalizations.of(context)!.add,
+                  icon: Symbols.add_circle,
+                  label: AppLocalizations.of(context)!.addMore,
                 ),
-                confirmDismiss: (_) async {
-                  _toggleRecipeSelection(recipe);
+                confirmDismiss: (direction) async {
+                  if (direction == DismissDirection.endToStart) {
+                    _addRecipeSelection(recipe);
+                  } else if (direction == DismissDirection.startToEnd) {
+                    _decrementRecipeSelection(recipe);
+                  }
                   return false;
                 },
                 child: item,

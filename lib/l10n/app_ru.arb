@@ -265,7 +265,7 @@
   },
   "statsGoalKcal": "Цель: {value} ккал",
   "@statsGoalKcal": {
-    "placeholders": { "value": { "type": "Object" } }
+    "placeholders": { "value": { "type": "String" } }
   },
   "goalAbove": "Цель > {value}",
   "@goalAbove": {
@@ -275,6 +275,10 @@
   "@goalWeightKg": {
     "placeholders": { "value": { "type": "String" } }
   },
+  "aiHttpRateLimitError": "AI временно перегружен. Пожалуйста, подождите немного.",
+  "aiNoResponseError": "AI временно недоступен. Попробуйте еще раз.",
+  "aiUnexpectedResponseFormatError": "Ошибка обработки данных AI. Попробуйте еще раз.",
+  "aiEmptyTextError": "AI не смог распознать данные. Попробуйте изменить описание.",
   "goalWaterL": "Цель {value} л",
   "@goalWaterL": {
     "placeholders": { "value": { "type": "String" } }
