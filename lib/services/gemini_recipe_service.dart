@@ -20,6 +20,7 @@ class GeminiRecipeService {
 
 
   static Future<void>? _globalRequestLock;
+  static DateTime? _rateLimitResetTime;
 
   static const List<String> _geminiModels = [
     NotificationSettings.geminiModelDefault,
@@ -691,48 +692,7 @@ Rules:
     return null;
   }
 
-  /// Всегда проверяет точность нутриентов в черновике через AI и корректирует,
-  /// если значения явно неверны (состояние, приготовление, плотность калорий).
-  Future<void> _fixDraftNutrientsIfNeeded(
-    GeminiRecipeDraft draft, {
-    String? locale,
-  }) async {
-    if (draft.ingredients.isEmpty) return;
-    final n = draft.nutrients;
-    final calories = n['calories'] ?? 0.0;
-    final hasMacros = (n['protein'] ?? 0.0) + (n['carbs'] ?? 0.0) + (n['fat'] ?? 0.0) > 0;
 
-    if (calories > 0 && hasMacros) {
-      return;
-    }
-
-    try {
-      final ingredientsText = draft.ingredients
-          .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
-          .join('\n');
-
-      final result = await _recheckEstimatedNutrientsWithAi(
-        recipeName: draft.name,
-        recipeDescription: draft.description,
-        clarification: draft.clarification,
-        ingredientsText: ingredientsText,
-        firstPass: Map<String, double>.from(n),
-        locale: locale,
-      );
-
-      final fixed = result['nutrients'];
-      if (fixed is Map<String, dynamic>) {
-        for (final key in nutrientKeys) {
-          final value = _toNonNegativeDouble(fixed[key]);
-          if (value > 0) {
-            draft.nutrients[key] = value;
-          }
-        }
-      }
-    } catch (_) {
-      // Silent: draft nutrients stay as-is
-    }
-  }
 
   Future<Map<String, dynamic>> _recheckEstimatedNutrientsWithAi({
     required String recipeName,
@@ -973,7 +933,6 @@ Return ONLY JSON:
       flags: const [],
     );
   }
-
 
 
   Future<String> generateStatsReport({
@@ -2072,8 +2031,15 @@ Rules:
     // Wait for active request to finish (Simple Queue)
     while (_globalRequestLock != null) {
       await _globalRequestLock;
-      // Add a small breather after each request to avoid hitting RPM limits
       await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    
+    if (_rateLimitResetTime != null) {
+      final wait = _rateLimitResetTime!.difference(DateTime.now());
+      if (!wait.isNegative) {
+        await Future<void>.delayed(wait);
+      }
+      _rateLimitResetTime = null;
     }
     
     final completer = Completer<void>();
@@ -2181,6 +2147,9 @@ Rules:
             statusCode: response.statusCode,
           );
 
+          if (response.statusCode == 429) {
+            _rateLimitResetTime = DateTime.now().add(const Duration(seconds: 10));
+          }
           final isRetryableStatus = response.statusCode == 400 ||
               response.statusCode == 403 ||
               response.statusCode == 404 ||
@@ -2190,7 +2159,10 @@ Rules:
           if (isRetryableStatus && modelName != models.last) {
             continue;
           }
-          throw GeminiRecipeException(_buildHttpErrorMessage(response, locale));
+          throw GeminiRecipeException(
+            _buildHttpErrorMessage(response, locale),
+            statusCode: response.statusCode,
+          );
         } on TimeoutException catch (e) {
           AiErrorLogService.instance.logError(
             feature: featureName,
@@ -2208,6 +2180,7 @@ Rules:
           if (modelName != models.last) continue;
           throw GeminiRecipeException(_messages(locale).aiNoResponseError);
         } catch (e) {
+          if (e is GeminiRecipeException) rethrow;
           AiErrorLogService.instance.logError(
             feature: featureName,
             message: 'Unexpected Error',
@@ -2220,7 +2193,8 @@ Rules:
 
       if (lastErrorResponse != null) {
         throw GeminiRecipeException(
-            _buildHttpErrorMessage(lastErrorResponse, locale));
+            _buildHttpErrorMessage(lastErrorResponse, locale),
+            statusCode: lastErrorResponse.statusCode);
       }
       throw GeminiRecipeException(_messages(locale).aiNoResponseError);
     } finally {
@@ -2300,7 +2274,12 @@ Rules:
       } catch (e) {
         lastError = e;
         if (attempt < maxAttempts) {
-          await Future<void>.delayed(retryDelay);
+          var currentDelay = retryDelay;
+          if (e is GeminiRecipeException && e.statusCode == 429) {
+            // Respect 429 rate limits with significantly longer wait
+            currentDelay = Duration(seconds: 12 + (attempt * 10));
+          }
+          await Future<void>.delayed(currentDelay);
         }
       }
     }
@@ -3043,8 +3022,9 @@ class DonateRecipeModerationResult {
 
 class GeminiRecipeException implements Exception {
   final String message;
+  final int? statusCode;
 
-  const GeminiRecipeException(this.message);
+  const GeminiRecipeException(this.message, {this.statusCode});
 
   @override
   String toString() => message;

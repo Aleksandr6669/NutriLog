@@ -490,6 +490,14 @@
   "activityAiEstimateButton": "Estimate calories with AI",
   "activityAiEstimating": "Estimating calories...",
   "activityAiEstimated": "AI estimate: {calories} kcal",
+  "aiProvider": "AI Provider",
+  "geminiPowered": "Powered by Gemini",
+  "developerSettingsTitle": "Developer Settings",
+  "developerSettingsSubtitle": "AI models, limits and delays",
+  "recipeRecognitionError": "Failed to recognize recipe",
+  "productNotFoundError": "Product not found in database",
+  "productProcessingError": "Failed to process product data",
+  "unknownProduct": "Unknown product",
   "@activityAiEstimated": {
     "placeholders": { "calories": { "type": "int" } }
   },

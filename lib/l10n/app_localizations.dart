@@ -2501,6 +2501,54 @@ abstract class AppLocalizations {
   /// **'AI estimate: {calories} kcal'**
   String activityAiEstimated(int calories);
 
+  /// No description provided for @aiProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Provider'**
+  String get aiProvider;
+
+  /// No description provided for @geminiPowered.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by Gemini'**
+  String get geminiPowered;
+
+  /// No description provided for @developerSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer Settings'**
+  String get developerSettingsTitle;
+
+  /// No description provided for @developerSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI models, limits and delays'**
+  String get developerSettingsSubtitle;
+
+  /// No description provided for @recipeRecognitionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to recognize recipe'**
+  String get recipeRecognitionError;
+
+  /// No description provided for @productNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'Product not found in database'**
+  String get productNotFoundError;
+
+  /// No description provided for @productProcessingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to process product data'**
+  String get productProcessingError;
+
+  /// No description provided for @unknownProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown product'**
+  String get unknownProduct;
+
   /// No description provided for @activityAiEstimateFailed.
   ///
   /// In en, this message translates to:

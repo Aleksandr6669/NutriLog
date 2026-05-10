@@ -1331,6 +1331,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiProvider => 'AI Provider';
+
+  @override
+  String get geminiPowered => 'Powered by Gemini';
+
+  @override
+  String get developerSettingsTitle => 'Developer Settings';
+
+  @override
+  String get developerSettingsSubtitle => 'AI models, limits and delays';
+
+  @override
+  String get recipeRecognitionError => 'Failed to recognize recipe';
+
+  @override
+  String get productNotFoundError => 'Product not found in database';
+
+  @override
+  String get productProcessingError => 'Failed to process product data';
+
+  @override
+  String get unknownProduct => 'Unknown product';
+
+  @override
   String get activityAiEstimateFailed => 'Failed to estimate activity calories';
 
   @override

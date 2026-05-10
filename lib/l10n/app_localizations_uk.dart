@@ -1329,8 +1329,32 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String activityAiEstimated(int calories) {
-    return 'AI оцінив: $calories ккал';
+    return 'Оцінка AI: $calories ккал';
   }
+
+  @override
+  String get aiProvider => 'Провайдер AI';
+
+  @override
+  String get geminiPowered => 'На базі Gemini';
+
+  @override
+  String get developerSettingsTitle => 'Налаштування розробника';
+
+  @override
+  String get developerSettingsSubtitle => 'Моделі AI, ліміти та затримки';
+
+  @override
+  String get recipeRecognitionError => 'Не вдалося розпізнати рецепт';
+
+  @override
+  String get productNotFoundError => 'Товар не знайдено в базі даних';
+
+  @override
+  String get productProcessingError => 'Не вдалося обробити дані товару';
+
+  @override
+  String get unknownProduct => 'Невідомий товар';
 
   @override
   String get activityAiEstimateFailed =>

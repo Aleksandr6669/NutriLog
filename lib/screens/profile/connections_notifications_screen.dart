@@ -152,20 +152,8 @@ class _ConnectionsNotificationsScreenState
     }
   }
 
-  String _inlineLocalized({
-    required String ru,
-    required String en,
-    required String uk,
-  }) {
-    final code = Localizations.localeOf(context).languageCode;
-    if (code == 'en') return en;
-    if (code == 'uk') return uk;
-    return ru;
-  }
 
-  String _aiProviderLabel() => 'Gemini';
 
-  String _geminiModelLabel() => 'Gemini 3.1 Flash-Lite';
 
   void _showLanguagePicker(BuildContext context) {
     final localeProvider = context.read<LocaleProvider>();
@@ -977,39 +965,6 @@ class _ConnectionsNotificationsScreenState
                     height: 36,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.orange.withValues(alpha: 0.12),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.28),
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Symbols.auto_fix_high,
-                      size: 18,
-                      color: Colors.orange,
-                    ),
-                  ),
-                  title: Text(l10n.recipeAiAutoNutritionToggleTitle),
-                  subtitle: Text(l10n.recipeAiAutoNutritionToggleSubtitle),
-                  trailing: Switch.adaptive(
-                    value: _settings.recipeAiAutoNutritionEnabled,
-                    onChanged: (enabled) async {
-                      HapticFeedback.selectionClick();
-                      final updated = _settings.copyWith(
-                        recipeAiAutoNutritionEnabled: enabled,
-                      );
-                      setState(() => _settings = updated);
-                      await _settingsService.save(updated);
-                    },
-                  ),
-                ),
-                const Divider(height: 1, indent: 56),
-                ListTile(
-                  leading: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
                       color: Colors.blue.withValues(alpha: 0.12),
                       border: Border.all(
                         color: Colors.blue.withValues(alpha: 0.28),
@@ -1022,20 +977,8 @@ class _ConnectionsNotificationsScreenState
                       color: Colors.blue,
                     ),
                   ),
-                  title: Text(
-                    _inlineLocalized(
-                      ru: 'AI провайдер',
-                      en: 'AI provider',
-                      uk: 'AI провайдер',
-                    ),
-                  ),
-                  subtitle: Text(
-                    _inlineLocalized(
-                      ru: 'Мы используем Google Gemini',
-                      en: 'Powered by Google Gemini',
-                      uk: 'Ми використовуємо Google Gemini',
-                    ),
-                  ),
+                  title: Text(l10n.aiProvider),
+                  subtitle: Text(l10n.geminiPowered),
                   trailing: const Text(
                     'Gemini',
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
@@ -1110,8 +1053,8 @@ class _ConnectionsNotificationsScreenState
           Card(
             child: ListTile(
               leading: const Icon(Symbols.developer_mode, color: Colors.purple),
-              title: const Text('Настройки разработчика'),
-              subtitle: const Text('Модели AI, лимиты и задержки'),
+              title: Text(l10n.developerSettingsTitle),
+              subtitle: Text(l10n.developerSettingsSubtitle),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () => context.push('/profile/developer'),
             ),

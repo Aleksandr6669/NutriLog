@@ -59,6 +59,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   bool _isDebouncePending = false;
   Map<String, dynamic>? _lastLoadedStats;
   ModalRoute<dynamic>? _subscribedRoute;
+  String? _lastDisplayedSignature;
   // Per-period in-memory AI cache: avoids redundant AI calls on period switch.
   final Map<String, ({String? overview, List<Map<String, String>> recs, bool error})>
       _aiCacheByPeriod = {};
@@ -500,6 +501,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     int requestId, {
     required String sourceSignature,
   }) async {
+    // Breather to avoid redundant requests during rapid UI interaction
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (!mounted || requestId != _dataRequestId) return;
+
     try {
       final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
@@ -623,8 +628,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         _aiOverview = overview;
         _aiRecommendations = normalizedRecommendations;
         _aiError = false;
-        final periodKey = aiInput['periodLabel'] as String? ?? _period.name;
-        _aiCacheByPeriod[periodKey] = (
+        _lastDisplayedSignature = sourceSignature;
+        _aiCacheByPeriod[aiInput['periodLabel'] as String? ?? _period.name] = (
           overview: overview,
           recs: normalizedRecommendations,
           error: false,
@@ -726,6 +731,11 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   ) {
     final period = (aiInput['periodLabel'] as String? ?? _period.name).trim();
     final sourceSignature = _buildAiSourceSignature(aiInput);
+    
+    if (sourceSignature == _lastDisplayedSignature && _aiOverview != null) {
+      return;
+    }
+
     final cached = _findCachedReportForSignature(
       period: period,
       sourceSignature: sourceSignature,
@@ -740,6 +750,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           _aiOverview = cached.overview;
           _aiRecommendations = normalizedRecommendations;
           _aiError = false;
+          _lastDisplayedSignature = sourceSignature;
           _aiCacheByPeriod[period] = (
             overview: cached.overview,
             recs: normalizedRecommendations,

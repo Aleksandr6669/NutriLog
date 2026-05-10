@@ -16,7 +16,6 @@ class NotificationSettings {
     required this.weightReminderEnabled,
     required this.weightReminderTime,
     required this.statsAiAssistantEnabled,
-    required this.recipeAiAutoNutritionEnabled,
     required this.aiProvider,
     required this.geminiModel,
     required this.aiRetryAttempts,
@@ -33,7 +32,6 @@ class NotificationSettings {
   final bool weightReminderEnabled;
   final TimeOfDay weightReminderTime;
   final bool statsAiAssistantEnabled;
-  final bool recipeAiAutoNutritionEnabled;
   final String aiProvider;
   final String geminiModel;
   final int aiRetryAttempts;
@@ -50,7 +48,6 @@ class NotificationSettings {
     bool? weightReminderEnabled,
     TimeOfDay? weightReminderTime,
     bool? statsAiAssistantEnabled,
-    bool? recipeAiAutoNutritionEnabled,
     String? aiProvider,
     String? geminiModel,
     int? aiRetryAttempts,
@@ -69,8 +66,6 @@ class NotificationSettings {
       weightReminderTime: weightReminderTime ?? this.weightReminderTime,
       statsAiAssistantEnabled:
           statsAiAssistantEnabled ?? this.statsAiAssistantEnabled,
-      recipeAiAutoNutritionEnabled:
-          recipeAiAutoNutritionEnabled ?? this.recipeAiAutoNutritionEnabled,
       aiProvider: aiProvider ?? this.aiProvider,
       geminiModel: geminiModel ?? this.geminiModel,
       aiRetryAttempts: aiRetryAttempts ?? this.aiRetryAttempts,
@@ -90,8 +85,6 @@ class NotificationSettingsService {
   static const _weightReminderEnabledKey = 'notif_weight_enabled';
   static const _weightReminderMinutesKey = 'notif_weight_minutes';
   static const _statsAiAssistantEnabledKey = 'stats_ai_assistant_enabled';
-  static const _recipeAiAutoNutritionEnabledKey =
-      'recipe_ai_auto_nutrition_enabled';
   static const _aiProviderKey = 'ai_provider_v1';
   static const _geminiModelKey = 'gemini_model_v1';
   static const _aiRetryAttemptsKey = 'ai_retry_attempts';
@@ -108,11 +101,10 @@ class NotificationSettingsService {
     weightReminderEnabled: true,
     weightReminderTime: TimeOfDay(hour: 21, minute: 30),
     statsAiAssistantEnabled: true,
-    recipeAiAutoNutritionEnabled: true,
     aiProvider: NotificationSettings.aiProviderGemini,
     geminiModel: NotificationSettings.geminiModelDefault,
-    aiRetryAttempts: 1,
-    aiRetryDelaySeconds: 5,
+    aiRetryAttempts: 2,
+    aiRetryDelaySeconds: 8,
   );
 
   Future<NotificationSettings> load() async {
@@ -146,9 +138,6 @@ class NotificationSettingsService {
       ),
       statsAiAssistantEnabled: prefs.getBool(_statsAiAssistantEnabledKey) ??
           defaults.statsAiAssistantEnabled,
-      recipeAiAutoNutritionEnabled:
-          prefs.getBool(_recipeAiAutoNutritionEnabledKey) ??
-              defaults.recipeAiAutoNutritionEnabled,
       aiProvider: prefs.getString(_aiProviderKey) ?? defaults.aiProvider,
       geminiModel: prefs.getString(_geminiModelKey) ?? defaults.geminiModel,
       aiRetryAttempts:
@@ -175,10 +164,6 @@ class NotificationSettingsService {
     await prefs.setBool(_messagesEnabledKey, settings.messagesEnabled);
     await prefs.setBool(
         _statsAiAssistantEnabledKey, settings.statsAiAssistantEnabled);
-    await prefs.setBool(
-      _recipeAiAutoNutritionEnabledKey,
-      settings.recipeAiAutoNutritionEnabled,
-    );
     await prefs.setString(_aiProviderKey, settings.aiProvider);
     await prefs.setString(_geminiModelKey, settings.geminiModel);
     await prefs.setInt(_aiRetryAttemptsKey, settings.aiRetryAttempts);

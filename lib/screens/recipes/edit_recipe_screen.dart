@@ -64,19 +64,28 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isAiCalculating = false;
   String? _aiStatus;
   bool _isAiError = false;
-  int _aiRequestId = 0;
-  bool _isAutoAiNutritionEnabled = true;
+  
   bool _isPublic = false;
-  bool _isDonating = false;
   bool _isDonated = false;
+  
+  // Separate states for Public moderation
+  bool _isPublicAiChecking = false;
+  bool _isPublicAiApproved = false;
+  String? _publicAiStatus;
+  String? _publicAiFixSuggestions;
+  
+  // Separate states for Donate (Community) moderation
   bool _isDonateAiChecking = false;
   bool _isDonateAiApproved = false;
   String? _donateAiStatus;
   String? _donateAiFixSuggestions;
+
   Timer? _donateAiDebounce;
+  Timer? _publicAiDebounce;
   Timer? _nutritionAiDebounce;
+  int _aiRequestId = 0;
   int _donateAiRequestId = 0;
-  bool _publicIntentEnabled = false;
+  int _publicAiRequestId = 0;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -112,7 +121,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
-    _publicIntentEnabled = _isPublic;
 
     _nameController.addListener(_onDonateValidationInputChanged);
     _descriptionController.addListener(_onDonateValidationInputChanged);
@@ -122,9 +130,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final isFromDraft = widget.initialDraft != null;
 
     for (var key in _nutrientKeys) {
-      _nutrientControllers[key] = TextEditingController(
-        text: sourceRecipe?.nutrients[key]?.toString() ?? '0.0',
-      );
+      final initialValue = isFromDraft 
+          ? '0.0' 
+          : (sourceRecipe?.nutrients[key]?.toString() ?? '0.0');
+      _nutrientControllers[key] = TextEditingController(text: initialValue);
     }
 
     final loadedIngredients = sourceRecipe?.ingredients ?? const [];
@@ -164,14 +173,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
     if (isFromDraft) {
-      try {
-        final settings = await NotificationSettingsService().load();
-        _isAutoAiNutritionEnabled = settings.recipeAiAutoNutritionEnabled;
-      } catch (_) {
-        // Если настройки недоступны, используем безопасное поведение по умолчанию.
-        _isAutoAiNutritionEnabled = true;
-      }
-
+      // Manual calculation is triggered by the user via the button.
       return;
     }
 
@@ -197,37 +199,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return 'Идёт проверка...';
   }
 
-  String _defaultModerationIndicatorText() {
-    final code = Localizations.localeOf(context).languageCode;
-    if (code == 'uk') return 'Перевірка не пройдена.';
-    if (code == 'en') return 'Not verified.';
-    return 'Проверка не пройдена.';
-  }
-
-  bool _passesQuickDonateValidation() {
-    final name = _nameController.text.trim();
-    if (name.length < 3) return false;
-    final hasValidIngredient = _ingredientItems.any((item) {
-      final itemName = item.nameController.text.trim();
-      return itemName.isNotEmpty;
-    });
-    return hasValidIngredient;
-  }
-
-  String _aiUnavailableShortText() {
-    final code = Localizations.localeOf(context).languageCode;
-    if (code == 'uk') return 'Нейромережа тимчасово недоступна.';
-    if (code == 'en') return 'AI is temporarily unavailable.';
-    return 'Нейросеть временно недоступна.';
-  }
-
   Future<void> _runPublicModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
 
+    final requestId = ++_publicAiRequestId;
     setState(() {
-      _isDonateAiChecking = true;
-      _donateAiStatus = _quickDonateValidationMessage();
-      _donateAiFixSuggestions = null;
+      _isPublicAiChecking = true;
+      _publicAiStatus = _quickDonateValidationMessage();
+      _publicAiFixSuggestions = null;
     });
 
     try {
@@ -246,30 +225,30 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         locale: Localizations.localeOf(context).languageCode,
       );
 
-      if (!mounted) return;
+      if (!mounted || requestId != _publicAiRequestId) return;
 
       setState(() {
-        _isDonateAiChecking = false;
-        _isDonateAiApproved = result.approved;
-        _donateAiStatus = result.reason;
-        _donateAiFixSuggestions = result.fixSuggestions;
+        _isPublicAiChecking = false;
+        _isPublicAiApproved = result.approved;
+        _publicAiStatus = result.reason;
+        _publicAiFixSuggestions = result.fixSuggestions;
         if (result.approved) {
           _isPublic = true;
-          _publicIntentEnabled = true;
         }
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _publicAiRequestId) return;
       setState(() {
-        _isDonateAiChecking = false;
-        _donateAiStatus = e.toString();
+        _isPublicAiChecking = false;
+        _publicAiStatus = e.toString();
       });
     }
   }
 
-  Future<void> _runCommunityModeration() async {
+  Future<void> _runDonateModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
 
+    final requestId = ++_donateAiRequestId;
     setState(() {
       _isDonateAiChecking = true;
       _donateAiStatus = _quickDonateValidationMessage();
@@ -292,7 +271,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         locale: Localizations.localeOf(context).languageCode,
       );
 
-      if (!mounted) return;
+      if (!mounted || requestId != _donateAiRequestId) return;
 
       setState(() {
         _isDonateAiChecking = false;
@@ -302,18 +281,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       });
 
       if (result.approved) {
-        // Automatically proceed to donate if approved
         await _donateRecipe();
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _donateAiRequestId) return;
       setState(() {
         _isDonateAiChecking = false;
         _donateAiStatus = e.toString();
       });
     }
   }
-
 
   bool _shouldEnableAutoCalories() {
     final sourceRecipe = widget.recipe ?? widget.initialDraft;
@@ -326,11 +303,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final calories = recipeNutrients['calories'] ?? 0;
     final calculated = protein * 4 + carbs * 4 + fat * 9;
     return (calories - calculated).abs() < 0.2;
-  }
-
-  bool get _hasAnyIngredient {
-    return _ingredientItems
-        .any((item) => item.nameController.text.trim().isNotEmpty);
   }
 
   double _parseAmount(String value) {
@@ -564,7 +536,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           return _localizeInline(
             ru: 'Количество у ингредиента "$ingredientName" выглядит нереалистично. Проверьте единицы и число.',
             en: 'Amount for ingredient "$ingredientName" looks unrealistic. Please check unit and value.',
-            uk: 'Кількість у інгредієнта "$ingredientName" виглядає нереалістично. Перевірте одиниці та число.',
+            uk: 'Кількість у інгредієнта "$ingredientName" виглядає нереалистично. Перевірте одиниці та число.',
           );
         }
       }
@@ -683,27 +655,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _isSyncingCalories = false;
   }
 
-  void _addIngredientRow() {
-    setState(() {
-      final item = _IngredientFormItem();
-      _attachIngredientListeners(item);
-      _ingredientItems.add(item);
-    });
-  }
-
-  void _removeIngredientRow(int index) {
-    final item = _ingredientItems.removeAt(index);
-    _detachIngredientListeners(item);
-    item.dispose();
-    setState(() {});
-
-    // Manual update: no auto-AI calls.
-  }
-
-  void _scheduleNutritionAiRecalculation() {
-    // Manual update only.
-  }
-
   Future<void> _recalculateNutrientsWithAi() async {
     final ingredients = _ingredientItems
         .map(
@@ -796,6 +747,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   @override
   void dispose() {
     _donateAiDebounce?.cancel();
+    _publicAiDebounce?.cancel();
     _nutritionAiDebounce?.cancel();
     _nutrientControllers['protein']?.removeListener(_onMacroChanged);
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
@@ -816,6 +768,105 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       ingredientItem.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _saveRecipe() async {
+    if (_isDonated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.donateRecipeAlreadyDonated),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (_formKey.currentState!.validate()) {
+      if (_isPublic) {
+        final sanityError = _localRecipeSanityError();
+        if (sanityError != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(sanityError),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red.shade700,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      final Map<String, double> nutrients = {};
+      for (var key in _nutrientKeys) {
+        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
+      }
+
+      final ingredients = _ingredientItems
+          .map(
+            (item) => RecipeIngredient(
+              name: item.nameController.text.trim(),
+              quantity: _parseAmount(item.quantityController.text),
+              unit: item.unit.trim(),
+            ),
+          )
+          .where((ingredient) => ingredient.name.isNotEmpty)
+          .toList();
+
+      final recipe = Recipe(
+        id: widget.recipe?.id ??
+            'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
+        name: _nameController.text,
+        description: _descriptionController.text,
+        clarification: _clarificationController.text,
+        nutrients: nutrients,
+        icon: _selectedIcon,
+        isUserRecipe: true,
+        isPublic: _isPublic,
+        ingredients: ingredients,
+        instructions:
+            (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
+      );
+
+      if (widget.recipe == null) {
+        await _recipeService.addRecipe(recipe);
+      } else {
+        await _recipeService.updateRecipe(recipe);
+      }
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    }
+  }
+
+  Future<void> _deleteRecipe() async {
+    if (widget.recipe == null) return;
+    await _recipeService.deleteRecipe(widget.recipe!.id);
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
+  bool get _hasAnyIngredient {
+    return _ingredientItems
+        .any((item) => item.nameController.text.trim().isNotEmpty);
+  }
+
+  void _addIngredientRow() {
+    setState(() {
+      final item = _IngredientFormItem();
+      _attachIngredientListeners(item);
+      _ingredientItems.add(item);
+    });
+  }
+
+  void _removeIngredientRow(int index) {
+    final item = _ingredientItems.removeAt(index);
+    _detachIngredientListeners(item);
+    item.dispose();
+    setState(() {});
   }
 
   void _showIconPicker() {
@@ -918,85 +969,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
-  Future<void> _saveRecipe() async {
-    if (_isDonated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.donateRecipeAlreadyDonated),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (_formKey.currentState!.validate()) {
-      if (_isPublic) {
-        final sanityError = _localRecipeSanityError();
-        if (sanityError != null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(sanityError),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Colors.red.shade700,
-              ),
-            );
-          }
-          return;
-        }
-      }
-
-      final Map<String, double> nutrients = {};
-      for (var key in _nutrientKeys) {
-        nutrients[key] = _parseAmount(_nutrientControllers[key]!.text);
-      }
-
-      final ingredients = _ingredientItems
-          .map(
-            (item) => RecipeIngredient(
-              name: item.nameController.text.trim(),
-              quantity: _parseAmount(item.quantityController.text),
-              unit: item.unit.trim(),
-            ),
-          )
-          .where((ingredient) => ingredient.name.isNotEmpty)
-          .toList();
-
-      final recipe = Recipe(
-        id: widget.recipe?.id ??
-            'recipe_${DateTime.now().microsecondsSinceEpoch}_${_nameController.text.trim().hashCode}',
-        name: _nameController.text,
-        description: _descriptionController.text,
-        clarification: _clarificationController.text,
-        nutrients: nutrients,
-        icon: _selectedIcon,
-        isUserRecipe: true,
-        isPublic: _isPublic,
-        ingredients: ingredients,
-        instructions:
-            (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
-      );
-
-      if (widget.recipe == null) {
-        await _recipeService.addRecipe(recipe);
-      } else {
-        await _recipeService.updateRecipe(recipe);
-      }
-
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
-    }
-  }
-
-  Future<void> _deleteRecipe() async {
-    if (widget.recipe == null) return;
-    await _recipeService.deleteRecipe(widget.recipe!.id);
-    if (mounted) {
-      Navigator.pop(context, true);
-    }
-  }
-
   bool get _isFormReadyForDonate {
     final hasName = _nameController.text.trim().isNotEmpty;
     final hasIngredients = _ingredientItems
@@ -1019,7 +991,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
-    setState(() => _isDonating = true);
+    setState(() => _isDonateAiChecking = true);
     try {
       // Сначала сохраняем/обновляем локальный рецепт без закрытия экрана.
       final nutrients = <String, double>{};
@@ -1043,7 +1015,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         clarification: _clarificationController.text,
         nutrients: nutrients,
         icon: _selectedIcon,
-        isUserRecipe: true,
         isPublic: _isPublic,
         isDonated: _isDonated,
         ingredients: ingredients,
@@ -1069,7 +1040,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       context.go('/recipes');
     } on StateError {
       if (!mounted) return;
-      setState(() => _isDonating = false);
+      setState(() => _isDonateAiChecking = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.donateRecipeSignInRequired),
@@ -1078,7 +1049,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       );
     } on FirebaseException catch (e) {
       if (!mounted) return;
-      setState(() => _isDonating = false);
+      setState(() => _isDonateAiChecking = false);
       final message = e.code == 'permission-denied'
           ? l10n.donateRecipePermissionDenied
           : l10n.donateRecipeError;
@@ -1091,7 +1062,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       );
     } catch (_) {
       if (!mounted) return;
-      setState(() => _isDonating = false);
+      setState(() => _isDonateAiChecking = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.donateRecipeError),
@@ -1115,10 +1086,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Widget _buildDonateCard() {
     final theme = Theme.of(context);
-    final isEnabled = _isFormReadyForDonate &&
-        !_isDonated &&
-        _isDonateAiApproved &&
-        !_isDonateAiChecking;
     final accentColor = _isDonated ? Colors.green.shade600 : Colors.deepOrange;
     return Card(
       elevation: 0.5,
@@ -1142,14 +1109,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   size: 20,
                   color: accentColor,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _isDonated
-                        ? l10n.donateRecipeAlreadyDonated
-                        : l10n.donateRecipeCardTitle,
-                    style: TextStyle(
-                      fontSize: 18,
+                    l10n.donateRecipeButton,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: accentColor,
                     ),
@@ -1157,71 +1121,77 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               l10n.donateRecipeCardDescription,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
-            const SizedBox(height: 10),
-            if (_donateAiStatus != null || _donateAiFixSuggestions != null) ...[
+            if (_publicAiStatus != null || _donateAiStatus != null) ...[
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: (_isDonated || _isDonateAiApproved)
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : (_isDonateAiChecking
-                          ? Colors.orange.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.08)),
+                  color: Colors.blue.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: (_isDonated || _isDonateAiApproved)
-                        ? Colors.green.withValues(alpha: 0.35)
-                        : (_isDonateAiChecking
-                            ? Colors.orange.withValues(alpha: 0.35)
-                            : Colors.red.withValues(alpha: 0.3)),
+                    color: Colors.blue.withValues(alpha: 0.15),
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        if (_isDonateAiChecking)
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else
-                          Icon(
-                            (_isDonated || _isDonateAiApproved)
-                                ? Symbols.verified
-                                : Symbols.warning,
-                            size: 16,
-                            color: (_isDonated || _isDonateAiApproved)
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
-                          ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _isDonated
-                                ? l10n.donateRecipeAlreadyDonated
-                                : (_donateAiStatus ??
-                                    _defaultModerationIndicatorText()),
-                            style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                          ),
+                    if (_publicAiStatus != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _isPublicAiApproved ? Symbols.verified : Symbols.info,
+                              size: 14,
+                              color: _isPublicAiApproved ? Colors.green : Colors.blue,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${l10n.makePublic}: $_publicAiStatus',
+                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    if (_donateAiStatus != null)
+                      Row(
+                        children: [
+                          Icon(
+                            _isDonateAiApproved ? Symbols.verified : Symbols.info,
+                            size: 14,
+                            color: _isDonateAiApproved ? Colors.green : Colors.blue,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '${l10n.donateRecipeButton}: $_donateAiStatus',
+                              style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (_publicAiFixSuggestions != null && _publicAiFixSuggestions!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${l10n.aiClarificationLabel}: $_publicAiFixSuggestions',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
+                      ),
+                    ],
                     if (_donateAiFixSuggestions != null && _donateAiFixSuggestions!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         '${l10n.aiClarificationLabel}: $_donateAiFixSuggestions',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
                       ),
                     ],
                   ],
@@ -1234,10 +1204,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: (_isFormReadyForDonate && !_isDonateAiChecking) 
+                      onPressed: (_isFormReadyForDonate && !_isPublicAiChecking) 
                           ? _runPublicModeration 
                           : null,
-                      icon: const Icon(Symbols.public, size: 18),
+                      icon: _isPublicAiChecking 
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Symbols.public, size: 18),
                       label: Text(l10n.makePublic),
                     ),
                   ),
@@ -1245,9 +1217,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: (_isFormReadyForDonate && !_isDonateAiChecking) 
-                          ? _runCommunityModeration 
+                          ? _runDonateModeration 
                           : null,
-                      icon: const Icon(Symbols.volunteer_activism, size: 18),
+                      icon: _isDonateAiChecking
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Symbols.volunteer_activism, size: 18),
                       label: Text(l10n.donateRecipeButton),
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.deepOrange,
@@ -1266,119 +1240,60 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   Widget _buildVisibilityCard() {
     final theme = Theme.of(context);
     final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
-    final canEnablePublic = canManageVisibility &&
+    final isInitialDraft = widget.initialDraft != null;
+    final canEnablePublic = isInitialDraft || (canManageVisibility &&
         !_isDonated &&
-        _isDonateAiApproved &&
-        !_isDonateAiChecking;
+        _isPublicAiApproved &&
+        !_isPublicAiChecking);
     final canToggleVisibility =
         _isPublic ? (canManageVisibility && !_isDonated) : canEnablePublic;
-
-    final visibilityStatusText = _isDonated
-        ? l10n.donateRecipeAlreadyDonated
-        : (_donateAiStatus ?? _defaultModerationIndicatorText());
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.cardRadius,
         side: BorderSide(
-          color: Colors.green.withValues(alpha: 0.35),
+          color: Colors.blue.withValues(alpha: 0.35),
           width: 1,
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.makePublic,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: _isPublic
-                              ? Colors.blue.shade700
-                              : Colors.green.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch.adaptive(
-                  value: _isPublic,
-                  onChanged: canToggleVisibility
-                      ? (value) {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            _publicIntentEnabled = value;
-                            _isPublic = value;
-                          });
-                          if (!value) {
-                            _donateAiDebounce?.cancel();
-                          }
-                          _onDonateValidationInputChanged();
-                        }
-                      : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: (_isDonated || _isDonateAiApproved)
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : (_isDonateAiChecking
-                        ? Colors.orange.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.08)),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: (_isDonated || _isDonateAiApproved)
-                      ? Colors.green.withValues(alpha: 0.35)
-                      : (_isDonateAiChecking
-                          ? Colors.orange.withValues(alpha: 0.35)
-                          : Colors.red.withValues(alpha: 0.3)),
-                ),
-              ),
-              child: Row(
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _isDonateAiChecking
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          (_isDonated || _isDonateAiApproved)
-                              ? Symbols.verified
-                              : Symbols.warning,
-                          size: 16,
-                          color: (_isDonated || _isDonateAiApproved)
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                        ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      visibilityStatusText,
-                      style: theme.textTheme.bodySmall,
+                  Text(
+                    l10n.makePublic,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _isPublic
+                          ? Colors.blue.shade700
+                          : Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
+            ),
+            Switch.adaptive(
+              value: _isPublic,
+              onChanged: canToggleVisibility
+                  ? (value) {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _isPublic = value;
+                      });
+                    }
+                  : null,
             ),
           ],
         ),
@@ -1544,6 +1459,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildNutrientsCard() {
+    final theme = Theme.of(context);
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -1557,20 +1473,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: _isAiCalculating ? null : _recalculateNutrientsWithAi,
-                icon: _isAiCalculating 
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Symbols.psychology, size: 18),
-                label: Text(l10n.recipeAiUpdated),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
-              ),
-            ),
 
             const SizedBox(height: 8),
             if (_aiStatus != null) ...[
@@ -1714,20 +1616,60 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: (_isAiCalculating || !_hasAnyIngredient)
-                    ? null
-                    : _recalculateNutrientsWithAi,
-                icon: const Icon(Symbols.calculate, weight: 600),
-                label: Text(l10n.calculateNutrition),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.08),
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  side: BorderSide(
-                    color: AppColors.primary.withValues(alpha: 0.25),
+              child: Column(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: (_isAiCalculating || !_hasAnyIngredient)
+                        ? null
+                        : _recalculateNutrientsWithAi,
+                    icon: _isAiCalculating 
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Symbols.calculate, weight: 600),
+                    label: Text(l10n.calculateNutrition),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                      foregroundColor: AppColors.primary,
+                      elevation: 0,
+                      side: BorderSide(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
                   ),
-                ),
+                  if (_aiStatus != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: (_isAiError ? Colors.red : AppColors.primary).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: (_isAiError ? Colors.red : AppColors.primary).withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isAiError ? Symbols.error : Symbols.info,
+                            size: 16,
+                            color: _isAiError ? Colors.red.shade700 : AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _aiStatus!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _isAiError ? Colors.red.shade700 : theme.textTheme.bodySmall?.color,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

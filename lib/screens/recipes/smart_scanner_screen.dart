@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +27,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
   bool _isProcessing = false;
+  XFile? _capturedImage;
 
   @override
   void dispose() {
@@ -33,113 +36,113 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     super.dispose();
   }
 
-  Future<void> _onBarcodeDetected(BarcodeCapture capture) async {
-    if (_isProcessing) return;
-    final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
 
-    final String? code = barcodes.first.rawValue;
-    if (code == null || code.isEmpty) return;
 
-    setState(() => _isProcessing = true);
-    _controller.stop();
-
-    final locale = Localizations.localeOf(context).languageCode;
-    try {
-      final productData = await _barcodeService.fetchProductByBarcode(code);
-      if (productData == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.barcodeNotFound)),
-          );
-          _controller.start();
-          setState(() => _isProcessing = false);
-        }
-        return;
-      }
-
-      final draft = await _geminiService.generateRecipeFromBarcode(
-        productData: productData,
-        locale: locale,
-      );
-
-      if (mounted) {
-        context.pushReplacement(
-          '/recipe/edit',
-          extra: {
-            'initialDraft': _buildDraftRecipe(draft),
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-        _controller.start();
-        setState(() => _isProcessing = false);
-      }
-    }
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _captureImage() async {
     if (_isProcessing) return;
     
-    setState(() => _isProcessing = true);
-    _controller.stop();
-
-    final description = _descriptionController.text.trim();
-
     try {
       final image = await _imagePicker.pickImage(
-        source: source,
+        source: ImageSource.camera,
         imageQuality: 90,
         maxWidth: 1920,
       );
       
-      if (image == null) {
-        if (mounted) {
-          _controller.start();
-          setState(() => _isProcessing = false);
-        }
-        return;
-      }
+      if (image == null) return;
 
-      final bytes = await image.readAsBytes();
-      if (!mounted) return;
-
-      final draft = await _geminiService.generateRecipeFromPhoto(
-        imageBytes: bytes,
-        imageMimeType: _detectMimeType(image.name),
-        description: description,
-        locale: Localizations.localeOf(context).languageCode,
-      );
-
-      if (mounted) {
-        context.pushReplacement(
-          '/recipe/edit',
-          extra: {
-            'initialDraft': _buildDraftRecipe(draft),
-            'initialClarification': _buildDetailedClarification(draft, description),
-          },
-        );
-      }
+      setState(() {
+        _capturedImage = image;
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
-        _controller.start();
+      }
+    }
+  }
+
+
+
+  Future<void> _sendToAi() async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_isProcessing || _capturedImage == null) return;
+
+    setState(() => _isProcessing = true);
+    final description = _descriptionController.text.trim();
+
+    try {
+      final bytes = await _capturedImage!.readAsBytes();
+      if (!mounted) return;
+
+      final draft = await _geminiService.generateRecipeFromPhoto(
+        imageBytes: bytes,
+        imageMimeType: _detectMimeType(_capturedImage!.name),
+        description: description,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (!mounted) return;
+      context.pushReplacement(
+        '/recipes/edit',
+        extra: {
+          'initialDraft': _buildDraftRecipe(draft),
+          'initialClarification': _buildDetailedClarification(draft, description),
+        },
+      );
+    } catch (e) {
+      if (mounted) {
         setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
+  Future<void> _processBarcode(String code) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      final product = await _barcodeService.fetchProductByBarcode(code);
+      if (product == null) {
+        throw Exception(l10n.productNotFoundError);
+      }
+
+      final productName = product['product_name'] ?? l10n.unknownProduct;
+      final brand = product['brands'] ?? '';
+      
+      // Используем Gemini для превращения данных о продукте в черновик рецепта/блюда
+      final prompt = 'Identify this product and create a basic nutritional entry: $productName ($brand). JSON data: ${json.encode(product)}';
+      
+      final draft = await _geminiService.generateRecipeFromDescription(
+        description: prompt,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (!mounted) return;
+
+      context.pushReplacement(
+        '/recipes/edit',
+        extra: {
+          'initialDraft': _buildDraftRecipe(draft),
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       }
     }
   }
 
   String _detectMimeType(String fileName) {
-    final lower = fileName.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    if (lower.endsWith('.heic') || lower.endsWith('.heif')) return 'image/heic';
+    if (fileName.endsWith('.png')) return 'image/png';
+    if (fileName.endsWith('.webp')) return 'image/webp';
     return 'image/jpeg';
   }
 
@@ -190,13 +193,58 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onBarcodeDetected,
-          ),
-          
-          // Scanning Overlay
-          _buildScannerOverlay(),
+          // Photo Preview (Instead of Scanner)
+          if (_capturedImage != null)
+            Positioned.fill(
+              child: Image.file(
+                File(_capturedImage!.path),
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            MobileScanner(
+              controller: _controller,
+              onDetect: (capture) {
+                final List<Barcode> barcodes = capture.barcodes;
+                if (barcodes.isNotEmpty && !_isProcessing && _capturedImage == null) {
+                  final String? code = barcodes.first.rawValue;
+                  if (code != null) {
+                    _processBarcode(code);
+                  }
+                }
+              },
+            ),
+
+          if (_capturedImage == null)
+            _buildScannerOverlay(),
+
+          // Thumbnail (Top Right)
+          if (_capturedImage != null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 60,
+              right: 20,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.file(
+                    File(_capturedImage!.path),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
 
           // Description Field (Glassmorphism)
           Positioned(
@@ -236,27 +284,12 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             ),
           ),
           
-          // Action Buttons
+          // Action Button
           Positioned(
             bottom: 40,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildActionButton(
-                  icon: Symbols.photo_camera,
-                  label: l10n.camera,
-                  onTap: () => _pickImage(ImageSource.camera),
-                ),
-                const SizedBox(width: 20),
-                _buildActionButton(
-                  icon: Symbols.photo_library,
-                  label: l10n.gallery,
-                  onTap: () => _pickImage(ImageSource.gallery),
-                ),
-              ],
-            ),
+            left: 20,
+            right: 20,
+            child: _buildMainActionButton(Theme.of(context)),
           ),
 
           if (_isProcessing)
@@ -267,6 +300,53 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainActionButton(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final isCaptured = _capturedImage != null;
+
+    return InkWell(
+      onTap: isCaptured ? _sendToAi : _captureImage,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isCaptured
+                ? [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)]
+                : [Colors.white, Colors.white.withValues(alpha: 0.9)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isCaptured ? Symbols.send : Symbols.photo_camera,
+              color: isCaptured ? Colors.white : AppColors.primary,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              isCaptured ? l10n.recipeGenerateAndOpenEditor : 'Сделать снимок',
+              style: TextStyle(
+                color: isCaptured ? Colors.white : AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -297,46 +377,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppColors.primary, size: 28),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

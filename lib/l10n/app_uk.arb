@@ -496,7 +496,15 @@
   "activityAiNeedContext": "Введіть опис активності для AI",
   "activityAiEstimateButton": "Оцінити калорії AI",
   "activityAiEstimating": "Оцінюю калорії...",
-  "activityAiEstimated": "AI оцінив: {calories} ккал",
+  "activityAiEstimated": "Оцінка AI: {calories} ккал",
+  "aiProvider": "Провайдер AI",
+  "geminiPowered": "На базі Gemini",
+  "developerSettingsTitle": "Налаштування розробника",
+  "developerSettingsSubtitle": "Моделі AI, ліміти та затримки",
+  "recipeRecognitionError": "Не вдалося розпізнати рецепт",
+  "productNotFoundError": "Товар не знайдено в базі даних",
+  "productProcessingError": "Не вдалося обробити дані товару",
+  "unknownProduct": "Невідомий товар",
   "@activityAiEstimated": {
     "placeholders": { "calories": { "type": "int" } }
   },
