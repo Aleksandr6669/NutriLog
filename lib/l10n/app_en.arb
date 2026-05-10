@@ -546,6 +546,8 @@
   "addMore": "Add more",
   "add": "Add",
   "swipeToDeleteHint": "To remove, swipe left",
+  "swipeToSelectHint": "Swipe left to add, right to remove",
+  "swipeToEditDeleteHint": "Swipe right to edit, left to delete",
   "recipeAiCalculating": "Calculating nutrition...",
   "selectIconDialogTitle": "Select icon",
   "nameFromGoogleAccount": "Your name is synchronized from your Google account",

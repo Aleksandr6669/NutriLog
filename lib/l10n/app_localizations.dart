@@ -1796,7 +1796,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiNoResponseError.
   ///
   /// In en, this message translates to:
-  /// **'Failed to get a response from Gemini.'**
+  /// **'AI is temporarily unavailable. Please try again.'**
   String get aiNoResponseError;
 
   /// No description provided for @aiFailedToReadResponseError.
@@ -1814,13 +1814,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiUnexpectedResponseFormatError.
   ///
   /// In en, this message translates to:
-  /// **'Unexpected Gemini response format.'**
+  /// **'Data processing error. Please try again.'**
   String get aiUnexpectedResponseFormatError;
 
   /// No description provided for @aiEmptyTextError.
   ///
   /// In en, this message translates to:
-  /// **'Gemini returned empty text.'**
+  /// **'AI could not recognize the data. Please try a different description.'**
   String get aiEmptyTextError;
 
   /// No description provided for @aiFailedToExtractIngredientsError.
@@ -1856,7 +1856,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiHttpRateLimitError.
   ///
   /// In en, this message translates to:
-  /// **'Gemini is temporarily overloaded (429). Please wait a moment and try again.'**
+  /// **'AI is temporarily busy. Please wait a moment.'**
   String get aiHttpRateLimitError;
 
   /// No description provided for @aiHttpNotFoundError.
@@ -2710,6 +2710,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To remove, swipe left'**
   String get swipeToDeleteHint;
+
+  /// No description provided for @swipeToSelectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe left to add, right to remove'**
+  String get swipeToSelectHint;
+
+  /// No description provided for @swipeToEditDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe right to edit, left to delete'**
+  String get swipeToEditDeleteHint;
 
   /// No description provided for @selectIconDialogTitle.
   ///

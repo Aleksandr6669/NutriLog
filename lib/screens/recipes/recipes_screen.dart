@@ -674,6 +674,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     curve: Curves.easeInOut,
                     child: _buildSelectedRecipesBar(theme),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.selectionMode
+                            ? AppLocalizations.of(context)!.swipeToSelectHint
+                            : AppLocalizations.of(context)!.swipeToEditDeleteHint,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color,
+                        ),
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: CustomScrollView(
                       slivers: [

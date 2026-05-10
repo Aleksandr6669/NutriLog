@@ -547,6 +547,8 @@
   "addMore": "Додати ще",
   "add": "Додати",
   "swipeToDeleteHint": "Щоб видалити, зробіть свайп вліво",
+  "swipeToSelectHint": "Свайп вліво — додати, вправо — прибрати",
+  "swipeToEditDeleteHint": "Свайп вправо — змінити, вліво — видалити",
   "recipeAiCalculating": "Обчислення харчової цінності...",
   "selectIconDialogTitle": "Виберіть іконку",
   "nameFromGoogleAccount": "Ваше ім'я синхронізується з вашого облікового запису Google",

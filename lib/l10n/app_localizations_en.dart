@@ -943,7 +943,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI review failed: recipe looks invalid for the community.';
 
   @override
-  String get aiNoResponseError => 'Failed to get a response from Gemini.';
+  String get aiNoResponseError =>
+      'AI is temporarily unavailable. Please try again.';
 
   @override
   String get aiFailedToReadResponseError => 'Failed to read Gemini response.';
@@ -953,10 +954,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiUnexpectedResponseFormatError =>
-      'Unexpected Gemini response format.';
+      'Data processing error. Please try again.';
 
   @override
-  String get aiEmptyTextError => 'Gemini returned empty text.';
+  String get aiEmptyTextError =>
+      'AI could not recognize the data. Please try a different description.';
 
   @override
   String get aiFailedToExtractIngredientsError =>
@@ -980,7 +982,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiHttpRateLimitError =>
-      'Gemini is temporarily overloaded (429). Please wait a moment and try again.';
+      'AI is temporarily busy. Please wait a moment.';
 
   @override
   String get aiHttpNotFoundError => 'Failed to connect to the AI service.';
@@ -1447,6 +1449,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get swipeToDeleteHint => 'To remove, swipe left';
+
+  @override
+  String get swipeToSelectHint => 'Swipe left to add, right to remove';
+
+  @override
+  String get swipeToEditDeleteHint => 'Swipe right to edit, left to delete';
 
   @override
   String get selectIconDialogTitle => 'Select icon';

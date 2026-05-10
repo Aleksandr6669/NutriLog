@@ -265,7 +265,7 @@
   },
   "statsGoalKcal": "Цель: {value} ккал",
   "@statsGoalKcal": {
-    "placeholders": { "value": { "type": "String" } }
+    "placeholders": { "value": { "type": "Object" } }
   },
   "goalAbove": "Цель > {value}",
   "@goalAbove": {
@@ -546,6 +546,8 @@
   "addMore": "Добавить еще",
   "add": "Добавить",
   "swipeToDeleteHint": "Чтобы удалить, сделайте свайп влево",
+  "swipeToSelectHint": "Свайп влево — добавить, вправо — убрать",
+  "swipeToEditDeleteHint": "Свайп вправо — изменить, влево — удалить",
   "selectIconDialogTitle": "Выберите иконку",
   "nameFromGoogleAccount": "Имя синхронизируется из вашего Google-аккаунта",
   "cloudSyncInfo": "При подключении Google-аккаунта автоматически синхронизируются: профиль, рецепты, логи питания и активности. Фото профиля кешируется и доступно офлайн. При выходе данные остаются локальными на устройстве.",

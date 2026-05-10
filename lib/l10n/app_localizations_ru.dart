@@ -1455,6 +1455,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get swipeToDeleteHint => 'Чтобы удалить, сделайте свайп влево';
 
   @override
+  String get swipeToSelectHint => 'Свайп влево — добавить, вправо — убрать';
+
+  @override
+  String get swipeToEditDeleteHint =>
+      'Свайп вправо — изменить, влево — удалить';
+
+  @override
   String get selectIconDialogTitle => 'Выберите иконку';
 
   @override
