@@ -11,7 +11,6 @@ import 'package:nutri_log/services/recipe_service.dart';
 import 'package:nutri_log/services/cloud_data_service.dart';
 import 'package:nutri_log/services/firebase_auth_service.dart';
 import 'package:nutri_log/services/firebase_bootstrap_service.dart';
-import 'package:nutri_log/services/notification_settings_service.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';

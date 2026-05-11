@@ -2023,7 +2023,6 @@ Rules:
 
   Future<http.Response> _requestWithGemini({
     required Map<String, dynamic> body,
-    String? apiKeyOverride,
     String? locale,
     required List<String> models,
     String featureName = 'AI Request',
