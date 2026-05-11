@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+  "scannerHint": "Point at the barcode or take a photo",
   "appTitle": "NutriLog",
   "breakfast": "Breakfast",
   "lunch": "Lunch",
@@ -596,5 +597,6 @@
   "barcodeNotFound": "Product not found in database",
   "byBarcode": "By Barcode",
   "smartScannerTitle": "Smart Scanner",
-  "bySmartScanner": "Smart Scanner"
+  "bySmartScanner": "Smart Scanner",
+  "checkRecipeButton": "Check recipe"
 }

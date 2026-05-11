@@ -190,6 +190,24 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.photo_library_outlined, color: Colors.white),
+            tooltip: AppLocalizations.of(context)!.gallery,
+            onPressed: () async {
+              if (_isProcessing) return;
+              final image = await _imagePicker.pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 90,
+                maxWidth: 1920,
+              );
+              if (image == null) return;
+              setState(() {
+                _capturedImage = image;
+              });
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -338,7 +356,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              isCaptured ? l10n.recipeGenerateAndOpenEditor : 'Сделать снимок',
+              isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera,
               style: TextStyle(
                 color: isCaptured ? Colors.white : AppColors.primary,
                 fontWeight: FontWeight.bold,
@@ -352,6 +370,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   }
 
   Widget _buildScannerOverlay() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -371,9 +390,9 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
               color: Colors.black45,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              'Наведите на штрих-код или сделайте фото',
-              style: TextStyle(color: Colors.white, fontSize: 14),
+            child: Text(
+              l10n.scannerHint,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
         ],

@@ -1200,35 +1200,27 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               const SizedBox(height: 16),
             ],
             if (!_isDonated) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: (_isFormReadyForDonate && !_isPublicAiChecking) 
-                          ? _runPublicModeration 
-                          : null,
-                      icon: _isPublicAiChecking 
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Symbols.public, size: 18),
-                      label: Text(l10n.makePublic),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: (_isFormReadyForDonate && !_isDonateAiChecking) 
-                          ? _runDonateModeration 
-                          : null,
-                      icon: _isDonateAiChecking
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Symbols.volunteer_activism, size: 18),
-                      label: Text(l10n.donateRecipeButton),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.deepOrange,
-                      ),
-                    ),
-                  ),
-                ],
+              OutlinedButton.icon(
+                onPressed: (_isFormReadyForDonate && !_isPublicAiChecking)
+                    ? _runPublicModeration
+                    : null,
+                icon: _isPublicAiChecking
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Symbols.verified, size: 18),
+                label: Text(l10n.checkRecipeButton),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: (_isFormReadyForDonate && !_isDonateAiChecking)
+                    ? _runDonateModeration
+                    : null,
+                icon: _isDonateAiChecking
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Symbols.volunteer_activism, size: 18),
+                label: Text(l10n.donateRecipeButton),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                ),
               ),
             ],
           ],
@@ -1259,41 +1251,56 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.makePublic,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.makePublic,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _isPublic
+                              ? Colors.blue.shade700
+                              : Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: _isPublic
-                          ? Colors.blue.shade700
-                          : Colors.grey.shade600,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                Switch.adaptive(
+                  value: _isPublic,
+                  onChanged: canToggleVisibility
+                      ? (value) {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _isPublic = value;
+                          });
+                        }
+                      : null,
+                ),
+              ],
             ),
-            Switch.adaptive(
-              value: _isPublic,
-              onChanged: canToggleVisibility
-                  ? (value) {
-                      HapticFeedback.selectionClick();
-                      setState(() {
-                        _isPublic = value;
-                      });
-                    }
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: (_isFormReadyForDonate && !_isPublicAiChecking)
+                  ? _runPublicModeration
                   : null,
+              icon: _isPublicAiChecking
+                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Symbols.verified, size: 18),
+              label: Text(l10n.checkRecipeButton),
             ),
           ],
         ),

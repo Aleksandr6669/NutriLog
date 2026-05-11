@@ -1600,4 +1600,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bySmartScanner => 'Умный сканер';
+
+  @override
+  String get scannerHint => 'Наведите на штрих-код или сделайте фото';
 }

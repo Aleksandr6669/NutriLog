@@ -1595,4 +1595,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bySmartScanner => 'Smart Scanner';
+
+  @override
+  String get scannerHint => 'Point at the barcode or take a photo';
 }

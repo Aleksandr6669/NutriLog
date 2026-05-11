@@ -750,7 +750,47 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           label: AppLocalizations.of(context)!.bySmartScanner,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
-                            await _navigateAndRefreshRoute('/recipe/scanner');
+                            await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return SimpleDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                  title: Text(AppLocalizations.of(context)!.bySmartScanner),
+                                  children: [
+                                    SimpleDialogOption(
+                                      onPressed: () {
+                                        Navigator.of(context).pop('photo');
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(Symbols.camera_alt_outlined, color: AppColors.primary),
+                                          SizedBox(width: 12),
+                                          Text(AppLocalizations.of(context)!.byPhoto),
+                                        ],
+                                      ),
+                                    ),
+                                    SimpleDialogOption(
+                                      onPressed: () {
+                                        Navigator.of(context).pop('scanner');
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(Symbols.barcode_scanner, color: AppColors.primary),
+                                          SizedBox(width: 12),
+                                          Text(AppLocalizations.of(context)!.bySmartScanner),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ).then((result) async {
+                              if (result == 'photo') {
+                                await _navigateAndRefreshRoute('/recipe/photo');
+                              } else if (result == 'scanner') {
+                                await _navigateAndRefreshRoute('/recipe/scanner');
+                              }
+                            });
                           },
                           delay: const Duration(milliseconds: 150),
                         ),

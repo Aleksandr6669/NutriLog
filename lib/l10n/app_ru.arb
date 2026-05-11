@@ -1,5 +1,6 @@
 {
   "@@locale": "ru",
+  "scannerHint": "Наведите на штрих-код или сделайте фото",
   "appTitle": "NutriLog",
   "breakfast": "Завтрак",
   "lunch": "Обед",
@@ -595,5 +596,6 @@
   "barcodeNotFound": "Товар не найден в базе данных",
   "byBarcode": "По штрих-коду",
   "smartScannerTitle": "Умный сканер",
-  "bySmartScanner": "Умный сканер"
+  "bySmartScanner": "Умный сканер",
+  "checkRecipeButton": "Проверить рецепт"
 }
