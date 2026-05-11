@@ -27,7 +27,9 @@ class FirebaseAuthService {
       return _auth.signInWithPopup(provider);
     }
 
-    final googleUser = await GoogleSignIn().signIn();
+    final googleSignIn = GoogleSignIn();
+    await googleSignIn.signOut();
+    final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
       throw FirebaseAuthException(
         code: 'sign_in_canceled',
@@ -45,9 +47,7 @@ class FirebaseAuthService {
   }
 
   Future<void> signOut() async {
-    if (!kIsWeb) {
-      await GoogleSignIn().signOut();
-    }
+    await GoogleSignIn().signOut();
     await _auth.signOut();
   }
 }
