@@ -35,7 +35,7 @@ dependencies:
   awesome_notifications: ^0.11.0
   timezone: ^0.11.0
   flutter_timezone: ^5.0.2
-  package_info_plus: ^10.1.0
+  package_info_plus: ^9.0.1
   app_settings: ^7.0.0
   firebase_core: ^4.7.0
   firebase_auth: ^6.4.0
@@ -55,7 +55,7 @@ dev_dependencies:
 
 dependency_overrides:
   # 12.4.0 использует API, недоступный на части Xcode в CI (isiOSAppOnVision)
-  device_info_plus: ^13.1.0
+  device_info_plus: ^10.0.0
   meta: ^1.18.2
   pointycastle: ^4.0.0
 
