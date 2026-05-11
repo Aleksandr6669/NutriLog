@@ -9,6 +9,9 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get scannerHint => 'Point at the barcode or take a photo';
+
+  @override
   String get appTitle => 'NutriLog';
 
   @override
@@ -1597,5 +1600,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bySmartScanner => 'Smart Scanner';
 
   @override
-  String get scannerHint => 'Point at the barcode or take a photo';
+  String get checkRecipeButton => 'Check recipe';
 }

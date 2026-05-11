@@ -192,7 +192,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.photo_library_outlined, color: Colors.white),
+            icon: const Icon(Symbols.photo_library, color: Colors.white),
             tooltip: AppLocalizations.of(context)!.gallery,
             onPressed: () async {
               if (_isProcessing) return;

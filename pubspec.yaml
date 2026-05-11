@@ -17,12 +17,12 @@ dependencies:
   provider: ^6.1.5+1
   material_symbols_icons: ^4.2906.0
   percent_indicator: ^4.2.3
-  go_router: ^13.2.0 # Added go_router
+  go_router: ^17.2.3 # Added go_router
 
   # Functionality
   image_picker: ^1.2.1
   http: ^1.2.0
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.1
   fl_chart: ^1.1.1
   intl: ^0.20.2
   table_calendar: ^3.2.0
@@ -33,15 +33,15 @@ dependencies:
   health: ^13.3.1
   # flutter_local_notifications: ^17.2.4
   awesome_notifications: ^0.11.0
-  timezone: ^0.9.4
-  flutter_timezone: ^3.0.1
-  package_info_plus: ^8.0.2
-  app_settings: ^6.0.1
-  firebase_core: ^3.15.2
-  firebase_auth: ^5.6.2
-  cloud_firestore: ^5.6.11
-  google_sign_in: ^6.3.0
-  connectivity_plus: ^6.1.4
+  timezone: ^0.11.0
+  flutter_timezone: ^5.0.2
+  package_info_plus: ^9.0.1
+  app_settings: ^7.0.0
+  firebase_core: ^4.7.0
+  firebase_auth: ^6.4.0
+  cloud_firestore: ^6.3.0
+  google_sign_in: ^7.2.0
+  connectivity_plus: ^7.1.1
   encrypt: ^5.0.3
   mobile_scanner: ^7.2.0
   speech_to_text: ^7.3.0
@@ -50,8 +50,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 dependency_overrides:
   # 12.4.0 использует API, недоступный на части Xcode в CI (isiOSAppOnVision)

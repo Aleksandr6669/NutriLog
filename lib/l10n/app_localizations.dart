@@ -100,6 +100,12 @@ abstract class AppLocalizations {
     Locale('uk')
   ];
 
+  /// No description provided for @scannerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point at the barcode or take a photo'**
+  String get scannerHint;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -2974,6 +2980,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Smart Scanner'**
   String get bySmartScanner;
+
+  /// No description provided for @checkRecipeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Check recipe'**
+  String get checkRecipeButton;
 }
 
 class _AppLocalizationsDelegate

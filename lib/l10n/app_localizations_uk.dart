@@ -9,6 +9,9 @@ class AppLocalizationsUk extends AppLocalizations {
   AppLocalizationsUk([String locale = 'uk']) : super(locale);
 
   @override
+  String get scannerHint => 'Наведіть на штрихкод або зробіть фото';
+
+  @override
   String get appTitle => 'NutriLog';
 
   @override
@@ -1601,5 +1604,5 @@ class AppLocalizationsUk extends AppLocalizations {
   String get bySmartScanner => 'Розумний сканер';
 
   @override
-  String get scannerHint => 'Наведіть на штрихкод або зробіть фото';
+  String get checkRecipeButton => 'Перевірити рецепт';
 }

@@ -763,7 +763,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                       },
                                       child: Row(
                                         children: [
-                                          Icon(Symbols.camera_alt_outlined, color: AppColors.primary),
+                                          Icon(Symbols.camera, color: AppColors.primary),
                                           SizedBox(width: 12),
                                           Text(AppLocalizations.of(context)!.byPhoto),
                                         ],
