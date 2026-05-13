@@ -599,5 +599,6 @@
   "byBarcode": "За штрих-кодом",
   "smartScannerTitle": "Розумний сканер",
   "bySmartScanner": "По фото / Сканер",
-  "checkRecipeButton": "Перевірити рецепт"
+  "checkRecipeButton": "Перевірити рецепт",
+  "recipeAiCalculateRequired": "Необхідно розрахувати харчову цінність перед збереженням."
 }

@@ -1602,8 +1602,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get smartScannerTitle => 'Умный сканер';
 
   @override
-  String get bySmartScanner => 'Умный сканер';
+  String get bySmartScanner => 'По фото / Сканер';
 
   @override
   String get checkRecipeButton => 'Проверить рецепт';
+
+  @override
+  String get recipeAiCalculateRequired =>
+      'Необходимо рассчитать пищевую ценность перед сохранением.';
 }

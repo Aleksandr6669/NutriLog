@@ -179,7 +179,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
       if (!mounted) return;
       context.pushReplacement(
-        '/recipes/edit',
+        '/recipe/edit',
         extra: {
           'initialDraft': _buildDraftRecipe(draft),
           'initialClarification': _buildDetailedClarification(draft, description),
@@ -222,7 +222,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       if (!mounted) return;
 
       context.pushReplacement(
-        '/recipes/edit',
+        '/recipe/edit',
         extra: {
           'initialDraft': _buildDraftRecipe(draft),
         },

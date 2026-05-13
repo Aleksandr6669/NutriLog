@@ -598,5 +598,6 @@
   "byBarcode": "By Barcode",
   "smartScannerTitle": "Smart Scanner",
   "bySmartScanner": "By Photo / Scanner",
-  "checkRecipeButton": "Check recipe"
+  "checkRecipeButton": "Check recipe",
+  "recipeAiCalculateRequired": "Nutritional calculation is required before saving."
 }

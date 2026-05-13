@@ -2978,7 +2978,7 @@ abstract class AppLocalizations {
   /// No description provided for @bySmartScanner.
   ///
   /// In en, this message translates to:
-  /// **'Smart Scanner'**
+  /// **'By Photo / Scanner'**
   String get bySmartScanner;
 
   /// No description provided for @checkRecipeButton.
@@ -2986,6 +2986,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check recipe'**
   String get checkRecipeButton;
+
+  /// No description provided for @recipeAiCalculateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutritional calculation is required before saving.'**
+  String get recipeAiCalculateRequired;
 }
 
 class _AppLocalizationsDelegate

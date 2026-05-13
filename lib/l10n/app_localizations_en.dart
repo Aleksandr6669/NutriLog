@@ -1597,8 +1597,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get smartScannerTitle => 'Smart Scanner';
 
   @override
-  String get bySmartScanner => 'Smart Scanner';
+  String get bySmartScanner => 'By Photo / Scanner';
 
   @override
   String get checkRecipeButton => 'Check recipe';
+
+  @override
+  String get recipeAiCalculateRequired =>
+      'Nutritional calculation is required before saving.';
 }

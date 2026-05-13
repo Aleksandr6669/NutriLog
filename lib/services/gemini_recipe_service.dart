@@ -2928,6 +2928,18 @@ Rules:
       }
     } catch (_) {}
 
+    // Robust search for JSON object using first { and last }
+    final firstBrace = trimmed.indexOf('{');
+    final lastBrace = trimmed.lastIndexOf('}');
+    
+    if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+      final possibleJson = trimmed.substring(firstBrace, lastBrace + 1);
+      try {
+        final extracted = jsonDecode(possibleJson);
+        if (extracted is Map<String, dynamic>) return extracted;
+      } catch (_) {}
+    }
+
     final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(trimmed);
     if (fenceMatch != null) {
       try {
@@ -2935,6 +2947,12 @@ Rules:
         if (fenced is Map<String, dynamic>) return fenced;
       } catch (_) {}
     }
+
+    AiErrorLogService.instance.logError(
+      feature: 'JSON Decoder',
+      message: 'Failed to parse JSON',
+      details: trimmed,
+    );
 
     throw GeminiRecipeException(
       _messages(locale).aiFailedToParseJsonError,

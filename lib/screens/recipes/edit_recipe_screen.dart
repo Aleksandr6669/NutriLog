@@ -60,9 +60,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   final List<_IngredientFormItem> _ingredientItems = [];
   bool _autoCalculateCalories = true;
   bool _isSyncingCalories = false;
+  bool _isAiError = false;
+  bool _isNutritionCalculated = false;
+  bool _showCalculationError = false;
   bool _isAiCalculating = false;
   String? _aiStatus;
-  bool _isAiError = false;
   
   bool _isPublic = false;
   bool _isDonated = false;
@@ -125,13 +127,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _descriptionController.addListener(_onDonateValidationInputChanged);
     _clarificationController.addListener(_onDonateValidationInputChanged);
 
-    // Если initialDraft (создание по фото/описанию) — нутриенты всегда пустые, расчет только через AI
+    // Если initialDraft (создание по фото/описанию) — нутриенты заполняются данными от AI
     final isFromDraft = widget.initialDraft != null;
+    final isNewRecipe = widget.recipe == null;
+
+    // Считаем рассчитанным, если это существующий рецепт или черновик с нутриентами
+    _isNutritionCalculated = !isNewRecipe || isFromDraft;
 
     for (var key in _nutrientKeys) {
-      final initialValue = isFromDraft 
-          ? '0.0' 
-          : (sourceRecipe?.nutrients[key]?.toString() ?? '0.0');
+      final initialValue = sourceRecipe?.nutrients[key]?.toString() ?? '0.0';
       _nutrientControllers[key] = TextEditingController(text: initialValue);
     }
 
@@ -165,9 +169,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _attachIngredientListeners(_IngredientFormItem item) {
-    // Listeners for manual triggers are not needed here anymore for auto-AI,
-    // but we can keep them if we want some local reactive UI updates.
-    // User requested AI calculation to be manual.
+    item.nameController.addListener(_onIngredientChanged);
+    item.quantityController.addListener(_onIngredientChanged);
+  }
+
+  void _onIngredientChanged() {
+    if (_isNutritionCalculated) {
+      setState(() => _isNutritionCalculated = false);
+    }
   }
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
@@ -231,9 +240,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isPublicAiApproved = result.approved;
         _publicAiStatus = result.reason;
         _publicAiFixSuggestions = result.fixSuggestions;
-        if (result.approved) {
-          _isPublic = true;
-        }
       });
     } catch (e) {
       if (!mounted || requestId != _publicAiRequestId) return;
@@ -278,10 +284,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _donateAiStatus = result.reason;
         _donateAiFixSuggestions = result.fixSuggestions;
       });
-
-      if (result.approved) {
-        await _donateRecipe();
-      }
     } catch (e) {
       if (!mounted || requestId != _donateAiRequestId) return;
       setState(() {
@@ -708,6 +710,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isAiCalculating = false;
         _aiStatus = l10n.recipeAiUpdated;
         _isAiError = false;
+        _isNutritionCalculated = true;
+        _showCalculationError = false;
       });
     } on GeminiRecipeException catch (e) {
       if (!mounted || requestId != _aiRequestId) return;
@@ -777,6 +781,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+      return;
+    }
+
+    if (!_isNutritionCalculated) {
+      setState(() {
+        _showCalculationError = true;
+        _aiStatus = l10n.recipeAiCalculateRequired;
+        _isAiError = true;
+      });
       return;
     }
 
@@ -1200,22 +1213,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ],
             if (!_isDonated) ...[
               OutlinedButton.icon(
-                onPressed: (_isFormReadyForDonate && !_isPublicAiChecking)
-                    ? _runPublicModeration
+                onPressed: (_isFormReadyForDonate && !_isDonateAiChecking && !_isDonateAiApproved)
+                    ? _runDonateModeration
                     : null,
-                icon: _isPublicAiChecking
+                icon: _isDonateAiChecking
                     ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Symbols.verified, size: 18),
                 label: Text(l10n.checkRecipeButton),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: (_isFormReadyForDonate && !_isDonateAiChecking)
-                    ? _runDonateModeration
+                onPressed: (_isFormReadyForDonate && _isDonateAiApproved)
+                    ? _donateRecipe
                     : null,
-                icon: _isDonateAiChecking
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Symbols.volunteer_activism, size: 18),
+                icon: const Icon(Symbols.volunteer_activism, size: 18),
                 label: Text(l10n.donateRecipeButton),
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.deepOrange,
@@ -1293,7 +1304,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: (_isFormReadyForDonate && !_isPublicAiChecking)
+              onPressed: (_isFormReadyForDonate && !_isPublicAiChecking && !_isPublicAiApproved)
                   ? _runPublicModeration
                   : null,
               icon: _isPublicAiChecking
