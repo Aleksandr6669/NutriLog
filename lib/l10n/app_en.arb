@@ -597,6 +597,6 @@
   "barcodeNotFound": "Product not found in database",
   "byBarcode": "By Barcode",
   "smartScannerTitle": "Smart Scanner",
-  "bySmartScanner": "Smart Scanner",
+  "bySmartScanner": "By Photo / Scanner",
   "checkRecipeButton": "Check recipe"
 }

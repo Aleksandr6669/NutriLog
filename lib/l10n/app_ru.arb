@@ -596,6 +596,6 @@
   "barcodeNotFound": "Товар не найден в базе данных",
   "byBarcode": "По штрих-коду",
   "smartScannerTitle": "Умный сканер",
-  "bySmartScanner": "Умный сканер",
+  "bySmartScanner": "По фото / Сканер",
   "checkRecipeButton": "Проверить рецепт"
 }
