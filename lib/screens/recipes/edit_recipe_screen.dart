@@ -136,7 +136,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     for (var key in _nutrientKeys) {
       final initialValue = sourceRecipe?.nutrients[key]?.toString() ?? '0.0';
       final controller = TextEditingController(text: initialValue);
-      controller.addListener(_resetModeration);
+      controller.addListener(_onNutrientChanged);
       _nutrientControllers[key] = controller;
     }
 
@@ -175,14 +175,23 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onIngredientChanged() {
-    _resetModeration();
+    _resetModeration(resetCalculated: true);
   }
 
-  void _resetModeration() {
+  void _onNutrientChanged() {
+    if (!_isNutritionCalculated) {
+      setState(() {
+        _isNutritionCalculated = true;
+      });
+    }
+    _resetModeration(resetCalculated: false);
+  }
+
+  void _resetModeration({bool resetCalculated = true}) {
     if (_isPublicAiApproved ||
         _isDonateAiApproved ||
         _isPublic ||
-        _isNutritionCalculated) {
+        (resetCalculated && _isNutritionCalculated)) {
       if (mounted) {
         setState(() {
           _isPublicAiApproved = false;
@@ -190,7 +199,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           _isPublic = false;
           _publicAiStatus = null;
           _donateAiStatus = null;
-          _isNutritionCalculated = false;
+          if (resetCalculated) {
+            _isNutritionCalculated = false;
+          }
         });
       }
     }
@@ -208,7 +219,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onDonateValidationInputChanged() {
-    _resetModeration();
+    _resetModeration(resetCalculated: false);
   }
 
   String _quickDonateValidationMessage() {
@@ -881,7 +892,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       _attachIngredientListeners(item);
       _ingredientItems.add(item);
     });
-    _resetModeration();
+    _resetModeration(resetCalculated: true);
   }
 
   void _removeIngredientRow(int index) {
@@ -889,7 +900,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _detachIngredientListeners(item);
     item.dispose();
     setState(() {});
-    _resetModeration();
+    _resetModeration(resetCalculated: true);
   }
 
   void _showIconPicker() {
@@ -971,7 +982,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       _selectedIcon = icon;
                     });
                     Navigator.pop(context);
-                    _resetModeration();
+                    _resetModeration(resetCalculated: false);
                   },
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
