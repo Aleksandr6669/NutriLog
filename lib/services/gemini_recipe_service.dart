@@ -2921,8 +2921,14 @@ Rules:
     final trimmed = text.trim();
     debugPrint('[Gemini raw response]:\n$trimmed');
 
+    String cleanJson(String raw) {
+      return raw
+          .replaceAll(RegExp(r',\s*}'), '}')
+          .replaceAll(RegExp(r',\s*]'), ']');
+    }
+
     try {
-      final direct = jsonDecode(trimmed);
+      final direct = jsonDecode(cleanJson(trimmed));
       if (direct is Map<String, dynamic>) {
         return direct;
       }
@@ -2935,7 +2941,7 @@ Rules:
     if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
       final possibleJson = trimmed.substring(firstBrace, lastBrace + 1);
       try {
-        final extracted = jsonDecode(possibleJson);
+        final extracted = jsonDecode(cleanJson(possibleJson));
         if (extracted is Map<String, dynamic>) return extracted;
       } catch (_) {}
     }
@@ -2943,7 +2949,7 @@ Rules:
     final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(trimmed);
     if (fenceMatch != null) {
       try {
-        final fenced = jsonDecode(fenceMatch.group(1)!.trim());
+        final fenced = jsonDecode(cleanJson(fenceMatch.group(1)!.trim()));
         if (fenced is Map<String, dynamic>) return fenced;
       } catch (_) {}
     }

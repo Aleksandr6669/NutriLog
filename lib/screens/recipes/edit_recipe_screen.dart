@@ -62,7 +62,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isSyncingCalories = false;
   bool _isAiError = false;
   bool _isNutritionCalculated = false;
-  bool _showCalculationError = false;
   bool _isAiCalculating = false;
   String? _aiStatus;
   
@@ -181,7 +180,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
     if (isFromDraft) {
-      // Manual calculation is triggered by the user via the button.
+      final bool hasMissingNutrients = _nutrientKeys.any((key) => _parseAmount(_nutrientControllers[key]!.text) == 0.0);
+      if (hasMissingNutrients && _hasAnyIngredient && mounted) {
+        _recalculateNutrientsWithAi();
+      }
       return;
     }
 
@@ -711,7 +713,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _aiStatus = l10n.recipeAiUpdated;
         _isAiError = false;
         _isNutritionCalculated = true;
-        _showCalculationError = false;
       });
     } on GeminiRecipeException catch (e) {
       if (!mounted || requestId != _aiRequestId) return;
@@ -786,7 +787,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     if (!_isNutritionCalculated) {
       setState(() {
-        _showCalculationError = true;
         _aiStatus = l10n.recipeAiCalculateRequired;
         _isAiError = true;
       });
@@ -1140,7 +1140,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
-            if (_publicAiStatus != null || _donateAiStatus != null) ...[
+            if (_donateAiStatus != null) ...[
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
@@ -1152,63 +1152,30 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     color: Colors.blue.withValues(alpha: 0.15),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    if (_publicAiStatus != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _isPublicAiApproved ? Symbols.verified : Symbols.info,
-                              size: 14,
-                              color: _isPublicAiApproved ? Colors.green : Colors.blue,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${l10n.makePublic}: $_publicAiStatus',
-                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
-                              ),
-                            ),
-                          ],
-                        ),
+                    Icon(
+                      _isDonateAiApproved ? Symbols.verified : Symbols.info,
+                      size: 14,
+                      color: _isDonateAiApproved ? Colors.green : Colors.blue,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${l10n.donateRecipeButton}: $_donateAiStatus',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                       ),
-                    if (_donateAiStatus != null)
-                      Row(
-                        children: [
-                          Icon(
-                            _isDonateAiApproved ? Symbols.verified : Symbols.info,
-                            size: 14,
-                            color: _isDonateAiApproved ? Colors.green : Colors.blue,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              '${l10n.donateRecipeButton}: $_donateAiStatus',
-                              style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
-                            ),
-                          ),
-                        ],
-                      ),
-                    if (_publicAiFixSuggestions != null && _publicAiFixSuggestions!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${l10n.aiClarificationLabel}: $_publicAiFixSuggestions',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
-                      ),
-                    ],
-                    if (_donateAiFixSuggestions != null && _donateAiFixSuggestions!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${l10n.aiClarificationLabel}: $_donateAiFixSuggestions',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ),
+              if (_donateAiFixSuggestions != null && _donateAiFixSuggestions!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${l10n.aiClarificationLabel}: $_donateAiFixSuggestions',
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
+                ),
+              ],
               const SizedBox(height: 16),
             ],
             if (!_isDonated) ...[
@@ -1312,6 +1279,47 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   : const Icon(Symbols.verified, size: 18),
               label: Text(l10n.checkRecipeButton),
             ),
+            if (_publicAiStatus != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.blue.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isPublicAiApproved ? Symbols.verified : Symbols.info,
+                          size: 14,
+                          color: _isPublicAiApproved ? Colors.green : Colors.blue,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${l10n.makePublic}: $_publicAiStatus',
+                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_publicAiFixSuggestions != null && _publicAiFixSuggestions!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${l10n.aiClarificationLabel}: $_publicAiFixSuggestions',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1491,46 +1499,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            const SizedBox(height: 8),
-            if (_aiStatus != null) ...[
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: (_isAiError ? Colors.red : AppColors.primary)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: (_isAiError ? Colors.red : AppColors.primary)
-                        .withValues(alpha: 0.22),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _isAiError ? Symbols.error : Symbols.info,
-                      size: 18,
-                      color:
-                          _isAiError ? Colors.red.shade700 : AppColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _aiStatus!,
-                        style: TextStyle(
-                          color: _isAiError
-                              ? Colors.red.shade700
-                              : Theme.of(context).textTheme.bodySmall?.color,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
             const SizedBox(height: 10),
             Container(
               width: double.infinity,

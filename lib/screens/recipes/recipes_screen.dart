@@ -54,7 +54,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String? _cachedDefaultRecipesLocale;
 
   String _cloudAccessErrorText() {
-    final l10n = AppLocalizations.of(context)!;
     final code = Localizations.localeOf(context).languageCode;
     if (code == 'uk') {
       return 'Немає доступу до хмари. Спробуйте пізніше.';
@@ -172,14 +171,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
   }
 
-  void _toggleRecipeSelection(Recipe recipe) {
-    final isSelected = (_selectedRecipeCounts[recipe.id] ?? 0) > 0;
-    if (isSelected) {
-      _removeRecipeSelection(recipe);
-    } else {
-      _addRecipeSelection(recipe);
-    }
-  }
+
 
   Future<void> _openRecipeDetail(Recipe recipe) async {
     HapticFeedback.selectionClick();
