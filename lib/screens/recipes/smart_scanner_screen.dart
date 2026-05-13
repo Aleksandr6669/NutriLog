@@ -202,20 +202,22 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
     try {
       final product = await _barcodeService.fetchProductByBarcode(code);
+      GeminiRecipeDraft draft;
       if (product == null) {
-        throw Exception(l10n.productNotFoundError);
+        final prompt = 'Search the web for the nutritional information and ingredients of the product with barcode: "$code". Create a basic nutritional entry for the product you find. If you cannot find any product with this barcode, return an empty object or name it "Unknown".';
+        draft = await _geminiService.generateRecipeFromDescription(
+          description: prompt,
+          locale: Localizations.localeOf(context).languageCode,
+        );
+        if (draft.name.isEmpty || draft.name.toLowerCase() == 'unknown') {
+          throw Exception(l10n.productNotFoundError);
+        }
+      } else {
+        draft = await _geminiService.generateRecipeFromBarcode(
+          productData: product,
+          locale: Localizations.localeOf(context).languageCode,
+        );
       }
-
-      final productName = product['product_name'] ?? l10n.unknownProduct;
-      final brand = product['brands'] ?? '';
-      
-      // Используем Gemini для превращения данных о продукте в черновик рецепта/блюда
-      final prompt = 'Identify this product and create a basic nutritional entry: $productName ($brand). JSON data: ${json.encode(product)}';
-      
-      final draft = await _geminiService.generateRecipeFromDescription(
-        description: prompt,
-        locale: Localizations.localeOf(context).languageCode,
-      );
 
       if (!mounted) return;
 
