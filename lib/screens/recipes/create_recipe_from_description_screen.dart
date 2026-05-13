@@ -34,6 +34,11 @@ class _CreateRecipeFromDescriptionScreenState
   void initState() {
     super.initState();
     _initSpeech();
+    _descriptionController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    setState(() {});
   }
 
   void _initSpeech() async {
@@ -214,7 +219,9 @@ class _CreateRecipeFromDescriptionScreenState
                   child: SizedBox(
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: _isGenerating ? null : _generateAndOpenEditor,
+                      onPressed: (_isGenerating || _isListening || _descriptionController.text.trim().isEmpty) 
+                          ? null 
+                          : _generateAndOpenEditor,
                       icon: _isGenerating
                           ? const SizedBox(
                               width: 18,
