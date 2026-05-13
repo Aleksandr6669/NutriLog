@@ -2088,12 +2088,7 @@ Rules:
             },
           'tools': [
             {
-              'googleSearchRetrieval': {
-                'dynamicRetrievalConfig': {
-                  'mode': 'MODE_DYNAMIC',
-                  'dynamicThreshold': 0.1,
-                }
-              }
+              'googleSearch': {}
             },
             if (enableTools) {'codeExecution': <String, dynamic>{}},
           ],
