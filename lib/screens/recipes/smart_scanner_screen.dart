@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:camera/camera.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -21,35 +23,124 @@ class SmartScannerScreen extends StatefulWidget {
 }
 
 class _SmartScannerScreenState extends State<SmartScannerScreen> {
-  final MobileScannerController _controller = MobileScannerController();
+  CameraController? _cameraController;
+  final BarcodeScanner _barcodeScanner = BarcodeScanner();
   final BarcodeService _barcodeService = BarcodeService();
   final GeminiRecipeService _geminiService = GeminiRecipeService();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
+  
   bool _isProcessing = false;
+  bool _isCameraInitialized = false;
+  bool _isScanning = false;
   XFile? _capturedImage;
 
   @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) return;
+
+      final backCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        backCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+
+      setState(() {
+        _isCameraInitialized = true;
+      });
+
+      _startBarcodeScanning();
+    } catch (e) {
+      debugPrint('Error initializing camera: $e');
+    }
+  }
+
+  void _startBarcodeScanning() {
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
+      _cameraController!.startImageStream(_processCameraImage);
+    }
+  }
+
+  Future<void> _processCameraImage(CameraImage image) async {
+    if (_isProcessing || _isScanning || _capturedImage != null) return;
+    
+    _isScanning = true;
+    
+    try {
+      final camera = _cameraController!.description;
+      final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
+      final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+      
+      final metadata = InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: image.planes[0].bytesPerRow,
+      );
+
+      final WriteBuffer allBytes = WriteBuffer();
+      for (final Plane plane in image.planes) {
+        allBytes.putUint8List(plane.bytes);
+      }
+      final bytes = allBytes.done().buffer.asUint8List();
+
+      final inputImage = InputImage.fromBytes(bytes: bytes, metadata: metadata);
+      final barcodes = await _barcodeScanner.processImage(inputImage);
+
+      if (barcodes.isNotEmpty && !_isProcessing && _capturedImage == null) {
+        final String? code = barcodes.first.rawValue;
+        if (code != null) {
+          // Pause camera stream to process barcode
+          await _cameraController?.stopImageStream();
+          await _processBarcode(code);
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error processing camera image: $e');
+    } finally {
+      if (mounted) {
+        _isScanning = false;
+      }
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _cameraController?.dispose();
+    _barcodeScanner.close();
     _descriptionController.dispose();
     super.dispose();
   }
 
-
-
   Future<void> _captureImage() async {
-    if (_isProcessing) return;
+    if (_isProcessing || _cameraController == null || !_cameraController!.value.isInitialized) return;
     
     try {
-      final image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 90,
-        maxWidth: 1920,
-      );
+      if (_cameraController!.value.isStreamingImages) {
+        await _cameraController!.stopImageStream();
+      }
       
-      if (image == null) return;
-
+      final image = await _cameraController!.takePicture();
+      
       setState(() {
         _capturedImage = image;
       });
@@ -62,10 +153,14 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     }
   }
 
-
+  void _clearCapturedImage() {
+    setState(() {
+      _capturedImage = null;
+    });
+    _startBarcodeScanning();
+  }
 
   Future<void> _sendToAi() async {
-    final l10n = AppLocalizations.of(context)!;
     if (_isProcessing || _capturedImage == null) return;
 
     setState(() => _isProcessing = true);
@@ -136,6 +231,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
+        // Resume scanning if error occurred
+        _startBarcodeScanning();
       }
     }
   }
@@ -191,27 +288,39 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Symbols.photo_library, color: Colors.white),
-            tooltip: AppLocalizations.of(context)!.gallery,
-            onPressed: () async {
-              if (_isProcessing) return;
-              final image = await _imagePicker.pickImage(
-                source: ImageSource.gallery,
-                imageQuality: 90,
-                maxWidth: 1920,
-              );
-              if (image == null) return;
-              setState(() {
-                _capturedImage = image;
-              });
-            },
-          ),
+          if (_capturedImage != null)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              tooltip: 'Отменить',
+              onPressed: _clearCapturedImage,
+            )
+          else
+            IconButton(
+              icon: const Icon(Symbols.photo_library, color: Colors.white),
+              tooltip: l10n.gallery,
+              onPressed: () async {
+                if (_isProcessing) return;
+                final image = await _imagePicker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 90,
+                  maxWidth: 1920,
+                );
+                if (image == null) return;
+                
+                if (_cameraController?.value.isStreamingImages == true) {
+                  await _cameraController?.stopImageStream();
+                }
+
+                setState(() {
+                  _capturedImage = image;
+                });
+              },
+            ),
         ],
       ),
       body: Stack(
         children: [
-          // Photo Preview (Instead of Scanner)
+          // Background: Either Captured Image or Live Camera Preview
           if (_capturedImage != null)
             Positioned.fill(
               child: Image.file(
@@ -219,21 +328,20 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                 fit: BoxFit.cover,
               ),
             )
+          else if (_isCameraInitialized && _cameraController != null)
+            Positioned.fill(
+              // Using SizedBox.expand to ensure CameraPreview fills the background properly 
+              // (might require clipping or BoxFit depending on aspect ratio, but we'll let CameraPreview handle it)
+              child: CameraPreview(_cameraController!),
+            )
           else
-            MobileScanner(
-              controller: _controller,
-              onDetect: (capture) {
-                final List<Barcode> barcodes = capture.barcodes;
-                if (barcodes.isNotEmpty && !_isProcessing && _capturedImage == null) {
-                  final String? code = barcodes.first.rawValue;
-                  if (code != null) {
-                    _processBarcode(code);
-                  }
-                }
-              },
+            const Positioned.fill(
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
             ),
 
-          if (_capturedImage == null)
+          if (_capturedImage == null && _isCameraInitialized)
             _buildScannerOverlay(),
 
           // Thumbnail (Top Right)
@@ -265,42 +373,43 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             ),
 
           // Description Field (Glassmorphism)
-          Positioned(
-            bottom: 140,
-            left: 20,
-            right: 20,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _descriptionController,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                    maxLines: 1,
-                    decoration: InputDecoration(
-                      hintText: l10n.recipeDescriptionExample,
-                      hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 14,
+          if (_capturedImage != null)
+            Positioned(
+              bottom: 140,
+              left: 20,
+              right: 20,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1.5,
                       ),
-                      border: InputBorder.none,
-                      icon: const Icon(Symbols.edit, color: Colors.white70, size: 20),
+                    ),
+                    child: TextField(
+                      controller: _descriptionController,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        hintText: l10n.recipeDescriptionExample,
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 14,
+                        ),
+                        border: InputBorder.none,
+                        icon: const Icon(Symbols.edit, color: Colors.white70, size: 20),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
           
           // Action Button
           Positioned(

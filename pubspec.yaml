@@ -43,8 +43,9 @@ dependencies:
   google_sign_in: ^5.4.0
   connectivity_plus: ^6.0.5 
   encrypt: ^5.0.3
-  mobile_scanner: ^7.2.0
   speech_to_text: ^7.3.0
+  camera: ^0.12.0+1
+  google_mlkit_barcode_scanning: ^0.14.2
 
 
 dev_dependencies:
