@@ -20,6 +20,8 @@ class NotificationSettings {
     required this.geminiModel,
     required this.aiRetryAttempts,
     required this.aiRetryDelaySeconds,
+    required this.aiTimeoutSeconds,
+    required this.aiMaxTokens,
   });
 
   final bool waterReminderEnabled;
@@ -36,6 +38,8 @@ class NotificationSettings {
   final String geminiModel;
   final int aiRetryAttempts;
   final int aiRetryDelaySeconds;
+  final int aiTimeoutSeconds;
+  final int aiMaxTokens;
 
   NotificationSettings copyWith({
     bool? waterReminderEnabled,
@@ -52,6 +56,8 @@ class NotificationSettings {
     String? geminiModel,
     int? aiRetryAttempts,
     int? aiRetryDelaySeconds,
+    int? aiTimeoutSeconds,
+    int? aiMaxTokens,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -70,6 +76,8 @@ class NotificationSettings {
       geminiModel: geminiModel ?? this.geminiModel,
       aiRetryAttempts: aiRetryAttempts ?? this.aiRetryAttempts,
       aiRetryDelaySeconds: aiRetryDelaySeconds ?? this.aiRetryDelaySeconds,
+      aiTimeoutSeconds: aiTimeoutSeconds ?? this.aiTimeoutSeconds,
+      aiMaxTokens: aiMaxTokens ?? this.aiMaxTokens,
     );
   }
 }
@@ -89,6 +97,8 @@ class NotificationSettingsService {
   static const _geminiModelKey = 'gemini_model_v1';
   static const _aiRetryAttemptsKey = 'ai_retry_attempts';
   static const _aiRetryDelayKey = 'ai_retry_delay';
+  static const _aiTimeoutSecondsKey = 'ai_timeout_seconds';
+  static const _aiMaxTokensKey = 'ai_max_tokens';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: true,
@@ -103,8 +113,10 @@ class NotificationSettingsService {
     statsAiAssistantEnabled: true,
     aiProvider: NotificationSettings.aiProviderGemini,
     geminiModel: NotificationSettings.geminiModelDefault,
-    aiRetryAttempts: 2,
-    aiRetryDelaySeconds: 8,
+    aiRetryAttempts: 1,
+    aiRetryDelaySeconds: 15,
+    aiTimeoutSeconds: 60,
+    aiMaxTokens: 4096,
   );
 
   Future<NotificationSettings> load() async {
@@ -144,6 +156,9 @@ class NotificationSettingsService {
           prefs.getInt(_aiRetryAttemptsKey) ?? defaults.aiRetryAttempts,
       aiRetryDelaySeconds:
           prefs.getInt(_aiRetryDelayKey) ?? defaults.aiRetryDelaySeconds,
+      aiTimeoutSeconds:
+          prefs.getInt(_aiTimeoutSecondsKey) ?? defaults.aiTimeoutSeconds,
+      aiMaxTokens: prefs.getInt(_aiMaxTokensKey) ?? defaults.aiMaxTokens,
     );
   }
 
@@ -168,6 +183,8 @@ class NotificationSettingsService {
     await prefs.setString(_geminiModelKey, settings.geminiModel);
     await prefs.setInt(_aiRetryAttemptsKey, settings.aiRetryAttempts);
     await prefs.setInt(_aiRetryDelayKey, settings.aiRetryDelaySeconds);
+    await prefs.setInt(_aiTimeoutSecondsKey, settings.aiTimeoutSeconds);
+    await prefs.setInt(_aiMaxTokensKey, settings.aiMaxTokens);
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:nutri_log/models/recipe.dart';
@@ -25,6 +26,7 @@ class _CreateRecipeFromDescriptionScreenState
   bool _isGenerating = false;
   bool _isListening = false;
   bool _speechEnabled = false;
+  String _preListeningText = '';
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -52,28 +54,29 @@ class _CreateRecipeFromDescriptionScreenState
   }
 
   void _startListening() async {
+    HapticFeedback.heavyImpact();
     if (!_speechEnabled) {
       // Re-init if failed before
       _initSpeech();
       return;
     }
     
+    _preListeningText = _descriptionController.text.trim();
     setState(() => _isListening = true);
     await _speechToText.listen(
       onResult: (result) {
         setState(() {
+          final newText = result.recognizedWords;
+          if (newText.isNotEmpty) {
+            _descriptionController.text = _preListeningText.isEmpty 
+                ? newText 
+                : '$_preListeningText $newText';
+            // Move cursor to end
+            _descriptionController.selection = TextSelection.fromPosition(
+              TextPosition(offset: _descriptionController.text.length),
+            );
+          }
           if (result.finalResult) {
-            final text = result.recognizedWords;
-            if (text.isNotEmpty) {
-              final currentText = _descriptionController.text.trim();
-              _descriptionController.text = currentText.isEmpty 
-                  ? text 
-                  : '$currentText $text';
-              // Move cursor to end
-              _descriptionController.selection = TextSelection.fromPosition(
-                TextPosition(offset: _descriptionController.text.length),
-              );
-            }
             _isListening = false;
           }
         });
@@ -83,6 +86,7 @@ class _CreateRecipeFromDescriptionScreenState
   }
 
   void _stopListening() async {
+    HapticFeedback.heavyImpact();
     await _speechToText.stop();
     setState(() => _isListening = false);
   }

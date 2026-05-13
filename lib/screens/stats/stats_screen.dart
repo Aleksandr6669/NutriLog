@@ -488,8 +488,19 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             .toList(),
         'consumedFoodNames': filledLogs
             .expand((log) => log.meals.values.expand((items) => items))
-            .map((item) => item.name.trim())
-            .where((name) => name.isNotEmpty)
+            .map((item) {
+              final n = item.nutrients;
+              final details = [
+                '${n.calories.round()}kcal',
+                if (n.protein > 0) 'P:${n.protein.round()}g',
+                if (n.fat > 0) 'F:${n.fat.round()}g',
+                if (n.carbs > 0) 'C:${n.carbs.round()}g',
+                if (n.sugar > 0) 'Sug:${n.sugar.round()}g',
+                if (n.sodium > 0) 'Sod:${n.sodium.round()}mg',
+              ].join(', ');
+              return '${item.name.trim()} ($details)';
+            })
+            .where((name) => name.isNotEmpty && !name.startsWith(' ()'))
             .toSet()
             .toList(),
       },

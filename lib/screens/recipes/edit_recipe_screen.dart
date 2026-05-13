@@ -1499,7 +1499,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            const SizedBox(height: 10),
+           const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

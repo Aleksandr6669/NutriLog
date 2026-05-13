@@ -26,7 +26,7 @@ class GeminiRecipeService {
     NotificationSettings.geminiModelDefault,
   ];
 
-  static const Duration _requestTimeout = Duration(seconds: 15);
+
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -251,7 +251,8 @@ class GeminiRecipeService {
     final prompt = '''
 You are a culinary assistant.
 ${_languageInstruction(locale)}
-Generate a recipe draft based on the user's description.
+Generate a recipe draft based on the user's description. 
+Note: The description may be from voice dictation, so it might lack punctuation, contain typos, or have unusual grammar. Parse it carefully to extract the intended dish name and ingredients.
 
 Dish description:
 $normalizedDescription
@@ -312,7 +313,6 @@ Rules:
           }
         ],
         'temperature': 0.3,
-        'max_completion_tokens': 1024,
         'top_p': 1,
         'stream': false,
         'enable_tools': true,
@@ -428,7 +428,6 @@ Rules:
           }
         ],
         'temperature': 0.3,
-        'max_completion_tokens': 1024,
         'top_p': 1,
         'stream': false,
         'response_schema': _getRecipeSchema(),
@@ -602,7 +601,6 @@ Rules:
           }
         ],
         'temperature': 0.1,
-        'max_tokens': 1024,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
         'response_schema': _getNutrientsOnlySchema(),
@@ -786,7 +784,6 @@ Rules:
             }
           ],
           'temperature': 0.1,
-          'max_completion_tokens': 1024,
           'response_schema': _getNutrientsRecheckSchema(),
         },
         locale: locale,
@@ -1047,7 +1044,6 @@ Rules:
           }
         ],
         'temperature': 0.5,
-        'max_completion_tokens': 420,
         'top_p': 1,
         'stream': false,
       },
@@ -1295,8 +1291,9 @@ Task:
     UNLESS goal type is muscle gain or weight gain.
 17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
 18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
-19) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
-20) Build overview in 3 mini-paragraphs separated by blank lines:
+19) Dish Composition Analysis: You MUST analyze the detailed nutritional breakdown of the actual dishes consumed (calories, macros, sugar, sodium). If a specific dish the user ate has excessive sodium, high sugar, or inadequate protein, point this out specifically in your overview and suggest adjustments.
+20) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
+21) Build overview in 3 mini-paragraphs separated by blank lines:
   A) progress snapshot and positive reinforcement,
   B) diagnosis of nutrition/activity bottlenecks,
   C) specific plan for the next period.
@@ -1335,7 +1332,6 @@ Rules:
             }
           ],
           'temperature': 0.4,
-          'max_completion_tokens': 2048,
           'response_schema': _getStatsReportSchema(),
         },
         locale: locale,
@@ -1680,7 +1676,6 @@ Rules:
             }
           ],
           'temperature': 0.2,
-          'max_completion_tokens': 260,
           'top_p': 1,
           'stream': false,
           'response_schema': _getDailyGoalsSchema(),
@@ -1869,7 +1864,6 @@ Rules:
           }
         ],
         'temperature': 0.2,
-        'max_completion_tokens': 220,
         'top_p': 1,
         'stream': false,
         'response_schema': _getActivitySchema(),
@@ -2025,6 +2019,7 @@ Rules:
     required Map<String, dynamic> body,
     String? locale,
     required List<String> models,
+    required NotificationSettings settings,
     String featureName = 'AI Request',
   }) async {
     // Wait for active request to finish (Simple Queue)
@@ -2095,7 +2090,7 @@ Rules:
           'generationConfig': {
             'temperature': body['temperature'] ?? 0.2,
             'topP': body['top_p'] ?? 1,
-            'maxOutputTokens': body['max_tokens'] ?? 2048,
+            'maxOutputTokens': settings.aiMaxTokens,
             'responseMimeType': 'application/json',
             if (body['response_schema'] != null)
               'responseSchema': body['response_schema'],
@@ -2105,13 +2100,17 @@ Rules:
         };
 
         try {
-          final response = await http
-              .post(
-                uri,
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode(payload),
-              )
-              .timeout(_requestTimeout);
+          var request = http.post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(payload),
+          );
+          
+          if (settings.aiTimeoutSeconds > 0) {
+            request = request.timeout(Duration(seconds: settings.aiTimeoutSeconds));
+          }
+
+          final response = await request;
 
           if (response.statusCode >= 200 && response.statusCode < 300) {
             AiErrorLogService.instance.logSuccess(feature: featureName);
@@ -2250,6 +2249,7 @@ Rules:
           body: body,
           locale: locale,
           models: [settings.geminiModel],
+          settings: settings,
           featureName: featureName,
         );
 

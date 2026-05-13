@@ -110,6 +110,10 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           _buildRetryAttemptsPicker(),
           const Divider(height: 1, indent: 56),
           _buildRetryDelayPicker(),
+          const Divider(height: 1, indent: 56),
+          _buildAiTimeoutPicker(),
+          const Divider(height: 1, indent: 56),
+          _buildAiMaxTokensPicker(),
         ],
       ),
     );
@@ -258,6 +262,65 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
             icon: const Icon(Icons.add_circle_outline),
             onPressed: _settings!.aiRetryDelaySeconds < 30
               ? () => _saveSettings(_settings!.copyWith(aiRetryDelaySeconds: _settings!.aiRetryDelaySeconds + 1))
+              : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiTimeoutPicker() {
+    return ListTile(
+      leading: const Icon(Icons.hourglass_bottom, color: Colors.indigo),
+      title: const Text('Таймаут (сек)'),
+      subtitle: const Text('Максимальное время ожидания ответа'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline),
+            onPressed: _settings!.aiTimeoutSeconds > 0
+              ? () => _saveSettings(_settings!.copyWith(aiTimeoutSeconds: _settings!.aiTimeoutSeconds - 15))
+              : null,
+          ),
+          SizedBox(
+            width: 40,
+            child: Text(
+              _settings!.aiTimeoutSeconds == 0 ? '∞' : '${_settings!.aiTimeoutSeconds}', 
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: _settings!.aiTimeoutSeconds < 120
+              ? () => _saveSettings(_settings!.copyWith(aiTimeoutSeconds: _settings!.aiTimeoutSeconds + 15))
+              : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiMaxTokensPicker() {
+    return ListTile(
+      leading: const Icon(Icons.data_array, color: Colors.teal),
+      title: const Text('Максимум токенов'),
+      subtitle: const Text('Размер генерируемого ответа'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline),
+            onPressed: _settings!.aiMaxTokens > 1024
+              ? () => _saveSettings(_settings!.copyWith(aiMaxTokens: _settings!.aiMaxTokens - 1024))
+              : null,
+          ),
+          Text('${_settings!.aiMaxTokens}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: _settings!.aiMaxTokens < 8192
+              ? () => _saveSettings(_settings!.copyWith(aiMaxTokens: _settings!.aiMaxTokens + 1024))
               : null,
           ),
         ],
