@@ -135,7 +135,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     for (var key in _nutrientKeys) {
       final initialValue = sourceRecipe?.nutrients[key]?.toString() ?? '0.0';
-      _nutrientControllers[key] = TextEditingController(text: initialValue);
+      final controller = TextEditingController(text: initialValue);
+      controller.addListener(_resetModeration);
+      _nutrientControllers[key] = controller;
     }
 
     final loadedIngredients = sourceRecipe?.ingredients ?? const [];
@@ -173,20 +175,28 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onIngredientChanged() {
-    if (_isNutritionCalculated) {
-      setState(() => _isNutritionCalculated = false);
+    _resetModeration();
+  }
+
+  void _resetModeration() {
+    if (_isPublicAiApproved ||
+        _isDonateAiApproved ||
+        _isPublic ||
+        _isNutritionCalculated) {
+      if (mounted) {
+        setState(() {
+          _isPublicAiApproved = false;
+          _isDonateAiApproved = false;
+          _isPublic = false;
+          _publicAiStatus = null;
+          _donateAiStatus = null;
+          _isNutritionCalculated = false;
+        });
+      }
     }
   }
 
   Future<void> _applyInitialAutomation({required bool isFromDraft}) async {
-    if (isFromDraft) {
-      final bool hasMissingNutrients = _nutrientKeys.any((key) => _parseAmount(_nutrientControllers[key]!.text) == 0.0);
-      if (hasMissingNutrients && _hasAnyIngredient && mounted) {
-        _recalculateNutrientsWithAi();
-      }
-      return;
-    }
-
     if (_autoCalculateCalories) {
       _applyAutoCalories();
     }
@@ -198,8 +208,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onDonateValidationInputChanged() {
-    // Automatic validation is disabled per user request.
-    // We now use manual buttons.
+    _resetModeration();
   }
 
   String _quickDonateValidationMessage() {
@@ -872,6 +881,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       _attachIngredientListeners(item);
       _ingredientItems.add(item);
     });
+    _resetModeration();
   }
 
   void _removeIngredientRow(int index) {
@@ -879,6 +889,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _detachIngredientListeners(item);
     item.dispose();
     setState(() {});
+    _resetModeration();
   }
 
   void _showIconPicker() {
@@ -956,8 +967,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 final isSelected = _selectedIcon == icon;
                 return InkWell(
                   onTap: () {
-                    setState(() => _selectedIcon = icon);
+                    setState(() {
+                      _selectedIcon = icon;
+                    });
                     Navigator.pop(context);
+                    _resetModeration();
                   },
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
@@ -1210,10 +1224,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final theme = Theme.of(context);
     final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
     final isInitialDraft = widget.initialDraft != null;
-    final canEnablePublic = isInitialDraft || (canManageVisibility &&
+    final canEnablePublic = canManageVisibility &&
         !_isDonated &&
         _isPublicAiApproved &&
-        !_isPublicAiChecking);
+        !_isPublicAiChecking;
     final canToggleVisibility =
         _isPublic ? (canManageVisibility && !_isDonated) : canEnablePublic;
     return Card(

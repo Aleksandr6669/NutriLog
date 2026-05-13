@@ -257,7 +257,7 @@ Note: The description may be from voice dictation, so it might lack punctuation,
 Dish description:
 $normalizedDescription
 
-Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. If unable — return empty JSON: {}.
+Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
 Format:
 {
@@ -358,7 +358,7 @@ If the photo shows a home-cooked dish, identify it as precisely as possible, ide
 
 ${normalizedDescription.isEmpty ? '' : 'Additional user description: $normalizedDescription'}
 
-Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. If unable — return empty JSON: {}.
+Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
 Format:
 {
@@ -2058,15 +2058,16 @@ Rules:
         details: usesImageInput ? 'Request contains image' : 'Text only request',
       );
 
+      final systemInstruction = body['system_instruction'] as String?;
+      final enableTools = body['enable_tools'] == true;
+      final thinkingLevel = body['thinking_level'] as String?;
+      final isThinkingModel = models.first.contains('thinking');
+
       for (final modelName in models) {
         final model = _resolveGeminiModel(modelName);
         final uri = Uri.parse(
           'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
         );
-
-        final systemInstruction = body['system_instruction'] as String?;
-        final enableTools = body['enable_tools'] == true;
-        final thinkingLevel = body['thinking_level'] as String?;
 
         final payload = <String, dynamic>{
           'contents': [
@@ -2094,7 +2095,7 @@ Rules:
             'responseMimeType': 'application/json',
             if (body['response_schema'] != null)
               'responseSchema': body['response_schema'],
-            if (thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
+            if (isThinkingModel && thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
               'thinkingConfig': {'thinkingLevel': thinkingLevel.trim()},
           },
         };
