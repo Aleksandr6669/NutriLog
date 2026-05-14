@@ -57,6 +57,7 @@ class Recipe {
   String name;
   String description;
   String clarification;
+  String healthAdvice;
   // Changed to double to accommodate fractional values from new design
   Map<String, double> nutrients;
   List<RecipeIngredient> ingredients;
@@ -78,6 +79,7 @@ class Recipe {
     this.isUserRecipe = false,
     this.isPublic = false,
     this.isDonated = false,
+    this.healthAdvice = '',
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -109,6 +111,7 @@ class Recipe {
       isUserRecipe: json['isUserRecipe'] ?? false,
       isPublic: json['isPublic'] == true,
       isDonated: json['isDonated'] == true,
+      healthAdvice: (json['healthAdvice'] as String? ?? '').trim(),
     );
   }
 
@@ -134,6 +137,7 @@ class Recipe {
       'isUserRecipe': isUserRecipe,
       'isPublic': isPublic,
       'isDonated': isDonated,
+      'healthAdvice': healthAdvice,
     };
   }
 
@@ -149,6 +153,7 @@ class Recipe {
     bool? isUserRecipe,
     bool? isPublic,
     bool? isDonated,
+    String? healthAdvice,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -162,6 +167,7 @@ class Recipe {
       isUserRecipe: isUserRecipe ?? this.isUserRecipe,
       isPublic: isPublic ?? this.isPublic,
       isDonated: isDonated ?? this.isDonated,
+      healthAdvice: healthAdvice ?? this.healthAdvice,
     );
   }
 

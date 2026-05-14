@@ -2992,6 +2992,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nutritional calculation is required before saving.'**
   String get recipeAiCalculateRequired;
+
+  /// No description provided for @healthConditionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical Details'**
+  String get healthConditionsTitle;
+
+  /// No description provided for @healthConditionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter health conditions (e.g., gastritis, allergies) to help AI personalize your nutrition.'**
+  String get healthConditionsHint;
+
+  /// No description provided for @healthAdviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical Advice'**
+  String get healthAdviceTitle;
 }
 
 class _AppLocalizationsDelegate

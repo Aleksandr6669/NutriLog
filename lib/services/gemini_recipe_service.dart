@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -8,7 +7,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutri_log/l10n/app_localizations.dart';
 
-
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
 import 'notification_settings_service.dart';
@@ -17,16 +15,12 @@ import 'recipe_loader.dart';
 import 'dart:ui' as ui;
 
 class GeminiRecipeService {
-
-
   static Future<void>? _globalRequestLock;
   static DateTime? _rateLimitResetTime;
 
   static const List<String> _geminiModels = [
     NotificationSettings.geminiModelDefault,
   ];
-
-
 
   static const List<String> nutrientKeys = [
     'calories',
@@ -128,6 +122,7 @@ class GeminiRecipeService {
         'name': {'type': 'string'},
         'description': {'type': 'string'},
         'clarification': {'type': 'string'},
+        'healthAdvice': {'type': 'string'},
         'icon': {'type': 'string'},
         'ingredients': {
           'type': 'array',
@@ -148,7 +143,29 @@ class GeminiRecipeService {
           'required': nutrientKeys,
         },
       },
-      'required': ['name', 'description', 'clarification', 'icon', 'ingredients', 'nutrients'],
+      'required': [
+        'name',
+        'description',
+        'clarification',
+        'healthAdvice',
+        'icon',
+        'ingredients',
+        'nutrients'
+      ],
+    };
+  }
+
+  Map<String, dynamic> _getNutrientEstimationSchema() {
+    final props = <String, dynamic>{};
+    for (final key in nutrientKeys) {
+      props[key] = {'type': 'number'};
+    }
+    props['healthAdvice'] = {'type': 'string'};
+
+    return {
+      'type': 'object',
+      'properties': props,
+      'required': [...nutrientKeys, 'healthAdvice'],
     };
   }
 
@@ -170,9 +187,16 @@ class GeminiRecipeService {
       'properties': {
         'approved': {'type': 'boolean'},
         'reason': {'type': 'string'},
-        'fixSuggestions': {'type': 'string'},
+        'fixSuggestions': {
+          'type': 'string',
+          'description': 'Suggestions to fix the recipe if not approved'
+        },
+        'healthAdvice': {
+          'type': 'string',
+          'description': 'Medical warnings or advice based on user health context'
+        }
       },
-      'required': ['approved', 'reason', 'fixSuggestions'],
+      'required': ['approved', 'reason', 'fixSuggestions', 'healthAdvice']
     };
   }
 
@@ -187,7 +211,14 @@ class GeminiRecipeService {
         'waterGoal': {'type': 'integer'},
         'stepsGoal': {'type': 'integer'},
       },
-      'required': ['calorieGoal', 'proteinGoal', 'fatGoal', 'carbsGoal', 'waterGoal', 'stepsGoal'],
+      'required': [
+        'calorieGoal',
+        'proteinGoal',
+        'fatGoal',
+        'carbsGoal',
+        'waterGoal',
+        'stepsGoal'
+      ],
     };
   }
 
@@ -240,6 +271,7 @@ class GeminiRecipeService {
   Future<GeminiRecipeDraft> generateRecipeFromDescription({
     required String description,
     String? locale,
+    String healthConditions = '',
   }) async {
     final normalizedDescription = description.trim();
     if (normalizedDescription.isEmpty) {
@@ -256,6 +288,8 @@ Note: The description may be from voice dictation, so it might lack punctuation,
 
 Dish description:
 $normalizedDescription
+
+${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the requested recipe. Generate it exactly as described. If any part of the recipe is unsuitable for the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -335,6 +369,7 @@ Rules:
     required String imageMimeType,
     String description = '',
     String? locale,
+    String healthConditions = '',
   }) async {
     if (imageBytes.isEmpty) {
       throw GeminiRecipeException(
@@ -357,6 +392,8 @@ If the product is a soda, juice, dairy product, protein bar, chocolate, snacks, 
 If the photo shows a home-cooked dish, identify it as precisely as possible, identify the main ingredients and estimate their quantities.
 
 ${normalizedDescription.isEmpty ? '' : 'Additional user description: $normalizedDescription'}
+
+${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the ingredients seen or requested. Generate the recipe as is. If any part contradicts the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -445,6 +482,7 @@ Rules:
   Future<GeminiRecipeDraft> generateRecipeFromBarcode({
     required Map<String, dynamic> productData,
     String? locale,
+    String healthConditions = '',
   }) async {
     final productName = productData['product_name'] ?? '';
     final brands = productData['brands'] ?? '';
@@ -461,6 +499,8 @@ Brands: $brands
 Categories: $categories
 Ingredients: $ingredientsText
 Raw Nutriments: ${jsonEncode(nutrients)}
+
+${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the product data. If this product is unsuitable for the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
 
 Reply ONLY in JSON format.
 Format:
@@ -508,12 +548,14 @@ Rules:
     return draft;
   }
 
-  Future<Map<String, double>> estimateNutrients({
+
+  Future<NutrientEstimationResult> estimateNutrients({
     required String recipeName,
     required String recipeDescription,
     required List<RecipeIngredient> ingredients,
     String clarification = '',
     String? locale,
+    String healthConditions = '',
   }) async {
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
@@ -540,15 +582,15 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
 
-
-
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
 
-  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below.
+  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide medical advice based on the user's health conditions.
 
   CRITICAL RULES:
+  ...
+  7. If any part of the recipe (ingredients, preparation) contradicts the USER HEALTH CONTEXT, provide a clear medical warning or advice in the "healthAdvice" field. If everything is safe, you can leave it empty or provide a general positive tip.
   1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
   2. The specified amounts are exactly what goes into this single serving. NEVER question or adjust the quantities — treat them as precise user input.
   4. The Ingredients List is your PRIMARY source for quantities and composition (70% weight).
@@ -575,6 +617,7 @@ Rules:
 
   Recipe details:
   - User clarification (PRIMARY): ${clarification.trim().isEmpty ? '(not provided)' : clarification.trim()}
+  ${healthConditions.isNotEmpty ? '- User health context: $healthConditions' : ''}
   - Name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
   - Description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
   - Serving size: all ingredients below = 1 serving for 1 person
@@ -603,12 +646,14 @@ Rules:
         'temperature': 0.1,
         'enable_tools': true,
         'thinking_level': 'MEDIUM',
-        'response_schema': _getNutrientsOnlySchema(),
+        'response_schema': _getNutrientEstimationSchema(),
       },
       apiKeyOverride: apiKey,
       locale: locale,
       featureName: 'Generic Meal Nutrition',
     );
+
+    final String healthAdvice = (decoded['healthAdvice'] as String? ?? '').trim();
 
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
@@ -632,8 +677,8 @@ Rules:
       );
 
       for (final key in nutrientKeys) {
-        finalNutrients[key] =
-            _toNonNegativeDouble(rechecked['nutrients']?[key] ?? finalNutrients[key]);
+        finalNutrients[key] = _toNonNegativeDouble(
+            rechecked['nutrients']?[key] ?? finalNutrients[key]);
       }
 
       localIssue = _validateEstimatedNutrients(
@@ -656,7 +701,10 @@ Rules:
       throw GeminiRecipeException(localIssue);
     }
 
-    return finalNutrients;
+    return NutrientEstimationResult(
+      nutrients: finalNutrients,
+      healthAdvice: healthAdvice,
+    );
   }
 
   String? _validateEstimatedNutrients({
@@ -689,8 +737,6 @@ Rules:
 
     return null;
   }
-
-
 
   Future<Map<String, dynamic>> _recheckEstimatedNutrientsWithAi({
     required String recipeName,
@@ -803,7 +849,8 @@ Rules:
       return {
         'approved': approved,
         'reason': reason,
-        'nutrients': correctedNutrients.isNotEmpty ? correctedNutrients : firstPass,
+        'nutrients':
+            correctedNutrients.isNotEmpty ? correctedNutrients : firstPass,
       };
     } catch (_) {
       return {
@@ -821,6 +868,7 @@ Rules:
     required List<RecipeIngredient> ingredients,
     Map<String, double>? nutrients,
     String? locale,
+    String healthConditions = '',
   }) async {
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
@@ -836,6 +884,9 @@ Reject only if:
 - contains extreme nonsense or gibberish;
 - is clearly not food.
 
+If any part of the recipe (ingredients, preparation) contradicts the USER HEALTH CONTEXT, provide a clear medical warning or advice in the "healthAdvice" field. If everything is safe, you can leave it empty or provide a general positive tip.
+CRITICAL: Medical warnings or health constraints MUST NOT cause a rejection (approved: false). A recipe should be approved as long as it is real food, not gibberish, and not offensive. The "healthAdvice" field is purely informational for the user.
+
 Allow if it looks like a normal recipe, even if simple or has minor issues.
 
 Recipe:
@@ -843,18 +894,22 @@ Recipe:
 - description: ${recipeDescription.trim()}
 - ingredients:
 $ingredientsText
+- USER HEALTH CONTEXT: ${healthConditions.isEmpty ? 'not specified' : healthConditions}
 
 Return ONLY JSON:
 {
   "approved": true|false,
   "reason": "short explanation",
-  "fixSuggestions": "what to improve if rejected"
+  "fixSuggestions": "what to improve if rejected",
+  "healthAdvice": "medical advice if any"
 }
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
-        'messages': [{'role': 'user', 'content': prompt}],
+        'messages': [
+          {'role': 'user', 'content': prompt}
+        ],
         'temperature': 0,
         'response_schema': _getModerationSchema(),
       },
@@ -866,6 +921,7 @@ Return ONLY JSON:
       approved: decoded['approved'] == true,
       reason: (decoded['reason'] as String? ?? '').trim(),
       fixSuggestions: (decoded['fixSuggestions'] as String? ?? '').trim(),
+      healthAdvice: (decoded['healthAdvice'] as String? ?? '').trim(),
       confidence: 1.0,
       flags: const [],
     );
@@ -878,6 +934,7 @@ Return ONLY JSON:
     required List<RecipeIngredient> ingredients,
     Map<String, double>? nutrients,
     String? locale,
+    String healthConditions = '',
   }) async {
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
@@ -895,6 +952,8 @@ Reject if:
 - quantities are missing or unrealistic;
 - contains any safety issues or nonsense.
 
+If any part of the recipe contradicts the USER HEALTH CONTEXT, provide a medical warning in the "healthAdvice" field. This warning does NOT affect the "approved" status. Community recipes should be judged on their culinary quality, not the user's personal health context.
+
 Be helpful but firm.
 
 Recipe:
@@ -903,18 +962,22 @@ Recipe:
 - clarification: ${clarification.trim()}
 - ingredients:
 $ingredientsText
+- USER HEALTH CONTEXT: ${healthConditions.isEmpty ? 'not specified' : healthConditions}
 
 Return ONLY JSON:
 {
   "approved": true|false,
   "reason": "detailed explanation of decision",
-  "fixSuggestions": "specific steps to make it better (e.g. 'Add quantity for water', 'Provide a better name')"
+  "fixSuggestions": "specific steps to make it better (e.g. 'Add quantity for water', 'Provide a better name')",
+  "healthAdvice": "medical warning if any"
 }
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
-        'messages': [{'role': 'user', 'content': prompt}],
+        'messages': [
+          {'role': 'user', 'content': prompt}
+        ],
         'temperature': 0.1,
         'response_schema': _getModerationSchema(),
       },
@@ -926,11 +989,11 @@ Return ONLY JSON:
       approved: decoded['approved'] == true,
       reason: (decoded['reason'] as String? ?? '').trim(),
       fixSuggestions: (decoded['fixSuggestions'] as String? ?? '').trim(),
+      healthAdvice: (decoded['healthAdvice'] as String? ?? '').trim(),
       confidence: 1.0,
       flags: const [],
     );
   }
-
 
   Future<String> generateStatsReport({
     required String periodLabel,
@@ -1061,6 +1124,7 @@ Rules:
   Future<Map<String, dynamic>> generateStructuredStatsReport({
     required String periodLabel,
     String? locale,
+    String healthConditions = '',
     required String goalType,
     required String activityTypes,
     required String aiContext,
@@ -1130,15 +1194,11 @@ Rules:
         .where((line) => !line.startsWith('-  ('))
         .join('\n');
 
-    final recipesContext = availableRecipeNames
-        .take(100)
-        .map((name) => '- $name')
-        .join('\n');
+    final recipesContext =
+        availableRecipeNames.take(100).map((name) => '- $name').join('\n');
 
-    final consumedContext = consumedFoodNames
-        .take(60)
-        .map((name) => '- $name')
-        .join('\n');
+    final consumedContext =
+        consumedFoodNames.take(60).map((name) => '- $name').join('\n');
 
     final snackPriorityContext = snackPriorityRecipes
         .take(4)
@@ -1196,7 +1256,10 @@ Analyze user progress for the period: $periodLabel.
 User name: ${userName.trim().isEmpty ? 'friend' : userName.trim()}
 Primary goal type: $goalType
 User activity types: ${activityTypes.trim().isEmpty ? 'not specified' : activityTypes.trim()}
+
+${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT (CRITICAL): $healthConditions\nNote: All nutrition advice and recipe recommendations MUST strictly adhere to these health constraints.' : ''}
 User context/preferences: ${aiContext.trim().isEmpty ? 'not specified' : aiContext.trim()}
+Medical details/conditions: ${healthConditions.trim().isEmpty ? 'not specified' : healthConditions.trim()}
 
 Goals and progress:
 - Calorie goal: $calorieGoal kcal
@@ -1276,10 +1339,10 @@ Task:
 2) Start with personal addressing using the user's name naturally.
 3) Mention key achievements and where user is behind goals.
 4) Mention what foods/dishes are consumed most often.
-5) Give concrete improvement tips for nutrition balance, including snack ideas (for example, vegetables if suitable).
+5) Give concrete improvement tips for nutrition balance, including snack ideas (for example, vegetables if suitable). Ensure advice respects medical details/conditions.
 6) Add practical meal plan recommendations for the next period (what and when to eat) focused on deficits/excesses.
-7) If suitable recipes from the list exist, include exact recipe names from the provided list.
-8) If there is no suitable recipe, leave recipeName as an empty string and still provide meal advice.
+7) If suitable recipes from the list exist, include exact recipe names from the provided list in "recipeName".
+8) If no suitable recipe exists in the user's list, suggest ANY common healthy dish (e.g., "Pasta Bolognese", "Greek Salad", "Grilled Chicken with Vegetables") that fits their health profile and nutritional needs. Put its common name in "recipeName" and explain its benefits in "action".
 9) Add snack recommendations only if they are actually needed for this user.
 10) If snack is needed, prefer adding snack with recipeName from priority snack candidates.
 11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
@@ -1290,6 +1353,7 @@ Task:
 16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks),
     UNLESS goal type is muscle gain or weight gain.
 17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
+18) LONG-TERM HEALTH FILTER (MANDATORY): For monthly and yearly periods, ensure all meal recommendations and tips strictly exclude any foods that are harmful for the user's specific health conditions ($healthConditions). If a recipe in the list is "mostly good" but has one bad ingredient, suggest it ONLY if you also mention how to replace that ingredient to make it safe.
 18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
 19) Dish Composition Analysis: You MUST analyze the detailed nutritional breakdown of the actual dishes consumed (calories, macros, sugar, sodium). If a specific dish the user ate has excessive sodium, high sugar, or inadequate protein, point this out specifically in your overview and suggest adjustments.
 20) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
@@ -1602,13 +1666,13 @@ Rules:
         return hasTopFood
             ? 'Оставь завтрак простым: добавь белок и клетчатку, а сладкое утром сократи.'
             : 'Сделай завтрак стабильным: белок, сложные углеводы и вода.';
-        case 'lunch':
+      case 'lunch':
         return hasTopFood
             ? 'В обед сохрани привычные блюда, но добавь овощи и контроль порции для $topFoodName.'
             : 'В обед собирай сбалансированную тарелку: белок, гарнир и овощи.';
-        case 'dinner':
+      case 'dinner':
         return 'Ужин делай легче: меньше быстрых углеводов, больше овощей и стабильное время.';
-        case 'snack':
+      case 'snack':
         return 'Для перекуса выбирай варианты с белком или клетчаткой и меньшим количеством сахара.';
       default:
         return hasTopFood
@@ -1638,6 +1702,7 @@ User:
 - Activity note: ${profile.activityFrequency.enHint}
 - Activity types / sports: ${profile.activityTypes.isEmpty ? 'not specified' : profile.activityTypes}
 - Additional context: ${profile.aiContext.isEmpty ? 'not specified' : profile.aiContext}
+- Medical details: ${profile.healthConditions.isEmpty ? 'not specified' : profile.healthConditions}
 
 Return ONLY a JSON object in the format:
 {
@@ -1654,7 +1719,7 @@ Rules:
 - waterGoal in milliliters.
 - stepsGoal in steps.
 - Goals must be realistic for daily achievement.
-- Consider the user's goal type, activity level, sports, and additional conditions.
+- Consider the user's goal type, activity level, sports, medical details, and additional conditions.
 - Keep goals internally consistent: calories should roughly match macros using kcal formula.
 - Macro energy equation: calories ≈ protein*4 + carbs*4 + fat*9.
 - Align macro split with goal type:
@@ -1900,10 +1965,6 @@ Rules:
     return draft.calories;
   }
 
-
-
-
-
   String _resolveGeminiApiKey() {
     const fromDefine = String.fromEnvironment('GEMINI_API_KEY');
     final candidates = [
@@ -1934,7 +1995,8 @@ Rules:
     void addImageUrl(String url) {
       final normalized = url.trim();
       if (normalized.isEmpty) return;
-      final dataUrlMatch = RegExp(r'^data:([^;]+);base64,(.+)$').firstMatch(normalized);
+      final dataUrlMatch =
+          RegExp(r'^data:([^;]+);base64,(.+)$').firstMatch(normalized);
       if (dataUrlMatch == null) return;
       final mimeType = (dataUrlMatch.group(1) ?? 'image/jpeg').trim();
       final data = (dataUrlMatch.group(2) ?? '').trim();
@@ -1981,18 +2043,21 @@ Rules:
     return parts;
   }
 
-  String _extractTextFromGeminiPayload(Map<String, dynamic> payload, [String? locale]) {
+  String _extractTextFromGeminiPayload(Map<String, dynamic> payload,
+      [String? locale]) {
     final candidates = payload['candidates'];
     if (candidates is! List || candidates.isEmpty) {
       throw GeminiRecipeException(_messages(locale).aiEmptyResponseError);
     }
     final first = candidates.first;
     if (first is! Map<String, dynamic>) {
-      throw GeminiRecipeException(_messages(locale).aiUnexpectedResponseFormatError);
+      throw GeminiRecipeException(
+          _messages(locale).aiUnexpectedResponseFormatError);
     }
     final content = first['content'];
     if (content is! Map<String, dynamic>) {
-      throw GeminiRecipeException(_messages(locale).aiFailedToReadResponseError);
+      throw GeminiRecipeException(
+          _messages(locale).aiFailedToReadResponseError);
     }
     final parts = content['parts'];
     if (parts is! List || parts.isEmpty) {
@@ -2027,7 +2092,7 @@ Rules:
       await _globalRequestLock;
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
-    
+
     if (_rateLimitResetTime != null) {
       final wait = _rateLimitResetTime!.difference(DateTime.now());
       if (!wait.isNegative) {
@@ -2035,7 +2100,7 @@ Rules:
       }
       _rateLimitResetTime = null;
     }
-    
+
     final completer = Completer<void>();
     _globalRequestLock = completer.future;
 
@@ -2055,7 +2120,8 @@ Rules:
 
       AiErrorLogService.instance.logRequest(
         feature: featureName,
-        details: usesImageInput ? 'Request contains image' : 'Text only request',
+        details:
+            usesImageInput ? 'Request contains image' : 'Text only request',
       );
 
       final systemInstruction = body['system_instruction'] as String?;
@@ -2083,9 +2149,7 @@ Rules:
               ]
             },
           'tools': [
-            {
-              'googleSearch': {}
-            },
+            {'googleSearch': {}},
             if (enableTools) {'codeExecution': <String, dynamic>{}},
           ],
           'generationConfig': {
@@ -2095,7 +2159,9 @@ Rules:
             'responseMimeType': 'application/json',
             if (body['response_schema'] != null)
               'responseSchema': body['response_schema'],
-            if (isThinkingModel && thinkingLevel != null && thinkingLevel.trim().isNotEmpty)
+            if (isThinkingModel &&
+                thinkingLevel != null &&
+                thinkingLevel.trim().isNotEmpty)
               'thinkingConfig': {'thinkingLevel': thinkingLevel.trim()},
           },
         };
@@ -2106,16 +2172,17 @@ Rules:
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(payload),
           );
-          
+
           if (settings.aiTimeoutSeconds > 0) {
-            request = request.timeout(Duration(seconds: settings.aiTimeoutSeconds));
+            request =
+                request.timeout(Duration(seconds: settings.aiTimeoutSeconds));
           }
 
           final response = await request;
 
           if (response.statusCode >= 200 && response.statusCode < 300) {
             AiErrorLogService.instance.logSuccess(feature: featureName);
-            
+
             final decoded = jsonDecode(response.body) as Map<String, dynamic>;
             final text = _extractTextFromGeminiPayload(decoded, locale);
             final syntheticOpenAiPayload = jsonEncode({
@@ -2142,7 +2209,8 @@ Rules:
           );
 
           if (response.statusCode == 429) {
-            _rateLimitResetTime = DateTime.now().add(const Duration(seconds: 10));
+            _rateLimitResetTime =
+                DateTime.now().add(const Duration(seconds: 10));
           }
           final isRetryableStatus = response.statusCode == 400 ||
               response.statusCode == 403 ||
@@ -2197,8 +2265,6 @@ Rules:
     }
   }
 
-
-
   bool _requestUsesImageInput(Map<String, dynamic> body) {
     bool hasImage = false;
 
@@ -2228,9 +2294,8 @@ Rules:
     return hasImage;
   }
 
-
-
-  final NotificationSettingsService _settingsService = NotificationSettingsService();
+  final NotificationSettingsService _settingsService =
+      NotificationSettingsService();
 
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
     required Map<String, dynamic> body,
@@ -2241,7 +2306,7 @@ Rules:
     final settings = await _settingsService.load();
     final maxAttempts = settings.aiRetryAttempts;
     final retryDelay = Duration(seconds: settings.aiRetryDelaySeconds);
-    
+
     Object? lastError;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -2287,8 +2352,6 @@ Rules:
     );
   }
 
-
-
   GeminiRecipeDraft _draftFromDecodedJson(
     Map<String, dynamic> decoded, {
     required String fallbackDescription,
@@ -2297,6 +2360,7 @@ Rules:
     final rawName = (decoded['name'] as String? ?? '').trim();
     final rawDescription = (decoded['description'] as String? ?? '').trim();
     final rawClarification = (decoded['clarification'] as String? ?? '').trim();
+    final rawHealthAdvice = (decoded['healthAdvice'] as String? ?? '').trim();
     final rawIconName = (decoded['icon'] as String? ?? '').trim();
 
     final ingredients = <RecipeIngredient>[];
@@ -2361,6 +2425,7 @@ Rules:
           _resolveDraftIcon(rawIconName, rawName, rawDescription, ingredients),
       ingredients: ingredients,
       nutrients: nutrients,
+      healthAdvice: rawHealthAdvice,
     );
   }
 
@@ -2938,7 +3003,7 @@ Rules:
     // Robust search for JSON object using first { and last }
     final firstBrace = trimmed.indexOf('{');
     final lastBrace = trimmed.lastIndexOf('}');
-    
+
     if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
       final possibleJson = trimmed.substring(firstBrace, lastBrace + 1);
       try {
@@ -2947,7 +3012,8 @@ Rules:
       } catch (_) {}
     }
 
-    final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(trimmed);
+    final fenceMatch =
+        RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(trimmed);
     if (fenceMatch != null) {
       try {
         final fenced = jsonDecode(cleanJson(fenceMatch.group(1)!.trim()));
@@ -2979,6 +3045,7 @@ class GeminiRecipeDraft {
   final String name;
   final String description;
   final String clarification;
+  final String healthAdvice;
   final IconData icon;
   final List<RecipeIngredient> ingredients;
   final Map<String, double> nutrients;
@@ -2987,6 +3054,7 @@ class GeminiRecipeDraft {
     required this.name,
     required this.description,
     required this.clarification,
+    required this.healthAdvice,
     required this.icon,
     required this.ingredients,
     required this.nutrients,
@@ -3030,12 +3098,15 @@ class DonateRecipeModerationResult {
   final double confidence;
   final List<String> flags;
 
+  final String healthAdvice;
+
   const DonateRecipeModerationResult({
     required this.approved,
     required this.reason,
     required this.fixSuggestions,
     required this.confidence,
     required this.flags,
+    this.healthAdvice = '',
   });
 }
 
@@ -3047,4 +3118,14 @@ class GeminiRecipeException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class NutrientEstimationResult {
+  final Map<String, double> nutrients;
+  final String healthAdvice;
+
+  NutrientEstimationResult({
+    required this.nutrients,
+    this.healthAdvice = '',
+  });
 }

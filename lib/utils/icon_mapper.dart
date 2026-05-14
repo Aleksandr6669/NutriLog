@@ -18,10 +18,14 @@ class IconMapper {
   };
 
   static IconData getIcon(String name) {
-    return _iconMap[name] ?? Symbols.restaurant; // Возвращаем иконку по умолчанию
+    return _iconMap[name] ??
+        Symbols.restaurant; // Возвращаем иконку по умолчанию
   }
 
   static String getName(IconData icon) {
-    return _iconMap.entries.firstWhere((entry) => entry.value == icon, orElse: () => _iconMap.entries.first).key;
+    return _iconMap.entries
+        .firstWhere((entry) => entry.value == icon,
+            orElse: () => _iconMap.entries.first)
+        .key;
   }
 }

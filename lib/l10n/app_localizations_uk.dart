@@ -1609,4 +1609,14 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get recipeAiCalculateRequired =>
       'Необхідно розрахувати харчову цінність перед збереженням.';
+
+  @override
+  String get healthConditionsTitle => 'Медичні деталі';
+
+  @override
+  String get healthConditionsHint =>
+      'Вкажіть особливості здоров\'я (наприклад, гастрит, алергії), щоб ШІ точніше підбирав рекомендації щодо харчування.';
+
+  @override
+  String get healthAdviceTitle => 'Медична порада';
 }

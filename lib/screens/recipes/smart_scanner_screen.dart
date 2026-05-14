@@ -13,6 +13,8 @@ import '../../services/gemini_recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import '../../models/recipe.dart';
+import 'package:provider/provider.dart';
+import '../../providers/profile_provider.dart';
 
 class SmartScannerScreen extends StatefulWidget {
   const SmartScannerScreen({super.key});
@@ -28,7 +30,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   final GeminiRecipeService _geminiService = GeminiRecipeService();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
-  
+
   bool _isProcessing = false;
   bool _isCameraInitialized = false;
   bool _isScanning = false;
@@ -80,14 +82,17 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
   Future<void> _processCameraImage(CameraImage image) async {
     if (_isProcessing || _isScanning || _capturedImage != null) return;
-    
+
     _isScanning = true;
-    
+
     try {
       final camera = _cameraController!.description;
-      final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
-      final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
-      
+      final rotation =
+          InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
+              InputImageRotation.rotation0deg;
+      final format = InputImageFormatValue.fromRawValue(image.format.raw) ??
+          InputImageFormat.nv21;
+
       final metadata = InputImageMetadata(
         size: Size(image.width.toDouble(), image.height.toDouble()),
         rotation: rotation,
@@ -131,15 +136,17 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   }
 
   Future<void> _captureImage() async {
-    if (_isProcessing || _cameraController == null || !_cameraController!.value.isInitialized) return;
-    
+    if (_isProcessing ||
+        _cameraController == null ||
+        !_cameraController!.value.isInitialized) return;
+
     try {
       if (_cameraController!.value.isStreamingImages) {
         await _cameraController!.stopImageStream();
       }
-      
+
       final image = await _cameraController!.takePicture();
-      
+
       setState(() {
         _capturedImage = image;
       });
@@ -169,11 +176,13 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       final bytes = await _capturedImage!.readAsBytes();
       if (!mounted) return;
 
+      final profile = context.read<ProfileProvider>().profile;
       final draft = await _geminiService.generateRecipeFromPhoto(
         imageBytes: bytes,
         imageMimeType: _detectMimeType(_capturedImage!.name),
         description: description,
         locale: Localizations.localeOf(context).languageCode,
+        healthConditions: profile?.healthConditions ?? '',
       );
 
       if (!mounted) return;
@@ -181,7 +190,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         '/recipe/edit',
         extra: {
           'initialDraft': _buildDraftRecipe(draft),
-          'initialClarification': _buildDetailedClarification(draft, description),
+          'initialClarification':
+              _buildDetailedClarification(draft, description),
         },
       );
     } catch (e) {
@@ -203,18 +213,23 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       final product = await _barcodeService.fetchProductByBarcode(code);
       GeminiRecipeDraft draft;
       if (product == null) {
-        final prompt = 'Search the web for the nutritional information and ingredients of the product with barcode: "$code". Create a basic nutritional entry for the product you find. If you cannot find any product with this barcode, return an empty object or name it "Unknown".';
+        final prompt =
+            'Search the web for the nutritional information and ingredients of the product with barcode: "$code". Create a basic nutritional entry for the product you find. If you cannot find any product with this barcode, return an empty object or name it "Unknown".';
+        final profile = context.read<ProfileProvider>().profile;
         draft = await _geminiService.generateRecipeFromDescription(
           description: prompt,
           locale: Localizations.localeOf(context).languageCode,
+          healthConditions: profile?.healthConditions ?? '',
         );
         if (draft.name.isEmpty || draft.name.toLowerCase() == 'unknown') {
           throw Exception(l10n.productNotFoundError);
         }
       } else {
+        final profile = context.read<ProfileProvider>().profile;
         draft = await _geminiService.generateRecipeFromBarcode(
           productData: product,
           locale: Localizations.localeOf(context).languageCode,
+          healthConditions: profile?.healthConditions ?? '',
         );
       }
 
@@ -307,7 +322,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                   maxWidth: 1920,
                 );
                 if (image == null) return;
-                
+
                 if (_cameraController?.value.isStreamingImages == true) {
                   await _cameraController?.stopImageStream();
                 }
@@ -331,7 +346,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             )
           else if (_isCameraInitialized && _cameraController != null)
             Positioned.fill(
-              // Using SizedBox.expand to ensure CameraPreview fills the background properly 
+              // Using SizedBox.expand to ensure CameraPreview fills the background properly
               // (might require clipping or BoxFit depending on aspect ratio, but we'll let CameraPreview handle it)
               child: CameraPreview(_cameraController!),
             )
@@ -384,7 +399,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -404,14 +420,15 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                           fontSize: 14,
                         ),
                         border: InputBorder.none,
-                        icon: const Icon(Symbols.edit, color: Colors.white70, size: 20),
+                        icon: const Icon(Symbols.edit,
+                            color: Colors.white70, size: 20),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          
+
           // Action Button
           Positioned(
             bottom: 40,

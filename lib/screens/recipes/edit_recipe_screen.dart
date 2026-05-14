@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
@@ -53,6 +55,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _clarificationController;
+  late TextEditingController _healthAdviceController;
   IconData _selectedIcon = Symbols.restaurant;
 
   // Nutrient controllers
@@ -64,16 +67,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isNutritionCalculated = false;
   bool _isAiCalculating = false;
   String? _aiStatus;
-  
+
   bool _isPublic = false;
   bool _isDonated = false;
-  
+
   // Separate states for Public moderation
   bool _isPublicAiChecking = false;
   bool _isPublicAiApproved = false;
   String? _publicAiStatus;
   String? _publicAiFixSuggestions;
-  
+
   // Separate states for Donate (Community) moderation
   bool _isDonateAiChecking = false;
   bool _isDonateAiApproved = false;
@@ -118,6 +121,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         TextEditingController(text: sourceRecipe?.description ?? '');
     _clarificationController = TextEditingController(
         text: widget.initialClarification ?? sourceRecipe?.clarification ?? '');
+    _healthAdviceController = TextEditingController(
+        text: (widget.initialDraft?.healthAdvice ?? sourceRecipe?.healthAdvice ?? '').trim());
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
@@ -125,6 +130,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nameController.addListener(_onDonateValidationInputChanged);
     _descriptionController.addListener(_onDonateValidationInputChanged);
     _clarificationController.addListener(_onDonateValidationInputChanged);
+    _healthAdviceController.addListener(_onDonateValidationInputChanged);
 
     // Если initialDraft (создание по фото/описанию) — нутриенты заполняются данными от AI
     final isFromDraft = widget.initialDraft != null;
@@ -253,6 +259,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             .where((i) => i.name.isNotEmpty)
             .toList(),
         locale: Localizations.localeOf(context).languageCode,
+        healthConditions: context.read<ProfileProvider>().profile?.healthConditions ?? '',
       );
 
       if (!mounted || requestId != _publicAiRequestId) return;
@@ -262,6 +269,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isPublicAiApproved = result.approved;
         _publicAiStatus = result.reason;
         _publicAiFixSuggestions = result.fixSuggestions;
+        if (result.healthAdvice.isNotEmpty) {
+          _healthAdviceController.text = result.healthAdvice;
+        }
       });
     } catch (e) {
       if (!mounted || requestId != _publicAiRequestId) return;
@@ -283,7 +293,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     });
 
     try {
-      final result = await _geminiRecipeService.validateRecipeForCommunityDonation(
+      final result =
+          await _geminiRecipeService.validateRecipeForCommunityDonation(
         recipeName: _nameController.text,
         recipeDescription: _descriptionController.text,
         clarification: _clarificationController.text,
@@ -305,6 +316,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _isDonateAiApproved = result.approved;
         _donateAiStatus = result.reason;
         _donateAiFixSuggestions = result.fixSuggestions;
+        if (result.healthAdvice.isNotEmpty) {
+          _healthAdviceController.text = result.healthAdvice;
+        }
       });
     } catch (e) {
       if (!mounted || requestId != _donateAiRequestId) return;
@@ -502,16 +516,24 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     for (var i = 0; i < _ingredientItems.length; i++) {
       final item = _ingredientItems[i];
       final indexHuman = i + 1;
-      final ingredientNameLabel =
-          _localizeInline(ru: 'Ингредиент $indexHuman', en: 'Ingredient $indexHuman', uk: 'Інгредієнт $indexHuman');
-      final ingredientQtyLabel =
-          _localizeInline(ru: 'Количество $indexHuman', en: 'Amount $indexHuman', uk: 'Кількість $indexHuman');
-      final ingredientUnitLabel =
-          _localizeInline(ru: 'Единица $indexHuman', en: 'Unit $indexHuman', uk: 'Одиниця $indexHuman');
+      final ingredientNameLabel = _localizeInline(
+          ru: 'Ингредиент $indexHuman',
+          en: 'Ingredient $indexHuman',
+          uk: 'Інгредієнт $indexHuman');
+      final ingredientQtyLabel = _localizeInline(
+          ru: 'Количество $indexHuman',
+          en: 'Amount $indexHuman',
+          uk: 'Кількість $indexHuman');
+      final ingredientUnitLabel = _localizeInline(
+          ru: 'Единица $indexHuman',
+          en: 'Unit $indexHuman',
+          uk: 'Одиниця $indexHuman');
 
-      final issueName = checkField(ingredientNameLabel, item.nameController.text);
+      final issueName =
+          checkField(ingredientNameLabel, item.nameController.text);
       if (issueName != null) return issueName;
-      final issueQty = checkField(ingredientQtyLabel, item.quantityController.text);
+      final issueQty =
+          checkField(ingredientQtyLabel, item.quantityController.text);
       if (issueQty != null) return issueQty;
       final issueUnit = checkField(ingredientUnitLabel, item.unit);
       if (issueUnit != null) return issueUnit;
@@ -712,23 +734,28 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
 
     try {
-      final nutrients = await _geminiRecipeService.estimateNutrients(
+      final profile = context.read<ProfileProvider>().profile;
+      final result = await _geminiRecipeService.estimateNutrients(
         recipeName: _nameController.text,
         recipeDescription: _descriptionController.text,
         clarification: _clarificationController.text,
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
+        healthConditions: profile?.healthConditions ?? '',
       );
 
       if (!mounted || requestId != _aiRequestId) return;
 
       _isSyncingCalories = true;
       for (final key in _nutrientKeys) {
-        _nutrientControllers[key]?.text = _formatNumber(nutrients[key] ?? 0);
+        _nutrientControllers[key]?.text = _formatNumber(result.nutrients[key] ?? 0);
       }
       _isSyncingCalories = false;
 
       setState(() {
+        if (result.healthAdvice.isNotEmpty) {
+          _healthAdviceController.text = result.healthAdvice;
+        }
         _isAiCalculating = false;
         _aiStatus = l10n.recipeAiUpdated;
         _isAiError = false;
@@ -781,9 +808,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nameController.removeListener(_onDonateValidationInputChanged);
     _descriptionController.removeListener(_onDonateValidationInputChanged);
     _clarificationController.removeListener(_onDonateValidationInputChanged);
+    _healthAdviceController.removeListener(_onDonateValidationInputChanged);
     _nameController.dispose();
     _clarificationController.dispose();
     _descriptionController.dispose();
+    _healthAdviceController.dispose();
     for (var controller in _nutrientControllers.values) {
       controller.dispose();
     }
@@ -857,6 +886,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         isUserRecipe: true,
         isPublic: _isPublic,
         ingredients: ingredients,
+        healthAdvice: _healthAdviceController.text.trim(),
         instructions:
             (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
       );
@@ -1014,7 +1044,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Future<void> _donateRecipe() async {
-
     final cloudService = CloudDataService.instance;
     await FirebaseBootstrapService.ensureInitialized();
     if (!mounted) return;
@@ -1169,7 +1198,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(10),
@@ -1188,28 +1218,36 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     Expanded(
                       child: Text(
                         '${l10n.donateRecipeButton}: $_donateAiStatus',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                       ),
                     ),
                   ],
                 ),
               ),
-              if (_donateAiFixSuggestions != null && _donateAiFixSuggestions!.isNotEmpty) ...[
+              if (_donateAiFixSuggestions != null &&
+                  _donateAiFixSuggestions!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   '${l10n.aiClarificationLabel}: $_donateAiFixSuggestions',
-                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(fontSize: 10, color: Colors.orange.shade800),
                 ),
               ],
               const SizedBox(height: 16),
             ],
             if (!_isDonated) ...[
               OutlinedButton.icon(
-                onPressed: (_isFormReadyForDonate && !_isDonateAiChecking && !_isDonateAiApproved)
+                onPressed: (_isFormReadyForDonate &&
+                        !_isDonateAiChecking &&
+                        !_isDonateAiApproved)
                     ? _runDonateModeration
                     : null,
                 icon: _isDonateAiChecking
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Symbols.verified, size: 18),
                 label: Text(l10n.checkRecipeButton),
               ),
@@ -1234,7 +1272,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   Widget _buildVisibilityCard() {
     final theme = Theme.of(context);
     final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
-    final isInitialDraft = widget.initialDraft != null;
     final canEnablePublic = canManageVisibility &&
         !_isDonated &&
         _isPublicAiApproved &&
@@ -1296,11 +1333,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: (_isFormReadyForDonate && !_isPublicAiChecking && !_isPublicAiApproved)
+              onPressed: (_isFormReadyForDonate &&
+                      !_isPublicAiChecking &&
+                      !_isPublicAiApproved)
                   ? _runPublicModeration
                   : null,
               icon: _isPublicAiChecking
-                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Symbols.verified, size: 18),
               label: Text(l10n.checkRecipeButton),
             ),
@@ -1308,7 +1350,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               const SizedBox(height: 12),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(10),
@@ -1323,22 +1366,26 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         Icon(
                           _isPublicAiApproved ? Symbols.verified : Symbols.info,
                           size: 14,
-                          color: _isPublicAiApproved ? Colors.green : Colors.blue,
+                          color:
+                              _isPublicAiApproved ? Colors.green : Colors.blue,
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             '${l10n.makePublic}: $_publicAiStatus',
-                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(fontSize: 11),
                           ),
                         ),
                       ],
                     ),
-                    if (_publicAiFixSuggestions != null && _publicAiFixSuggestions!.isNotEmpty) ...[
+                    if (_publicAiFixSuggestions != null &&
+                        _publicAiFixSuggestions!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         '${l10n.aiClarificationLabel}: $_publicAiFixSuggestions',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: Colors.orange.shade800),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 10, color: Colors.orange.shade800),
                       ),
                     ],
                   ],
@@ -1523,8 +1570,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-
-           const SizedBox(height: 10),
+            const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1632,12 +1678,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     onPressed: (_isAiCalculating || !_hasAnyIngredient)
                         ? null
                         : _recalculateNutrientsWithAi,
-                    icon: _isAiCalculating 
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Symbols.calculate, weight: 600),
+                    icon: _isAiCalculating
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Symbols.calculate, weight: 600),
                     label: Text(l10n.calculateNutrition),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.08),
                       foregroundColor: AppColors.primary,
                       elevation: 0,
                       side: BorderSide(
@@ -1649,12 +1699,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const SizedBox(height: 12),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: (_isAiError ? Colors.red : AppColors.primary).withValues(alpha: 0.08),
+                        color: (_isAiError ? Colors.red : AppColors.primary)
+                            .withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: (_isAiError ? Colors.red : AppColors.primary).withValues(alpha: 0.15),
+                          color: (_isAiError ? Colors.red : AppColors.primary)
+                              .withValues(alpha: 0.15),
                         ),
                       ),
                       child: Row(
@@ -1662,7 +1715,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           Icon(
                             _isAiError ? Symbols.error : Symbols.info,
                             size: 16,
-                            color: _isAiError ? Colors.red.shade700 : AppColors.primary,
+                            color: _isAiError
+                                ? Colors.red.shade700
+                                : AppColors.primary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -1670,7 +1725,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                               _aiStatus!,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: _isAiError ? Colors.red.shade700 : theme.textTheme.bodySmall?.color,
+                                color: _isAiError
+                                    ? Colors.red.shade700
+                                    : theme.textTheme.bodySmall?.color,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1836,6 +1893,28 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               );
             }),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _healthAdviceController,
+              builder: (context, value, child) {
+                if (value.text.isEmpty && !_isAiCalculating) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16, bottom: 8),
+                  child: TextFormField(
+                    controller: _healthAdviceController,
+                    maxLines: null,
+                    decoration: AppStyles.inputDecoration(
+                      l10n.healthAdviceTitle,
+                      Symbols.medical_information,
+                    ).copyWith(
+                      fillColor: Colors.blue.withValues(alpha: 0.05),
+                      filled: true,
+                    ),
+                  ),
+                );
+              },
+            ),
             Text(
               l10n.ingredientExamples,
               style: const TextStyle(fontSize: 12, color: Colors.grey),

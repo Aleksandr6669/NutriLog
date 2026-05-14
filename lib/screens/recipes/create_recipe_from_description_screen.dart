@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
@@ -66,7 +68,7 @@ class _CreateRecipeFromDescriptionScreenState
       _initSpeech();
       return;
     }
-    
+
     _preListeningText = _descriptionController.text.trim();
     setState(() => _isListening = true);
     await _speechToText.listen(
@@ -74,8 +76,8 @@ class _CreateRecipeFromDescriptionScreenState
         setState(() {
           final newText = result.recognizedWords;
           if (newText.isNotEmpty) {
-            _descriptionController.text = _preListeningText.isEmpty 
-                ? newText 
+            _descriptionController.text = _preListeningText.isEmpty
+                ? newText
                 : '$_preListeningText $newText';
             // Move cursor to end
             _descriptionController.selection = TextSelection.fromPosition(
@@ -155,9 +157,11 @@ class _CreateRecipeFromDescriptionScreenState
 
     setState(() => _isGenerating = true);
     try {
+      final profile = context.read<ProfileProvider>().profile;
       final draft = await _geminiService.generateRecipeFromDescription(
         description: description,
         locale: Localizations.localeOf(context).languageCode,
+        healthConditions: profile?.healthConditions ?? '',
       );
 
       if (!mounted) return;
@@ -220,8 +224,10 @@ class _CreateRecipeFromDescriptionScreenState
                   child: SizedBox(
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: (_isGenerating || _isListening || _descriptionController.text.trim().isEmpty) 
-                          ? null 
+                      onPressed: (_isGenerating ||
+                              _isListening ||
+                              _descriptionController.text.trim().isEmpty)
+                          ? null
                           : _generateAndOpenEditor,
                       icon: _isGenerating
                           ? const SizedBox(

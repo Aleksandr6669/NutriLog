@@ -75,13 +75,13 @@ class CloudDataService {
 
       await markSyncNow();
       final data = snapshot.data();
-      
+
       // Дешифруем данные если они зашифрованы
       if (data != null && _uid != null) {
         return DataEncryptionService.instance
             .decryptMapFromCloud(key, data, _uid!);
       }
-      
+
       return data;
     } catch (_) {
       // Офлайн/таймаут: вызывающий код должен продолжать работать по локальным данным.
@@ -96,13 +96,12 @@ class CloudDataService {
     try {
       await FirebaseBootstrapService.ensureInitialized();
       await _ensureUserRootDocument();
-      
+
       // Шифруем данные если это приватный документ
       final dataToWrite = _uid != null
-          ? DataEncryptionService.instance
-              .encryptMapForCloud(key, data, _uid!)
+          ? DataEncryptionService.instance.encryptMapForCloud(key, data, _uid!)
           : data;
-      
+
       await _docRef(key)
           .set(dataToWrite, SetOptions(merge: false))
           .timeout(_cloudTimeout);
@@ -124,20 +123,20 @@ class CloudDataService {
           .get()
           .timeout(_cloudTimeout);
       await markSyncNow();
-      
+
       var docs = snapshot.docs
           .map((doc) => <String, dynamic>{
                 ...doc.data(),
                 '__docId': doc.id,
               })
           .toList(growable: false);
-      
+
       // Дешифруем документы если это приватная коллекция
       if (_uid != null) {
         docs = DataEncryptionService.instance
             .decryptListFromCloud(collectionPath, docs, _uid!);
       }
-      
+
       return docs;
     } catch (_) {
       return const [];
@@ -154,13 +153,13 @@ class CloudDataService {
 
     try {
       await FirebaseBootstrapService.ensureInitialized();
-      
+
       // Шифруем данные если это приватная коллекция
       final dataToWrite = _uid != null
           ? DataEncryptionService.instance
               .encryptMapForCloud(collectionPath, data, _uid!)
           : data;
-      
+
       await _firestore
           .collection(collectionPath)
           .doc(docId)

@@ -166,7 +166,8 @@ class LocalFirstSyncService {
     return cloud;
   }
 
-  Future<void> resolveSignInDataConflict(SignInDataResolution resolution) async {
+  Future<void> resolveSignInDataConflict(
+      SignInDataResolution resolution) async {
     try {
       if (resolution == SignInDataResolution.useCloud) {
         _signInConflictResolutionPending = false;

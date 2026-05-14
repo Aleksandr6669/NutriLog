@@ -1605,4 +1605,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recipeAiCalculateRequired =>
       'Nutritional calculation is required before saving.';
+
+  @override
+  String get healthConditionsTitle => 'Medical Details';
+
+  @override
+  String get healthConditionsHint =>
+      'Enter health conditions (e.g., gastritis, allergies) to help AI personalize your nutrition.';
+
+  @override
+  String get healthAdviceTitle => 'Medical Advice';
 }

@@ -9,7 +9,8 @@ class DeveloperSettingsScreen extends StatefulWidget {
   const DeveloperSettingsScreen({super.key});
 
   @override
-  State<DeveloperSettingsScreen> createState() => _DeveloperSettingsScreenState();
+  State<DeveloperSettingsScreen> createState() =>
+      _DeveloperSettingsScreenState();
 }
 
 class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
@@ -50,10 +51,12 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
       backgroundColor: Colors.grey[50],
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
-        title: const Text('Настройки разработчика', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Настройки разработчика',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
-        padding: glassBodyPadding(context, left: 16, top: 8, right: 16, bottom: 40),
+        padding:
+            glassBodyPadding(context, left: 16, top: 8, right: 16, bottom: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -146,17 +149,20 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
         itemBuilder: (context, index) {
           final log = logs[index];
           final timeStr = DateFormat('HH:mm:ss').format(log.timestamp);
-          
-          final color = log.isError 
-            ? Colors.red 
-            : (log.message == 'Request Started' ? Colors.blue : Colors.green);
-          final icon = log.isError 
-            ? Icons.error_outline 
-            : (log.message == 'Request Started' ? Icons.upload : Icons.check_circle_outline);
+
+          final color = log.isError
+              ? Colors.red
+              : (log.message == 'Request Started' ? Colors.blue : Colors.green);
+          final icon = log.isError
+              ? Icons.error_outline
+              : (log.message == 'Request Started'
+                  ? Icons.upload
+                  : Icons.check_circle_outline);
 
           return ExpansionTile(
             leading: Icon(icon, color: color),
-            title: Text(log.feature, style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(log.feature,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text('$timeStr - ${log.message}'),
             children: [
               Padding(
@@ -170,7 +176,8 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
                   ),
                   child: SelectableText(
                     log.details ?? 'Нет дополнительных данных',
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    style:
+                        const TextStyle(fontFamily: 'monospace', fontSize: 12),
                   ),
                 ),
               ),
@@ -202,14 +209,18 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: models.map((m) => ListTile(
-                title: Text(m),
-                trailing: _settings!.geminiModel == m ? const Icon(Icons.check, color: Colors.green) : null,
-                onTap: () {
-                  _saveSettings(_settings!.copyWith(geminiModel: m));
-                  Navigator.pop(context);
-                },
-              )).toList(),
+              children: models
+                  .map((m) => ListTile(
+                        title: Text(m),
+                        trailing: _settings!.geminiModel == m
+                            ? const Icon(Icons.check, color: Colors.green)
+                            : null,
+                        onTap: () {
+                          _saveSettings(_settings!.copyWith(geminiModel: m));
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
             ),
           ),
         );
@@ -227,16 +238,20 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.remove_circle_outline),
-            onPressed: _settings!.aiRetryAttempts > 1 
-              ? () => _saveSettings(_settings!.copyWith(aiRetryAttempts: _settings!.aiRetryAttempts - 1))
-              : null,
+            onPressed: _settings!.aiRetryAttempts > 1
+                ? () => _saveSettings(_settings!
+                    .copyWith(aiRetryAttempts: _settings!.aiRetryAttempts - 1))
+                : null,
           ),
-          Text('${_settings!.aiRetryAttempts}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('${_settings!.aiRetryAttempts}',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: _settings!.aiRetryAttempts < 5
-              ? () => _saveSettings(_settings!.copyWith(aiRetryAttempts: _settings!.aiRetryAttempts + 1))
-              : null,
+                ? () => _saveSettings(_settings!
+                    .copyWith(aiRetryAttempts: _settings!.aiRetryAttempts + 1))
+                : null,
           ),
         ],
       ),
@@ -253,16 +268,20 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.remove_circle_outline),
-            onPressed: _settings!.aiRetryDelaySeconds > 1 
-              ? () => _saveSettings(_settings!.copyWith(aiRetryDelaySeconds: _settings!.aiRetryDelaySeconds - 1))
-              : null,
+            onPressed: _settings!.aiRetryDelaySeconds > 1
+                ? () => _saveSettings(_settings!.copyWith(
+                    aiRetryDelaySeconds: _settings!.aiRetryDelaySeconds - 1))
+                : null,
           ),
-          Text('${_settings!.aiRetryDelaySeconds}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('${_settings!.aiRetryDelaySeconds}',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: _settings!.aiRetryDelaySeconds < 30
-              ? () => _saveSettings(_settings!.copyWith(aiRetryDelaySeconds: _settings!.aiRetryDelaySeconds + 1))
-              : null,
+                ? () => _saveSettings(_settings!.copyWith(
+                    aiRetryDelaySeconds: _settings!.aiRetryDelaySeconds + 1))
+                : null,
           ),
         ],
       ),
@@ -280,13 +299,16 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           IconButton(
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: _settings!.aiTimeoutSeconds > 0
-              ? () => _saveSettings(_settings!.copyWith(aiTimeoutSeconds: _settings!.aiTimeoutSeconds - 15))
-              : null,
+                ? () => _saveSettings(_settings!.copyWith(
+                    aiTimeoutSeconds: _settings!.aiTimeoutSeconds - 15))
+                : null,
           ),
           SizedBox(
             width: 40,
             child: Text(
-              _settings!.aiTimeoutSeconds == 0 ? '∞' : '${_settings!.aiTimeoutSeconds}', 
+              _settings!.aiTimeoutSeconds == 0
+                  ? '∞'
+                  : '${_settings!.aiTimeoutSeconds}',
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
@@ -294,8 +316,9 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: _settings!.aiTimeoutSeconds < 120
-              ? () => _saveSettings(_settings!.copyWith(aiTimeoutSeconds: _settings!.aiTimeoutSeconds + 15))
-              : null,
+                ? () => _saveSettings(_settings!.copyWith(
+                    aiTimeoutSeconds: _settings!.aiTimeoutSeconds + 15))
+                : null,
           ),
         ],
       ),
@@ -313,15 +336,19 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           IconButton(
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: _settings!.aiMaxTokens > 1024
-              ? () => _saveSettings(_settings!.copyWith(aiMaxTokens: _settings!.aiMaxTokens - 1024))
-              : null,
+                ? () => _saveSettings(_settings!
+                    .copyWith(aiMaxTokens: _settings!.aiMaxTokens - 1024))
+                : null,
           ),
-          Text('${_settings!.aiMaxTokens}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('${_settings!.aiMaxTokens}',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: _settings!.aiMaxTokens < 8192
-              ? () => _saveSettings(_settings!.copyWith(aiMaxTokens: _settings!.aiMaxTokens + 1024))
-              : null,
+                ? () => _saveSettings(_settings!
+                    .copyWith(aiMaxTokens: _settings!.aiMaxTokens + 1024))
+                : null,
           ),
         ],
       ),

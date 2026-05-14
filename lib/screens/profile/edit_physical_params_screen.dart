@@ -26,6 +26,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
+  late TextEditingController _healthConditionsController;
   late Gender _gender;
   late DateTime _birthDate;
 
@@ -39,6 +40,8 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         TextEditingController(text: widget.profile.height.toString());
     _weightController =
         TextEditingController(text: widget.profile.weight.toString());
+    _healthConditionsController =
+        TextEditingController(text: widget.profile.healthConditions);
   }
 
   Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
@@ -74,6 +77,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     _nameController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _healthConditionsController.dispose();
     super.dispose();
   }
 
@@ -85,6 +89,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         birthDate: _birthDate,
         height: int.tryParse(_heightController.text) ?? 0,
         weight: double.tryParse(_weightController.text) ?? 0,
+        healthConditions: _healthConditionsController.text,
       );
       await context.read<ProfileProvider>().updateProfile(updatedProfile);
       if (mounted) Navigator.pop(context, true);
@@ -173,6 +178,15 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                     ? l10n.enterYourWeight
                     : null,
               ),
+              const SizedBox(height: 24),
+              _buildTextFormField(
+                controller: _healthConditionsController,
+                label: l10n.healthConditionsTitle,
+                icon: Symbols.medical_services,
+                minLines: 3,
+                maxLines: 5,
+                helperText: l10n.healthConditionsHint,
+              ),
             ],
           ),
         ),
@@ -233,13 +247,21 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
+    int? minLines,
+    int? maxLines,
+    String? helperText,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
-      decoration: AppStyles.inputDecoration(label, icon),
+      minLines: minLines,
+      maxLines: maxLines,
+      decoration: AppStyles.inputDecoration(label, icon).copyWith(
+        helperText: helperText,
+        helperMaxLines: 3,
+      ),
       style: const TextStyle(fontWeight: FontWeight.w500),
     );
   }

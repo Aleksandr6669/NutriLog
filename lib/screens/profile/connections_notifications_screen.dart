@@ -152,9 +152,6 @@ class _ConnectionsNotificationsScreenState
     }
   }
 
-
-
-
   void _showLanguagePicker(BuildContext context) {
     final localeProvider = context.read<LocaleProvider>();
     final l10n = AppLocalizations.of(context)!;

@@ -599,5 +599,8 @@
   "smartScannerTitle": "Smart Scanner",
   "bySmartScanner": "By Photo / Scanner",
   "checkRecipeButton": "Check recipe",
-  "recipeAiCalculateRequired": "Nutritional calculation is required before saving."
+  "recipeAiCalculateRequired": "Nutritional calculation is required before saving.",
+  "healthConditionsTitle": "Medical Details",
+  "healthConditionsHint": "Enter health conditions (e.g., gastritis, allergies) to help AI personalize your nutrition.",
+  "healthAdviceTitle": "Medical Advice"
 }

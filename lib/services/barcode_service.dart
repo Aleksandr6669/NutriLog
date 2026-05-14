@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class BarcodeService {
-  static const String _offApiUrl = 'https://world.openfoodfacts.org/api/v0/product/';
+  static const String _offApiUrl =
+      'https://world.openfoodfacts.org/api/v0/product/';
 
   Future<Map<String, dynamic>?> fetchProductByBarcode(String barcode) async {
     try {

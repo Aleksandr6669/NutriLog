@@ -44,6 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _carbsGoalController = TextEditingController();
   final _waterGoalController = TextEditingController();
   final _stepsGoalController = TextEditingController();
+  final _healthConditionsController = TextEditingController();
 
   Gender _gender = Gender.female;
   GoalType _goalType = GoalType.healthyEating;
@@ -99,6 +100,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (profile.aiContext.isNotEmpty) {
         _aiContextController.text = profile.aiContext;
       }
+      if (profile.healthConditions.isNotEmpty) {
+        _healthConditionsController.text = profile.healthConditions;
+      }
 
       _calorieGoalController.text =
           profile.calorieGoal > 0 ? profile.calorieGoal.toString() : '1800';
@@ -132,6 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _carbsGoalController.dispose();
     _waterGoalController.dispose();
     _stepsGoalController.dispose();
+    _healthConditionsController.dispose();
     super.dispose();
   }
 
@@ -207,6 +212,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         carbsGoal: int.parse(_carbsGoalController.text.trim()),
         waterGoal: int.parse(_waterGoalController.text.trim()),
         stepsGoal: int.parse(_stepsGoalController.text.trim()),
+        healthConditions: _healthConditionsController.text.trim(),
         weightHistory: _initialProfile?.weightHistory ?? const [],
       );
 
@@ -254,6 +260,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         carbsGoal: int.tryParse(_carbsGoalController.text.trim()) ?? 195,
         waterGoal: int.tryParse(_waterGoalController.text.trim()) ?? 2000,
         stepsGoal: int.tryParse(_stepsGoalController.text.trim()) ?? 10000,
+        healthConditions: _healthConditionsController.text.trim(),
         weightHistory: _initialProfile?.weightHistory ?? const [],
       );
 
@@ -510,6 +517,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             validator: (v) => _positiveDoubleValidator(v, l10n.enterYourWeight),
             decoration:
                 AppStyles.inputDecoration(l10n.weightKg, Symbols.weight),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _healthConditionsController,
+            maxLines: 2,
+            decoration: AppStyles.inputDecoration(
+              l10n.healthConditionsTitle,
+              Symbols.medical_services,
+            ).copyWith(
+              hintText: l10n.healthConditionsHint,
+            ),
           ),
         ],
       ),

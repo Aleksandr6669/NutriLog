@@ -41,6 +41,7 @@ class UserProfile {
   final int carbsGoal;
   final int waterGoal; // в мл
   final int stepsGoal;
+  final String healthConditions;
   final List<Map<String, dynamic>> weightHistory;
 
   int get age {
@@ -71,6 +72,7 @@ class UserProfile {
     required this.carbsGoal,
     required this.waterGoal,
     required this.stepsGoal,
+    required this.healthConditions,
     required this.weightHistory,
   });
 
@@ -92,6 +94,7 @@ class UserProfile {
     int? carbsGoal,
     int? waterGoal,
     int? stepsGoal,
+    String? healthConditions,
     List<Map<String, dynamic>>? weightHistory,
   }) {
     return UserProfile(
@@ -112,6 +115,7 @@ class UserProfile {
       carbsGoal: carbsGoal ?? this.carbsGoal,
       waterGoal: waterGoal ?? this.waterGoal,
       stepsGoal: stepsGoal ?? this.stepsGoal,
+      healthConditions: healthConditions ?? this.healthConditions,
       weightHistory: weightHistory ?? this.weightHistory,
     );
   }
@@ -140,6 +144,7 @@ class UserProfile {
       carbsGoal: json['carbsGoal'] as int,
       waterGoal: json['waterGoal'] as int,
       stepsGoal: json['stepsGoal'] as int,
+      healthConditions: (json['healthConditions'] as String? ?? '').trim(),
       weightHistory: ((json['weightHistory'] as List<dynamic>?) ?? [])
           .map((e) => e as Map<String, dynamic>)
           .toList(),
@@ -165,6 +170,7 @@ class UserProfile {
       'carbsGoal': carbsGoal,
       'waterGoal': waterGoal,
       'stepsGoal': stepsGoal,
+      'healthConditions': healthConditions,
       'weightHistory': weightHistory,
     };
   }

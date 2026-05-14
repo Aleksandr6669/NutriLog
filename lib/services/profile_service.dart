@@ -105,6 +105,7 @@ class ProfileService {
       carbsGoal: 0,
       waterGoal: 0,
       stepsGoal: 0,
+      healthConditions: '',
       weightHistory: const [],
     );
   }

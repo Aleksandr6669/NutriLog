@@ -1610,4 +1610,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get recipeAiCalculateRequired =>
       'Необходимо рассчитать пищевую ценность перед сохранением.';
+
+  @override
+  String get healthConditionsTitle => 'Медицинские детали';
+
+  @override
+  String get healthConditionsHint =>
+      'Укажите особенности здоровья (например, гастрит, аллергии), чтобы ИИ точнее подбирал рекомендации по питанию.';
+
+  @override
+  String get healthAdviceTitle => 'Медицинский совет';
 }

@@ -24,6 +24,8 @@ import '../../router.dart';
 import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
+import 'package:provider/provider.dart';
+import '../../providers/profile_provider.dart';
 import 'widgets/chart_legend_item.dart';
 import 'widgets/progress_card.dart';
 
@@ -61,7 +63,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   ModalRoute<dynamic>? _subscribedRoute;
   String? _lastDisplayedSignature;
   // Per-period in-memory AI cache: avoids redundant AI calls on period switch.
-  final Map<String, ({String? overview, List<Map<String, String>> recs, bool error})>
+  final Map<String,
+          ({String? overview, List<Map<String, String>> recs, bool error})>
       _aiCacheByPeriod = {};
 
   @override
@@ -517,8 +520,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     if (!mounted || requestId != _dataRequestId) return;
 
     try {
+      final profile = context.read<ProfileProvider>().profile;
       final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
+        healthConditions: profile?.healthConditions ?? '',
         goalType: (aiInput['goalType'] as String? ?? '').trim(),
         activityTypes: (aiInput['activityTypes'] as String? ?? '').trim(),
         aiContext: (aiInput['aiContext'] as String? ?? '').trim(),
@@ -585,14 +590,14 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             (aiInput['snackPriorityRecipes'] as List<dynamic>? ?? const [])
                 .whereType<Map<String, dynamic>>()
                 .toList(growable: false),
-        availableRecipeNames: (aiInput['availableRecipeNames'] as List<dynamic>? ??
-                const [])
-            .cast<String>()
-            .toList(growable: false),
-        consumedFoodNames: (aiInput['consumedFoodNames'] as List<dynamic>? ??
-                const [])
-            .cast<String>()
-            .toList(growable: false),
+        availableRecipeNames:
+            (aiInput['availableRecipeNames'] as List<dynamic>? ?? const [])
+                .cast<String>()
+                .toList(growable: false),
+        consumedFoodNames:
+            (aiInput['consumedFoodNames'] as List<dynamic>? ?? const [])
+                .cast<String>()
+                .toList(growable: false),
         previousReports: _aiReportHistory
             .map(
               (entry) => {
@@ -742,7 +747,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   ) {
     final period = (aiInput['periodLabel'] as String? ?? _period.name).trim();
     final sourceSignature = _buildAiSourceSignature(aiInput);
-    
+
     if (sourceSignature == _lastDisplayedSignature && _aiOverview != null) {
       return;
     }
@@ -884,9 +889,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _statsFuture,
         builder: (context, snapshot) {
-          final hasCurrentData = snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData &&
-              snapshot.data!.isNotEmpty;
+          final hasCurrentData =
+              snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData &&
+                  snapshot.data!.isNotEmpty;
           if (hasCurrentData) {
             _lastLoadedStats = snapshot.data!;
           }
@@ -1606,7 +1612,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       );
     }
 
-    final isPreparing = _isDebouncePending || (_aiOverview == null && !_aiError);
+    final isPreparing =
+        _isDebouncePending || (_aiOverview == null && !_aiError);
     final overviewText = _aiOverview?.trim() ?? '';
     return Card(
       color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),

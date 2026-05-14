@@ -62,11 +62,11 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
             AppLocalizations.of(context)!.agreementSection4Content,
           ),
           const SizedBox(height: 24),
-          
+
           // Чекбокс согласия
           CheckboxListTile(
             value: _isCheckboxChecked,
-            onChanged: widget.showAcceptButton 
+            onChanged: widget.showAcceptButton
                 ? (bool? value) {
                     setState(() {
                       _isCheckboxChecked = value ?? false;
@@ -81,7 +81,7 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
             activeColor: theme.colorScheme.primary,
             contentPadding: EdgeInsets.zero,
           ),
-          
+
           const SizedBox(height: 20),
           Text(
             AppLocalizations.of(context)!.agreementContinueText,

@@ -598,5 +598,8 @@
   "smartScannerTitle": "Умный сканер",
   "bySmartScanner": "По фото / Сканер",
   "checkRecipeButton": "Проверить рецепт",
-  "recipeAiCalculateRequired": "Необходимо рассчитать пищевую ценность перед сохранением."
+  "recipeAiCalculateRequired": "Необходимо рассчитать пищевую ценность перед сохранением.",
+  "healthConditionsTitle": "Медицинские детали",
+  "healthConditionsHint": "Укажите особенности здоровья (например, гастрит, аллергии), чтобы ИИ точнее подбирал рекомендации по питанию.",
+  "healthAdviceTitle": "Медицинский совет"
 }

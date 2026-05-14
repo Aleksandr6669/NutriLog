@@ -56,7 +56,7 @@ class DataEncryptionService {
   }
 
   /// Шифрует данные для отправки в облако.
-  /// 
+  ///
   /// Если документ в списке приватных, шифруется вся его содержимое.
   /// Добавляется метаполе `_encrypted: true` для отслеживания зашифрованных данных.
   Map<String, dynamic> encryptMapForCloud(
@@ -125,8 +125,7 @@ class DataEncryptionService {
       final encrypter = encrypt.Encrypter(encrypt.AES(key));
 
       // Дешифруем
-      final decrypted =
-          encrypter.decrypt64(encryptedBase64, iv: iv);
+      final decrypted = encrypter.decrypt64(encryptedBase64, iv: iv);
 
       // Десериализуем JSON
       return jsonDecode(decrypted) as Map<String, dynamic>;

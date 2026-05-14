@@ -260,6 +260,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   theme, l10n.weight, '${profile.weight} ${l10n.weightUnit}'),
               _buildInfoRow(
                   theme, l10n.gender, profile.gender.localizedLabel(context)),
+              if (profile.healthConditions.isNotEmpty) ...[
+                const Divider(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.healthConditionsTitle,
+                        style: theme.textTheme.labelMedium
+                            ?.copyWith(color: theme.hintColor)),
+                    const SizedBox(height: 4),
+                    Text(profile.healthConditions,
+                        style: theme.textTheme.bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),

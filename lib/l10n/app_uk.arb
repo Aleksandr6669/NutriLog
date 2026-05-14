@@ -600,5 +600,8 @@
   "smartScannerTitle": "Розумний сканер",
   "bySmartScanner": "По фото / Сканер",
   "checkRecipeButton": "Перевірити рецепт",
-  "recipeAiCalculateRequired": "Необхідно розрахувати харчову цінність перед збереженням."
+  "recipeAiCalculateRequired": "Необхідно розрахувати харчову цінність перед збереженням.",
+  "healthConditionsTitle": "Медичні деталі",
+  "healthConditionsHint": "Вкажіть особливості здоров'я (наприклад, гастрит, алергії), щоб ШІ точніше підбирав рекомендації щодо харчування.",
+  "healthAdviceTitle": "Медична порада"
 }

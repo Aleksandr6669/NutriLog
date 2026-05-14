@@ -171,8 +171,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
   }
 
-
-
   Future<void> _openRecipeDetail(Recipe recipe) async {
     HapticFeedback.selectionClick();
     if (!widget.selectionMode) {
@@ -376,7 +374,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       setState(() => _isLoading = true);
     }
 
-    if (_cachedDefaultRecipesLocale != _locale || _cachedDefaultRecipes.isEmpty) {
+    if (_cachedDefaultRecipesLocale != _locale ||
+        _cachedDefaultRecipes.isEmpty) {
       _cachedDefaultRecipes =
           await RecipeLoader.loadRecipesFromAssets(locale: _locale);
       _cachedDefaultRecipesLocale = _locale;
@@ -405,12 +404,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
         }
         final preferIncoming = recipe.isUserRecipe && !existing.isUserRecipe;
         final preferExisting = existing.isUserRecipe && !recipe.isUserRecipe;
-        final preferExistingPrivateOverIncomingPublic =
-            existing.isUserRecipe && !existing.isPublic &&
-                recipe.isUserRecipe && recipe.isPublic;
-        final preferIncomingPrivateOverExistingPublic =
-            recipe.isUserRecipe && !recipe.isPublic &&
-                existing.isUserRecipe && existing.isPublic;
+        final preferExistingPrivateOverIncomingPublic = existing.isUserRecipe &&
+            !existing.isPublic &&
+            recipe.isUserRecipe &&
+            recipe.isPublic;
+        final preferIncomingPrivateOverExistingPublic = recipe.isUserRecipe &&
+            !recipe.isPublic &&
+            existing.isUserRecipe &&
+            existing.isPublic;
 
         String pickString(String current, String next) {
           if (preferExistingPrivateOverIncomingPublic) {
@@ -481,7 +482,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _isRecipeFeedInitialized = true;
 
     // 3. Встроенные рецепты из ассетов
-    final allRecipes = [...ownRecipes, ...othersRecipes, ..._cachedDefaultRecipes];
+    final allRecipes = [
+      ...ownRecipes,
+      ...othersRecipes,
+      ..._cachedDefaultRecipes
+    ];
 
     setState(() {
       _highlightedAppearedRecipeId = nextHighlightedRecipeId;
@@ -673,7 +678,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       child: Text(
                         widget.selectionMode
                             ? AppLocalizations.of(context)!.swipeToSelectHint
-                            : AppLocalizations.of(context)!.swipeToEditDeleteHint,
+                            : AppLocalizations.of(context)!
+                                .swipeToEditDeleteHint,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.textTheme.bodySmall?.color,
                         ),

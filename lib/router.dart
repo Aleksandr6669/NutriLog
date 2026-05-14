@@ -36,7 +36,10 @@ Map<String, dynamic>? pendingRouteExtra;
 
 void handleAppDeepLink(String path, [Map<String, dynamic>? extra]) {
   if (isAppBootstrapped) {
-    if (path.startsWith('/meal/') || path == '/weight' || path.startsWith('/recipe') || path.startsWith('/activity')) {
+    if (path.startsWith('/meal/') ||
+        path == '/weight' ||
+        path.startsWith('/recipe') ||
+        path.startsWith('/activity')) {
       appRouter.push(path, extra: extra);
     } else {
       appRouter.go(path, extra: extra);
@@ -49,7 +52,7 @@ void handleAppDeepLink(String path, [Map<String, dynamic>? extra]) {
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<PageRoute<dynamic>> appRouteObserver =
-  RouteObserver<PageRoute<dynamic>>();
+    RouteObserver<PageRoute<dynamic>>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
