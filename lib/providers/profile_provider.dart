@@ -59,16 +59,33 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> loadProfile() async {
-    if (_profile != null && !_isLoading) return; // Уже загружено
+    if (_profile != null && !_isLoading) {
+      await _checkSubscriptionExpiration();
+      return;
+    }
 
     _isLoading = true;
     notifyListeners();
 
     await _dailyLogService.syncProfileWeightFromLogs();
     _profile = await _service.loadProfile();
+    
+    await _checkSubscriptionExpiration();
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> _checkSubscriptionExpiration() async {
+    if (_profile == null || _profile!.tier == SubscriptionTier.free) return;
+    if (_profile!.subscriptionUntil != null &&
+        DateTime.now().isAfter(_profile!.subscriptionUntil!)) {
+      final downgraded = _profile!.copyWith(
+        tier: SubscriptionTier.free,
+        subscriptionUntil: null,
+      );
+      await updateProfile(downgraded);
+    }
   }
 
   /// Сбрасывает кэш и перечитывает профиль из хранилища.

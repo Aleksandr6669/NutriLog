@@ -13,6 +13,8 @@ import '../../styles/app_colors.dart';
 import '../../styles/app_styles.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import 'fab_menu_item.dart';
+import 'package:provider/provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -593,6 +595,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profile = context.watch<ProfileProvider>().profile;
+    final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
     // final fabBottomInset = MediaQuery.of(context).padding.bottom + 8; // не используется
     final fixedTopInset = glassAppBarTotalHeight(context) + 8;
 
@@ -746,6 +750,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           key: UniqueKey(),
                           icon: Symbols.barcode_scanner,
                           label: AppLocalizations.of(context)!.bySmartScanner,
+                          isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
                             await _navigateAndRefreshRoute('/recipe/scanner');
@@ -757,6 +762,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           key: UniqueKey(),
                           icon: Symbols.edit_note,
                           label: AppLocalizations.of(context)!.byDescription,
+                          isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
                             await _navigateAndRefreshRoute(

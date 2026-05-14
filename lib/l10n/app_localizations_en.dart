@@ -33,6 +33,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get steps => 'Steps';
 
   @override
+  String get subscriptionTier => 'Subscription Tier';
+
+  @override
+  String get tierFree => 'Free';
+
+  @override
+  String get tierStandard => 'Standard';
+
+  @override
+  String get tierPremium => 'Premium';
+
+  @override
+  String get upgradeToPremium => 'Upgrade to Premium';
+
+  @override
+  String get upgradeToStandard => 'Upgrade to Standard';
+
+  @override
+  String get featureNotAvailableInFree =>
+      'AI features are not available in the Free version.';
+
+  @override
+  String get aiAnalyticsOnlyInPremium =>
+      'AI Analytics is only available in Premium.';
+
+  @override
   String get weight => 'Weight';
 
   @override
@@ -1615,4 +1641,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthAdviceTitle => 'Medical Advice';
+
+  @override
+  String get aiGeneralError => 'AI processing error';
+
+  @override
+  String get chooseYourPlan => 'Choose Your Plan';
+
+  @override
+  String get planFeatures => 'Plan Features';
+
+  @override
+  String get freePlanDesc => 'Basic tracking and calorie counting';
+
+  @override
+  String get standardPlanDesc =>
+      'Full AI scanner, smart recipes and health advice';
+
+  @override
+  String get premiumPlanDesc =>
+      'Advanced AI analytics, personal nutrition reports and more';
+
+  @override
+  String get featureAiScanner => 'AI Smart Scanner';
+
+  @override
+  String get featureHealthAdvice => 'Medical & Health Advice';
+
+  @override
+  String get featureAiAnalytics => 'Advanced AI Analytics';
+
+  @override
+  String get featureUnlimitedRecipes => 'Unlimited AI Recipes';
+
+  @override
+  String get selectPlan => 'Select Plan';
+
+  @override
+  String get currentPlan => 'Current Plan';
 }

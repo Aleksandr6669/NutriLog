@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/styles/app_colors.dart';
+import 'package:nutri_log/screens/profile/subscription_plans_screen.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
@@ -447,31 +449,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.3)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SubscriptionPlansScreen()),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Symbols.diamond,
-                              size: 14, color: AppColors.primary),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Premium',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: _buildTierBadge(context, theme, profile),
                     ),
                   ],
                 ),
@@ -528,6 +512,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(value,
               style: theme.textTheme.bodyLarge
                   ?.copyWith(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+
+
+  Widget _buildTierBadge(
+      BuildContext context, ThemeData theme, UserProfile profile) {
+    final l10n = AppLocalizations.of(context)!;
+    String label = '';
+    IconData icon = Symbols.person;
+    Color color = Colors.grey;
+
+    switch (profile.tier) {
+      case SubscriptionTier.free:
+        label = l10n.tierFree;
+        icon = Symbols.person;
+        color = Colors.grey;
+        break;
+      case SubscriptionTier.standard:
+        label = l10n.tierStandard;
+        icon = Symbols.star;
+        color = Colors.blue;
+        break;
+      case SubscriptionTier.premium:
+        label = l10n.tierPremium;
+        icon = Symbols.workspace_premium;
+        color = Colors.amber.shade700;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          if (profile.subscriptionUntil != null) ...[
+            const SizedBox(width: 6),
+            Container(width: 1, height: 10, color: color.withValues(alpha: 0.3)),
+            const SizedBox(width: 6),
+            Text(
+              DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                  .format(profile.subscriptionUntil!),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: color.withValues(alpha: 0.7),
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );

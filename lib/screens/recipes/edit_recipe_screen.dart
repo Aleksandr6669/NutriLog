@@ -86,6 +86,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   Timer? _donateAiDebounce;
   Timer? _publicAiDebounce;
   Timer? _nutritionAiDebounce;
+  Timer? _healthAdviceDebounce;
+  bool _isHealthAdviceLoading = false;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _nutrientsActionKey = GlobalKey();
   int _aiRequestId = 0;
   int _donateAiRequestId = 0;
   int _publicAiRequestId = 0;
@@ -143,6 +147,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       final initialValue = sourceRecipe?.nutrients[key]?.toString() ?? '0.0';
       final controller = TextEditingController(text: initialValue);
       controller.addListener(_onNutrientChanged);
+      controller.addListener(_scheduleHealthAdviceUpdate);
       _nutrientControllers[key] = controller;
     }
 
@@ -178,6 +183,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   void _attachIngredientListeners(_IngredientFormItem item) {
     item.nameController.addListener(_onIngredientChanged);
     item.quantityController.addListener(_onIngredientChanged);
+    item.nameController.addListener(_scheduleHealthAdviceUpdate);
+    item.quantityController.addListener(_scheduleHealthAdviceUpdate);
   }
 
   void _onIngredientChanged() {
@@ -235,8 +242,73 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return 'Идёт проверка...';
   }
 
+  void _scheduleHealthAdviceUpdate() {
+    _healthAdviceDebounce?.cancel();
+    _healthAdviceDebounce = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) _generateHealthAdvice();
+    });
+  }
+
+  Future<void> _generateHealthAdvice() async {
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null ||
+        profile.healthConditions.isEmpty ||
+        !profile.isAiFeatureAvailable) {
+      return;
+    }
+
+    final ingredients = _ingredientItems
+        .map((item) => RecipeIngredient(
+              name: item.nameController.text.trim(),
+              quantity: _parseAmount(item.quantityController.text),
+              unit: item.unit.trim(),
+            ))
+        .where((i) => i.name.isNotEmpty)
+        .toList();
+
+    if (ingredients.isEmpty) return;
+
+    setState(() => _isHealthAdviceLoading = true);
+
+    try {
+      final nutrients = <String, double>{};
+      for (final key in _nutrientKeys) {
+        nutrients[key] = _parseAmount(_nutrientControllers[key]?.text ?? '');
+      }
+
+      final advice = await _geminiRecipeService.generateMedicalAdvice(
+        recipeName: _nameController.text,
+        recipeDescription: _descriptionController.text,
+        clarification: _clarificationController.text,
+        ingredients: ingredients,
+        nutrients: nutrients,
+        healthConditions: profile.healthConditions,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (mounted) {
+        setState(() {
+          _healthAdviceController.text = advice;
+          _isHealthAdviceLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isHealthAdviceLoading = false);
+    }
+  }
+
   Future<void> _runPublicModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
+
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      setState(() {
+        _isPublicAiChecking = false;
+        _publicAiStatus = 'AI features disabled in Free version';
+        _isPublicAiApproved = false;
+      });
+      return;
+    }
 
     final requestId = ++_publicAiRequestId;
     setState(() {
@@ -723,6 +795,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      if (mounted) {
+        setState(() {
+          _aiStatus = l10n.featureNotAvailableInFree;
+          _isAiError = true;
+          _isAiCalculating = false;
+        });
+      }
+      return;
+    }
+
     final requestId = ++_aiRequestId;
     if (mounted) {
       setState(() {
@@ -839,6 +923,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _aiStatus = l10n.recipeAiCalculateRequired;
         _isAiError = true;
       });
+      _scrollToNutrientsAction();
       return;
     }
 
@@ -900,6 +985,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       if (mounted) {
         Navigator.pop(context, true);
       }
+    }
+  }
+
+  void _scrollToNutrientsAction() {
+    if (_nutrientsActionKey.currentContext != null) {
+      Scrollable.ensureVisible(
+        _nutrientsActionKey.currentContext!,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -1441,6 +1536,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Stack(
           children: [
             SingleChildScrollView(
+              controller: _scrollController,
               padding: glassBodyPadding(
                 context,
                 left: 16,
@@ -1453,6 +1549,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 child: Column(
                   children: [
                     _buildMainInfoCard(),
+                    const SizedBox(height: 16),
+                    _buildHealthAdviceBlock(),
                     const SizedBox(height: 20),
                     _buildIngredientsCard(),
                     const SizedBox(height: 20),
@@ -1673,9 +1771,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             SizedBox(
               width: double.infinity,
               child: Column(
+                key: _nutrientsActionKey,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: (_isAiCalculating || !_hasAnyIngredient)
+                    onPressed: (_isAiCalculating ||
+                            !_hasAnyIngredient ||
+                            !(context
+                                    .read<ProfileProvider>()
+                                    .profile
+                                    ?.isAiFeatureAvailable ??
+                                false))
                         ? null
                         : _recalculateNutrientsWithAi,
                     icon: _isAiCalculating
@@ -1893,28 +1998,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               );
             }),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _healthAdviceController,
-              builder: (context, value, child) {
-                if (value.text.isEmpty && !_isAiCalculating) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(top: 16, bottom: 8),
-                  child: TextFormField(
-                    controller: _healthAdviceController,
-                    maxLines: null,
-                    decoration: AppStyles.inputDecoration(
-                      l10n.healthAdviceTitle,
-                      Symbols.medical_information,
-                    ).copyWith(
-                      fillColor: Colors.blue.withValues(alpha: 0.05),
-                      filled: true,
-                    ),
-                  ),
-                );
-              },
-            ),
             Text(
               l10n.ingredientExamples,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -2020,6 +2103,57 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           }
         }
         return null;
+      },
+    );
+  }
+
+  Widget _buildHealthAdviceBlock() {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _healthAdviceController,
+      builder: (context, value, child) {
+        if (value.text.isEmpty && !_isHealthAdviceLoading) {
+          return const SizedBox.shrink();
+        }
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppStyles.cardRadius,
+            side: BorderSide(color: Colors.blue.withValues(alpha: 0.1), width: 1),
+          ),
+          color: Colors.blue.withValues(alpha: 0.05),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: [
+                TextFormField(
+                  controller: _healthAdviceController,
+                  maxLines: null,
+                  style: const TextStyle(fontSize: 13),
+                  decoration: AppStyles.inputDecoration(
+                    l10n.healthAdviceTitle,
+                    Symbols.medical_information,
+                  ).copyWith(
+                    fillColor: Colors.transparent,
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+                if (_isHealthAdviceLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }

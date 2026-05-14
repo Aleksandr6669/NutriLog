@@ -33,6 +33,32 @@ class AppLocalizationsUk extends AppLocalizations {
   String get steps => 'Кроки';
 
   @override
+  String get subscriptionTier => 'Тарифний план';
+
+  @override
+  String get tierFree => 'Безкоштовний';
+
+  @override
+  String get tierStandard => 'Стандартний';
+
+  @override
+  String get tierPremium => 'Преміум';
+
+  @override
+  String get upgradeToPremium => 'Перейти на Преміум';
+
+  @override
+  String get upgradeToStandard => 'Перейти на Стандарт';
+
+  @override
+  String get featureNotAvailableInFree =>
+      'Нейронка не доступна в безкоштовній версії.';
+
+  @override
+  String get aiAnalyticsOnlyInPremium =>
+      'ШІ-аналітика доступна тільки в Преміум-тарифі.';
+
+  @override
   String get weight => 'Вага';
 
   @override
@@ -1619,4 +1645,42 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get healthAdviceTitle => 'Медична порада';
+
+  @override
+  String get aiGeneralError => 'Помилка обробки ШІ';
+
+  @override
+  String get chooseYourPlan => 'Оберіть ваш тариф';
+
+  @override
+  String get planFeatures => 'Можливості тарифу';
+
+  @override
+  String get freePlanDesc => 'Базове відстеження та підрахунок калорій';
+
+  @override
+  String get standardPlanDesc =>
+      'Повний ШІ-сканер, розумні рецепти та поради щодо здоров\'я';
+
+  @override
+  String get premiumPlanDesc =>
+      'Просунута ШІ-аналітика, персональні звіти та багато іншого';
+
+  @override
+  String get featureAiScanner => 'Розумний ШІ-сканер';
+
+  @override
+  String get featureHealthAdvice => 'Медичні поради та рекомендації';
+
+  @override
+  String get featureAiAnalytics => 'Глибока ШІ-аналітика';
+
+  @override
+  String get featureUnlimitedRecipes => 'Необмежені ШІ-рецепти';
+
+  @override
+  String get selectPlan => 'Обрати тариф';
+
+  @override
+  String get currentPlan => 'Поточний тариф';
 }

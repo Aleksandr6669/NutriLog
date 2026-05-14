@@ -521,9 +521,19 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
 
     try {
       final profile = context.read<ProfileProvider>().profile;
+      if (profile == null || !profile.isAiAnalyticsAvailable) {
+        if (mounted) {
+          setState(() {
+            _aiError = false;
+            _aiOverview = null;
+            _isDebouncePending = false;
+          });
+        }
+        return;
+      }
       final aiReport = await _geminiRecipeService.generateStructuredStatsReport(
         periodLabel: aiInput['periodLabel'] as String,
-        healthConditions: profile?.healthConditions ?? '',
+        healthConditions: profile.healthConditions,
         goalType: (aiInput['goalType'] as String? ?? '').trim(),
         activityTypes: (aiInput['activityTypes'] as String? ?? '').trim(),
         aiContext: (aiInput['aiContext'] as String? ?? '').trim(),
@@ -1594,6 +1604,45 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     bool aiAssistantEnabled,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final profile = context.watch<ProfileProvider>().profile;
+    if (profile != null && !profile.isAiAnalyticsAvailable) {
+      return Card(
+        color: Colors.amber.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppStyles.largeBorderRadius,
+          side: BorderSide(color: Colors.amber.withValues(alpha: 0.3)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const Icon(Symbols.workspace_premium, color: Colors.amber, size: 40),
+              const SizedBox(height: 12),
+              Text(
+                l10n.aiAnalyticsOnlyInPremium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber.shade900,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  // This usually navigates to subscription page
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(l10n.upgradeToPremium),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (!aiAssistantEnabled) {
       return Card(
         color: const Color.fromARGB(255, 147, 242, 154).withAlpha(20),

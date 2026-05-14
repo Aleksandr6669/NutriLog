@@ -149,6 +149,12 @@ class _CreateRecipeFromDescriptionScreenState
   }
 
   Future<void> _generateAndOpenEditor() async {
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      _showAiErrorSnackBar(l10n.featureNotAvailableInFree);
+      return;
+    }
+
     final description = _descriptionController.text.trim();
     if (description.isEmpty) {
       _showAiErrorSnackBar(l10n.recipeCreateFromDescriptionEmptyError);
@@ -226,7 +232,12 @@ class _CreateRecipeFromDescriptionScreenState
                     child: ElevatedButton.icon(
                       onPressed: (_isGenerating ||
                               _isListening ||
-                              _descriptionController.text.trim().isEmpty)
+                              _descriptionController.text.trim().isEmpty ||
+                              !(context
+                                      .read<ProfileProvider>()
+                                      .profile
+                                      ?.isAiFeatureAvailable ??
+                                  false))
                           ? null
                           : _generateAndOpenEditor,
                       icon: _isGenerating

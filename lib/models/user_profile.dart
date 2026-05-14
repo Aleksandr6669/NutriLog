@@ -22,6 +22,12 @@ enum ActivityFrequency {
   veryActive,
 }
 
+enum SubscriptionTier {
+  free,
+  standard,
+  premium,
+}
+
 @immutable
 class UserProfile {
   final String name;
@@ -43,6 +49,8 @@ class UserProfile {
   final int stepsGoal;
   final String healthConditions;
   final List<Map<String, dynamic>> weightHistory;
+  final SubscriptionTier tier;
+  final DateTime? subscriptionUntil;
 
   int get age {
     final today = DateTime.now();
@@ -74,7 +82,21 @@ class UserProfile {
     required this.stepsGoal,
     required this.healthConditions,
     required this.weightHistory,
+    this.tier = SubscriptionTier.free,
+    this.subscriptionUntil,
   });
+
+  bool get isAiFeatureAvailable {
+    if (tier == SubscriptionTier.free) return false;
+    if (subscriptionUntil == null) return true;
+    return DateTime.now().isBefore(subscriptionUntil!);
+  }
+
+  bool get isAiAnalyticsAvailable {
+    if (tier != SubscriptionTier.premium) return false;
+    if (subscriptionUntil == null) return true;
+    return DateTime.now().isBefore(subscriptionUntil!);
+  }
 
   UserProfile copyWith({
     String? name,
@@ -96,6 +118,8 @@ class UserProfile {
     int? stepsGoal,
     String? healthConditions,
     List<Map<String, dynamic>>? weightHistory,
+    SubscriptionTier? tier,
+    DateTime? subscriptionUntil,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -117,6 +141,8 @@ class UserProfile {
       stepsGoal: stepsGoal ?? this.stepsGoal,
       healthConditions: healthConditions ?? this.healthConditions,
       weightHistory: weightHistory ?? this.weightHistory,
+      tier: tier ?? this.tier,
+      subscriptionUntil: subscriptionUntil ?? this.subscriptionUntil,
     );
   }
 
@@ -148,6 +174,13 @@ class UserProfile {
       weightHistory: ((json['weightHistory'] as List<dynamic>?) ?? [])
           .map((e) => e as Map<String, dynamic>)
           .toList(),
+      tier: SubscriptionTier.values.firstWhere(
+        (t) => t.name == (json['tier'] as String? ?? 'free'),
+        orElse: () => SubscriptionTier.free,
+      ),
+      subscriptionUntil: json['subscriptionUntil'] != null
+          ? DateTime.parse(json['subscriptionUntil'] as String)
+          : null,
     );
   }
 
@@ -172,6 +205,8 @@ class UserProfile {
       'stepsGoal': stepsGoal,
       'healthConditions': healthConditions,
       'weightHistory': weightHistory,
+      'tier': tier.name,
+      'subscriptionUntil': subscriptionUntil?.toIso8601String(),
     };
   }
 }

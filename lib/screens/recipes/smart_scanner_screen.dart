@@ -169,6 +169,20 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   Future<void> _sendToAi() async {
     if (_isProcessing || _capturedImage == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.featureNotAvailableInFree),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isProcessing = true);
     final description = _descriptionController.text.trim();
 
@@ -454,7 +468,19 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     final isCaptured = _capturedImage != null;
 
     return InkWell(
-      onTap: isCaptured ? _sendToAi : _captureImage,
+      onTap: isCaptured
+          ? ((context.read<ProfileProvider>().profile?.isAiFeatureAvailable ??
+                  false)
+              ? _sendToAi
+              : () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.featureNotAvailableInFree),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                })
+          : _captureImage,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         height: 64,

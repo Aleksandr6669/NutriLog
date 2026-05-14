@@ -7,12 +7,14 @@ class FabMenuItem extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
   final Duration delay;
+  final bool isLocked;
 
   const FabMenuItem({
     required this.icon,
     required this.label,
     required this.onTap,
     this.delay = Duration.zero,
+    this.isLocked = false,
     super.key,
   });
 
@@ -85,85 +87,114 @@ class _FabMenuItemState extends State<FabMenuItem>
     return SlideTransition(
       position: _slideUp,
       child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          widget.onTap();
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Текст
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                const textStyle = TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                );
+        onTap: widget.isLocked
+            ? () {
+                HapticFeedback.heavyImpact();
+              }
+            : () {
+                HapticFeedback.lightImpact();
+                widget.onTap();
+              },
+        child: Opacity(
+          opacity: widget.isLocked ? 0.6 : 1.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Текст
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  const textStyle = TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  );
 
-                return ClipRect(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    widthFactor: _textWidth.value,
-                    child: Opacity(
-                      opacity: _opacity.value,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          widget.label,
-                          style: textStyle,
-                          maxLines: 1,
-                          overflow: TextOverflow.visible,
+                  return ClipRect(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      widthFactor: _textWidth.value,
+                      child: Opacity(
+                        opacity: _opacity.value,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            widget.label,
+                            style: textStyle,
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
 
-            // Кружок с иконкой
-            ScaleTransition(
-              scale: _iconScale,
-              child: Container(
-                width: 48,
-                height: 48,
-                // Небольшой отступ справа, чтобы выровнять с главной FAB кнопкой (которая 58x58)
-                margin: const EdgeInsets.only(right: 5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  widget.icon,
-                  color: AppColors.primary,
-                  size: 24,
+              // Кружок с иконкой
+              ScaleTransition(
+                scale: _iconScale,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  // Небольшой отступ справа, чтобы выровнять с главной FAB кнопкой (которая 58x58)
+                  margin: const EdgeInsets.only(right: 5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.isLocked ? Colors.grey[200] : Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        widget.icon,
+                        color: widget.isLocked ? Colors.grey : AppColors.primary,
+                        size: 24,
+                      ),
+                      if (widget.isLocked)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.lock,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

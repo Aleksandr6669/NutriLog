@@ -707,6 +707,56 @@ Rules:
     );
   }
 
+  Future<String> generateMedicalAdvice({
+    required String recipeName,
+    required String recipeDescription,
+    required List<RecipeIngredient> ingredients,
+    required Map<String, double> nutrients,
+    String healthConditions = '',
+    String clarification = '',
+    String? locale,
+  }) async {
+    if (healthConditions.isEmpty) return '';
+
+    final apiKey = _resolveGeminiApiKey();
+    if (apiKey.isEmpty) return '';
+
+    final ingredientsText = ingredients
+        .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
+        .join('\\n');
+
+    final prompt = '''
+  Analyze the following recipe and provide professional medical/nutritional advice or warnings for a person with these health conditions: $healthConditions.
+  
+  Recipe Name: $recipeName
+  Description: $recipeDescription
+  Preparation Details/Clarification: $clarification
+  Ingredients: $ingredientsText
+  Nutrients: ${nutrients.entries.map((e) => '${e.key}: ${e.value}').join(', ')}
+
+  Rules:
+  1. Provide a concise, professional advice or warning (max 2-3 sentences).
+  2. If the recipe is safe, you can say it's suitable or give a helpful tip.
+  3. Focus specifically on how the ingredients/nutrients/preparation method interact with the user's conditions.
+  4. Response language: ${_languageInstruction(locale)}
+
+  Format your response as a raw string of text.
+  ''';
+
+    final response = await _requestStringWithAutoRetry(
+      body: {
+        'messages': [
+          {'role': 'user', 'content': prompt}
+        ],
+        'temperature': 0.1,
+      },
+      apiKeyOverride: apiKey,
+      locale: locale,
+    );
+
+    return response.trim();
+  }
+
   String? _validateEstimatedNutrients({
     required Map<String, double> nutrients,
     required List<RecipeIngredient> ingredients,
@@ -2082,6 +2132,7 @@ Rules:
 
   Future<http.Response> _requestWithGemini({
     required Map<String, dynamic> body,
+    String? apiKeyOverride,
     String? locale,
     required List<String> models,
     required NotificationSettings settings,
@@ -2105,7 +2156,7 @@ Rules:
     _globalRequestLock = completer.future;
 
     try {
-      final apiKey = _resolveGeminiApiKey();
+      final apiKey = apiKeyOverride ?? _resolveGeminiApiKey();
       if (apiKey.isEmpty) {
         throw GeminiRecipeException(_messages(locale).aiKeyMissingError);
       }
@@ -2296,6 +2347,55 @@ Rules:
 
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
+
+  Future<String> _requestStringWithAutoRetry({
+    required Map<String, dynamic> body,
+    String? apiKeyOverride,
+    String? locale,
+    String featureName = 'AI Request',
+  }) async {
+    final settings = await _settingsService.load();
+    final maxAttempts = settings.aiRetryAttempts;
+    final retryDelay = Duration(seconds: settings.aiRetryDelaySeconds);
+
+    Object? lastError;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final response = await _requestWithGemini(
+          body: body,
+          apiKeyOverride: apiKeyOverride,
+          locale: locale,
+          models: [settings.geminiModel],
+          settings: settings,
+          featureName: featureName,
+        );
+
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final text = _extractText(payload, locale).trim();
+        if (text.isEmpty) {
+          throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
+        }
+
+        return text;
+      } catch (e) {
+        lastError = e;
+        if (attempt < maxAttempts) {
+          var currentDelay = retryDelay;
+          if (e is GeminiRecipeException && e.statusCode == 429) {
+            currentDelay = Duration(seconds: 12 + (attempt * 10));
+          }
+          await Future<void>.delayed(currentDelay);
+        }
+      }
+    }
+
+    if (lastError is GeminiRecipeException) {
+      throw lastError;
+    }
+    throw GeminiRecipeException(
+        '${_messages(locale).aiGeneralError}: ${lastError.toString()}');
+  }
 
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
     required Map<String, dynamic> body,

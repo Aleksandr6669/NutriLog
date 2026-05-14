@@ -33,6 +33,32 @@ class AppLocalizationsRu extends AppLocalizations {
   String get steps => 'Шаги';
 
   @override
+  String get subscriptionTier => 'Тарифный план';
+
+  @override
+  String get tierFree => 'Бесплатный';
+
+  @override
+  String get tierStandard => 'Стандартный';
+
+  @override
+  String get tierPremium => 'Премиум';
+
+  @override
+  String get upgradeToPremium => 'Перейти на Премиум';
+
+  @override
+  String get upgradeToStandard => 'Перейти на Стандарт';
+
+  @override
+  String get featureNotAvailableInFree =>
+      'Нейронка не доступна в бесплатной версии.';
+
+  @override
+  String get aiAnalyticsOnlyInPremium =>
+      'ИИ-аналитика доступна только в Премиум-тарифе.';
+
+  @override
   String get weight => 'Вес';
 
   @override
@@ -1620,4 +1646,42 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get healthAdviceTitle => 'Медицинский совет';
+
+  @override
+  String get aiGeneralError => 'Ошибка обработки ИИ';
+
+  @override
+  String get chooseYourPlan => 'Выберите ваш тариф';
+
+  @override
+  String get planFeatures => 'Возможности тарифа';
+
+  @override
+  String get freePlanDesc => 'Базовое отслеживание и подсчет калорий';
+
+  @override
+  String get standardPlanDesc =>
+      'Полный ИИ-сканер, умные рецепты и советы по здоровью';
+
+  @override
+  String get premiumPlanDesc =>
+      'Продвинутая ИИ-аналитика, персональные отчеты и многое другое';
+
+  @override
+  String get featureAiScanner => 'Умный ИИ-сканер';
+
+  @override
+  String get featureHealthAdvice => 'Медицинские советы и рекомендации';
+
+  @override
+  String get featureAiAnalytics => 'Глубокая ИИ-аналитика';
+
+  @override
+  String get featureUnlimitedRecipes => 'Неограниченные ИИ-рецепты';
+
+  @override
+  String get selectPlan => 'Выбрать тариф';
+
+  @override
+  String get currentPlan => 'Текущий тариф';
 }

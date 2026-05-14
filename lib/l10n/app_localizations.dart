@@ -148,6 +148,54 @@ abstract class AppLocalizations {
   /// **'Steps'**
   String get steps;
 
+  /// No description provided for @subscriptionTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Tier'**
+  String get subscriptionTier;
+
+  /// No description provided for @tierFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get tierFree;
+
+  /// No description provided for @tierStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get tierStandard;
+
+  /// No description provided for @tierPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get tierPremium;
+
+  /// No description provided for @upgradeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get upgradeToPremium;
+
+  /// No description provided for @upgradeToStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Standard'**
+  String get upgradeToStandard;
+
+  /// No description provided for @featureNotAvailableInFree.
+  ///
+  /// In en, this message translates to:
+  /// **'AI features are not available in the Free version.'**
+  String get featureNotAvailableInFree;
+
+  /// No description provided for @aiAnalyticsOnlyInPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analytics is only available in Premium.'**
+  String get aiAnalyticsOnlyInPremium;
+
   /// No description provided for @weight.
   ///
   /// In en, this message translates to:
@@ -3010,6 +3058,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Medical Advice'**
   String get healthAdviceTitle;
+
+  /// No description provided for @aiGeneralError.
+  ///
+  /// In en, this message translates to:
+  /// **'AI processing error'**
+  String get aiGeneralError;
+
+  /// No description provided for @chooseYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Your Plan'**
+  String get chooseYourPlan;
+
+  /// No description provided for @planFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Features'**
+  String get planFeatures;
+
+  /// No description provided for @freePlanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic tracking and calorie counting'**
+  String get freePlanDesc;
+
+  /// No description provided for @standardPlanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Full AI scanner, smart recipes and health advice'**
+  String get standardPlanDesc;
+
+  /// No description provided for @premiumPlanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced AI analytics, personal nutrition reports and more'**
+  String get premiumPlanDesc;
+
+  /// No description provided for @featureAiScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Smart Scanner'**
+  String get featureAiScanner;
+
+  /// No description provided for @featureHealthAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical & Health Advice'**
+  String get featureHealthAdvice;
+
+  /// No description provided for @featureAiAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced AI Analytics'**
+  String get featureAiAnalytics;
+
+  /// No description provided for @featureUnlimitedRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Recipes'**
+  String get featureUnlimitedRecipes;
+
+  /// No description provided for @selectPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Plan'**
+  String get selectPlan;
+
+  /// No description provided for @currentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Plan'**
+  String get currentPlan;
 }
 
 class _AppLocalizationsDelegate

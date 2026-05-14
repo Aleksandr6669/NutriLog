@@ -68,6 +68,10 @@ class RecipeDetailScreen extends StatelessWidget {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
+            if (recipe.healthAdvice != null && recipe.healthAdvice!.isNotEmpty) ...[
+              _buildHealthAdviceCard(context),
+              const SizedBox(height: 24),
+            ],
             if (recipe.ingredients.isNotEmpty) ...[
               _buildIngredientsCard(context),
               const SizedBox(height: 24),
@@ -419,6 +423,50 @@ class RecipeDetailScreen extends StatelessWidget {
           Text('$displayValue $unit',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHealthAdviceCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card(
+      color: Colors.blue.shade50.withValues(alpha: 0.5),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+        side: BorderSide(color: Colors.blue.shade100, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Symbols.medical_information,
+                    color: Colors.blue.shade700, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.healthAdviceTitle,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              recipe.healthAdvice!,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Colors.blue.shade900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
