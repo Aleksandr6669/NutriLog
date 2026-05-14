@@ -68,12 +68,10 @@ class HomeWidgetSyncService {
       } catch (_) {}
     } else if (Platform.isIOS) {
       try {
-        await HomeWidget.updateWidget(
-          iOSName: 'NutriLogWidget',
-        );
-        await HomeWidget.updateWidget(
-          iOSName: 'NutriLogWaterWidget',
-        );
+        await Future.wait([
+          HomeWidget.updateWidget(iOSName: 'NutriLogWidget'),
+          HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget'),
+        ]);
       } catch (_) {}
     }
   }
