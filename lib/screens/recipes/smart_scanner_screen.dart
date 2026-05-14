@@ -13,6 +13,7 @@ import '../../services/gemini_recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../widgets/glass_app_bar_background.dart';
 import '../../models/recipe.dart';
+import '../../models/user_profile.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 
@@ -175,12 +176,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null || !profile.isAiFeatureAvailable) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.featureNotAvailableInFree),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.push('/subscription', extra: SubscriptionTier.standard);
       }
       return;
     }
@@ -222,6 +218,12 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
   Future<void> _processBarcode(String code) async {
     final l10n = AppLocalizations.of(context)!;
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      context.push('/subscription', extra: SubscriptionTier.standard);
+      return;
+    }
+
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
 
@@ -474,14 +476,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           ? ((context.read<ProfileProvider>().profile?.isAiFeatureAvailable ??
                   false)
               ? _sendToAi
-              : () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.featureNotAvailableInFree),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                })
+              : () => context.push('/subscription', extra: SubscriptionTier.standard))
           : _captureImage,
       borderRadius: BorderRadius.circular(20),
       child: Container(

@@ -1628,12 +1628,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(
-                        builder: (context) => const SubscriptionPlansScreen()),
-                  );
-                },
+                onPressed: () => context.push('/subscription', extra: SubscriptionTier.premium),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   foregroundColor: Colors.white,

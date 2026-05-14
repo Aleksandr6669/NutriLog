@@ -7,7 +7,8 @@ import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class SubscriptionPlansScreen extends StatefulWidget {
-  const SubscriptionPlansScreen({super.key});
+  final SubscriptionTier? initialTier;
+  const SubscriptionPlansScreen({super.key, this.initialTier});
 
   @override
   State<SubscriptionPlansScreen> createState() => _SubscriptionPlansScreenState();
@@ -21,7 +22,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   void initState() {
     super.initState();
     final profile = context.read<ProfileProvider>().profile;
-    if (profile != null) {
+    if (widget.initialTier != null) {
+      _currentPage = widget.initialTier!.index;
+    } else if (profile != null) {
       _currentPage = profile.tier.index;
     }
     _pageController = PageController(initialPage: _currentPage, viewportFraction: 0.85);

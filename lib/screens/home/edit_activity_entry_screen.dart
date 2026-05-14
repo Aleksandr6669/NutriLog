@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutri_log/models/daily_log.dart';
+import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
@@ -229,14 +231,18 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: (_isAiEstimating ||
-                                  !(context
-                                          .read<ProfileProvider>()
-                                          .profile
-                                          ?.isAiFeatureAvailable ??
-                                      false))
-                              ? null
-                              : _estimateCaloriesWithAi,
+                          onPressed: () {
+                            final profile = context.read<ProfileProvider>().profile;
+                            final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+                            if (!isAiAvailable) {
+                              context.push('/subscription', extra: SubscriptionTier.standard);
+                              return;
+                            }
+                            if (!_isAiEstimating) {
+                              _estimateCaloriesWithAi();
+                            }
+                          },
                           icon: _isAiEstimating
                               ? const SizedBox(
                                   width: 16,

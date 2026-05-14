@@ -87,14 +87,14 @@ class _FabMenuItemState extends State<FabMenuItem>
     return SlideTransition(
       position: _slideUp,
       child: GestureDetector(
-        onTap: widget.isLocked
-            ? () {
-                HapticFeedback.heavyImpact();
-              }
-            : () {
-                HapticFeedback.lightImpact();
-                widget.onTap();
-              },
+        onTap: () {
+          if (widget.isLocked) {
+            HapticFeedback.heavyImpact();
+          } else {
+            HapticFeedback.lightImpact();
+          }
+          widget.onTap();
+        },
         child: Opacity(
           opacity: widget.isLocked ? 0.6 : 1.0,
           child: Row(

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../models/recipe.dart';
+import '../../models/user_profile.dart';
 import '../../services/firebase_auth_service.dart';
 import '../../services/recipe_loader.dart';
 import '../../services/recipe_service.dart';
@@ -753,6 +754,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
+                            final profile = context.read<ProfileProvider>().profile;
+                            if (profile == null || !profile.isAiFeatureAvailable) {
+                              context.push('/subscription', extra: SubscriptionTier.standard);
+                              return;
+                            }
                             await _navigateAndRefreshRoute('/recipe/scanner');
                           },
                           delay: const Duration(milliseconds: 150),
@@ -765,6 +771,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
+                            final profile = context.read<ProfileProvider>().profile;
+                            if (profile == null || !profile.isAiFeatureAvailable) {
+                              context.push('/subscription', extra: SubscriptionTier.standard);
+                              return;
+                            }
                             await _navigateAndRefreshRoute(
                                 '/recipe/create_description');
                           },

@@ -6,8 +6,10 @@ import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../models/user_profile.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../services/cloud_data_service.dart';
 import 'dart:convert';
@@ -593,13 +595,32 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             ),
             const SizedBox(height: 10),
             if (isRestricted)
-              Text(
-                l10n.personalAdvicePremiumOnly,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: Colors.grey.shade700,
-                ),
+                Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.personalAdvicePremiumOnly,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push('/subscription', extra: SubscriptionTier.premium),
+                      icon: const Icon(Symbols.bolt, size: 18),
+                      label: Text(l10n.upgradeToPremium),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange.shade800,
+                        side: BorderSide(color: Colors.orange.shade300),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                ],
               )
             else ...[
               if (_personalAdvice.isNotEmpty) ...[

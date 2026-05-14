@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:nutri_log/models/recipe.dart';
@@ -11,6 +12,7 @@ import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
 class CreateRecipeFromDescriptionScreen extends StatefulWidget {
@@ -151,7 +153,7 @@ class _CreateRecipeFromDescriptionScreenState
   Future<void> _generateAndOpenEditor() async {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null || !profile.isAiFeatureAvailable) {
-      _showAiErrorSnackBar(l10n.featureNotAvailableInFree);
+      context.push('/subscription', extra: SubscriptionTier.standard);
       return;
     }
 
@@ -232,12 +234,7 @@ class _CreateRecipeFromDescriptionScreenState
                     child: ElevatedButton.icon(
                       onPressed: (_isGenerating ||
                               _isListening ||
-                              _descriptionController.text.trim().isEmpty ||
-                              !(context
-                                      .read<ProfileProvider>()
-                                      .profile
-                                      ?.isAiFeatureAvailable ??
-                                  false))
+                              _descriptionController.text.trim().isEmpty)
                           ? null
                           : _generateAndOpenEditor,
                       icon: _isGenerating

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/models/recipe.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/services/recipe_service.dart';
@@ -994,6 +995,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return hasName && hasIngredients;
   }
 
+  void _navigateToSubscription(SubscriptionTier tier) {
+    context.push('/subscription', extra: tier);
+  }
+
   Future<void> _donateRecipe() async {
     final cloudService = CloudDataService.instance;
     await FirebaseBootstrapService.ensureInitialized();
@@ -1189,11 +1194,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ],
             if (!_isDonated) ...[
               OutlinedButton.icon(
-                onPressed: (_isFormReadyForDonate &&
-                        !_isDonateAiChecking &&
-                        !_isDonateAiApproved)
-                    ? _runDonateModeration
-                    : null,
+                onPressed: () {
+                  final profile = context.read<ProfileProvider>().profile;
+                  final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+                  if (!isAiAvailable) {
+                    _navigateToSubscription(SubscriptionTier.standard);
+                    return;
+                  }
+                  if (_isFormReadyForDonate &&
+                      !_isDonateAiChecking &&
+                      !_isDonateAiApproved) {
+                    _runDonateModeration();
+                  }
+                },
                 icon: _isDonateAiChecking
                     ? const SizedBox(
                         width: 14,
@@ -1212,9 +1226,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: (_isFormReadyForDonate && _isDonateAiApproved)
-                    ? _donateRecipe
-                    : null,
+                onPressed: () {
+                  final profile = context.read<ProfileProvider>().profile;
+                  if (profile?.tier == SubscriptionTier.free) {
+                    _navigateToSubscription(SubscriptionTier.standard);
+                    return;
+                  }
+                  if (_isFormReadyForDonate && _isDonateAiApproved) {
+                    _donateRecipe();
+                  }
+                },
                 icon: const Icon(Symbols.volunteer_activism, size: 18),
                 label: Text(l10n.donateRecipeButton),
                 style: FilledButton.styleFrom(
@@ -1292,11 +1313,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: (_isFormReadyForDonate &&
-                      !_isPublicAiChecking &&
-                      !_isPublicAiApproved)
-                  ? _runPublicModeration
-                  : null,
+              onPressed: () {
+                final profile = context.read<ProfileProvider>().profile;
+                final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+                if (!isAiAvailable) {
+                  _navigateToSubscription(SubscriptionTier.standard);
+                  return;
+                }
+                if (_isFormReadyForDonate &&
+                    !_isPublicAiChecking &&
+                    !_isPublicAiApproved) {
+                  _runPublicModeration();
+                }
+              },
               icon: _isPublicAiChecking
                   ? const SizedBox(
                       width: 14,
@@ -1646,15 +1676,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 key: _nutrientsActionKey,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: (_isAiCalculating ||
-                            !_hasAnyIngredient ||
-                            !(context
-                                    .read<ProfileProvider>()
-                                    .profile
-                                    ?.isAiFeatureAvailable ??
-                                false))
-                        ? null
-                        : _recalculateNutrientsWithAi,
+                    onPressed: () {
+                      final profile = context.read<ProfileProvider>().profile;
+                      final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+                      if (!isAiAvailable) {
+                        _navigateToSubscription(SubscriptionTier.standard);
+                        return;
+                      }
+                      if (!_isAiCalculating && _hasAnyIngredient) {
+                        _recalculateNutrientsWithAi();
+                      }
+                    },
                     icon: _isAiCalculating
                         ? const SizedBox(
                             width: 18,
@@ -1988,9 +2021,66 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildHealthAdviceBlock() {
+    final profile = context.read<ProfileProvider>().profile;
+    final isPremium = profile?.isPersonalAdviceAvailable ?? false;
+
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: _healthAdviceController,
       builder: (context, value, child) {
+        if (!isPremium) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: InkWell(
+              onTap: () => _navigateToSubscription(SubscriptionTier.premium),
+              borderRadius: AppStyles.cardRadius,
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppStyles.cardRadius,
+                  side: BorderSide(
+                    color: Colors.blue.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                ),
+                color: Colors.blue.withValues(alpha: 0.03),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.lock, size: 20, color: Colors.blue),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.healthAdviceTitle,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n.upgradeToPremium,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, size: 20, color: Colors.blue),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
         if (value.text.isEmpty && !_isHealthAdviceLoading) {
           return const SizedBox.shrink();
         }

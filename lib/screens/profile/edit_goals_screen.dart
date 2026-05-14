@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/styles/app_colors.dart';
@@ -177,14 +178,27 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isAiFilling ? null : _fillGoalsWithAi,
+                  onPressed: () {
+                    final profile = context.read<ProfileProvider>().profile;
+                    if (profile != null && !profile.isAiFeatureAvailable) {
+                      context.push('/subscription', extra: SubscriptionTier.standard);
+                      return;
+                    }
+                    if (!_isAiFilling) {
+                      _fillGoalsWithAi();
+                    }
+                  },
                   icon: _isAiFilling
                       ? const SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Symbols.auto_awesome),
+                      : Icon(
+                          (context.read<ProfileProvider>().profile?.isAiFeatureAvailable ?? false)
+                              ? Symbols.auto_awesome
+                              : Symbols.lock,
+                        ),
                   label: Text(
                     _isAiFilling
                         ? l10n.aiCalculatingGoals
