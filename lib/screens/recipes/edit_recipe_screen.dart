@@ -2192,7 +2192,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Padding(
-                      padding: EdgeInsets.only(top: 12.0),
+                      padding: EdgeInsets.only(top: 8.0),
                       child: Icon(Symbols.medical_information,
                           size: 20, color: Colors.blue),
                     ),

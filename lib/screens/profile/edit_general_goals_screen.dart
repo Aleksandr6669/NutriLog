@@ -154,7 +154,7 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
-                    padding: EdgeInsets.only(top: 14.0),
+                    padding: EdgeInsets.only(top: 8.0),
                     child: Icon(Symbols.psychology,
                         size: 20, color: AppColors.primary),
                   ),
