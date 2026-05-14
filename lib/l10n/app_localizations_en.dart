@@ -1675,6 +1675,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureUnlimitedRecipes => 'Unlimited AI Recipes';
 
   @override
+  String get featurePersonalAdvice => 'Personalized Recipe Advice';
+
+  @override
+  String get personalAdvicePremiumOnly => 'This feature is only available in the Premium plan. Upgrade to Premium to receive personalized advice from a doctor, dietitian, and trainer for each recipe.';
+
+  @override
+  String get tapToSelectPlan => 'Tap to select this plan';
+
+  @override
+  String get featureBasicDiary => 'Basic nutrition diary';
+
+  @override
+  String get featureWaterSteps => 'Water and steps tracking';
+
+  @override
+  String get featureBasicRecipes => 'Basic recipe book';
+
+  @override
+  String get featureAiGoals => 'AI Daily Goal Calculation';
+
+  @override
+  String get changePlanHint => 'Tap the icon to change your plan';
+
+  @override
   String get selectPlan => 'Select Plan';
 
   @override

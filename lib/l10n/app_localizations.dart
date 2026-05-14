@@ -3119,6 +3119,54 @@ abstract class AppLocalizations {
   /// **'Unlimited AI Recipes'**
   String get featureUnlimitedRecipes;
 
+  /// No description provided for @featurePersonalAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalized Recipe Advice'**
+  String get featurePersonalAdvice;
+
+  /// No description provided for @personalAdvicePremiumOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is only available in the Premium plan. Upgrade to Premium to receive personalized advice from a doctor, dietitian, and trainer for each recipe.'**
+  String get personalAdvicePremiumOnly;
+
+  /// No description provided for @tapToSelectPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select this plan'**
+  String get tapToSelectPlan;
+
+  /// No description provided for @featureBasicDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic nutrition diary'**
+  String get featureBasicDiary;
+
+  /// No description provided for @featureWaterSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Water and steps tracking'**
+  String get featureWaterSteps;
+
+  /// No description provided for @featureBasicRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic recipe book'**
+  String get featureBasicRecipes;
+
+  /// No description provided for @featureAiGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Daily Goal Calculation'**
+  String get featureAiGoals;
+
+  /// No description provided for @changePlanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the icon to change your plan'**
+  String get changePlanHint;
+
   /// No description provided for @selectPlan.
   ///
   /// In en, this message translates to:

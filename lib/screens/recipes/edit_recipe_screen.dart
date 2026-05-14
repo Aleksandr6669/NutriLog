@@ -132,8 +132,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _isDonated = sourceRecipe?.isDonated ?? false;
 
     _nameController.addListener(_onDonateValidationInputChanged);
+    _nameController.addListener(_scheduleHealthAdviceUpdate);
     _descriptionController.addListener(_onDonateValidationInputChanged);
+    _descriptionController.addListener(_scheduleHealthAdviceUpdate);
     _clarificationController.addListener(_onDonateValidationInputChanged);
+    _clarificationController.addListener(_scheduleHealthAdviceUpdate);
     _healthAdviceController.addListener(_onDonateValidationInputChanged);
 
     // Если initialDraft (создание по фото/описанию) — нутриенты заполняются данными от AI
@@ -253,7 +256,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null ||
         profile.healthConditions.isEmpty ||
-        !profile.isAiFeatureAvailable) {
+        !profile.isPersonalAdviceAvailable) {
       return;
     }
 
@@ -304,7 +307,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (profile == null || !profile.isAiFeatureAvailable) {
       setState(() {
         _isPublicAiChecking = false;
-        _publicAiStatus = 'AI features disabled in Free version';
+        _publicAiStatus = l10n.featureNotAvailableInFree;
         _isPublicAiApproved = false;
       });
       return;
@@ -356,6 +359,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Future<void> _runDonateModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
+
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null || !profile.isAiFeatureAvailable) {
+      setState(() {
+        _isDonateAiChecking = false;
+        _donateAiStatus = l10n.featureNotAvailableInFree;
+        _isDonateAiApproved = false;
+      });
+      return;
+    }
 
     final requestId = ++_donateAiRequestId;
     setState(() {
@@ -506,35 +519,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return nutrients;
   }
 
-  double? _ingredientAsGramsEquivalent(_IngredientFormItem item) {
-    final quantity = _parseAmount(item.quantityController.text);
-    if (quantity <= 0) return null;
-
-    final unit = item.unit.trim().toLowerCase();
-    switch (unit) {
-      case 'g':
-      case 'ml':
-        return quantity;
-      case 'kg':
-      case 'l':
-        return quantity * 1000;
-      case 'mg':
-        return quantity / 1000;
-      case 'tsp':
-        return quantity * 5;
-      case 'tbsp':
-        return quantity * 15;
-      case 'cup':
-        return quantity * 240;
-      case 'pcs':
-        return quantity * 80;
-      case 'pack':
-      case 'pkg':
-        return quantity * 400;
-      default:
-        return null;
-    }
-  }
 
   static const List<String> _blockedWords = [
     'говно',
@@ -620,141 +604,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return null;
   }
 
-  String? _localRecipeSanityError() {
-    final blockedWordIssue = _blockedWordErrorInAllInputs();
-    if (blockedWordIssue != null) return blockedWordIssue;
-
-    final ingredients = _ingredientItems
-        .where((item) => item.nameController.text.trim().isNotEmpty)
-        .toList(growable: false);
-
-    if (ingredients.isEmpty) {
-      return _localizeInline(
-        ru: 'Добавьте хотя бы один ингредиент.',
-        en: 'Add at least one ingredient.',
-        uk: 'Додайте хоча б один інгредієнт.',
-      );
-    }
-
-    var totalGrams = 0.0;
-    for (final item in ingredients) {
-      final ingredientName = item.nameController.text.trim();
-
-      final qty = _parseAmount(item.quantityController.text);
-      final unit = item.unit.trim().toLowerCase();
-      if (qty > 0) {
-        final tooLargeByUnit = (unit == 'pcs' && qty > 60) ||
-            ((unit == 'pack' || unit == 'pkg') && qty > 12) ||
-            (unit == 'l' && qty > 10) ||
-            (unit == 'ml' && qty > 10000) ||
-            (unit == 'kg' && qty > 8) ||
-            (unit == 'g' && qty > 8000);
-        if (tooLargeByUnit) {
-          return _localizeInline(
-            ru: 'Количество у ингредиента "$ingredientName" выглядит нереалистично. Проверьте единицы и число.',
-            en: 'Amount for ingredient "$ingredientName" looks unrealistic. Please check unit and value.',
-            uk: 'Кількість у інгредієнта "$ingredientName" виглядає нереалистично. Перевірте одиниці та число.',
-          );
-        }
-      }
-
-      final grams = _ingredientAsGramsEquivalent(item);
-      if (grams == null) continue;
-
-      totalGrams += grams;
-      if (grams > 3500) {
-        return _localizeInline(
-          ru: 'Слишком большое количество у ингредиента "$ingredientName". Проверьте количество.',
-          en: 'Ingredient "$ingredientName" has too large amount. Please review quantity.',
-          uk: 'Занадто велика кількість у інгредієнта "$ingredientName". Перевірте кількість.',
-        );
-      }
-    }
-
-    if (totalGrams > 12000) {
-      return _localizeInline(
-        ru: 'Суммарный вес рецепта выглядит слишком большим. Проверьте количества ингредиентов.',
-        en: 'Total recipe amount looks too large. Please review ingredient quantities.',
-        uk: 'Сумарна вага рецепта виглядає занадто великою. Перевірте кількість інгредієнтів.',
-      );
-    }
-
-    final nutrients = _collectCurrentNutrients();
-    const maxValues = <String, double>{
-      'calories': 5000,
-      'protein': 350,
-      'carbs': 600,
-      'fat': 300,
-      'fiber': 120,
-      'sugar': 250,
-      'saturated_fat': 150,
-      'polyunsaturated_fat': 200,
-      'monounsaturated_fat': 200,
-      'trans_fat': 25,
-      'cholesterol': 2500,
-      'sodium': 20000,
-      'potassium': 25000,
-      'vitamin_a': 10000,
-      'vitamin_c': 5000,
-      'vitamin_d': 1000,
-      'calcium': 5000,
-      'iron': 200,
-    };
-
-    for (final entry in maxValues.entries) {
-      final value = nutrients[entry.key] ?? 0;
-      if (value > entry.value) {
-        final label = _nutrientLabel(entry.key);
-        final unit = _nutrientUnit(entry.key);
-        final shown = _formatNumber(value);
-        return _localizeInline(
-          ru: '$label выглядит слишком большим ($shown $unit). Проверьте ввод.',
-          en: '$label looks too high ($shown $unit). Please review input.',
-          uk: '$label виглядає занадто великим ($shown $unit). Перевірте введення.',
-        );
-      }
-    }
-
-    final carbs = nutrients['carbs'] ?? 0;
-    final sugar = nutrients['sugar'] ?? 0;
-    if (sugar > carbs + 5) {
-      return _localizeInline(
-        ru: 'Сахар не может быть заметно больше углеводов. Проверьте значения.',
-        en: 'Sugar cannot be significantly higher than carbs. Please review values.',
-        uk: 'Цукор не може бути помітно більшим за вуглеводи. Перевірте значення.',
-      );
-    }
-
-    final fat = nutrients['fat'] ?? 0;
-    final fatParts = (nutrients['saturated_fat'] ?? 0) +
-        (nutrients['polyunsaturated_fat'] ?? 0) +
-        (nutrients['monounsaturated_fat'] ?? 0) +
-        (nutrients['trans_fat'] ?? 0);
-    if (fat > 0 && fatParts > fat * 1.4 && fatParts > 10) {
-      return _localizeInline(
-        ru: 'Сумма типов жиров слишком большая относительно общего жира. Проверьте детали жиров.',
-        en: 'Fat subtypes sum is too high compared to total fat. Please review fat details.',
-        uk: 'Сума типів жирів занадто велика відносно загального жиру. Перевірте деталі жирів.',
-      );
-    }
-
-    final calories = nutrients['calories'] ?? 0;
-    final macroCalories = (nutrients['protein'] ?? 0) * 4 +
-        (nutrients['carbs'] ?? 0) * 4 +
-        (nutrients['fat'] ?? 0) * 9;
-    if (calories > 0 && macroCalories > 0) {
-      final ratio = calories / macroCalories;
-      if (ratio < 0.5 || ratio > 1.8) {
-        return _localizeInline(
-          ru: 'Калории сильно расходятся с БЖУ. Проверьте калории, белки, жиры и углеводы.',
-          en: 'Calories differ too much from macros. Please review calories, protein, fat, and carbs.',
-          uk: 'Калорії сильно розходяться з БЖВ. Перевірте калорії, білки, жири та вуглеводи.',
-        );
-      }
-    }
-
-    return null;
-  }
 
   void _onMacroChanged() {
     if (!_autoCalculateCalories || _isSyncingCalories) return;
@@ -918,7 +767,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
-    if (!_isNutritionCalculated) {
+    final currentNutrients = _collectCurrentNutrients();
+    final hasBaseNutrients = (currentNutrients['calories'] ?? 0) > 0 ||
+        (currentNutrients['protein'] ?? 0) > 0 ||
+        (currentNutrients['carbs'] ?? 0) > 0 ||
+        (currentNutrients['fat'] ?? 0) > 0;
+
+    if (!hasBaseNutrients) {
       setState(() {
         _aiStatus = l10n.recipeAiCalculateRequired;
         _isAiError = true;
@@ -929,7 +784,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     if (_formKey.currentState!.validate()) {
       if (_isPublic) {
-        final sanityError = _localRecipeSanityError();
+        final sanityError = _blockedWordErrorInAllInputs();
         if (sanityError != null) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -1026,6 +881,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     item.dispose();
     setState(() {});
     _resetModeration(resetCalculated: true);
+    _scheduleHealthAdviceUpdate();
   }
 
   void _showIconPicker() {
@@ -1343,7 +1199,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Symbols.verified, size: 18),
+                    : Icon(
+                        (context
+                                    .read<ProfileProvider>()
+                                    .profile
+                                    ?.isAiFeatureAvailable ??
+                                false)
+                            ? Symbols.verified
+                            : Symbols.lock,
+                        size: 18),
                 label: Text(l10n.checkRecipeButton),
               ),
               const SizedBox(height: 12),
@@ -1438,7 +1302,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       width: 14,
                       height: 14,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Symbols.verified, size: 18),
+                  : Icon(
+                      (context
+                                  .read<ProfileProvider>()
+                                  .profile
+                                  ?.isAiFeatureAvailable ??
+                              false)
+                          ? Symbols.verified
+                          : Symbols.lock,
+                      size: 18),
               label: Text(l10n.checkRecipeButton),
             ),
             if (_publicAiStatus != null) ...[
@@ -1788,7 +1660,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Symbols.calculate, weight: 600),
+                        : Icon(
+                            (context
+                                        .read<ProfileProvider>()
+                                        .profile
+                                        ?.isAiFeatureAvailable ??
+                                    false)
+                                ? Symbols.calculate
+                                : Symbols.lock,
+                            weight: 600),
                     label: Text(l10n.calculateNutrition),
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
@@ -2114,45 +1994,80 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         if (value.text.isEmpty && !_isHealthAdviceLoading) {
           return const SizedBox.shrink();
         }
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: AppStyles.cardRadius,
-            side: BorderSide(color: Colors.blue.withValues(alpha: 0.1), width: 1),
-          ),
-          color: Colors.blue.withValues(alpha: 0.05),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Stack(
-              alignment: Alignment.centerRight,
-              children: [
-                TextFormField(
-                  controller: _healthAdviceController,
-                  maxLines: null,
-                  style: const TextStyle(fontSize: 13),
-                  decoration: AppStyles.inputDecoration(
-                    l10n.healthAdviceTitle,
-                    Symbols.medical_information,
-                  ).copyWith(
-                    fillColor: Colors.transparent,
-                    filled: false,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                  ),
-                ),
-                if (_isHealthAdviceLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+        return Column(
+          children: [
+            if (value.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.2),
                     ),
                   ),
-              ],
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Symbols.info, size: 16, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.statsAiNotMedicalAdvice,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: AppStyles.cardRadius,
+                side: BorderSide(color: Colors.blue.withValues(alpha: 0.1), width: 1),
+              ),
+              color: Colors.blue.withValues(alpha: 0.05),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    TextFormField(
+                      controller: _healthAdviceController,
+                      maxLines: null,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: AppStyles.inputDecoration(
+                        l10n.healthAdviceTitle,
+                        Symbols.medical_information,
+                      ).copyWith(
+                        fillColor: Colors.transparent,
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                    ),
+                    if (_isHealthAdviceLoading)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         );
       },
     );

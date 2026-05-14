@@ -93,6 +93,12 @@ class UserProfile {
   }
 
   bool get isAiAnalyticsAvailable {
+    if (tier == SubscriptionTier.free) return false;
+    if (subscriptionUntil == null) return true;
+    return DateTime.now().isBefore(subscriptionUntil!);
+  }
+
+  bool get isPersonalAdviceAvailable {
     if (tier != SubscriptionTier.premium) return false;
     if (subscriptionUntil == null) return true;
     return DateTime.now().isBefore(subscriptionUntil!);

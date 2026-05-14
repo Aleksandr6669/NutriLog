@@ -5,6 +5,8 @@ import 'package:nutri_log/models/daily_log.dart';
 import 'package:nutri_log/services/gemini_recipe_service.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:nutri_log/providers/profile_provider.dart';
 
 class EditActivityEntryScreen extends StatefulWidget {
   final ActivityEntry? entry;
@@ -227,8 +229,14 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed:
-                              _isAiEstimating ? null : _estimateCaloriesWithAi,
+                          onPressed: (_isAiEstimating ||
+                                  !(context
+                                          .read<ProfileProvider>()
+                                          .profile
+                                          ?.isAiFeatureAvailable ??
+                                      false))
+                              ? null
+                              : _estimateCaloriesWithAi,
                           icon: _isAiEstimating
                               ? const SizedBox(
                                   width: 16,
@@ -238,7 +246,16 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Icon(Symbols.auto_awesome),
+                              : Icon(
+                                  (context
+                                              .read<ProfileProvider>()
+                                              .profile
+                                              ?.isAiFeatureAvailable ??
+                                          false)
+                                      ? Symbols.auto_awesome
+                                      : Symbols.lock,
+                                  size: 20,
+                                ),
                           label: Text(l10n.activityAiEstimateButton),
                         ),
                       ),

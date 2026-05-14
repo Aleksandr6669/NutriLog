@@ -6,8 +6,14 @@ import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../services/gemini_recipe_service.dart';
+import '../../services/cloud_data_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class RecipeDetailScreen extends StatelessWidget {
+class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
   final bool selectionMode;
   final bool isSelected;
@@ -19,9 +25,126 @@ class RecipeDetailScreen extends StatelessWidget {
     this.isSelected = false,
   });
 
+  @override
+  State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
+}
+
+class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
+  final _geminiRecipeService = GeminiRecipeService();
+  String _personalAdvice = '';
+  bool _isLoadingAdvice = false;
+  String _lastAdviceContextHash = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersonalAdvice();
+  }
+
+  String _calculateContextHash(String context, Recipe recipe) {
+    // Простой хэш на основе контекста профиля и данных рецепта
+    final recipeData = '${recipe.name}${recipe.ingredients.length}${recipe.nutrients['calories']}';
+    return base64Encode(utf8.encode('$context|$recipeData'));
+  }
+
+  Future<void> _loadPersonalAdvice() async {
+    final profile = context.read<ProfileProvider>().profile;
+    if (profile == null) return;
+
+    final currentHash = _calculateContextHash(profile.healthConditions, widget.recipe);
+    
+    // 1. Пытаемся загрузить из локального кэша
+    final prefs = await SharedPreferences.getInstance();
+    final userId = CloudDataService.instance.currentUserId ?? 'guest';
+    final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
+    final cachedData = prefs.getString(cacheKey);
+
+    if (cachedData != null) {
+      final decoded = json.decode(cachedData);
+      if (decoded['hash'] == currentHash) {
+        if (mounted) {
+          setState(() {
+            _personalAdvice = decoded['advice'];
+            _lastAdviceContextHash = currentHash;
+          });
+          return;
+        }
+      }
+    }
+
+    // 2. Если нет в кэше или хэш не совпадает — загружаем из облака или генерируем
+    if (CloudDataService.instance.isSignedIn) {
+      final cloudData = await CloudDataService.instance.readMap('personalRecipeAdvice_${widget.recipe.id}');
+      if (cloudData != null && cloudData['hash'] == currentHash) {
+        final advice = cloudData['advice'] as String;
+        if (mounted) {
+          setState(() {
+            _personalAdvice = advice;
+            _lastAdviceContextHash = currentHash;
+          });
+          // Сохраняем в локальный кэш
+          await prefs.setString(cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
+          return;
+        }
+      }
+    }
+
+    // 3. Если и там нет — генерируем (если доступны ИИ фичи для личных советов)
+    if (profile.isPersonalAdviceAvailable) {
+      await _generateNewAdvice(profile.healthConditions, currentHash);
+    }
+  }
+
+  Future<void> _generateNewAdvice(String healthConditions, String hash) async {
+    if (healthConditions.isEmpty) return;
+    
+    setState(() => _isLoadingAdvice = true);
+    try {
+      final advice = await _geminiRecipeService.generateMedicalAdvice(
+        recipeName: widget.recipe.name,
+        recipeDescription: widget.recipe.description,
+        ingredients: widget.recipe.ingredients,
+        nutrients: widget.recipe.nutrients,
+        healthConditions: healthConditions,
+        clarification: widget.recipe.clarification,
+        locale: Localizations.localeOf(context).languageCode,
+      );
+
+      if (mounted) {
+        setState(() {
+          _personalAdvice = advice;
+          _lastAdviceContextHash = hash;
+          _isLoadingAdvice = false;
+        });
+
+        // Сохраняем в локальный кэш
+        final profile = context.read<ProfileProvider>().profile;
+        if (profile != null) {
+          final prefs = await SharedPreferences.getInstance();
+          final userId = CloudDataService.instance.currentUserId ?? 'guest';
+          final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
+          await prefs.setString(cacheKey, json.encode({'advice': advice, 'hash': hash}));
+
+          // Сохраняем в облако
+          if (CloudDataService.instance.isSignedIn) {
+            await CloudDataService.instance.writeMap('personalRecipeAdvice_${widget.recipe.id}', {
+              'advice': advice,
+              'hash': hash,
+              'updatedAt': DateTime.now().toIso8601String(),
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingAdvice = false);
+      }
+    }
+  }
+
   Future<void> _openEditScreen(BuildContext context) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => EditRecipeScreen(recipe: recipe)),
+      MaterialPageRoute(builder: (_) => EditRecipeScreen(recipe: widget.recipe)),
     );
     if (result == true && context.mounted) {
       Navigator.of(context).pop(true);
@@ -39,16 +162,16 @@ class RecipeDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(recipe.name,
+        title: Text(widget.recipe.name,
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          if (selectionMode)
+          if (widget.selectionMode)
             IconButton(
               icon: const Icon(Symbols.add_circle),
               onPressed: () => Navigator.of(context).pop(true),
               tooltip: l10n.addToMeal,
             )
-          else if (recipe.isUserRecipe && !recipe.isDonated)
+          else if (widget.recipe.isUserRecipe && !widget.recipe.isDonated)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),
@@ -68,11 +191,12 @@ class RecipeDetailScreen extends StatelessWidget {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
-            if (recipe.healthAdvice != null && recipe.healthAdvice!.isNotEmpty) ...[
-              _buildHealthAdviceCard(context),
+            // Показываем персональный совет если он есть или грузится
+            if (_personalAdvice.isNotEmpty || _isLoadingAdvice) ...[
+              _buildPersonalAdviceCard(context),
               const SizedBox(height: 24),
             ],
-            if (recipe.ingredients.isNotEmpty) ...[
+            if (widget.recipe.ingredients.isNotEmpty) ...[
               _buildIngredientsCard(context),
               const SizedBox(height: 24),
             ],
@@ -86,13 +210,13 @@ class RecipeDetailScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final createdAt = _tryParseCreatedAt(recipe.id);
+    final createdAt = _tryParseCreatedAt(widget.recipe.id);
     final locale = Localizations.localeOf(context).languageCode;
     final createdAtLabel = createdAt != null
         ? DateFormat.yMd(locale).add_Hm().format(createdAt)
         : l10n.recipeDateUnknown;
 
-    final isPublicRecipe = recipe.isPublic || recipe.isDonated;
+    final isPublicRecipe = widget.recipe.isPublic || widget.recipe.isDonated;
     final statusLabel = isPublicRecipe ? l10n.publicRecipe : l10n.privateRecipe;
     final statusColor =
         isPublicRecipe ? Colors.blue.shade700 : Colors.green.shade700;
@@ -111,21 +235,21 @@ class RecipeDetailScreen extends StatelessWidget {
                 radius: 56,
                 backgroundColor:
                     theme.colorScheme.primary.withValues(alpha: 0.1),
-                child: Icon(recipe.icon,
+                child: Icon(widget.recipe.icon,
                     size: 56, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: 16),
               Text(
-                recipe.name,
+                widget.recipe.name,
                 style:
                     const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
-              if (recipe.description.isNotEmpty)
+              if (widget.recipe.description.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    recipe.description,
+                    widget.recipe.description,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                     textAlign: TextAlign.center,
                   ),
@@ -230,7 +354,7 @@ class RecipeDetailScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...recipe.ingredients.map(
+            ...widget.recipe.ingredients.map(
               (ingredient) => Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Row(
@@ -322,48 +446,48 @@ class RecipeDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _nutrientRow(
-                l10n.calories, recipe.nutrients['calories'], l10n.kcal),
+                l10n.calories, widget.recipe.nutrients['calories'], l10n.kcal),
             const Divider(height: 24),
             _nutrientGroup(l10n.mainNutrients, [
               _nutrientRow(
-                  l10n.protein, recipe.nutrients['protein'], l10n.grams),
-              _nutrientRow(l10n.carbs, recipe.nutrients['carbs'], l10n.grams,
+                  l10n.protein, widget.recipe.nutrients['protein'], l10n.grams),
+              _nutrientRow(l10n.carbs, widget.recipe.nutrients['carbs'], l10n.grams,
                   subRows: [
                     _nutrientSubRow(
-                        l10n.sugarSub, recipe.nutrients['sugar'], l10n.grams),
+                        l10n.sugarSub, widget.recipe.nutrients['sugar'], l10n.grams),
                     _nutrientSubRow(
-                        l10n.fiberSub, recipe.nutrients['fiber'], l10n.grams),
+                        l10n.fiberSub, widget.recipe.nutrients['fiber'], l10n.grams),
                   ]),
-              _nutrientRow(l10n.fat, recipe.nutrients['fat'], l10n.grams,
+              _nutrientRow(l10n.fat, widget.recipe.nutrients['fat'], l10n.grams,
                   subRows: [
                     _nutrientSubRow(l10n.saturatedFatSub,
-                        recipe.nutrients['saturated_fat'], l10n.grams),
+                        widget.recipe.nutrients['saturated_fat'], l10n.grams),
                     _nutrientSubRow(l10n.polyunsaturatedFatSub,
-                        recipe.nutrients['polyunsaturated_fat'], l10n.grams),
+                        widget.recipe.nutrients['polyunsaturated_fat'], l10n.grams),
                     _nutrientSubRow(l10n.monounsaturatedFatSub,
-                        recipe.nutrients['monounsaturated_fat'], l10n.grams),
+                        widget.recipe.nutrients['monounsaturated_fat'], l10n.grams),
                     _nutrientSubRow(l10n.transFatSub,
-                        recipe.nutrients['trans_fat'], l10n.grams),
+                        widget.recipe.nutrients['trans_fat'], l10n.grams),
                     _nutrientSubRow(l10n.cholesterolSub,
-                        recipe.nutrients['cholesterol'], l10n.mg),
+                        widget.recipe.nutrients['cholesterol'], l10n.mg),
                   ]),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.minerals, [
-              _nutrientRow(l10n.sodium, recipe.nutrients['sodium'], l10n.mg),
+              _nutrientRow(l10n.sodium, widget.recipe.nutrients['sodium'], l10n.mg),
               _nutrientRow(
-                  l10n.potassium, recipe.nutrients['potassium'], l10n.mg),
-              _nutrientRow(l10n.calcium, recipe.nutrients['calcium'], l10n.mg),
-              _nutrientRow(l10n.iron, recipe.nutrients['iron'], l10n.mg),
+                  l10n.potassium, widget.recipe.nutrients['potassium'], l10n.mg),
+              _nutrientRow(l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
+              _nutrientRow(l10n.iron, widget.recipe.nutrients['iron'], l10n.mg),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.vitamins, [
               _nutrientRow(
-                  l10n.vitaminA, recipe.nutrients['vitamin_a'], l10n.mcg),
+                  l10n.vitaminA, widget.recipe.nutrients['vitamin_a'], l10n.mcg),
               _nutrientRow(
-                  l10n.vitaminC, recipe.nutrients['vitamin_c'], l10n.mg),
+                  l10n.vitaminC, widget.recipe.nutrients['vitamin_c'], l10n.mg),
               _nutrientRow(
-                  l10n.vitaminD, recipe.nutrients['vitamin_d'], l10n.mcg),
+                  l10n.vitaminD, widget.recipe.nutrients['vitamin_d'], l10n.mcg),
             ]),
           ],
         ),
@@ -427,14 +551,17 @@ class RecipeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHealthAdviceCard(BuildContext context) {
+  Widget _buildPersonalAdviceCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final profile = context.read<ProfileProvider>().profile;
+    final isRestricted = profile != null && !profile.isPersonalAdviceAvailable;
+
     return Card(
-      color: Colors.blue.shade50.withValues(alpha: 0.5),
+      color: isRestricted ? Colors.grey.shade100 : Colors.blue.shade50.withValues(alpha: 0.5),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: AppStyles.cardRadius,
-        side: BorderSide(color: Colors.blue.shade100, width: 1),
+        side: BorderSide(color: isRestricted ? Colors.grey.shade300 : Colors.blue.shade100, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -443,28 +570,83 @@ class RecipeDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Symbols.medical_information,
-                    color: Colors.blue.shade700, size: 20),
+                Icon(isRestricted ? Symbols.lock : Symbols.smart_toy,
+                    color: isRestricted ? Colors.grey.shade600 : Colors.blue.shade700, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  l10n.healthAdviceTitle,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade900,
+                Expanded(
+                  child: Text(
+                    l10n.healthAdviceTitle,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isRestricted ? Colors.grey.shade800 : Colors.blue.shade900,
+                    ),
                   ),
                 ),
+                if (_isLoadingAdvice && !isRestricted)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              recipe.healthAdvice!,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: Colors.blue.shade900,
-              ),
-            ),
+            if (isRestricted)
+              Text(
+                l10n.personalAdvicePremiumOnly,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Colors.grey.shade700,
+                ),
+              )
+            else ...[
+              if (_personalAdvice.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Symbols.info, size: 16, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.statsAiNotMedicalAdvice,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_isLoadingAdvice && _personalAdvice.isEmpty)
+                Text(
+                  '...',
+                  style: TextStyle(color: Colors.blue.shade900),
+                )
+              else
+                Text(
+                  _personalAdvice,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+            ],
           ],
         ),
       ),

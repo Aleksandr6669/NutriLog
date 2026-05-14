@@ -3,7 +3,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
-import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 
@@ -81,9 +80,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   icon: Symbols.person,
                   color: Colors.grey,
                   features: [
-                    l10n.calories,
-                    l10n.water,
-                    l10n.steps,
+                    l10n.featureBasicDiary,
+                    l10n.featureWaterSteps,
+                    l10n.featureBasicRecipes,
                   ],
                 ),
                 _buildPlanCard(
@@ -94,7 +93,8 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   color: Colors.blue,
                   features: [
                     l10n.featureAiScanner,
-                    l10n.featureHealthAdvice,
+                    l10n.featureAiGoals,
+                    l10n.featureAiAnalytics,
                     l10n.featureUnlimitedRecipes,
                   ],
                   isPopular: true,
@@ -107,9 +107,10 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   color: Colors.amber.shade700,
                   features: [
                     l10n.featureAiScanner,
-                    l10n.featureHealthAdvice,
+                    l10n.featureAiGoals,
                     l10n.featureAiAnalytics,
                     l10n.featureUnlimitedRecipes,
+                    l10n.featurePersonalAdvice,
                   ],
                 ),
               ],
@@ -184,6 +185,15 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   title,
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color),
                 ),
+                if (!isCurrent)
+                  Text(
+                    l10n.tapToSelectPlan,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 Text(
                   description,
@@ -197,10 +207,11 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView.builder(
+                    padding: EdgeInsets.zero,
                     itemCount: features.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           children: [
                             Icon(Icons.check_circle, size: 20, color: color.withValues(alpha: 0.6)),

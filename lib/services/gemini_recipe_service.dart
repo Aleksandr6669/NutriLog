@@ -726,7 +726,8 @@ Rules:
         .join('\\n');
 
     final prompt = '''
-  Analyze the following recipe and provide professional medical/nutritional advice or warnings for a person with these health conditions: $healthConditions.
+    Analyze the following recipe and provide professional recommendations as a team consisting of a medical doctor, a professional dietitian, and a fitness trainer.
+  Consider the user's health conditions: $healthConditions.
   
   Recipe Name: $recipeName
   Description: $recipeDescription
@@ -735,9 +736,9 @@ Rules:
   Nutrients: ${nutrients.entries.map((e) => '${e.key}: ${e.value}').join(', ')}
 
   Rules:
-  1. Provide a concise, professional advice or warning (max 2-3 sentences).
-  2. If the recipe is safe, you can say it's suitable or give a helpful tip.
-  3. Focus specifically on how the ingredients/nutrients/preparation method interact with the user's conditions.
+  1. Provide concise, expert advice or warnings (max 3-4 sentences total).
+  2. The dietitian should comment on nutritional balance, the doctor on medical safety, and the trainer on suitability for an active lifestyle.
+  3. If the recipe is safe, provide helpful tips from these perspectives.
   4. Response language: ${_languageInstruction(locale)}
 
   Format your response as a raw string of text.
@@ -929,15 +930,14 @@ You are a content moderation assistant.
 ${_languageInstruction(locale)}
 
 Task: quick safety check for a "Public" recipe.
-Reject only if:
-- contains profanity or insults;
-- contains extreme nonsense or gibberish;
-- is clearly not food.
+Reject ONLY if:
+- contains profanity, insults, or inappropriate/offensive language;
+- contains illegal content or clear spam.
 
-If any part of the recipe (ingredients, preparation) contradicts the USER HEALTH CONTEXT, provide a clear medical warning or advice in the "healthAdvice" field. If everything is safe, you can leave it empty or provide a general positive tip.
-CRITICAL: Medical warnings or health constraints MUST NOT cause a rejection (approved: false). A recipe should be approved as long as it is real food, not gibberish, and not offensive. The "healthAdvice" field is purely informational for the user.
-
-Allow if it looks like a normal recipe, even if simple or has minor issues.
+Do NOT reject for:
+- lack of details or instructions;
+- simple or short descriptions;
+- minor typos or grammatical errors.
 
 Recipe:
 - name: ${recipeName.trim()}
@@ -991,20 +991,16 @@ Return ONLY JSON:
         .join('\n');
 
     final prompt = '''
-You are a VERY STRICT culinary reviewer for a high-quality community database.
-${_languageInstruction(locale)}
+Task: evaluate if this recipe is suitable for the community database.
+Reject ONLY if:
+- name is offensive or completely nonsensical;
+- ingredients are missing or clearly fake;
+- contains profanity or inappropriate content.
 
-Task: evaluate if this recipe is "Gold Standard" for the community.
-Reject if:
-- name is too generic (e.g. "Food", "Dinner");
-- description is empty or useless;
-- ingredients are incomplete (e.g. "Pizza" without "Flour" or "Dough");
-- quantities are missing or unrealistic;
-- contains any safety issues or nonsense.
-
-If any part of the recipe contradicts the USER HEALTH CONTEXT, provide a medical warning in the "healthAdvice" field. This warning does NOT affect the "approved" status. Community recipes should be judged on their culinary quality, not the user's personal health context.
-
-Be helpful but firm.
+Do NOT reject if:
+- cooking instructions (steps) are missing;
+- the description is short;
+- it is a simple dish.
 
 Recipe:
 - name: ${recipeName.trim()}
@@ -1300,16 +1296,16 @@ Rules:
         previousRecipeNames.take(15).map((name) => '- $name').join('\n');
 
     final prompt = '''
-You are a supportive fitness assistant and nutritionist.
+You are a team of experts: a medical doctor, a professional dietitian, and a fitness trainer.
 ${_languageInstruction(locale)}
 Analyze user progress for the period: $periodLabel.
 User name: ${userName.trim().isEmpty ? 'friend' : userName.trim()}
 Primary goal type: $goalType
 User activity types: ${activityTypes.trim().isEmpty ? 'not specified' : activityTypes.trim()}
 
-${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT (CRITICAL): $healthConditions\nNote: All nutrition advice and recipe recommendations MUST strictly adhere to these health constraints.' : ''}
+${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
 User context/preferences: ${aiContext.trim().isEmpty ? 'not specified' : aiContext.trim()}
-Medical details/conditions: ${healthConditions.trim().isEmpty ? 'not specified' : healthConditions.trim()}
+Expert Context (Health/Fitness): ${healthConditions.trim().isEmpty ? 'not specified' : healthConditions.trim()}
 
 Goals and progress:
 - Calorie goal: $calorieGoal kcal
@@ -1403,7 +1399,7 @@ Task:
 16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks),
     UNLESS goal type is muscle gain or weight gain.
 17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
-18) LONG-TERM HEALTH FILTER (MANDATORY): For monthly and yearly periods, ensure all meal recommendations and tips strictly exclude any foods that are harmful for the user's specific health conditions ($healthConditions). If a recipe in the list is "mostly good" but has one bad ingredient, suggest it ONLY if you also mention how to replace that ingredient to make it safe.
+18) HEALTH AND SAFETY FILTER (STRICT): Ensure all recommendations, meal tips, and advice strictly exclude any foods, ingredients, or activities that are harmful according to the user's specific Expert Context ($healthConditions). This applies to ALL periods (week, month, year). Never recommend anything that violates these constraints.
 18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
 19) Dish Composition Analysis: You MUST analyze the detailed nutritional breakdown of the actual dishes consumed (calories, macros, sugar, sodium). If a specific dish the user ate has excessive sodium, high sugar, or inadequate protein, point this out specifically in your overview and suggest adjustments.
 20) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.

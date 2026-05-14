@@ -374,6 +374,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileHeader(ThemeData theme, UserProfile profile) {
+    final l10n = AppLocalizations.of(context)!;
     final avatarIcon = _avatarIconFromProfile(profile);
     final isAuthorized = FirebaseAuthService.instance.isSignedIn;
     final hasPhoto = _cachedPhotoBase64 != null && isAuthorized;
@@ -450,12 +451,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
+                      onTap: () => Navigator.of(context, rootNavigator: true).push(
                         MaterialPageRoute(
                             builder: (context) => const SubscriptionPlansScreen()),
                       ),
-                      child: _buildTierBadge(context, theme, profile),
+                      child: Column(
+                        children: [
+                          _buildTierBadge(context, theme, profile),
+                          if (profile.tier == SubscriptionTier.free)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                l10n.changePlanHint,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.hintColor,
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

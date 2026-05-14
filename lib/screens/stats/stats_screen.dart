@@ -28,6 +28,7 @@ import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 import 'widgets/chart_legend_item.dart';
 import 'widgets/progress_card.dart';
+import '../profile/subscription_plans_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -1017,35 +1018,34 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.09),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.25),
+                if (profile.isPersonalAdviceAvailable)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.25),
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Symbols.info, size: 16, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.statsAiNotMedicalAdvice,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.orange.shade800,
-                            fontWeight: FontWeight.w500,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Symbols.info, size: 16, color: Colors.orange),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.statsAiNotMedicalAdvice,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.orange.shade800,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(height: 12),
                 _buildAiReportCard(
                   context,
@@ -1629,7 +1629,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () {
-                  // This usually navigates to subscription page
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                        builder: (context) => const SubscriptionPlansScreen()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,

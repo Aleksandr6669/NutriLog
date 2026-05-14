@@ -1680,6 +1680,30 @@ class AppLocalizationsRu extends AppLocalizations {
   String get featureUnlimitedRecipes => 'Неограниченные ИИ-рецепты';
 
   @override
+  String get featurePersonalAdvice => 'Персональные советы к рецептам';
+
+  @override
+  String get personalAdvicePremiumOnly => 'Эта функция доступна только в Premium тарифе. Перейдите на Premium, чтобы получать персональные советы от врача, диетолога и тренера для каждого рецепта.';
+
+  @override
+  String get tapToSelectPlan => 'Нажмите, чтобы выбрать этот тариф';
+
+  @override
+  String get featureBasicDiary => 'Базовый дневник питания';
+
+  @override
+  String get featureWaterSteps => 'Учет воды и шагов';
+
+  @override
+  String get featureBasicRecipes => 'Базовая книга рецептов';
+
+  @override
+  String get featureAiGoals => 'ИИ-расчет дневных целей';
+
+  @override
+  String get changePlanHint => 'Нажмите на иконку, чтобы изменить тариф';
+
+  @override
   String get selectPlan => 'Выбрать тариф';
 
   @override

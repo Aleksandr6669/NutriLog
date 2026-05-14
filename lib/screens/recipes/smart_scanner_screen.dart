@@ -138,7 +138,9 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   Future<void> _captureImage() async {
     if (_isProcessing ||
         _cameraController == null ||
-        !_cameraController!.value.isInitialized) return;
+        !_cameraController!.value.isInitialized) {
+      return;
+    }
 
     try {
       if (_cameraController!.value.isStreamingImages) {
@@ -503,7 +505,15 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isCaptured ? Symbols.send : Symbols.photo_camera,
+              isCaptured
+                  ? ((context
+                                  .read<ProfileProvider>()
+                                  .profile
+                                  ?.isAiFeatureAvailable ??
+                              false)
+                          ? Symbols.send
+                          : Symbols.lock)
+                  : Symbols.photo_camera,
               color: isCaptured ? Colors.white : AppColors.primary,
               size: 28,
             ),

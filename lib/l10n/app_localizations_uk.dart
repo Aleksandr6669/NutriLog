@@ -1679,6 +1679,30 @@ class AppLocalizationsUk extends AppLocalizations {
   String get featureUnlimitedRecipes => 'Необмежені ШІ-рецепти';
 
   @override
+  String get featurePersonalAdvice => 'Персональні поради до рецептів';
+
+  @override
+  String get personalAdvicePremiumOnly => 'Ця функція доступна лише у тарифі Premium. Перейдіть на Premium, щоб отримувати персональні поради від лікаря, дієтолога та тренера для кожного рецепта.';
+
+  @override
+  String get tapToSelectPlan => 'Натисніть, щоб обрати цей тариф';
+
+  @override
+  String get featureBasicDiary => 'Базовий щоденник харчування';
+
+  @override
+  String get featureWaterSteps => 'Облік води та кроків';
+
+  @override
+  String get featureBasicRecipes => 'Базова книга рецептів';
+
+  @override
+  String get featureAiGoals => 'ШІ-розрахунок денних цілей';
+
+  @override
+  String get changePlanHint => 'Натисніть на іконку, щоб змінити тариф';
+
+  @override
   String get selectPlan => 'Обрати тариф';
 
   @override
