@@ -113,8 +113,8 @@ class NotificationSettingsService {
     statsAiAssistantEnabled: true,
     aiProvider: NotificationSettings.aiProviderGemini,
     geminiModel: NotificationSettings.geminiModelDefault,
-    aiRetryAttempts: 1,
-    aiRetryDelaySeconds: 15,
+    aiRetryAttempts: 3,
+    aiRetryDelaySeconds: 1,
     aiTimeoutSeconds: 60,
     aiMaxTokens: 4096,
   );

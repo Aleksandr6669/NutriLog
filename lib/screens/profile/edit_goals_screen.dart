@@ -175,37 +175,51 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    final profile = context.read<ProfileProvider>().profile;
-                    if (profile != null && !profile.isAiFeatureAvailable) {
-                      context.push('/subscription', extra: SubscriptionTier.standard);
-                      return;
-                    }
-                    if (!_isAiFilling) {
-                      _fillGoalsWithAi();
-                    }
-                  },
-                  icon: _isAiFilling
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          (context.read<ProfileProvider>().profile?.isAiFeatureAvailable ?? false)
-                              ? Symbols.auto_awesome
-                              : Symbols.lock,
-                        ),
-                  label: Text(
-                    _isAiFilling
-                        ? l10n.aiCalculatingGoals
-                        : l10n.aiCalculateGoals,
+              Builder(builder: (context) {
+                final profile = context.watch<ProfileProvider>().profile;
+                final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (!isAiAvailable) {
+                        context.push('/subscription',
+                            extra: SubscriptionTier.standard);
+                        return;
+                      }
+                      if (!_isAiFilling) {
+                        _fillGoalsWithAi();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: !isAiAvailable
+                          ? Colors.grey.withValues(alpha: 0.08)
+                          : AppColors.primary.withValues(alpha: 0.08),
+                      foregroundColor:
+                          !isAiAvailable ? Colors.grey.shade600 : AppColors.primary,
+                      elevation: 0,
+                      side: BorderSide(
+                        color: !isAiAvailable
+                            ? Colors.grey.withValues(alpha: 0.25)
+                            : AppColors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    icon: _isAiFilling
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(isAiAvailable ? Symbols.auto_awesome : Symbols.lock),
+                    label: Text(
+                      _isAiFilling
+                          ? l10n.aiCalculatingGoals
+                          : l10n.aiCalculateGoals,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,

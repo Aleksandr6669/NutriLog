@@ -9,6 +9,7 @@ import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nutri_log/providers/profile_provider.dart';
+import 'package:nutri_log/styles/app_colors.dart';
 
 class EditActivityEntryScreen extends StatefulWidget {
   final ActivityEntry? entry;
@@ -228,43 +229,57 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            final profile = context.read<ProfileProvider>().profile;
-                            final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+                      Builder(builder: (context) {
+                        final profile = context.watch<ProfileProvider>().profile;
+                        final isAiAvailable =
+                            profile?.isAiFeatureAvailable ?? false;
 
-                            if (!isAiAvailable) {
-                              context.push('/subscription', extra: SubscriptionTier.standard);
-                              return;
-                            }
-                            if (!_isAiEstimating) {
-                              _estimateCaloriesWithAi();
-                            }
-                          },
-                          icon: _isAiEstimating
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Icon(
-                                  (context
-                                              .read<ProfileProvider>()
-                                              .profile
-                                              ?.isAiFeatureAvailable ??
-                                          false)
-                                      ? Symbols.auto_awesome
-                                      : Symbols.lock,
-                                  size: 20,
-                                ),
-                          label: Text(l10n.activityAiEstimateButton),
-                        ),
-                      ),
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              if (!isAiAvailable) {
+                                context.push('/subscription',
+                                    extra: SubscriptionTier.standard);
+                                return;
+                              }
+                              if (!_isAiEstimating) {
+                                _estimateCaloriesWithAi();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: !isAiAvailable
+                                  ? Colors.grey.withValues(alpha: 0.08)
+                                  : AppColors.primary.withValues(alpha: 0.08),
+                              foregroundColor: !isAiAvailable
+                                  ? Colors.grey.shade600
+                                  : AppColors.primary,
+                              elevation: 0,
+                              side: BorderSide(
+                                color: !isAiAvailable
+                                    ? Colors.grey.withValues(alpha: 0.25)
+                                    : AppColors.primary.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            icon: _isAiEstimating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(isAiAvailable
+                                    ? Symbols.auto_awesome
+                                    : Symbols.lock),
+                            label: Text(
+                              _isAiEstimating
+                                  ? l10n.activityAiEstimating
+                                  : l10n.activityAiEstimateButton,
+                            ),
+                          ),
+                        );
+                      }),
                       if (_aiEstimateStatus != null) ...[
                         const SizedBox(height: 10),
                         Container(

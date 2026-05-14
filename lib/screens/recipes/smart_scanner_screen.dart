@@ -471,60 +471,65 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isCaptured = _capturedImage != null;
 
-    return InkWell(
-      onTap: isCaptured
-          ? ((context.read<ProfileProvider>().profile?.isAiFeatureAvailable ??
-                  false)
-              ? _sendToAi
-              : () => context.push('/subscription', extra: SubscriptionTier.standard))
-          : _captureImage,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        height: 64,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isCaptured
-                ? [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)]
-                : [Colors.white, Colors.white.withValues(alpha: 0.9)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+    return Builder(builder: (context) {
+      final profile = context.watch<ProfileProvider>().profile;
+      final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+      final isLocked = isCaptured && !isAiAvailable;
+
+      return InkWell(
+        onTap: isCaptured
+            ? (isAiAvailable
+                ? _sendToAi
+                : () =>
+                    context.push('/subscription', extra: SubscriptionTier.standard))
+            : _captureImage,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isCaptured
+                  ? (isLocked
+                      ? [Colors.grey.shade600, Colors.grey.shade700]
+                      : [
+                          AppColors.primary,
+                          AppColors.primary.withValues(alpha: 0.8)
+                        ])
+                  : [Colors.white, Colors.white.withValues(alpha: 0.9)],
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isCaptured
-                  ? ((context
-                                  .read<ProfileProvider>()
-                                  .profile
-                                  ?.isAiFeatureAvailable ??
-                              false)
-                          ? Symbols.send
-                          : Symbols.lock)
-                  : Symbols.photo_camera,
-              color: isCaptured ? Colors.white : AppColors.primary,
-              size: 28,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera,
-              style: TextStyle(
-                color: isCaptured ? Colors.white : AppColors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isCaptured
+                    ? (isAiAvailable ? Symbols.send : Symbols.lock)
+                    : Symbols.photo_camera,
+                color: isCaptured ? Colors.white : AppColors.primary,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera,
+                style: TextStyle(
+                  color: isCaptured ? Colors.white : AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildScannerOverlay() {

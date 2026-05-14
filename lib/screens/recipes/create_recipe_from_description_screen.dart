@@ -226,59 +226,79 @@ class _CreateRecipeFromDescriptionScreenState
             const SizedBox(height: 16),
             _buildDescriptionCard(),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: (_isGenerating ||
-                              _isListening ||
-                              _descriptionController.text.trim().isEmpty)
-                          ? null
-                          : _generateAndOpenEditor,
-                      icon: _isGenerating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Symbols.auto_awesome),
-                      label: Text(
-                        _isGenerating
-                            ? l10n.recipeGenerating
-                            : l10n.recipeGenerateAndOpenEditor,
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+            Builder(builder: (context) {
+              final profile = context.watch<ProfileProvider>().profile;
+              final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: (_isGenerating ||
+                                _isListening ||
+                                _descriptionController.text.trim().isEmpty)
+                            ? null
+                            : _generateAndOpenEditor,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: (!isAiAvailable &&
+                                  _descriptionController.text.trim().isNotEmpty)
+                              ? Colors.grey.withValues(alpha: 0.08)
+                              : AppColors.primary.withValues(alpha: 0.08),
+                          foregroundColor: (!isAiAvailable &&
+                                  _descriptionController.text.trim().isNotEmpty)
+                              ? Colors.grey.shade600
+                              : AppColors.primary,
+                          elevation: 0,
+                          side: BorderSide(
+                            color: (!isAiAvailable &&
+                                    _descriptionController.text.trim().isNotEmpty)
+                                ? Colors.grey.withValues(alpha: 0.25)
+                                : AppColors.primary.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        icon: _isGenerating
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Icon(isAiAvailable
+                                ? Symbols.auto_awesome
+                                : Symbols.lock),
+                        label: Text(
+                          _isGenerating
+                              ? l10n.recipeGenerating
+                              : l10n.recipeGenerateAndOpenEditor,
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Material(
-                  color: _isListening ? Colors.red.shade500 : AppColors.primary,
-                  borderRadius: BorderRadius.circular(28),
-                  elevation: 2,
-                  child: InkWell(
-                    onTap: _isListening ? _stopListening : _startListening,
-                    borderRadius: BorderRadius.circular(28),
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        _isListening ? Symbols.stop : Symbols.mic,
-                        color: Colors.white,
-                        size: 28,
+                  const SizedBox(width: 12),
+                  Material(
+                    color:
+                        _isListening ? Colors.red.shade500 : AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      onTap: _isListening ? _stopListening : _startListening,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          _isListening ? Symbols.stop : Symbols.mic,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
           ],
         ),
       ),

@@ -571,9 +571,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(isRestricted ? Symbols.lock : Symbols.smart_toy,
-                    color: isRestricted ? Colors.grey.shade600 : Colors.blue.shade700, size: 20),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Icon(isRestricted ? Symbols.lock : Symbols.smart_toy,
+                      color: isRestricted
+                          ? Colors.grey.shade600
+                          : Colors.blue.shade700,
+                      size: 20),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

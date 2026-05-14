@@ -251,18 +251,34 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     int? maxLines,
     String? helperText,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      validator: validator,
-      minLines: minLines,
-      maxLines: maxLines,
-      decoration: AppStyles.inputDecoration(label, icon).copyWith(
-        helperText: helperText,
-        helperMaxLines: 3,
-      ),
-      style: const TextStyle(fontWeight: FontWeight.w500),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 14.0),
+          child: Icon(icon, size: 22, color: AppColors.primary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            validator: validator,
+            minLines: minLines,
+            maxLines: maxLines,
+            decoration: InputDecoration(
+              labelText: label,
+              helperText: helperText,
+              helperMaxLines: 3,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+            ),
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
     );
   }
 

@@ -105,10 +105,10 @@ class _FabMenuItemState extends State<FabMenuItem>
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
-                  const textStyle = TextStyle(
+                  final textStyle = TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: widget.isLocked ? Colors.grey.shade600 : Colors.black87,
                   );
 
                   return ClipRect(

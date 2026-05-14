@@ -930,14 +930,16 @@ You are a content moderation assistant.
 ${_languageInstruction(locale)}
 
 Task: quick safety check for a "Public" recipe.
-Reject ONLY if:
+Reject if:
 - contains profanity, insults, or inappropriate/offensive language;
-- contains illegal content or clear spam.
+- contains illegal content or clear spam;
+- the name or description is a random sequence of characters (gibberish);
+- the recipe name does not represent a real dish or product;
+- the name is too short and meaningless (e.g. "a", "asdf").
 
 Do NOT reject for:
-- lack of details or instructions;
-- simple or short descriptions;
-- minor typos or grammatical errors.
+- minor typos or grammatical errors;
+- simple but real dishes (e.g. "Boiled Egg").
 
 Recipe:
 - name: ${recipeName.trim()}
@@ -992,15 +994,16 @@ Return ONLY JSON:
 
     final prompt = '''
 Task: evaluate if this recipe is suitable for the community database.
-Reject ONLY if:
-- name is offensive or completely nonsensical;
-- ingredients are missing or clearly fake;
-- contains profanity or inappropriate content.
+Reject if:
+- name is offensive, completely nonsensical, or gibberish;
+- name or description is a random sequence of characters;
+- ingredients are missing, clearly fake, or contain non-food items;
+- contains profanity or inappropriate content;
+- the dish is not a real food item.
 
 Do NOT reject if:
 - cooking instructions (steps) are missing;
-- the description is short;
-- it is a simple dish.
+- it is a simple dish (e.g. "Apple").
 
 Recipe:
 - name: ${recipeName.trim()}
@@ -2426,7 +2429,16 @@ Rules:
           throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
         }
 
-        return _decodeJsonObject(text, locale);
+        final decoded = _decodeJsonObject(text, locale);
+        if (decoded.isEmpty) {
+          AiErrorLogService.instance.logError(
+            feature: featureName,
+            message: 'Empty JSON object received',
+            details: text,
+          );
+          throw GeminiRecipeException(_messages(locale).aiNoResponseError);
+        }
+        return decoded;
       } catch (e) {
         lastError = e;
         if (attempt < maxAttempts) {

@@ -173,12 +173,24 @@ class RecipeService {
     if (uid == null || uid.isEmpty) return;
 
     try {
+      // Fetch both published and donated recipes
       final publicDocs = await cloudService.readCollection('publicRecipes');
+      final donatedDocs = await cloudService.readCollection('donatedRecipes');
+
       final publicRecipes = publicDocs
           .whereType<Map>()
           .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
-          .toList(growable: false);
-      await _savePublicRecipesToPrefs(publicRecipes);
+          .toList();
+
+      final donatedRecipes = donatedDocs
+          .whereType<Map>()
+          .map((rawMap) {
+            final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
+            return recipe.copyWith(isDonated: true, isPublic: true);
+          })
+          .toList();
+
+      await _savePublicRecipesToPrefs([...publicRecipes, ...donatedRecipes]);
     } catch (_) {
       // Офлайн/permission: остаёмся на локальном кэше, повтор при следующем цикле.
     }
@@ -204,11 +216,22 @@ class RecipeService {
       }
 
       final publicDocs = await cloudService.readCollection('publicRecipes');
+      final donatedDocs = await cloudService.readCollection('donatedRecipes');
+
       final publicRecipes = publicDocs
           .whereType<Map>()
           .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
-          .toList(growable: false);
-      await _savePublicRecipesToPrefs(publicRecipes);
+          .toList();
+
+      final donatedRecipes = donatedDocs
+          .whereType<Map>()
+          .map((rawMap) {
+            final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
+            return recipe.copyWith(isDonated: true, isPublic: true);
+          })
+          .toList();
+
+      await _savePublicRecipesToPrefs([...publicRecipes, ...donatedRecipes]);
     } catch (_) {
       // Keep local cache if pull fails.
     }
@@ -495,18 +518,45 @@ class RecipeService {
   Stream<List<Recipe>> publicRecipesStream() {
     final cloudService = CloudDataService.instance;
     final uid = cloudService.currentUserId;
+    final controller = StreamController<List<Recipe>>.broadcast();
 
-    return cloudService
-        .collectionStream('publicRecipes')
-        .asyncMap((docs) async {
-      final publicRecipes = docs.whereType<Map>().map((rawMap) {
+    List<Map<String, dynamic>> lastPublic = [];
+    List<Map<String, dynamic>> lastDonated = [];
+
+    void emit() {
+      final publicRecipes = lastPublic.map((rawMap) {
         return _mapPublicRecipeFromCloud(rawMap, uid ?? '');
-      }).toList(growable: false);
+      });
 
-      // Сохраняем в локальный кеш для оффлайн-использования
-      await _savePublicRecipesToPrefs(publicRecipes);
-      return publicRecipes;
+      final donatedRecipes = lastDonated.map((rawMap) {
+        final recipe = _mapPublicRecipeFromCloud(rawMap, uid ?? '');
+        return recipe.copyWith(isDonated: true, isPublic: true);
+      });
+
+      final combined = [...publicRecipes, ...donatedRecipes];
+      unawaited(_savePublicRecipesToPrefs(combined));
+      if (!controller.isClosed) {
+        controller.add(combined);
+      }
+    }
+
+    final sub1 = cloudService.collectionStream('publicRecipes').listen((docs) {
+      lastPublic = docs;
+      emit();
     });
+
+    final sub2 = cloudService.collectionStream('donatedRecipes').listen((docs) {
+      lastDonated = docs;
+      emit();
+    });
+
+    controller.onCancel = () {
+      sub1.cancel();
+      sub2.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   /// Real-time поток приватных рецептов текущего пользователя.

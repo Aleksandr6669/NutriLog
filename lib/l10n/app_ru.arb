@@ -599,6 +599,7 @@
   "@recipeClarificationComposition": {
     "placeholders": { "ingredients": { "type": "String" } }
   },
+  "recipeAiNoIngredientsError": "Добавьте хотя бы один ингредиент с названием для расчета",
   "recipeClarificationBrandUnknown": "Если бренд неизвестен — использовать типичный состав для этого типа.",
   "barcodeScannerTitle": "Сканер штрих-кода",
   "barcodeNotFound": "Товар не найден в базе данных",

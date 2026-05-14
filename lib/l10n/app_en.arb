@@ -600,6 +600,7 @@
   "@recipeClarificationComposition": {
     "placeholders": { "ingredients": { "type": "String" } }
   },
+  "recipeAiNoIngredientsError": "Add at least one ingredient with a name to calculate",
   "recipeClarificationBrandUnknown": "If brand is unknown — use typical composition for this type.",
   "barcodeScannerTitle": "Barcode Scanner",
   "barcodeNotFound": "Product not found in database",

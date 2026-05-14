@@ -180,8 +180,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     unawaited(_applyInitialAutomation(isFromDraft: isFromDraft));
 
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _onDonateValidationInputChanged());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onDonateValidationInputChanged();
+      _scheduleHealthAdviceUpdate();
+    });
   }
 
   void _attachIngredientListeners(_IngredientFormItem item) {
@@ -1157,10 +1159,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.05),
+                  color: _isDonateAiApproved
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : (_donateAiStatus != null
+                          ? Colors.red.withValues(alpha: 0.08)
+                          : Colors.blue.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: Colors.blue.withValues(alpha: 0.15),
+                    color: _isDonateAiApproved
+                        ? Colors.green.withValues(alpha: 0.3)
+                        : (_donateAiStatus != null
+                            ? Colors.red.withValues(alpha: 0.25)
+                            : Colors.blue.withValues(alpha: 0.15)),
                   ),
                 ),
                 child: Row(
@@ -1168,14 +1178,27 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     Icon(
                       _isDonateAiApproved ? Symbols.verified : Symbols.info,
                       size: 14,
-                      color: _isDonateAiApproved ? Colors.green : Colors.blue,
+                      color: _isDonateAiApproved
+                          ? Colors.green
+                          : (_donateAiStatus != null
+                              ? Colors.red
+                              : Colors.blue),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        '${l10n.donateRecipeButton}: $_donateAiStatus',
-                        style:
-                            theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                        _isDonateAiApproved
+                            ? l10n.moderationApproved
+                            : '${l10n.checkRecipeButton}: $_donateAiStatus',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          color: _isDonateAiApproved
+                              ? Colors.green.shade800
+                              : null,
+                          fontWeight: _isDonateAiApproved
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
                     ),
                   ],
@@ -1194,52 +1217,59 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ],
             if (!_isDonated) ...[
               OutlinedButton.icon(
-                onPressed: () {
-                  final profile = context.read<ProfileProvider>().profile;
-                  final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+                onPressed: _isDonateAiApproved
+                    ? null
+                    : () {
+                        final profile = context.read<ProfileProvider>().profile;
+                        final isAiAvailable =
+                            profile?.isAiFeatureAvailable ?? false;
 
-                  if (!isAiAvailable) {
-                    _navigateToSubscription(SubscriptionTier.standard);
-                    return;
-                  }
-                  if (_isFormReadyForDonate &&
-                      !_isDonateAiChecking &&
-                      !_isDonateAiApproved) {
-                    _runDonateModeration();
-                  }
-                },
+                        if (!isAiAvailable) {
+                          _navigateToSubscription(SubscriptionTier.standard);
+                          return;
+                        }
+                        if (_isFormReadyForDonate && !_isDonateAiChecking) {
+                          _runDonateModeration();
+                        }
+                      },
                 icon: _isDonateAiChecking
                     ? const SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2))
                     : Icon(
-                        (context
-                                    .read<ProfileProvider>()
-                                    .profile
-                                    ?.isAiFeatureAvailable ??
-                                false)
+                        _isDonateAiApproved
                             ? Symbols.verified
-                            : Symbols.lock,
+                            : ((context
+                                        .read<ProfileProvider>()
+                                        .profile
+                                        ?.isAiFeatureAvailable ??
+                                    false)
+                                ? Symbols.verified
+                                : Symbols.lock),
                         size: 18),
-                label: Text(l10n.checkRecipeButton),
+                label: Text(_isDonateAiApproved
+                    ? l10n.ready
+                    : l10n.checkRecipeButton),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: () {
-                  final profile = context.read<ProfileProvider>().profile;
-                  if (profile?.tier == SubscriptionTier.free) {
-                    _navigateToSubscription(SubscriptionTier.standard);
-                    return;
-                  }
-                  if (_isFormReadyForDonate && _isDonateAiApproved) {
-                    _donateRecipe();
-                  }
-                },
+                onPressed: (_isFormReadyForDonate && _isDonateAiApproved)
+                    ? () {
+                        final profile = context.read<ProfileProvider>().profile;
+                        if (profile?.tier == SubscriptionTier.free) {
+                          _navigateToSubscription(SubscriptionTier.standard);
+                          return;
+                        }
+                        _donateRecipe();
+                      }
+                    : null,
                 icon: const Icon(Symbols.volunteer_activism, size: 18),
                 label: Text(l10n.donateRecipeButton),
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
+                  backgroundColor: _isDonateAiApproved
+                      ? Colors.deepOrange
+                      : Colors.grey.shade400,
                 ),
               ),
             ],
@@ -1311,38 +1341,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () {
-                final profile = context.read<ProfileProvider>().profile;
-                final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
-
-                if (!isAiAvailable) {
-                  _navigateToSubscription(SubscriptionTier.standard);
-                  return;
-                }
-                if (_isFormReadyForDonate &&
-                    !_isPublicAiChecking &&
-                    !_isPublicAiApproved) {
-                  _runPublicModeration();
-                }
-              },
-              icon: _isPublicAiChecking
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(
-                      (context
-                                  .read<ProfileProvider>()
-                                  .profile
-                                  ?.isAiFeatureAvailable ??
-                              false)
-                          ? Symbols.verified
-                          : Symbols.lock,
-                      size: 18),
-              label: Text(l10n.checkRecipeButton),
-            ),
             if (_publicAiStatus != null) ...[
               const SizedBox(height: 12),
               Container(
@@ -1350,10 +1348,18 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.05),
+                  color: _isPublicAiApproved
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : (_publicAiStatus != null
+                          ? Colors.red.withValues(alpha: 0.08)
+                          : Colors.blue.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: Colors.blue.withValues(alpha: 0.15),
+                    color: _isPublicAiApproved
+                        ? Colors.green.withValues(alpha: 0.3)
+                        : (_publicAiStatus != null
+                            ? Colors.red.withValues(alpha: 0.25)
+                            : Colors.blue.withValues(alpha: 0.15)),
                   ),
                 ),
                 child: Column(
@@ -1363,15 +1369,27 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         Icon(
                           _isPublicAiApproved ? Symbols.verified : Symbols.info,
                           size: 14,
-                          color:
-                              _isPublicAiApproved ? Colors.green : Colors.blue,
+                          color: _isPublicAiApproved
+                              ? Colors.green
+                              : (_publicAiStatus != null
+                                  ? Colors.red
+                                  : Colors.blue),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            '${l10n.makePublic}: $_publicAiStatus',
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(fontSize: 11),
+                            _isPublicAiApproved
+                                ? l10n.moderationApproved
+                                : '${l10n.makePublic}: $_publicAiStatus',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: _isPublicAiApproved
+                                  ? Colors.green.shade800
+                                  : null,
+                              fontWeight: _isPublicAiApproved
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                         ),
                       ],
@@ -1389,6 +1407,43 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _isPublicAiApproved
+                  ? null
+                  : () {
+                      final profile = context.read<ProfileProvider>().profile;
+                      final isAiAvailable =
+                          profile?.isAiFeatureAvailable ?? false;
+
+                      if (!isAiAvailable) {
+                        _navigateToSubscription(SubscriptionTier.standard);
+                        return;
+                      }
+                      if (_isFormReadyForDonate && !_isPublicAiChecking) {
+                        _runPublicModeration();
+                      }
+                    },
+              icon: _isPublicAiChecking
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : Icon(
+                      _isPublicAiApproved
+                          ? Symbols.verified
+                          : ((context
+                                      .read<ProfileProvider>()
+                                      .profile
+                                      ?.isAiFeatureAvailable ??
+                                  false)
+                              ? Symbols.verified
+                              : Symbols.lock),
+                      size: 18),
+              label: Text(_isPublicAiApproved
+                  ? l10n.ready
+                  : l10n.checkRecipeButton),
+            ),
           ],
         ),
       ),
@@ -1670,49 +1725,51 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ('vitamin_d', l10n.vitaminD, l10n.mcg)
             ]),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 key: _nutrientsActionKey,
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      final profile = context.read<ProfileProvider>().profile;
-                      final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+                  Builder(builder: (context) {
+                    final profile = context.watch<ProfileProvider>().profile;
+                    final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
 
-                      if (!isAiAvailable) {
-                        _navigateToSubscription(SubscriptionTier.standard);
-                        return;
-                      }
-                      if (!_isAiCalculating && _hasAnyIngredient) {
-                        _recalculateNutrientsWithAi();
-                      }
-                    },
-                    icon: _isAiCalculating
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : Icon(
-                            (context
-                                        .read<ProfileProvider>()
-                                        .profile
-                                        ?.isAiFeatureAvailable ??
-                                    false)
-                                ? Symbols.calculate
-                                : Symbols.lock,
-                            weight: 600),
-                    label: Text(l10n.calculateNutrition),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.08),
-                      foregroundColor: AppColors.primary,
-                      elevation: 0,
-                      side: BorderSide(
-                        color: AppColors.primary.withValues(alpha: 0.25),
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: (!_hasAnyIngredient || _isAiCalculating)
+                            ? null
+                            : (!isAiAvailable)
+                                ? () => _navigateToSubscription(SubscriptionTier.standard)
+                                : _recalculateNutrientsWithAi,
+                        icon: _isAiCalculating
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2))
+                            : Icon(
+                                (!isAiAvailable && _hasAnyIngredient)
+                                    ? Symbols.lock
+                                    : Symbols.calculate,
+                                weight: 600),
+                        label: Text(l10n.calculateNutrition),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: (!isAiAvailable && _hasAnyIngredient)
+                              ? Colors.grey.withValues(alpha: 0.08)
+                              : AppColors.primary.withValues(alpha: 0.08),
+                          foregroundColor: (!isAiAvailable && _hasAnyIngredient)
+                              ? Colors.grey.shade600
+                              : AppColors.primary,
+                          elevation: 0,
+                          side: BorderSide(
+                            color: (!isAiAvailable && _hasAnyIngredient)
+                                ? Colors.grey.withValues(alpha: 0.25)
+                                : AppColors.primary.withValues(alpha: 0.25),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   if (_aiStatus != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -2038,16 +2095,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: AppStyles.cardRadius,
                   side: BorderSide(
-                    color: Colors.blue.withValues(alpha: 0.15),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
-                color: Colors.blue.withValues(alpha: 0.03),
+                color: Colors.grey.withValues(alpha: 0.05),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Symbols.lock, size: 20, color: Colors.blue),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2.0),
+                        child: Icon(Symbols.lock, size: 20, color: Colors.grey),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -2055,10 +2116,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           children: [
                             Text(
                               l10n.healthAdviceTitle,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.blue,
+                                color: Colors.grey.shade700,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -2066,13 +2127,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                               l10n.upgradeToPremium,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.blue.withValues(alpha: 0.7),
+                                color: Colors.grey.shade600,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, size: 20, color: Colors.blue),
+                      const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                     ],
                   ),
                 ),
@@ -2121,38 +2182,54 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: AppStyles.cardRadius,
-                side: BorderSide(color: Colors.blue.withValues(alpha: 0.1), width: 1),
+                side: BorderSide(
+                    color: Colors.blue.withValues(alpha: 0.1), width: 1),
               ),
               color: Colors.blue.withValues(alpha: 0.05),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Stack(
-                  alignment: Alignment.centerRight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: _healthAdviceController,
-                      maxLines: null,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: AppStyles.inputDecoration(
-                        l10n.healthAdviceTitle,
-                        Symbols.medical_information,
-                      ).copyWith(
-                        fillColor: Colors.transparent,
-                        filled: false,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
+                    const Padding(
+                      padding: EdgeInsets.only(top: 12.0),
+                      child: Icon(Symbols.medical_information,
+                          size: 20, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Stack(
+                        alignment: Alignment.centerRight,
+                        children: [
+                          TextFormField(
+                            controller: _healthAdviceController,
+                            maxLines: null,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: l10n.healthAdviceTitle,
+                              hintStyle: TextStyle(
+                                  color: Colors.blue.withValues(alpha: 0.5)),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 0),
+                            ),
+                          ),
+                          if (_isHealthAdviceLoading)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SizedBox(
+                                width: 14,
+                                height: 14,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (_isHealthAdviceLoading)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
                   ],
                 ),
               ),
