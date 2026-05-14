@@ -975,7 +975,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     ),
                     child: Icon(
                       icon,
-                      color: isSelected ? AppColors.primary : unselectedIcon,
+                      color: isSelected ? AppColors.primary : unselectedIcon, 
                     ),
                   ),
                 );
