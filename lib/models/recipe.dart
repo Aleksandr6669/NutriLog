@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:nutri_log/services/recipe_loader.dart';
 
@@ -95,7 +96,7 @@ class Recipe {
     return Recipe(
       id: (json['id'] as String?)?.trim().isNotEmpty == true
           ? (json['id'] as String).trim()
-          : 'recipe_${DateTime.now().microsecondsSinceEpoch}_${fallbackName.hashCode}',
+          : 'recipe_${DateTime.now().microsecondsSinceEpoch}_${fallbackName.hashCode}_${Random().nextInt(10000)}',
       name: json['name'] ?? 'Без названия',
       description: json['description'] ?? '',
       clarification: (json['clarification'] as String? ?? '').trim(),

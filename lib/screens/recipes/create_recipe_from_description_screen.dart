@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -118,7 +119,7 @@ class _CreateRecipeFromDescriptionScreenState
 
   Recipe _buildDraftRecipe(GeminiRecipeDraft draft) {
     return Recipe(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      id: 'recipe_${DateTime.now().microsecondsSinceEpoch}_${draft.name.hashCode}_${Random().nextInt(10000)}',
       name: draft.name,
       description: draft.description,
       clarification: draft.clarification,

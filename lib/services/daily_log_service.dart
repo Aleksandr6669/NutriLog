@@ -122,6 +122,7 @@ class DailyLogService {
 
   Map<String, dynamic> _foodItemToJson(FoodItem item) {
     return {
+      'id': item.id,
       'icon': RecipeLoader.getIconName(item.icon),
       'name': item.name,
       'description': item.description,
@@ -172,6 +173,7 @@ class DailyLogService {
             (itemJson['nutrients'] as Map<String, dynamic>?) ??
                 <String, dynamic>{};
         return FoodItem(
+          id: itemJson['id'] as String?,
           icon: RecipeLoader.getIcon(itemJson['icon'] as String? ?? ''),
           name: itemJson['name'] as String? ?? '',
           description: itemJson['description'] as String? ?? '',
@@ -233,6 +235,7 @@ class DailyLogService {
 
   FoodItem recipeToFoodItem(Recipe recipe) {
     return FoodItem(
+      id: recipe.id,
       icon: recipe.icon,
       name: recipe.name,
       description: recipe.description,

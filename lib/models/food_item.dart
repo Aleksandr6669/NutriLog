@@ -96,6 +96,7 @@ class NutritionalInfo {
 }
 
 class FoodItem {
+  final String? id;
   final IconData icon;
   final String name;
   final String description;
@@ -104,6 +105,7 @@ class FoodItem {
   final List<String> recipeInstructions;
 
   FoodItem({
+    this.id,
     required this.icon,
     required this.name,
     required this.description,

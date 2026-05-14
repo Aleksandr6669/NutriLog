@@ -114,7 +114,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   Recipe _toSavedRecipeSnapshot(FoodItem item) {
     return Recipe(
-      id: 'meal_${item.name}_${item.description.hashCode}',
+      id: item.id ?? 'meal_${item.name}_${item.description.hashCode}',
       name: item.name,
       description: item.description,
       nutrients: {
