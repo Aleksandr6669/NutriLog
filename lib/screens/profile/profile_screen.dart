@@ -465,7 +465,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 l10n.changePlanHint,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.hintColor,
-                                  fontStyle: FontStyle.italic,
                                   fontSize: 11,
                                 ),
                               ),

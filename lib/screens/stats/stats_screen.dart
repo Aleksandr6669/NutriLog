@@ -926,9 +926,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           final data = effectiveData;
           final aiAssistantEnabled =
               data['aiAssistantEnabled'] as bool? ?? true;
+          final profile = data['profile'] as UserProfile;
+          final isAiAnalyticsAvailable = profile.isAiAnalyticsAvailable;
           final requestId = _dataRequestId;
           if (hasCurrentData &&
               aiAssistantEnabled &&
+              isAiAnalyticsAvailable &&
               _aiStartedForRequestId != requestId) {
             _aiStartedForRequestId = requestId;
             _ensureAiReportForCurrentData(
@@ -937,7 +940,6 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             );
           }
 
-          final profile = data['profile'] as UserProfile;
           final calories = List<double>.from(data['calories'] as List);
           final weight = List<double>.from(data['weight'] as List);
           final stepsTrend = _trimProgressSeriesToCurrentDate(
@@ -1687,7 +1689,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Подготовка',
+                    l10n.statsAiLoading,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -2010,7 +2012,7 @@ class _LineChart extends StatelessWidget {
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             return LineTooltipItem(
-                              '${spot.y.toStringAsFixed(isWeight ? 1 : 0)} ${unit ?? (isWeight ? 'кг' : 'ккал')}',
+                              '${spot.y.toStringAsFixed(isWeight ? 1 : 0)} ${unit ?? (isWeight ? l10n.weightUnit : l10n.kcal)}',
                               TextStyle(
                                 color: spot.bar.color ?? lineColor,
                                 fontWeight: FontWeight.bold,
@@ -2092,8 +2094,8 @@ class _LineChart extends StatelessWidget {
                             labelResolver: (_) =>
                                 goalLabel ??
                                 (isWeight
-                                    ? 'Цель: ${goal.toStringAsFixed(1)} кг'
-                                    : 'Цель: ${goal.toInt()} ккал'),
+                                    ? l10n.statsGoalWeightKg(goal.toStringAsFixed(1))
+                                    : l10n.statsGoalKcal(goal.toInt())),
                           ),
                         ),
                       ],

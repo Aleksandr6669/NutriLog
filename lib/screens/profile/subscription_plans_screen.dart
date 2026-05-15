@@ -193,7 +193,6 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,
-                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 const SizedBox(height: 12),
