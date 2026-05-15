@@ -46,29 +46,15 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
 
   Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
     final isAuthorized = FirebaseAuthService.instance.isSignedIn;
-    return Stack(
-      alignment: Alignment.centerRight,
-      children: [
-        AbsorbPointer(
-          absorbing: isAuthorized,
-          child: _buildTextFormField(
-            controller: _nameController,
-            label: l10n.name,
-            icon: Symbols.person,
-            validator: (value) =>
-                value == null || value.isEmpty ? l10n.enterYourName : null,
-          ),
-        ),
-        if (isAuthorized)
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Icon(
-              Symbols.lock,
-              size: 20,
-              color: Theme.of(context).hintColor.withOpacity(0.6),
-            ),
-          ),
-      ],
+    return TextFormField(
+      controller: _nameController,
+      readOnly: isAuthorized,
+      validator: (value) =>
+          value == null || value.isEmpty ? l10n.enterYourName : null,
+      decoration: AppStyles.inputDecoration(l10n.name, Symbols.person).copyWith(
+        suffixIcon: isAuthorized ? const Icon(Symbols.lock, size: 20) : null,
+      ),
+      style: const TextStyle(fontWeight: FontWeight.w500),
     );
   }
 
@@ -137,10 +123,11 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                       Expanded(
                         child: Text(
                           l10n.physicalParamsInfoText,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            height: 1.35,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    height: 1.35,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                       ),
                     ],
@@ -149,26 +136,25 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
               ),
               const SizedBox(height: 16),
               _buildNameField(context, l10n),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildGenderSelector(theme),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildBirthDatePicker(theme),
               const SizedBox(height: 16),
-              _buildTextFormField(
+              TextFormField(
                 controller: _heightController,
-                label: l10n.heightCm,
-                icon: Symbols.height,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) => value == null || value.isEmpty
                     ? l10n.enterYourHeight
                     : null,
+                decoration:
+                    AppStyles.inputDecoration(l10n.heightCm, Symbols.height),
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 16),
-              _buildTextFormField(
+              TextFormField(
                 controller: _weightController,
-                label: l10n.currentWeightKg,
-                icon: Symbols.weight,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
@@ -177,15 +163,21 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                 validator: (value) => value == null || value.isEmpty
                     ? l10n.enterYourWeight
                     : null,
+                decoration:
+                    AppStyles.inputDecoration(l10n.currentWeightKg, Symbols.weight),
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: 24),
-              _buildTextFormField(
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _healthConditionsController,
-                label: l10n.healthConditionsTitle,
-                icon: Symbols.medical_services,
                 minLines: 3,
                 maxLines: 5,
-                helperText: l10n.healthConditionsHint,
+                decoration: AppStyles.inputDecoration(
+                        l10n.healthConditionsTitle, Symbols.medical_services)
+                    .copyWith(
+                  helperText: l10n.healthConditionsHint,
+                ),
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -198,9 +190,7 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final formatted =
         '${_birthDate.day.toString().padLeft(2, '0')}.${_birthDate.month.toString().padLeft(2, '0')}.${_birthDate.year}';
-    final age = _calcAge(_birthDate);
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
@@ -213,18 +203,13 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
           setState(() => _birthDate = picked);
         }
       },
+      borderRadius: AppStyles.defaultBorderRadius,
       child: InputDecorator(
-        decoration: AppStyles.inputDecoration(l10n.birthDate, Symbols.cake),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(formatted,
-                style: const TextStyle(fontWeight: FontWeight.w500)),
-            Text('$age ${l10n.yearsOld}',
-                style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600)),
-          ],
+        decoration:
+            AppStyles.inputDecoration(l10n.birthDate, Symbols.calendar_today),
+        child: Text(
+          formatted,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
       ),
     );
@@ -240,59 +225,25 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     return years;
   }
 
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-    int? minLines,
-    int? maxLines,
-    String? helperText,
-  }) {
-    final isMultiLine = (minLines ?? 1) > 1;
-    return Row(
-      crossAxisAlignment:
-          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(top: isMultiLine ? 8.0 : 0),
-          child: Icon(icon, size: 22, color: AppColors.primary),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatters,
-            validator: validator,
-            minLines: minLines,
-            maxLines: maxLines,
-            decoration: InputDecoration(
-              labelText: label,
-              helperText: helperText,
-              helperMaxLines: 3,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-            ),
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildGenderSelector(ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.gender,
-            style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.hintColor, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Symbols.person_search, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              l10n.gender,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
             _genderOption(theme, l10n.male, Symbols.male, Gender.male),
@@ -310,22 +261,17 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _gender = value),
-        borderRadius: AppStyles.buttonRadius,
-        child: Ink(
+        borderRadius: AppStyles.cardRadius,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.primary.withValues(alpha: 0.1)
-                : (theme.brightness == Brightness.dark
-                    ? Colors.grey.shade800
-                    : Colors.grey.shade200),
-            borderRadius: AppStyles.buttonRadius,
+                : Colors.grey.shade50,
+            borderRadius: AppStyles.cardRadius,
             border: Border.all(
-              color: isSelected
-                  ? AppColors.primary
-                  : (theme.brightness == Brightness.dark
-                      ? Colors.grey.shade700
-                      : Colors.grey.shade400),
+              color: isSelected ? AppColors.primary : Colors.grey.shade300,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -333,16 +279,13 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  color:
-                      isSelected ? AppColors.primary : theme.iconTheme.color),
+                  color: isSelected ? AppColors.primary : Colors.grey.shade600),
               const SizedBox(width: 8),
               Text(
                 text,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected
-                      ? AppColors.primary
-                      : theme.colorScheme.onSurface,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? AppColors.primary : Colors.grey.shade700,
                 ),
               ),
             ],

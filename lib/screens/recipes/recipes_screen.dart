@@ -928,10 +928,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
               isDeleteSelected: _selectedRecipeIdsForDelete.contains(recipe.id),
               selectedCount: _selectedRecipeCounts[recipe.id] ?? 0,
               onTap: () {
-                if (widget.selectionMode) {
-                  _addRecipeSelection(recipe);
-                  return;
-                }
                 if (_isDeleteSelectionMode) {
                   if (!recipe.isUserRecipe || recipe.isDonated) return;
                   _toggleRecipeForDelete(recipe);
