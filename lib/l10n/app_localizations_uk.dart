@@ -412,7 +412,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get canBeLeftEmpty => 'Можна залишити порожнім';
 
   @override
-  String get additionalForAi => 'Додатково для нейромережі';
+  String get additionalForAi => 'Додатковий контекст для ШІ-цілей';
 
   @override
   String get additionalForAiHint =>
@@ -590,7 +590,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get statsAiNotMedicalAdvice =>
-      'Це не рекомендації лікаря або дієтолога — лише порада нейромережі. Не є медичним посібником.';
+      'Це поради нейромережі, а не персональні рекомендації лікаря, дієтолога чи тренера. Не є медичним керівництвом.';
 
   @override
   String get statsAiLoading => 'Завантаження звіту від нейромережі...';
@@ -967,6 +967,15 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get moderationApproved =>
       'Рецепт пройшов AI-перевірку і може бути опублікований.';
+
+  @override
+  String get moderationChecking => 'Йде перевірка...';
+
+  @override
+  String get moderationNotChecked => 'Перевірка не проводилася';
+
+  @override
+  String get moderationStale => 'Дані змінилися, потрібна повторна перевірка';
 
   @override
   String get moderationRejected =>
@@ -1611,6 +1620,10 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
+  String get recipeAiNoIngredientsError =>
+      'Додайте хоча б один інгредієнт із назвою для розрахунку';
+
+  @override
   String get recipeClarificationBrandUnknown =>
       'Якщо бренд невідомий — використовувати типовий склад для цього типу.';
 
@@ -1637,14 +1650,19 @@ class AppLocalizationsUk extends AppLocalizations {
       'Необхідно розрахувати харчову цінність перед збереженням.';
 
   @override
-  String get healthConditionsTitle => 'Медичні деталі';
+  String get healthConditionsTitle =>
+      'Контекст для експертів (Лікар, Дієтолог, Тренер)';
 
   @override
   String get healthConditionsHint =>
-      'Вкажіть особливості здоров\'я (наприклад, гастрит, алергії), щоб ШІ точніше підбирав рекомендації щодо харчування.';
+      'Вкажіть особливості здоров\'я, алергії або цілі тренувань, щоб ШІ надавав максимально точні поради.';
 
   @override
-  String get healthAdviceTitle => 'Медична порада';
+  String get healthAdviceTitle => 'Рекомендації по здоров\'ю';
+
+  @override
+  String get healthAdviceDisclaimer =>
+      'Це поради нейромережі, а не персональні рекомендації лікаря, дієтолога або тренера. Не є медичним керівництвом.';
 
   @override
   String get aiGeneralError => 'Помилка обробки ШІ';
@@ -1667,22 +1685,23 @@ class AppLocalizationsUk extends AppLocalizations {
       'Просунута ШІ-аналітика, персональні звіти та багато іншого';
 
   @override
-  String get featureAiScanner => 'Розумний ШІ-сканер';
+  String get featureAiScanner => 'ШІ-сканер калорій та БЖВ';
 
   @override
-  String get featureHealthAdvice => 'Медичні поради та рекомендації';
+  String get featureHealthAdvice => 'Поради щодо здоров\'я';
 
   @override
-  String get featureAiAnalytics => 'Глибока ШІ-аналітика';
+  String get featureAiAnalytics => 'ШІ-аналітика (тиждень/місяць/рік)';
 
   @override
   String get featureUnlimitedRecipes => 'Необмежені ШІ-рецепти';
 
   @override
-  String get featurePersonalAdvice => 'Персональні поради до рецептів';
+  String get featurePersonalAdvice => 'Персональні поради експертів';
 
   @override
-  String get personalAdvicePremiumOnly => 'Ця функція доступна лише у тарифі Premium. Перейдіть на Premium, щоб отримувати персональні поради від лікаря, дієтолога та тренера для кожного рецепта.';
+  String get personalAdvicePremiumOnly =>
+      'Ця функція доступна лише у тарифі Premium. Перейдіть на Premium, щоб отримувати персональні поради від лікаря, дієтолога та тренера для кожного рецепта.';
 
   @override
   String get tapToSelectPlan => 'Натисніть, щоб обрати цей тариф';

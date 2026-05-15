@@ -100,14 +100,13 @@ class GeminiRecipeService {
   }
 
   String _languageInstruction([String? locale]) {
-    switch (_languageCode(locale)) {
-      case 'ru':
-        return 'Response language: Russian.';
-      case 'uk':
-        return 'Response language: Ukrainian.';
-      default:
-        return 'Response language: English.';
-    }
+    final code = _languageCode(locale);
+    final languageName = switch (code) {
+      'ru' => 'Russian',
+      'uk' => 'Ukrainian',
+      _ => 'English',
+    };
+    return 'CRITICAL: ALL your descriptive text, reasons, advice, and any fields containing strings MUST be written EXCLUSIVELY in $languageName. Do NOT use any other language under any circumstances.';
   }
 
   Map<String, dynamic> _getRecipeSchema() {
@@ -726,8 +725,20 @@ Rules:
         .join('\\n');
 
     final prompt = '''
-    Analyze the following recipe and provide professional recommendations as a team consisting of a medical doctor, a professional dietitian, and a fitness trainer.
-  Consider the user's health conditions: $healthConditions.
+    Analyze the following recipe and provide professional recommendations as a team of experts.
+    
+    CRITICAL INSTRUCTIONS:
+    1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
+    2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe and no dairy allergy).
+    3. If an expert (Doctor, Dietitian, or Trainer) has no specific advice or warnings for this recipe, they MUST return an EMPTY STRING.
+    4. Provide strictly 1-2 concise sentences per expert.
+
+    EXPERTS:
+    - MEDICAL DOCTOR: Focus on safety/risks regarding the user's conditions.
+    - PROFESSIONAL DIETITIAN: Focus on nutritional balance and diet fit.
+    - FITNESS TRAINER: Focus on energy, recovery, and active lifestyle suitability.
+
+  User health conditions: ${healthConditions.isEmpty ? 'None specified' : healthConditions}.
   
   Recipe Name: $recipeName
   Description: $recipeDescription
@@ -736,26 +747,56 @@ Rules:
   Nutrients: ${nutrients.entries.map((e) => '${e.key}: ${e.value}').join(', ')}
 
   Rules:
-  1. Provide concise, expert advice or warnings (max 3-4 sentences total).
-  2. The dietitian should comment on nutritional balance, the doctor on medical safety, and the trainer on suitability for an active lifestyle.
-  3. If the recipe is safe, provide helpful tips from these perspectives.
-  4. Response language: ${_languageInstruction(locale)}
-
-  Format your response as a raw string of text.
+  1. ${_languageInstruction(locale)}
+  2. Return ONLY JSON.
   ''';
 
-    final response = await _requestStringWithAutoRetry(
+    final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
         'messages': [
           {'role': 'user', 'content': prompt}
         ],
         'temperature': 0.1,
+        'response_schema': {
+          'type': 'object',
+          'properties': {
+            'doctor': {'type': 'string'},
+            'dietitian': {'type': 'string'},
+            'trainer': {'type': 'string'},
+          },
+          'required': ['doctor', 'dietitian', 'trainer'],
+        },
       },
       apiKeyOverride: apiKey,
       locale: locale,
+      featureName: 'Expert Advice',
     );
 
-    return response.trim();
+    // Convert to a single formatted string for backward compatibility or parseable format
+    final doctor = _cleanupAdvice(decoded['doctor'] as String? ?? '');
+    final dietitian = _cleanupAdvice(decoded['dietitian'] as String? ?? '');
+    final trainer = _cleanupAdvice(decoded['trainer'] as String? ?? '');
+
+    if (doctor.isEmpty && dietitian.isEmpty && trainer.isEmpty) return '';
+
+    return '[[DOCTOR]] $doctor [[DIETITIAN]] $dietitian [[TRAINER]] $trainer';
+  }
+
+  String _cleanupAdvice(String advice) {
+    if (advice.isEmpty || advice.toLowerCase() == 'none' || advice.toLowerCase() == 'none.') return '';
+    // If AI accidentally returns JSON-like structure in a string field, try to extract text
+    if (advice.contains('{"') || advice.contains('": "')) {
+      try {
+        final decoded = jsonDecode(advice);
+        if (decoded is Map) {
+          return decoded.values.join(' ').trim();
+        }
+      } catch (_) {
+        // Not JSON, or malformed, proceed with regex cleanup
+      }
+      return advice.replaceAll(RegExp(r'\{"?[^"]+"?:\s*"'), '').replaceAll(RegExp(r'"\s*\}?'), '').trim();
+    }
+    return advice;
   }
 
   String? _validateEstimatedNutrients({
@@ -937,9 +978,13 @@ Reject if:
 - the recipe name does not represent a real dish or product;
 - the name is too short and meaningless (e.g. "a", "asdf").
 
-Do NOT reject for:
 - minor typos or grammatical errors;
 - simple but real dishes (e.g. "Boiled Egg").
+
+CRITICAL INSTRUCTIONS FOR healthAdvice:
+1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
+2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe and no dairy allergy).
+3. If there is no specific advice or warnings for this recipe, return an EMPTY STRING for "healthAdvice".
 
 Recipe:
 - name: ${recipeName.trim()}
@@ -994,6 +1039,7 @@ Return ONLY JSON:
 
     final prompt = '''
 Task: evaluate if this recipe is suitable for the community database.
+${_languageInstruction(locale)}
 Reject if:
 - name is offensive, completely nonsensical, or gibberish;
 - name or description is a random sequence of characters;
@@ -1001,9 +1047,13 @@ Reject if:
 - contains profanity or inappropriate content;
 - the dish is not a real food item.
 
-Do NOT reject if:
 - cooking instructions (steps) are missing;
 - it is a simple dish (e.g. "Apple").
+
+CRITICAL INSTRUCTIONS FOR healthAdvice:
+1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
+2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions.
+3. If there is no specific advice or warnings for this recipe, return an EMPTY STRING for "healthAdvice".
 
 Recipe:
 - name: ${recipeName.trim()}

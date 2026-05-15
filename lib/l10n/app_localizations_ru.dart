@@ -412,7 +412,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get canBeLeftEmpty => 'Можно оставить пустым';
 
   @override
-  String get additionalForAi => 'Дополнительно для нейросети';
+  String get additionalForAi => 'Дополнительный контекст для ИИ-целей';
 
   @override
   String get additionalForAiHint =>
@@ -590,7 +590,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get statsAiNotMedicalAdvice =>
-      'Это не рекомендации врача или диетолога — только совет нейросети. Не является медицинским руководством.';
+      'Это советы нейросети, а не персональные рекомендации врача, диетолога или тренера. Не является медицинским руководством.';
 
   @override
   String get statsAiLoading => 'Загрузка отчета от нейросети...';
@@ -967,6 +967,16 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get moderationApproved =>
       'Рецепт прошел AI-проверку и может быть опубликован.';
+
+  @override
+  String get moderationChecking => 'Идет проверка...';
+
+  @override
+  String get moderationNotChecked => 'Проверка не проводилась';
+
+  @override
+  String get moderationStale =>
+      'Данные изменились, требуется повторная проверка';
 
   @override
   String get moderationRejected =>
@@ -1612,6 +1622,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get recipeAiNoIngredientsError =>
+      'Добавьте хотя бы один ингредиент с названием для расчета';
+
+  @override
   String get recipeClarificationBrandUnknown =>
       'Если бренд неизвестен — использовать типичный состав для этого типа.';
 
@@ -1638,14 +1652,19 @@ class AppLocalizationsRu extends AppLocalizations {
       'Необходимо рассчитать пищевую ценность перед сохранением.';
 
   @override
-  String get healthConditionsTitle => 'Медицинские детали';
+  String get healthConditionsTitle =>
+      'Контекст для экспертов (Врач, Диетолог, Тренер)';
 
   @override
   String get healthConditionsHint =>
-      'Укажите особенности здоровья (например, гастрит, аллергии), чтобы ИИ точнее подбирал рекомендации по питанию.';
+      'Укажите особенности здоровья, аллергии или цели тренировок, чтобы ИИ давал максимально точные советы.';
 
   @override
-  String get healthAdviceTitle => 'Медицинский совет';
+  String get healthAdviceTitle => 'Рекомендации по здоровью';
+
+  @override
+  String get healthAdviceDisclaimer =>
+      'Это советы нейросети, а не персональные рекомендации врача, диетолога или тренера. Не является медицинским руководством.';
 
   @override
   String get aiGeneralError => 'Ошибка обработки ИИ';
@@ -1668,22 +1687,23 @@ class AppLocalizationsRu extends AppLocalizations {
       'Продвинутая ИИ-аналитика, персональные отчеты и многое другое';
 
   @override
-  String get featureAiScanner => 'Умный ИИ-сканер';
+  String get featureAiScanner => 'ИИ-сканер калорий и БЖУ';
 
   @override
-  String get featureHealthAdvice => 'Медицинские советы и рекомендации';
+  String get featureHealthAdvice => 'Советы по здоровью';
 
   @override
-  String get featureAiAnalytics => 'Глубокая ИИ-аналитика';
+  String get featureAiAnalytics => 'ИИ-аналитика (неделя/месяц/год)';
 
   @override
   String get featureUnlimitedRecipes => 'Неограниченные ИИ-рецепты';
 
   @override
-  String get featurePersonalAdvice => 'Персональные советы к рецептам';
+  String get featurePersonalAdvice => 'Персональные советы экспертов';
 
   @override
-  String get personalAdvicePremiumOnly => 'Эта функция доступна только в Premium тарифе. Перейдите на Premium, чтобы получать персональные советы от врача, диетолога и тренера для каждого рецепта.';
+  String get personalAdvicePremiumOnly =>
+      'Эта функция доступна только в Premium тарифе. Перейдите на Premium, чтобы получать персональные советы от врача, диетолога и тренера для каждого рецепта.';
 
   @override
   String get tapToSelectPlan => 'Нажмите, чтобы выбрать этот тариф';

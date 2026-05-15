@@ -411,7 +411,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get canBeLeftEmpty => 'Can be left empty';
 
   @override
-  String get additionalForAi => 'Additional context for AI';
+  String get additionalForAi => 'Additional context for AI targets';
 
   @override
   String get additionalForAiHint =>
@@ -588,7 +588,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsAiNotMedicalAdvice =>
-      'This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.';
+      'These are AI suggestions, not personal recommendations from a doctor, dietitian, or trainer. Not a medical guide.';
 
   @override
   String get statsAiLoading => 'Loading AI report...';
@@ -965,11 +965,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moderationApproved =>
-      'Recipe passed AI review and can be published.';
+      'Recipe passed AI verification and can be published.';
+
+  @override
+  String get moderationChecking => 'Checking...';
+
+  @override
+  String get moderationNotChecked => 'Not checked';
+
+  @override
+  String get moderationStale => 'Data changed, re-check required';
 
   @override
   String get moderationRejected =>
-      'AI review failed: recipe looks invalid for the community.';
+      'AI verification failed: recipe looks invalid for the community.';
 
   @override
   String get aiNoResponseError =>
@@ -1607,6 +1616,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get recipeAiNoIngredientsError =>
+      'Add at least one ingredient with a name to calculate';
+
+  @override
   String get recipeClarificationBrandUnknown =>
       'If brand is unknown — use typical composition for this type.';
 
@@ -1633,14 +1646,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nutritional calculation is required before saving.';
 
   @override
-  String get healthConditionsTitle => 'Medical Details';
+  String get healthConditionsTitle =>
+      'Expert Context (Doctor, Dietitian, Trainer)';
 
   @override
   String get healthConditionsHint =>
-      'Enter health conditions (e.g., gastritis, allergies) to help AI personalize your nutrition.';
+      'Enter health conditions, allergies, or fitness goals to help AI provide the most accurate advice.';
 
   @override
-  String get healthAdviceTitle => 'Medical Advice';
+  String get healthAdviceTitle => 'Health Recommendations';
+
+  @override
+  String get healthAdviceDisclaimer =>
+      'These are AI suggestions, not personal recommendations from a doctor, dietitian, or trainer. This is not a medical guide.';
 
   @override
   String get aiGeneralError => 'AI processing error';
@@ -1663,22 +1681,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Advanced AI analytics, personal nutrition reports and more';
 
   @override
-  String get featureAiScanner => 'AI Smart Scanner';
+  String get featureAiScanner => 'AI Calorie & Macro Scanner';
 
   @override
-  String get featureHealthAdvice => 'Medical & Health Advice';
+  String get featureHealthAdvice => 'Health Recommendations';
 
   @override
-  String get featureAiAnalytics => 'Advanced AI Analytics';
+  String get featureAiAnalytics => 'AI Analytics (Week/Month/Year)';
 
   @override
   String get featureUnlimitedRecipes => 'Unlimited AI Recipes';
 
   @override
-  String get featurePersonalAdvice => 'Personalized Recipe Advice';
+  String get featurePersonalAdvice => 'Personalized Expert Advice';
 
   @override
-  String get personalAdvicePremiumOnly => 'This feature is only available in the Premium plan. Upgrade to Premium to receive personalized advice from a doctor, dietitian, and trainer for each recipe.';
+  String get personalAdvicePremiumOnly =>
+      'This feature is only available in the Premium plan. Upgrade to Premium to receive personalized advice from a doctor, dietitian, and trainer for each recipe.';
 
   @override
   String get tapToSelectPlan => 'Tap to select this plan';

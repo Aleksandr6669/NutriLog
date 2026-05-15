@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
@@ -69,7 +70,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             _personalAdvice = decoded['advice'];
             _lastAdviceContextHash = currentHash;
           });
-          return;
+          // Do not return; continue to trigger background refresh
         }
       }
     }
@@ -86,14 +87,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           });
           // Сохраняем в локальный кэш
           await prefs.setString(cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
-          return;
+          // Do not return; continue to trigger background refresh
         }
       }
     }
 
-    // 3. Если и там нет — генерируем (если доступны ИИ фичи для личных советов)
+    // 3. Always trigger a fresh generation in the background if premium
     if (profile.isPersonalAdviceAvailable) {
-      await _generateNewAdvice(profile.healthConditions, currentHash);
+      unawaited(_generateNewAdvice(profile.healthConditions, currentHash));
     }
   }
 
@@ -555,128 +556,240 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildPersonalAdviceCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final profile = context.read<ProfileProvider>().profile;
     final isRestricted = profile != null && !profile.isPersonalAdviceAvailable;
 
     return Card(
-      color: isRestricted ? Colors.grey.shade100 : Colors.blue.shade50.withValues(alpha: 0.5),
+      color: isRestricted
+          ? Colors.grey.shade100
+          : Colors.blue.withValues(alpha: 0.05),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: AppStyles.cardRadius,
-        side: BorderSide(color: isRestricted ? Colors.grey.shade300 : Colors.blue.shade100, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+            color: isRestricted
+                ? Colors.grey.shade300
+                : Colors.blue.withValues(alpha: 0.2),
+            width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Icon(isRestricted ? Symbols.lock : Symbols.smart_toy,
-                      color: isRestricted
-                          ? Colors.grey.shade600
-                          : Colors.blue.shade700,
-                      size: 20),
+                Icon(
+                  isRestricted ? Symbols.lock : Symbols.psychology,
+                  color: isRestricted ? Colors.grey : Colors.blue.shade700,
+                  size: 20,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     l10n.healthAdviceTitle,
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isRestricted ? Colors.grey.shade800 : Colors.blue.shade900,
+                      color: isRestricted ? Colors.grey.shade700 : Colors.blue.shade900,
                     ),
                   ),
                 ),
                 if (_isLoadingAdvice && !isRestricted)
                   const SizedBox(
-                    width: 16,
-                    height: 16,
+                    width: 14,
+                    height: 14,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
               ],
             ),
-            const SizedBox(height: 10),
-            if (isRestricted)
-                Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.personalAdvicePremiumOnly,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push('/subscription', extra: SubscriptionTier.premium),
-                      icon: const Icon(Symbols.bolt, size: 18),
-                      label: Text(l10n.upgradeToPremium),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.orange.shade800,
-                        side: BorderSide(color: Colors.orange.shade300),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else ...[
-              if (_personalAdvice.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Symbols.info, size: 16, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.statsAiNotMedicalAdvice,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange.shade800,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+            const SizedBox(height: 12),
+            if (isRestricted) ...[
+              Text(
+                l10n.personalAdvicePremiumOnly,
+                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      context.push('/subscription', extra: SubscriptionTier.premium),
+                  icon: const Icon(Symbols.bolt, size: 16),
+                  label: Text(l10n.upgradeToPremium),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange.shade800,
+                    side: BorderSide(color: Colors.orange.shade300),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
+              ),
+            ] else ...[
+              if (_personalAdvice.isNotEmpty) ...[
+                _buildDisclaimer(l10n, theme),
                 const SizedBox(height: 12),
-              ],
-              if (_isLoadingAdvice && _personalAdvice.isEmpty)
-                Text(
-                  '...',
-                  style: TextStyle(color: Colors.blue.shade900),
+                ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
+              ] else if (_isLoadingAdvice)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(strokeWidth: 2),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.moderationChecking,
+                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
                 )
               else
                 Text(
-                  _personalAdvice,
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: Colors.blue.shade900,
-                  ),
+                  l10n.healthConditionsHint,
+                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                 ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDisclaimer(AppLocalizations l10n, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Symbols.info, size: 14, color: Colors.orange),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.healthAdviceDisclaimer,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: Colors.orange.shade800,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildGroupedAdvice(String advice, ThemeData theme, AppLocalizations l10n) {
+    final doctorMatch = RegExp(r'\[\[DOCTOR\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+    final dietitianMatch = RegExp(r'\[\[DIETITIAN\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+    final trainerMatch = RegExp(r'\[\[TRAINER\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+
+    final doctorText = doctorMatch?.group(1)?.trim() ?? '';
+    final dietitianText = dietitianMatch?.group(1)?.trim() ?? '';
+    final trainerText = trainerMatch?.group(1)?.trim() ?? '';
+
+    // If parsing fails, just show the raw string
+    if (doctorText.isEmpty && dietitianText.isEmpty && trainerText.isEmpty) {
+      return [
+        Text(advice, style: theme.textTheme.bodySmall),
+      ];
+    }
+
+    return [
+      if (doctorText.isNotEmpty)
+        _buildExpertRow(
+          icon: Symbols.medical_services,
+          label: _localizeExpert('doctor', l10n),
+          text: doctorText,
+          color: Colors.red.shade400,
+          theme: theme,
+        ),
+      if (dietitianText.isNotEmpty)
+        _buildExpertRow(
+          icon: Symbols.nutrition,
+          label: _localizeExpert('dietitian', l10n),
+          text: dietitianText,
+          color: Colors.green.shade600,
+          theme: theme,
+        ),
+      if (trainerText.isNotEmpty)
+        _buildExpertRow(
+          icon: Symbols.fitness_center,
+          label: _localizeExpert('trainer', l10n),
+          text: trainerText,
+          color: Colors.orange.shade700,
+          theme: theme,
+        ),
+    ];
+  }
+
+  String _localizeExpert(String key, AppLocalizations l10n) {
+    final raw = l10n.healthConditionsTitle; // "Врач, Диетолог, Тренер"
+    final parts = raw.contains('(') 
+      ? raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).split(',')
+      : raw.split(',');
+    
+    if (parts.length < 3) return key;
+
+    return switch (key) {
+      'doctor' => parts[0].trim(),
+      'dietitian' => parts[1].trim(),
+      'trainer' => parts[2].trim(),
+      _ => key,
+    };
+  }
+
+  Widget _buildExpertRow({
+    required IconData icon,
+    required String label,
+    required String text,
+    required Color color,
+    required ThemeData theme,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  text,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

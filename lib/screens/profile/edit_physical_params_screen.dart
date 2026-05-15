@@ -128,10 +128,10 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8.0),
-                        child: Icon(Symbols.psychology,
-                            size: 20, color: AppColors.primary),
+                      const Icon(
+                        Symbols.info,
+                        size: 20,
+                        color: AppColors.primary,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -251,11 +251,13 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     int? maxLines,
     String? helperText,
   }) {
+    final isMultiLine = (minLines ?? 1) > 1;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: EdgeInsets.only(top: isMultiLine ? 8.0 : 0),
           child: Icon(icon, size: 22, color: AppColors.primary),
         ),
         const SizedBox(width: 12),

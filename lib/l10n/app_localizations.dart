@@ -883,7 +883,7 @@ abstract class AppLocalizations {
   /// No description provided for @additionalForAi.
   ///
   /// In en, this message translates to:
-  /// **'Additional context for AI'**
+  /// **'Additional context for AI targets'**
   String get additionalForAi;
 
   /// No description provided for @additionalForAiHint.
@@ -1201,7 +1201,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsAiNotMedicalAdvice.
   ///
   /// In en, this message translates to:
-  /// **'This is not medical advice from a doctor or dietitian — only an AI suggestion. Not a medical guideline.'**
+  /// **'These are AI suggestions, not personal recommendations from a doctor, dietitian, or trainer. Not a medical guide.'**
   String get statsAiNotMedicalAdvice;
 
   /// No description provided for @statsAiLoading.
@@ -1838,13 +1838,31 @@ abstract class AppLocalizations {
   /// No description provided for @moderationApproved.
   ///
   /// In en, this message translates to:
-  /// **'Recipe passed AI review and can be published.'**
+  /// **'Recipe passed AI verification and can be published.'**
   String get moderationApproved;
+
+  /// No description provided for @moderationChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking...'**
+  String get moderationChecking;
+
+  /// No description provided for @moderationNotChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked'**
+  String get moderationNotChecked;
+
+  /// No description provided for @moderationStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Data changed, re-check required'**
+  String get moderationStale;
 
   /// No description provided for @moderationRejected.
   ///
   /// In en, this message translates to:
-  /// **'AI review failed: recipe looks invalid for the community.'**
+  /// **'AI verification failed: recipe looks invalid for the community.'**
   String get moderationRejected;
 
   /// No description provided for @aiNoResponseError.
@@ -2993,6 +3011,12 @@ abstract class AppLocalizations {
   /// **'Ingredients:\n{ingredients}'**
   String recipeClarificationComposition(String ingredients);
 
+  /// No description provided for @recipeAiNoIngredientsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one ingredient with a name to calculate'**
+  String get recipeAiNoIngredientsError;
+
   /// No description provided for @recipeClarificationBrandUnknown.
   ///
   /// In en, this message translates to:
@@ -3044,20 +3068,26 @@ abstract class AppLocalizations {
   /// No description provided for @healthConditionsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Medical Details'**
+  /// **'Expert Context (Doctor, Dietitian, Trainer)'**
   String get healthConditionsTitle;
 
   /// No description provided for @healthConditionsHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter health conditions (e.g., gastritis, allergies) to help AI personalize your nutrition.'**
+  /// **'Enter health conditions, allergies, or fitness goals to help AI provide the most accurate advice.'**
   String get healthConditionsHint;
 
   /// No description provided for @healthAdviceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Medical Advice'**
+  /// **'Health Recommendations'**
   String get healthAdviceTitle;
+
+  /// No description provided for @healthAdviceDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'These are AI suggestions, not personal recommendations from a doctor, dietitian, or trainer. This is not a medical guide.'**
+  String get healthAdviceDisclaimer;
 
   /// No description provided for @aiGeneralError.
   ///
@@ -3098,19 +3128,19 @@ abstract class AppLocalizations {
   /// No description provided for @featureAiScanner.
   ///
   /// In en, this message translates to:
-  /// **'AI Smart Scanner'**
+  /// **'AI Calorie & Macro Scanner'**
   String get featureAiScanner;
 
   /// No description provided for @featureHealthAdvice.
   ///
   /// In en, this message translates to:
-  /// **'Medical & Health Advice'**
+  /// **'Health Recommendations'**
   String get featureHealthAdvice;
 
   /// No description provided for @featureAiAnalytics.
   ///
   /// In en, this message translates to:
-  /// **'Advanced AI Analytics'**
+  /// **'AI Analytics (Week/Month/Year)'**
   String get featureAiAnalytics;
 
   /// No description provided for @featureUnlimitedRecipes.
@@ -3122,7 +3152,7 @@ abstract class AppLocalizations {
   /// No description provided for @featurePersonalAdvice.
   ///
   /// In en, this message translates to:
-  /// **'Personalized Recipe Advice'**
+  /// **'Personalized Expert Advice'**
   String get featurePersonalAdvice;
 
   /// No description provided for @personalAdvicePremiumOnly.

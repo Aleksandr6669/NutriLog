@@ -97,7 +97,6 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   features: [
                     l10n.featureAiScanner,
                     l10n.featureAiGoals,
-                    l10n.featureAiAnalytics,
                     l10n.featureUnlimitedRecipes,
                   ],
                   isPopular: true,
