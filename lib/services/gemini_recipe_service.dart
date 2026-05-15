@@ -970,13 +970,14 @@ Rules:
 You are a content moderation assistant.
 ${_languageInstruction(locale)}
 
-Task: quick safety check for a "Public" recipe.
+Task: LIGHT safety and anti-spam check for a "Public" recipe.
 Reject if:
 - contains profanity, insults, or inappropriate/offensive language;
 - contains illegal content or clear spam;
 - the name or description is a random sequence of characters (gibberish);
-- the recipe name does not represent a real dish or product;
-- the name is too short and meaningless (e.g. "a", "asdf").
+- the recipe name is completely meaningless (e.g. "a", "123", "test").
+
+Goal: Keep the public feed safe and clean from spam.
 
 - minor typos or grammatical errors;
 - simple but real dishes (e.g. "Boiled Egg").
@@ -1038,17 +1039,20 @@ Return ONLY JSON:
         .join('\n');
 
     final prompt = '''
-Task: evaluate if this recipe is suitable for the community database.
+Task: HIGH-QUALITY evaluation for the "Community Database".
 ${_languageInstruction(locale)}
 Reject if:
-- name is offensive, completely nonsensical, or gibberish;
-- name or description is a random sequence of characters;
+- name is offensive or contains profanity;
+- the recipe is a duplicate of a very common generic item;
 - ingredients are missing, clearly fake, or contain non-food items;
-- contains profanity or inappropriate content;
-- the dish is not a real food item.
+- the proportions look physically impossible or dangerous;
+- the dish name is too vague (e.g. "Lunch", "Food") — we need specific dish names.
 
+Do NOT reject if:
 - cooking instructions (steps) are missing;
 - it is a simple dish (e.g. "Apple").
+
+Goal: Maintain a database of high-quality, real, and useful recipes for all users.
 
 CRITICAL INSTRUCTIONS FOR healthAdvice:
 1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
