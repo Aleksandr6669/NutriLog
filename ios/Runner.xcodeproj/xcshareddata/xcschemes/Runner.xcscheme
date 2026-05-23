@@ -20,6 +20,20 @@
                ReferencedContainer = "container:Runner.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "6C88E8B42FA590BB002EDAB8"
+               BuildableName = "NutriLogWidgetExtension.appex"
+               BlueprintName = "NutriLogWidgetExtension"
+               ReferencedContainer = "container:Runner.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

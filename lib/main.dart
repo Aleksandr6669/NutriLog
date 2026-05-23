@@ -88,7 +88,10 @@ void main() async {
   if (!kIsWeb && Platform.isIOS) {
     try {
       await HomeWidget.setAppGroupId('group.com.app.nutrilog.app');
-    } catch (_) {}
+    } catch (e, stack) {
+      debugPrint('HOME_WIDGET: setAppGroupId at startup failed: $e');
+      debugPrint(stack.toString());
+    }
   }
 
   // Слушатели уведомлений и виджетов настраиваем сразу
@@ -576,6 +579,7 @@ class MainScreenShell extends StatefulWidget {
 
 class _MainScreenShellState extends State<MainScreenShell>
     with WidgetsBindingObserver {
+  HomeWidgetSyncService? _homeWidgetSyncService;
   static const SystemUiOverlayStyle _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -586,12 +590,37 @@ class _MainScreenShellState extends State<MainScreenShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _homeWidgetSyncService = context.read<HomeWidgetSyncService>();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    _syncWidgetOnResume();
+  }
+
+  Future<void> _syncWidgetOnResume() async {
+    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
+    try {
+      final profileProvider = context.read<ProfileProvider>();
+      if (profileProvider.profile == null) {
+        await profileProvider.loadProfile();
+      }
+      final profile = profileProvider.profile;
+      if (profile == null) return;
+
+      final log = context.read<DailyLogProvider>().currentLog ??
+          await DailyLogService().getLogForDate(DateTime.now());
+      await _homeWidgetSyncService?.syncDailyData(log: log, profile: profile);
+    } catch (e) {
+      debugPrint('HOME_WIDGET: resume sync failed: $e');
+    }
   }
 
   void _onItemTapped(int index) {

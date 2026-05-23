@@ -31,6 +31,7 @@ class DailyLogProvider with ChangeNotifier {
       _currentLog = updatedLog;
       _loggedDates = await _service.getLoggedDates();
       notifyListeners();
+      await _syncHomeWidgetForToday();
     });
     loadLoggedDates();
     loadLogForDate(_selectedDate);
@@ -100,11 +101,7 @@ class DailyLogProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
 
-    // Sync widget safely
-    try {
-      final profile = await _profileService.loadProfile();
-      await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
-    } catch (_) {}
+    await _syncHomeWidgetForToday();
   }
 
   Future<void> loadLoggedDates() async {
@@ -118,10 +115,21 @@ class DailyLogProvider with ChangeNotifier {
     await loadLoggedDates();
     notifyListeners();
 
+    await _syncHomeWidgetForToday();
+  }
+
+  Future<void> _syncHomeWidgetForToday() async {
     try {
+      final todayLog = await _service.getLogForDate(DateTime.now());
       final profile = await _profileService.loadProfile();
-      await _homeWidgetSyncService.syncDailyData(log: log, profile: profile);
-    } catch (_) {}
+      await _homeWidgetSyncService.syncDailyData(
+        log: todayLog,
+        profile: profile,
+      );
+    } catch (e, stack) {
+      debugPrint('HOME_WIDGET: sync failed: $e');
+      debugPrint(stack.toString());
+    }
   }
 
   // --- Actions ---

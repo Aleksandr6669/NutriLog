@@ -1,39 +1,50 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../models/daily_log.dart';
 import '../models/user_profile.dart';
+import 'daily_log_service.dart';
 
 class HomeWidgetSyncService {
   static const String _iosAppGroup = 'group.com.app.nutrilog.app';
+  static const MethodChannel _iosReloadChannel =
+      MethodChannel('com.app.nutrilog.app/widget_reload');
 
+  /// Виджет на домашнем экране всегда показывает данные за сегодня.
   Future<void> syncDailyData({
     required DailyLog log,
     required UserProfile profile,
   }) async {
-    // Skip for Web and desktop to prevent MissingPluginException.
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
 
-    final consumed = log.totalNutrients.calories.round();
-    final carbs = log.totalNutrients.carbs.round();
-    final protein = log.totalNutrients.protein.round();
-    final fat = log.totalNutrients.fat.round();
+    final today = DateTime.now();
+    final DailyLog widgetLog = _isSameDay(log.date, today)
+        ? log
+        : await DailyLogService().getLogForDate(today);
 
-    final waterLiters = (log.waterIntake / 1000).toStringAsFixed(1);
-    final stepsValue = log.steps;
+    final consumed = widgetLog.totalNutrients.calories.round();
+    final carbs = widgetLog.totalNutrients.carbs.round();
+    final protein = widgetLog.totalNutrients.protein.round();
+    final fat = widgetLog.totalNutrients.fat.round();
+
+    final waterLiters = (widgetLog.waterIntake / 1000).toStringAsFixed(1);
+    final stepsValue = widgetLog.steps;
     final stepsString = stepsValue.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]} ',
         );
 
-    // Initial sync might need App Group ID again just in case, but we moved it to main()
-    // We'll keep it here as a fallback if Platform is iOS, but won't await it every time if it's already set.
-    // Actually, calling it multiple times is safe and ensures the correct group is used.
     if (Platform.isIOS) {
       try {
         await HomeWidget.setAppGroupId(_iosAppGroup);
-      } catch (_) {}
+      } catch (e, stack) {
+        debugPrint('HOME_WIDGET: setAppGroupId failed: $e');
+        debugPrint(stack.toString());
+        return;
+      }
     }
 
     final Map<String, dynamic> data = {
@@ -50,9 +61,13 @@ class HomeWidgetSyncService {
       'steps': stepsString,
     };
 
-    // Save all data
-    await Future.wait(
-        data.entries.map((e) => HomeWidget.saveWidgetData(e.key, e.value)));
+    for (final entry in data.entries) {
+      final saved = await HomeWidget.saveWidgetData(entry.key, entry.value);
+      if (saved != true) {
+        debugPrint(
+            'HOME_WIDGET: saveWidgetData failed for key "${entry.key}"');
+      }
+    }
 
     if (Platform.isAndroid) {
       try {
@@ -65,14 +80,27 @@ class HomeWidgetSyncService {
         await HomeWidget.updateWidget(
             androidName: 'NutriWaterWidgetProvider',
             qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider');
-      } catch (_) {}
+      } catch (e, stack) {
+        debugPrint('HOME_WIDGET: updateWidget failed: $e');
+        debugPrint(stack.toString());
+      }
     } else if (Platform.isIOS) {
-      try {
-        await Future.wait([
-          HomeWidget.updateWidget(iOSName: 'NutriLogWidget'),
-          HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget'),
-        ]);
-      } catch (_) {}
+      await _reloadIosWidgets();
     }
+  }
+
+  Future<void> _reloadIosWidgets() async {
+    try {
+      await HomeWidget.updateWidget(iOSName: 'NutriLogWidget');
+      await HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget');
+      await _iosReloadChannel.invokeMethod<bool>('flushAndReload');
+    } catch (e, stack) {
+      debugPrint('HOME_WIDGET: iOS reload failed: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
