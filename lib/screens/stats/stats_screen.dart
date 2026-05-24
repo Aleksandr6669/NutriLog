@@ -28,7 +28,6 @@ import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 import 'widgets/chart_legend_item.dart';
 import 'widgets/progress_card.dart';
-import '../profile/subscription_plans_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
