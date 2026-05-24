@@ -87,7 +87,7 @@ class GeminiRecipeService {
         ui.PlatformDispatcher.instance.locale.toString().toLowerCase();
     final code = raw.split(RegExp(r'[-_]')).first;
     if (code == 'ru' || code == 'uk') return code;
-    return 'en';
+    return 'ru';
   }
 
   AppLocalizations _messages(String? locale) {
