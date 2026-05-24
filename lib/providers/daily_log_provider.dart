@@ -118,7 +118,7 @@ class DailyLogProvider with ChangeNotifier {
     await _syncHomeWidgetForToday();
   }
 
-  Future<void> _syncHomeWidgetForToday({bool forceReload = false}) async {
+  Future<void> _syncHomeWidgetForToday({bool forceReload = true}) async {
     try {
       final todayLog = await _service.getLogForDate(DateTime.now());
       final profile = await _profileService.loadProfile();

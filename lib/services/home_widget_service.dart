@@ -98,7 +98,6 @@ class HomeWidgetSyncService {
     try {
       await HomeWidget.updateWidget(iOSName: 'NutriLogWidget');
       await HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget');
-      await _iosReloadChannel.invokeMethod<bool>('flushAndReload');
     } catch (e, stack) {
       debugPrint('HOME_WIDGET: iOS reload failed: $e');
       debugPrint(stack.toString());
