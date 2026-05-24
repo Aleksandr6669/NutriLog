@@ -601,8 +601,12 @@ class _MainScreenShellState extends State<MainScreenShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed || !mounted) return;
-    _syncWidgetOnResume();
+    if (!mounted) return;
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _syncWidgetOnResume();
+    }
   }
 
   Future<void> _syncWidgetOnResume() async {
