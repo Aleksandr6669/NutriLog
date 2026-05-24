@@ -6,6 +6,14 @@ These guidelines define the operational principles and capabilities of an AI age
 
 * **Language (Русский язык):** The AI must always communicate, explain, and write all responses to the user in Russian (на русском языке).
 
+## **User Agreement & Compliance (Пользовательское соглашение)**
+
+The AI must strictly respect and follow these core rules from the NutriLog User Agreement during app development:
+1. **Data Collection & Privacy (Сбор и использование данных):** Collect food logs, weight, anthropometric stats, and goals solely for custom nutrition calculation and user experience enhancement.
+2. **Data Storage (Хранение данных):** All database logs, food records, and anthropometric details must be stored locally on the device (using secure SharedPreferences) or in the user's personal Firebase account. No personal information should be shared with third parties without explicit consent.
+3. **AI Anonymity (Использование нейросетевых технологий):** Generative AI and ML features (food scanners, photo recognitions, calorie estimates) must process all data anonymously.
+4. **Responsibility (Ответственность):** The application is a tool for nutritional monitoring and does NOT replace professional medical or dietetic advice. All calculations are recommendation-only.
+
 ## **Environment & Context Awareness**
 
 The AI operates within the Firebase Studio development environment, which provides a Code OSS-based IDE with deep integration for Flutter and Firebase services.
