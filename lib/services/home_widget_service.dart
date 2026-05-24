@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../models/daily_log.dart';
@@ -10,8 +9,6 @@ import 'daily_log_service.dart';
 
 class HomeWidgetSyncService {
   static const String _iosAppGroup = 'group.com.app.nutrilog.app';
-  static const MethodChannel _iosReloadChannel =
-      MethodChannel('com.app.nutrilog.app/widget_reload');
 
   /// Виджет на домашнем экране всегда показывает данные за сегодня.
   Future<void> syncDailyData({
@@ -96,6 +93,9 @@ class HomeWidgetSyncService {
 
   Future<void> _reloadIosWidgets() async {
     try {
+      // В home_widget 0.9.1: iOSName — это имя Swift-класса виджета.
+      // Но iOS ищет сначала iOSName, потом name.
+      // Здесь 'NutriLogWidget' — это и kind, и имя Swift-класса (struct NutriLogWidget).
       await HomeWidget.updateWidget(iOSName: 'NutriLogWidget');
       await HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget');
     } catch (e, stack) {

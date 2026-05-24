@@ -602,9 +602,10 @@ class _MainScreenShellState extends State<MainScreenShell>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
-    if (state == AppLifecycleState.resumed ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
+    // Синхронизируем только при возврате в foreground (resumed).
+    // При paused/inactive данные уже в UserDefaults,
+    // а AppDelegate сам вызовет WidgetCenter.reloadAllTimelines при уходе в фон.
+    if (state == AppLifecycleState.resumed) {
       _syncWidgetOnResume();
     }
   }
