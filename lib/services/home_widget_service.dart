@@ -17,6 +17,7 @@ class HomeWidgetSyncService {
   Future<void> syncDailyData({
     required DailyLog log,
     required UserProfile profile,
+    bool forceReload = true,
   }) async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
 
@@ -70,22 +71,26 @@ class HomeWidgetSyncService {
     }
 
     if (Platform.isAndroid) {
-      try {
-        await HomeWidget.updateWidget(
-            androidName: 'NutriLargeWidgetProvider',
-            qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider');
-        await HomeWidget.updateWidget(
-            androidName: 'NutriSmallWidgetProvider',
-            qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider');
-        await HomeWidget.updateWidget(
-            androidName: 'NutriWaterWidgetProvider',
-            qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider');
-      } catch (e, stack) {
-        debugPrint('HOME_WIDGET: updateWidget failed: $e');
-        debugPrint(stack.toString());
+      if (forceReload) {
+        try {
+          await HomeWidget.updateWidget(
+              androidName: 'NutriLargeWidgetProvider',
+              qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider');
+          await HomeWidget.updateWidget(
+              androidName: 'NutriSmallWidgetProvider',
+              qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider');
+          await HomeWidget.updateWidget(
+              androidName: 'NutriWaterWidgetProvider',
+              qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider');
+        } catch (e, stack) {
+          debugPrint('HOME_WIDGET: updateWidget failed: $e');
+          debugPrint(stack.toString());
+        }
       }
     } else if (Platform.isIOS) {
-      await _reloadIosWidgets();
+      if (forceReload) {
+        await _reloadIosWidgets();
+      }
     }
   }
 

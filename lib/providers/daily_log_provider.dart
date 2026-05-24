@@ -118,13 +118,14 @@ class DailyLogProvider with ChangeNotifier {
     await _syncHomeWidgetForToday();
   }
 
-  Future<void> _syncHomeWidgetForToday() async {
+  Future<void> _syncHomeWidgetForToday({bool forceReload = false}) async {
     try {
       final todayLog = await _service.getLogForDate(DateTime.now());
       final profile = await _profileService.loadProfile();
       await _homeWidgetSyncService.syncDailyData(
         log: todayLog,
         profile: profile,
+        forceReload: forceReload,
       );
     } catch (e, stack) {
       debugPrint('HOME_WIDGET: sync failed: $e');

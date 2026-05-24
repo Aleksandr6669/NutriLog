@@ -609,7 +609,7 @@ class _MainScreenShellState extends State<MainScreenShell>
     }
   }
 
-  Future<void> _syncWidgetOnResume() async {
+  Future<void> _syncWidgetOnResume({bool forceReload = true}) async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
     try {
       final profileProvider = context.read<ProfileProvider>();
@@ -621,7 +621,11 @@ class _MainScreenShellState extends State<MainScreenShell>
 
       final log = context.read<DailyLogProvider>().currentLog ??
           await DailyLogService().getLogForDate(DateTime.now());
-      await _homeWidgetSyncService?.syncDailyData(log: log, profile: profile);
+      await _homeWidgetSyncService?.syncDailyData(
+        log: log,
+        profile: profile,
+        forceReload: forceReload,
+      );
     } catch (e) {
       debugPrint('HOME_WIDGET: resume sync failed: $e');
     }
