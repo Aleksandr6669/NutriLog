@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../models/daily_log.dart';
@@ -9,6 +10,13 @@ import 'daily_log_service.dart';
 
 class HomeWidgetSyncService {
   static const String _iosAppGroup = 'group.com.app.nutrilog.app';
+
+  /// Нативный канал для принудительного сброса UserDefaults + reloadTimelines.
+  /// WidgetReloadPlugin вызывает synchronize() перед reloadTimelines — это
+  /// решает проблему когда home_widget записывает данные, но WidgetKit
+  /// читает устаревший кэш.
+  static const MethodChannel _iosReloadChannel =
+      MethodChannel('com.app.nutrilog.app/widget_reload');
 
   /// Виджет на домашнем экране всегда показывает данные за сегодня.
   Future<void> syncDailyData({
@@ -47,9 +55,9 @@ class HomeWidgetSyncService {
 
     final Map<String, dynamic> data = {
       'calories': consumed.toString(),
-      'proteins': '$proteinг',
-      'fats': '$fatг',
-      'carbs': '$carbsг',
+      'proteins': '${protein}г',
+      'fats': '${fat}г',
+      'carbs': '${carbs}г',
       'proteins_val': protein.toString(),
       'fats_val': fat.toString(),
       'carbs_val': carbs.toString(),
@@ -92,10 +100,18 @@ class HomeWidgetSyncService {
   }
 
   Future<void> _reloadIosWidgets() async {
+    // Сначала пробуем нативный канал — он вызывает UserDefaults.synchronize()
+    // ПЕРЕД reloadTimelines, что гарантирует что виджет увидит свежие данные.
     try {
-      // В home_widget 0.9.1: iOSName — это имя Swift-класса виджета.
-      // Но iOS ищет сначала iOSName, потом name.
-      // Здесь 'NutriLogWidget' — это и kind, и имя Swift-класса (struct NutriLogWidget).
+      await _iosReloadChannel.invokeMethod('flushAndReload');
+      debugPrint('HOME_WIDGET: native flushAndReload успешно');
+      return;
+    } catch (e) {
+      debugPrint('HOME_WIDGET: native channel failed ($e), fallback to home_widget');
+    }
+
+    // Fallback: стандартный путь через home_widget
+    try {
       await HomeWidget.updateWidget(iOSName: 'NutriLogWidget');
       await HomeWidget.updateWidget(iOSName: 'NutriLogWaterWidget');
     } catch (e, stack) {
