@@ -2,6 +2,10 @@
 
 These guidelines define the operational principles and capabilities of an AI agent (e.g., Gemini) interacting with Flutter projects within the Firebase Studio environment. The goal is to enable an efficient, automated, and error-resilient application design and development workflow.
 
+## **Language Preference**
+
+* **Language (Русский язык):** The AI must always communicate, explain, and write all responses to the user in Russian (на русском языке).
+
 ## **Environment & Context Awareness**
 
 The AI operates within the Firebase Studio development environment, which provides a Code OSS-based IDE with deep integration for Flutter and Firebase services.

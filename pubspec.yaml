@@ -63,6 +63,8 @@ dependency_overrides:
 flutter:
   generate: true
   uses-material-design: true
+  config:
+    enable-swift-package-manager: false
   assets:
     - .env
     - assets/images/
