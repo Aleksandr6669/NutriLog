@@ -17,7 +17,8 @@ jobs:
       - name: Create .env from secret
         run: |
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
-      - run: flutter build ipa --release --no-codesign --no-tree-shake-icons --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+      - run: flutter build ios --config-only --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+      - run: xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos -archivePath build/ios/archive/Runner.xcarchive archive CODE_SIGNING_ALLOWED=NO
       - run: mkdir -p build/ios/iphoneos/Payload
       - run: cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/iphoneos/Payload/Runner.app 
       
