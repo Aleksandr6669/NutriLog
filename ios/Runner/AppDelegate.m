@@ -1,7 +1,6 @@
 #import "AppDelegate.h"
 #import "GeneratedPluginRegistrant.h"
 #import "Runner-Swift.h"
-#import <WidgetKit/WidgetKit.h>
 
 @implementation AppDelegate
 
@@ -12,11 +11,9 @@
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-  // Перезагружаем все виджеты при уходе в фон.
-  // К этому моменту Flutter записал данные в UserDefaults через App Group.
-  if (@available(iOS 16.0, *)) {
-    [[WidgetCenter shared] reloadAllTimelines];
-  }
+  // WidgetCenter — Swift-only класс, вызываем через Swift bridge (Runner-Swift.h).
+  // WidgetReloadPlugin.reloadAllWidgetTimelines() делает synchronize() + reloadAllTimelines().
+  [WidgetReloadPlugin reloadAllWidgetTimelines];
   [super applicationDidEnterBackground:application];
 }
 

@@ -16,15 +16,21 @@ import WidgetKit
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
+  /// Вызывается из ObjC AppDelegate при уходе в фон.
+  /// WidgetCenter — Swift-only класс, поэтому вызов идёт через этот мост.
+  @objc public static func reloadAllWidgetTimelines() {
+    let defaults = UserDefaults(suiteName: appGroupId)
+    defaults?.synchronize()
+    WidgetCenter.shared.reloadAllTimelines()
+  }
+
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "flushAndReload":
       let defaults = UserDefaults(suiteName: Self.appGroupId)
       defaults?.synchronize()
-      if #available(iOS 14.0, *) {
-        WidgetCenter.shared.reloadTimelines(ofKind: "NutriLogWidget")
-        WidgetCenter.shared.reloadTimelines(ofKind: "NutriLogWaterWidget")
-      }
+      WidgetCenter.shared.reloadTimelines(ofKind: "NutriLogWidget")
+      WidgetCenter.shared.reloadTimelines(ofKind: "NutriLogWaterWidget")
       result(true)
     default:
       result(FlutterMethodNotImplemented)
