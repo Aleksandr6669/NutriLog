@@ -67,6 +67,8 @@ class HomeWidgetSyncService {
       'steps': stepsString,
     };
 
+    debugPrint('HOME_WIDGET: 📊 syncDailyData called — calories=$consumed, protein=$protein, fat=$fat, carbs=$carbs, water=$waterLiters');
+
     for (final entry in data.entries) {
       final saved = await HomeWidget.saveWidgetData(entry.key, entry.value);
       if (saved != true) {

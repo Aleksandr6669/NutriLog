@@ -25,6 +25,9 @@ struct Provider: TimelineProvider {
         let carbs = userDefaults?.string(forKey: "carbs") ?? "0"
         let water = userDefaults?.string(forKey: "water") ?? "0.0"
         
+        NSLog("[NutriLogWidget] 📊 loadEntry: calories=\(calories), protein=\(protein), fat=\(fat), carbs=\(carbs), water=\(water)")
+        NSLog("[NutriLogWidget] 📊 UserDefaults suiteName accessible: \(userDefaults != nil)")
+        
         return SimpleEntry(
             date: Date(),
             calories: calories,
