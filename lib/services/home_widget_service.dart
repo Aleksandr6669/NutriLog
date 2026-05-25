@@ -55,9 +55,9 @@ class HomeWidgetSyncService {
 
     final Map<String, dynamic> data = {
       'calories': consumed.toString(),
-      'proteins': '${protein}г',
-      'fats': '${fat}г',
-      'carbs': '${carbs}г',
+      'proteins': '$proteinг',
+      'fats': '$fatг',
+      'carbs': '$carbsг',
       'proteins_val': protein.toString(),
       'fats_val': fat.toString(),
       'carbs_val': carbs.toString(),
