@@ -1,7 +1,7 @@
 #import "AppDelegate.h"
 #import "GeneratedPluginRegistrant.h"
 #import "Runner-Swift.h"
-@import WidgetKit;
+#import <WidgetKit/WidgetKit.h>
 
 @implementation AppDelegate
 
