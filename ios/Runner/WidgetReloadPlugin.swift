@@ -5,7 +5,7 @@ import WidgetKit
 /// home_widget writes defaults but does not call synchronize() before reloadTimelines,
 /// which can leave the widget extension reading stale values on iOS.
 @objc public class WidgetReloadPlugin: NSObject, FlutterPlugin {
-  private static let appGroupId = "group.com.app.nutrilog.app"
+  private static let appGroupId = "group.com.app.nutrilog.app.X4HMJXZ332"
   private static let widgetKeys = ["calories", "proteins", "fats", "carbs", "water", "water_value", "steps"]
 
   @objc public static func register(with registrar: FlutterPluginRegistrar) {

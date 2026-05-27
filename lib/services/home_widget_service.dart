@@ -10,7 +10,7 @@ import '../models/user_profile.dart';
 import 'daily_log_service.dart';
 
 class HomeWidgetSyncService {
-  static const String _iosAppGroup = 'group.com.app.nutrilog.app';
+  static const String _iosAppGroup = 'group.com.app.nutrilog.app.X4HMJXZ332';
 
   /// Нативный канал для принудительного сброса UserDefaults + reloadTimelines.
   static const MethodChannel _iosReloadChannel =
@@ -117,6 +117,10 @@ class HomeWidgetSyncService {
       if (saved != true) {
         debugPrint(
             'HOME_WIDGET: saveWidgetData failed for key "${entry.key}"');
+      } else {
+        // Проверяем, читается ли значение обратно
+        final readBack = await HomeWidget.getWidgetData(entry.key);
+        debugPrint('HOME_WIDGET: 🧪 Verified "${entry.key}" -> saved: "${entry.value}", read back: "$readBack"');
       }
     }
 

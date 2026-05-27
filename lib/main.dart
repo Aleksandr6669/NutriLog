@@ -87,7 +87,7 @@ void main() async {
   // Initialize HomeWidget App Group for iOS
   if (!kIsWeb && Platform.isIOS) {
     try {
-      await HomeWidget.setAppGroupId('group.com.app.nutrilog.app');
+      await HomeWidget.setAppGroupId('group.com.app.nutrilog.app.X4HMJXZ332');
     } catch (e, stack) {
       debugPrint('HOME_WIDGET: setAppGroupId at startup failed: $e');
       debugPrint(stack.toString());
