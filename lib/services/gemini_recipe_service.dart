@@ -284,35 +284,13 @@ class GeminiRecipeService {
       );
     }
 
-    final physicalStats = profile != null
-        ? '''
-USER PHYSICAL STATS:
-- Gender: ${profile.gender.name}
-- Age: ${profile.age} years old
-- Height: ${profile.height} cm
-- Current Weight: ${profile.weight} kg
-- Target Weight Goal: ${profile.weightGoal} kg
-- Daily Calorie Target: ${profile.calorieGoal} kcal
-- Daily Protein Target: ${profile.proteinGoal} g
-- Daily Carbs Target: ${profile.carbsGoal} g
-- Daily Fat Target: ${profile.fatGoal} g
-- Primary Goal Type: ${profile.goalType.name}
-- Activity Level: ${profile.activityFrequency.name}
-- Sports/Activity Types: ${profile.activityTypes}
-'''
-        : '';
+
 
     final prompt = '''
 You are a culinary assistant and expert nutritionist.
 ${_languageInstruction(locale)}
 Generate a recipe draft based on the user's description. 
 Note: The description may be from voice dictation, so it might lack punctuation, contain typos, or have unusual grammar. Parse it carefully to extract the intended dish name and ingredients.
-
-$physicalStats
-
-${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
-
-${aiContext.isNotEmpty ? 'USER AI PREFERENCES / LIFE CONTEXT (MANDATORY): $aiContext\nNote: You MUST adjust the portion sizes, ingredient choices, and cooking methods of the generated recipe to perfectly match this context (e.g. if the user says they are vegan, the recipe must be vegan; if they are on a low-carb diet, use low-carb alternatives; if they are feeding a family, adjust portion size to fit their specific context; if they train early, make it easy to digest, etc.).' : ''}
 
 Dish description:
 $normalizedDescription
@@ -422,9 +400,6 @@ If the photo shows a home-cooked dish, identify it as precisely as possible, ide
 
 ${normalizedDescription.isEmpty ? '' : 'Additional user description: $normalizedDescription'}
 
-${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the ingredients seen or requested. Generate the recipe as is. If any part contradicts the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
-
-${aiContext.isNotEmpty ? 'USER PREFERENCES / LIFE CONTEXT: $aiContext' : ''}
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -533,7 +508,6 @@ Categories: $categories
 Ingredients: $ingredientsText
 Raw Nutriments: ${jsonEncode(nutrients)}
 
-${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the product data. If this product is unsuitable for the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
 
 Reply ONLY in JSON format.
 Format:
@@ -612,23 +586,7 @@ Rules:
       );
     }
 
-    final physicalStats = profile != null
-        ? '''
-USER PHYSICAL STATS:
-- Gender: ${profile.gender.name}
-- Age: ${profile.age} years old
-- Height: ${profile.height} cm
-- Current Weight: ${profile.weight} kg
-- Target Weight Goal: ${profile.weightGoal} kg
-- Daily Calorie Target: ${profile.calorieGoal} kcal
-- Daily Protein Target: ${profile.proteinGoal} g
-- Daily Carbs Target: ${profile.carbsGoal} g
-- Daily Fat Target: ${profile.fatGoal} g
-- Primary Goal Type: ${profile.goalType.name}
-- Activity Level: ${profile.activityFrequency.name}
-- Sports/Activity Types: ${profile.activityTypes}
-'''
-        : '';
+
 
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
@@ -638,17 +596,11 @@ USER PHYSICAL STATS:
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
 
-  $physicalStats
-
-  ${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
-
-  ${aiContext.isNotEmpty ? 'USER AI PREFERENCES / LIFE CONTEXT (MANDATORY): $aiContext\nNote: You MUST adjust the portion sizes, ingredient choices, and cooking methods of the generated recipe to perfectly match this context (e.g. if the user says they are vegan, the recipe must be vegan; if they are on a low-carb diet, use low-carb alternatives; if they are feeding a family, adjust portion size to fit their specific context; if they train early, make it easy to digest, etc.).' : ''}
-
-  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide medical advice based on the user's health conditions.
+  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND optionally provide a general positive nutritional tip in the "healthAdvice" field.
 
   CRITICAL RULES:
   ...
-  7. If any part of the recipe (ingredients, preparation) contradicts the USER HEALTH CONTEXT, provide a clear medical warning or advice in the "healthAdvice" field. If everything is safe, you can leave it empty or provide a general positive tip.
+  7. Provide a general positive nutrition or preparation tip in the "healthAdvice" field. If everything is clear, you can leave it empty.
   1. The ingredient list below IS the full recipe for ONE PERSON — do NOT divide quantities.
   2. The specified amounts are exactly what goes into this single serving. NEVER question or adjust the quantities — treat them as precise user input.
   4. The Ingredients List is your PRIMARY source for quantities and composition (70% weight).
@@ -788,7 +740,7 @@ USER PHYSICAL STATS:
     CRITICAL INSTRUCTIONS:
     1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
     2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe).
-    3. If the user has no health conditions specified, the experts (especially Dietitian and Trainer) MUST still provide concise, highly targeted and practical advice about this recipe (e.g. nutrition balance, recovery benefits, or optimal consumption timing). Keep it strictly to the point and relevant to the dish.
+    3. If the user has no health conditions or custom settings specified (i.e. empty or "None specified"), the experts MUST provide their standard/default recommendations for this type of dish, and ALSO briefly describe the dish (its composition, key characteristics, or benefits) in their advice.
     4. Provide strictly 1-2 concise sentences per expert.
 
     EXPERTS:
@@ -1552,9 +1504,10 @@ Task:
 23) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
 24) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details of the food/dish (for example: "Овсяная каша с миндалем и ягодами для медленных углеводов" or "Омлет со шпинатом и цельнозерновым тостом для качественного белка").
 25) RECOMMENDATION MEAL PLAN FLEXIBILITY & DYNAMIC COMBINATIONS (CRITICAL):
-  * You are fully allowed and encouraged to recommend multiple dishes or food items for a single mealtime to form a rich combined meal. For example, for "breakfast", you can return multiple items in the list (e.g., one item for Eggs and another item for Oatmeal/Cottage Cheese).
-  * For lunch or dinner, you can suggest a complete meal consisting of multiple items or just a single dish (e.g., only Soup for lunch, or Soup + Salad + Meat).
+  * For each active mealtime (breakfast, lunch, dinner), you can recommend exactly one, two, or even three dishes/recipes based on the user's goals and information (for example, a single main dish, or a combination of multiple dishes like a main course + salad + soup). Prioritize healthy eating standards, dishes/recipes that already exist in the user's available recipes list, and foods that the user consumes most frequently.
   * You can completely omit snack recommendations (do not add any "snack" mealtimes) if the trainer meal plan or macro guidelines do not require snacks, or if they prescribe a 3-meal pattern without snacks. If the trainer plan forbids or doesn't mention snacks, feel free to not recommend any snack items at all.
+26) DEFAULT STANDARDS WHEN DATA IS MISSING (CRITICAL):
+  * If the user's AI settings, health conditions, dietitian guidelines, or trainer meal plans are empty or "not specified", you MUST fall back to providing standard, default healthy eating recommendations that align perfectly with the user's chosen primary goal type ($goalType) and general macro/nutritional norms.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
@@ -1572,7 +1525,7 @@ Return ONLY JSON object in this format:
 
 Rules:
 - recommendations: 4 to 12 items
-- You can provide multiple separate items or recipe components (e.g. 1, 2, 3, or more) for a single meal time (like breakfast, lunch, dinner, or snack) if that meal consists of multiple dishes/components or if you want to suggest alternatives. Group them by setting their "when" field to the same value (e.g., "breakfast").
+- You can provide multiple separate items or recipe components (exactly one, two, or three per mealtime, e.g. 1 to 3 items) for a single meal time (like breakfast, lunch, dinner, or snack) to form a combined meal or suggest alternatives. Group them by setting their "when" field to the same value (e.g., "breakfast").
 - no markdown, no extra keys, no text outside JSON
 - do not output labels like "Part 1" or "Part 2"
 - do not add snack recommendation if snack is not needed
