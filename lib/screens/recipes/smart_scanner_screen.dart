@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -36,6 +38,19 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   bool _isCameraInitialized = false;
   bool _isScanning = false;
   XFile? _capturedImage;
+  bool _isScanningAnimActive = false;
+  Timer? _scanTimer;
+
+  void _startScanTimer() {
+    _scanTimer?.cancel();
+    _scanTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _isScanningAnimActive = false;
+        });
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -130,6 +145,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
   @override
   void dispose() {
+    _scanTimer?.cancel();
     _cameraController?.dispose();
     _barcodeScanner.close();
     _descriptionController.dispose();
@@ -152,7 +168,9 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
       setState(() {
         _capturedImage = image;
+        _isScanningAnimActive = true;
       });
+      _startScanTimer();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -163,8 +181,10 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   }
 
   void _clearCapturedImage() {
+    _scanTimer?.cancel();
     setState(() {
       _capturedImage = null;
+      _isScanningAnimActive = false;
     });
     _startBarcodeScanning();
   }
@@ -347,7 +367,9 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
                 setState(() {
                   _capturedImage = image;
+                  _isScanningAnimActive = true;
                 });
+                _startScanTimer();
               },
             ),
         ],
@@ -355,14 +377,20 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       body: Stack(
         children: [
           // Background: Either Captured Image or Live Camera Preview
-          if (_capturedImage != null)
+          if (_capturedImage != null) ...[
             Positioned.fill(
               child: Image.file(
                 File(_capturedImage!.path),
                 fit: BoxFit.cover,
               ),
-            )
-          else if (_isCameraInitialized && _cameraController != null)
+            ),
+            if (_isScanningAnimActive)
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: NeuralScanOverlay(),
+                ),
+              ),
+          ] else if (_isCameraInitialized && _cameraController != null)
             Positioned.fill(
               // Using SizedBox.expand to ensure CameraPreview fills the background properly
               // (might require clipping or BoxFit depending on aspect ratio, but we'll let CameraPreview handle it)
@@ -454,14 +482,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
             right: 20,
             child: _buildMainActionButton(Theme.of(context)),
           ),
-
-          if (_isProcessing)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-            ),
         ],
       ),
     );
@@ -477,12 +497,14 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       final isLocked = isCaptured && !isAiAvailable;
 
       return InkWell(
-        onTap: isCaptured
-            ? (isAiAvailable
-                ? _sendToAi
-                : () => context.push('/subscription',
-                    extra: SubscriptionTier.standard))
-            : _captureImage,
+        onTap: _isProcessing
+            ? null
+            : (isCaptured
+                ? (isAiAvailable
+                    ? _sendToAi
+                    : () => context.push('/subscription',
+                        extra: SubscriptionTier.standard))
+                : _captureImage),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           height: 64,
@@ -509,16 +531,32 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isCaptured
-                    ? (isAiAvailable ? Symbols.send : Symbols.lock)
-                    : Symbols.photo_camera,
-                color: isCaptured ? Colors.white : AppColors.primary,
-                size: 28,
-              ),
+              if (_isProcessing)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              else
+                Icon(
+                  isCaptured
+                      ? (isAiAvailable ? Symbols.send : Symbols.lock)
+                      : Symbols.photo_camera,
+                  color: isCaptured ? Colors.white : AppColors.primary,
+                  size: 28,
+                ),
               const SizedBox(width: 12),
               Text(
-                isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera,
+                _isProcessing
+                    ? (Localizations.localeOf(context).languageCode == 'ru'
+                        ? 'Анализ...'
+                        : (Localizations.localeOf(context).languageCode == 'uk'
+                            ? 'Аналіз...'
+                            : 'Analyzing...'))
+                    : (isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera),
                 style: TextStyle(
                   color: isCaptured ? Colors.white : AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -548,5 +586,112 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         ),
       ),
     );
+  }
+}
+
+class NeuralScanOverlay extends StatefulWidget {
+  const NeuralScanOverlay({super.key});
+
+  @override
+  State<NeuralScanOverlay> createState() => _NeuralScanOverlayState();
+}
+
+class _NeuralScanOverlayState extends State<NeuralScanOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000), // Speed up slightly
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: SonarScannerPainter(
+            progress: _controller.value,
+            primaryColor: AppColors.primary,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class SonarScannerPainter extends CustomPainter {
+  final double progress;
+  final Color primaryColor;
+
+  SonarScannerPainter({
+    required this.progress,
+    required this.primaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width * 0.95;
+
+    // Draw concentric echolocation rings
+    // 3 rings with staggered start times
+    for (int i = 0; i < 3; i++) {
+      final ringProgress = (progress + (i / 3.0)) % 1.0;
+      final radius = maxRadius * ringProgress;
+      final opacity = (1.0 - ringProgress).clamp(0.0, 1.0);
+
+      final ringPaint = Paint()
+        ..color = primaryColor.withValues(alpha: opacity * 0.4)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0 + (3.0 * (1.0 - ringProgress));
+
+      canvas.drawCircle(center, radius, ringPaint);
+
+      // Add small glowing particles on the ring edge
+      final particlePaint = Paint()
+        ..color = Colors.white.withValues(alpha: opacity * 0.7)
+        ..style = PaintingStyle.fill;
+
+      // Draw 6 particles spaced around the ring
+      for (int p = 0; p < 6; p++) {
+        final angle = (p * math.pi / 3.0) + (progress * 2 * math.pi * 0.2);
+        final px = center.dx + radius * math.cos(angle);
+        final py = center.dy + radius * math.sin(angle);
+        canvas.drawCircle(Offset(px, py), 4.0, particlePaint);
+      }
+    }
+
+    // Draw a rotating sonar radar sweep line
+    final sweepAngle = progress * 2 * math.pi;
+    final sweepPaint = Paint()
+      ..shader = SweepGradient(
+        colors: [
+          primaryColor.withValues(alpha: 0.05),
+          primaryColor.withValues(alpha: 0.28),
+          primaryColor.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.9, 1.0],
+        transform: GradientRotation(sweepAngle),
+      ).createShader(Rect.fromCircle(center: center, radius: maxRadius))
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(center, maxRadius, sweepPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant SonarScannerPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.primaryColor != primaryColor;
   }
 }

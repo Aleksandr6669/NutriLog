@@ -3044,13 +3044,13 @@ abstract class AppLocalizations {
   /// No description provided for @smartScannerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Smart Scanner'**
+  /// **'Photo Recognition'**
   String get smartScannerTitle;
 
   /// No description provided for @bySmartScanner.
   ///
   /// In en, this message translates to:
-  /// **'By Photo / Scanner'**
+  /// **'By Photo'**
   String get bySmartScanner;
 
   /// No description provided for @checkRecipeButton.
@@ -3116,7 +3116,7 @@ abstract class AppLocalizations {
   /// No description provided for @standardPlanDesc.
   ///
   /// In en, this message translates to:
-  /// **'Full AI scanner, smart recipes and health advice'**
+  /// **'AI photo recognition, smart recipes and health advice'**
   String get standardPlanDesc;
 
   /// No description provided for @premiumPlanDesc.
@@ -3128,7 +3128,7 @@ abstract class AppLocalizations {
   /// No description provided for @featureAiScanner.
   ///
   /// In en, this message translates to:
-  /// **'AI Calorie & Macro Scanner'**
+  /// **'AI Calorie & Macro Photo Recognition'**
   String get featureAiScanner;
 
   /// No description provided for @featureHealthAdvice.

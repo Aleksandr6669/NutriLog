@@ -1633,10 +1633,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get byBarcode => 'By Barcode';
 
   @override
-  String get smartScannerTitle => 'Smart Scanner';
+  String get smartScannerTitle => 'Photo Recognition';
 
   @override
-  String get bySmartScanner => 'By Photo / Scanner';
+  String get bySmartScanner => 'By Photo';
 
   @override
   String get checkRecipeButton => 'Check recipe';
@@ -1674,14 +1674,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get standardPlanDesc =>
-      'Full AI scanner, smart recipes and health advice';
+      'AI photo recognition, smart recipes and health advice';
 
   @override
   String get premiumPlanDesc =>
       'Advanced AI analytics, personal nutrition reports and more';
 
   @override
-  String get featureAiScanner => 'AI Calorie & Macro Scanner';
+  String get featureAiScanner => 'AI Calorie & Macro Photo Recognition';
 
   @override
   String get featureHealthAdvice => 'Health Recommendations';

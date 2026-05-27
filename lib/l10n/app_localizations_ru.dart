@@ -1639,10 +1639,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get byBarcode => 'По штрих-коду';
 
   @override
-  String get smartScannerTitle => 'Умный сканер';
+  String get smartScannerTitle => 'Распознавание по фото';
 
   @override
-  String get bySmartScanner => 'По фото / Сканер';
+  String get bySmartScanner => 'По фото';
 
   @override
   String get checkRecipeButton => 'Проверить рецепт';
@@ -1680,14 +1680,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get standardPlanDesc =>
-      'Полный ИИ-сканер, умные рецепты и советы по здоровью';
+      'ИИ-распознавание по фото, умные рецепты и советы по здоровью';
 
   @override
   String get premiumPlanDesc =>
       'Продвинутая ИИ-аналитика, персональные отчеты и многое другое';
 
   @override
-  String get featureAiScanner => 'ИИ-сканер калорий и БЖУ';
+  String get featureAiScanner => 'ИИ-распознавание по фото';
 
   @override
   String get featureHealthAdvice => 'Советы по здоровью';

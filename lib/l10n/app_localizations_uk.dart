@@ -1637,10 +1637,10 @@ class AppLocalizationsUk extends AppLocalizations {
   String get byBarcode => 'За штрих-кодом';
 
   @override
-  String get smartScannerTitle => 'Розумний сканер';
+  String get smartScannerTitle => 'Розпізнавання по фото';
 
   @override
-  String get bySmartScanner => 'По фото / Сканер';
+  String get bySmartScanner => 'По фото';
 
   @override
   String get checkRecipeButton => 'Перевірити рецепт';
@@ -1678,14 +1678,14 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get standardPlanDesc =>
-      'Повний ШІ-сканер, розумні рецепти та поради щодо здоров\'я';
+      'ШІ-розпізнавання по фото, розумні рецепти та поради щодо здоров\'я';
 
   @override
   String get premiumPlanDesc =>
       'Просунута ШІ-аналітика, персональні звіти та багато іншого';
 
   @override
-  String get featureAiScanner => 'ШІ-сканер калорій та БЖВ';
+  String get featureAiScanner => 'ШІ-розпізнавання по фото';
 
   @override
   String get featureHealthAdvice => 'Поради щодо здоров\'я';

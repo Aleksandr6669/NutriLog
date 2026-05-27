@@ -749,7 +749,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       if (_showFabMenu) ...[
                         FabMenuItem(
                           key: UniqueKey(),
-                          icon: Symbols.barcode_scanner,
+                          icon: Icons.photo_camera,
                           label: AppLocalizations.of(context)!.bySmartScanner,
                           isLocked: !isAiAvailable,
                           onTap: () async {
