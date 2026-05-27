@@ -1922,9 +1922,6 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.52),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: theme.colorScheme.outline.withValues(alpha: 0.16),
-              ),
             ),
             child: Text(
               paragraphs[i],
