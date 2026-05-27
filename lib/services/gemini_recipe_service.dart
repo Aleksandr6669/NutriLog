@@ -86,7 +86,7 @@ class GeminiRecipeService {
     final raw = locale?.toLowerCase() ??
         ui.PlatformDispatcher.instance.locale.toString().toLowerCase();
     final code = raw.split(RegExp(r'[-_]')).first;
-    if (code == 'ru' || code == 'uk') return code;
+    if (code == 'ru' || code == 'uk' || code == 'en') return code;
     return 'ru';
   }
 
@@ -734,6 +734,19 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
 
+    final code = _languageCode(locale);
+    final String languageName = switch (code) {
+      'uk' => 'Ukrainian',
+      'en' => 'English',
+      _ => 'Russian',
+    };
+
+    final String exampleWarning = switch (code) {
+      'uk' => '"Містить рибу, яку вам не можна згідно з вашими обмеженнями" or "Містить м\'ясо (курку), а ви вегетаріанець"',
+      'en' => '"Contains fish, which you should avoid according to your constraints" or "Contains meat (chicken), and you are a vegetarian"',
+      _ => '"Содержит рыбу, которую вам нельзя согласно вашим ограничениям" or "Содержит мясо (курицу), а вы вегетарианец"',
+    };
+
     final prompt = '''
     Analyze the following recipe and provide professional nutritional recommendations.
     
@@ -743,7 +756,7 @@ Rules:
     1. Carefully examine all user health conditions, dietary constraints, preferences, and contexts:
        User Context & Constraints: ${healthConditions.isEmpty ? 'None specified' : healthConditions}
     2. Check the recipe name, description, and ingredients for any forbidden or restricted items based on the user's constraints:
-       - VEGETARIAN / NO MEAT / NO FISH: If the user indicates they are vegetarian, vegan, or do not eat meat or fish (e.g., "вегетарианец", "не ем мясо", "не ем рыбу", "без мяса", "без рыбы", "веган", vegetarian, vegan, no meat, no fish, no poultry, etc.), you MUST check if this recipe contains any meat, chicken, beef, pork, turkey, duck, ham, bacon, sausage, fish, salmon, tuna, cod, trout, shrimp, crab, lobster, seafood, etc. If it does, you MUST set "isCompatible" to false, and set "incompatibleReason" to a clear Russian warning explaining exactly which ingredient is restricted and why (e.g., "Содержит рыбу, которую вам нельзя согласно вашим ограничениям" or "Содержит мясо (курицу), а вы вегетарианец").
+       - VEGETARIAN / NO MEAT / NO FISH: If the user indicates they are vegetarian, vegan, or do not eat meat or fish (e.g., "вегетарианец", "не ем мясо", "не ем рыбу", "без мяса", "без рыбы", "веган", vegetarian, vegan, no meat, no fish, no poultry, etc.), you MUST check if this recipe contains any meat, chicken, beef, pork, turkey, duck, ham, bacon, sausage, fish, salmon, tuna, cod, trout, shrimp, crab, lobster, seafood, etc. If it does, you MUST set "isCompatible" to false, and set "incompatibleReason" to a clear $languageName warning explaining exactly which ingredient is restricted and why (e.g., $exampleWarning).
        - DIETARY AND HEALTH CONSTRAINTS: Check if any ingredient is strictly prohibited by user's medical or dietitian guidelines. If yes, set "isCompatible" to false and explain.
     3. If there are no violations, set "isCompatible" to true and "incompatibleReason" to "".
     
@@ -765,8 +778,8 @@ Rules:
     Return ONLY a JSON object with these keys:
     {
       "isCompatible": true|false,
-      "incompatibleReason": "warning explanation in Russian, or empty if compatible",
-      "advice": "detailed unified analysis and recommendations in Russian"
+      "incompatibleReason": "warning explanation in $languageName, or empty if compatible",
+      "advice": "detailed unified analysis and recommendations in $languageName"
     }
     ''';
 

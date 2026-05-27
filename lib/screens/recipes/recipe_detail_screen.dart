@@ -7,6 +7,8 @@ import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:nutri_log/models/user_profile.dart';
 import '../../providers/profile_provider.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../services/cloud_data_service.dart';
@@ -50,6 +52,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Future<void> _loadPersonalAdvice() async {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null) return;
+
+    if (!profile.isPersonalAdviceAvailable) {
+      return;
+    }
 
     final richSummary = profile.richContextSummary(context);
     final currentHash =
@@ -551,10 +557,127 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
+  Widget _buildPremiumAdviceStub(
+      BuildContext context, ThemeData theme, AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.amber.withValues(alpha: 0.05),
+            Colors.deepPurple.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.amber.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.amber.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [Colors.amber.shade700, Colors.orange.shade600],
+                  ).createShader(bounds),
+                  child: const Icon(
+                    Symbols.workspace_premium,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '${l10n.featurePersonalAdvice} (Premium)',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade900,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.personalAdvicePremiumOnly,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade800,
+                height: 1.5,
+                fontSize: 13.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    colors: [Colors.amber.shade800, Colors.orange.shade600],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.push('/subscription', extra: SubscriptionTier.premium);
+                  },
+                  icon: const Icon(Symbols.workspace_premium, size: 18, color: Colors.white),
+                  label: Text(
+                    l10n.upgradeToPremium,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildPersonalAdviceCard(BuildContext context) {
+    final profile = context.watch<ProfileProvider>().profile;
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+
+    if (profile == null || !profile.isPersonalAdviceAvailable) {
+      return _buildPremiumAdviceStub(context, theme, l10n);
+    }
     
     final isNewFormat = _personalAdvice.contains('[[IS_COMPATIBLE]]');
     bool isCompatible = true;
