@@ -130,7 +130,7 @@
   "enterWeightGoal": "Enter your weight goal",
   "sportsActivities": "What sports/activities do you do",
   "canBeLeftEmpty": "Can be left empty",
-  "additionalForAi": "Additional context for AI targets",
+  "additionalForAi": "AI Settings",
   "additionalForAiHint": "This section is used by AI for personalized health recommendations, menu analysis, diet planning, and recipe generation. Complete these fields for the most precise advice.",
   "aiCalculatingGoals": "AI is calculating targets...",
   "aiCalculateGoals": "Calculate daily targets with AI",

@@ -538,6 +538,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         activityTypes: (aiInput['activityTypes'] as String? ?? '').trim(),
         aiContext: (aiInput['aiContext'] as String? ?? '').trim(),
         trainerContext: profile.trainerContext,
+        dietitianContext: profile.dietitianContext,
+        activityContext: profile.activityContext,
         calorieGoal: aiInput['calorieGoal'] as int,
         proteinGoal: aiInput['proteinGoal'] as int,
         fatGoal: aiInput['fatGoal'] as int,
@@ -1908,8 +1910,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       return Text(
         text,
         style: theme.textTheme.bodyMedium?.copyWith(
-          fontSize: 13,
-          color: theme.colorScheme.onSurface.withAlpha(204),
+          fontSize: 15,
+          height: 1.42,
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onSurface,
         ),
       );
     }
@@ -1920,17 +1924,18 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           Container(
             width: double.infinity,
             margin: EdgeInsets.only(bottom: i == paragraphs.length - 1 ? 0 : 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.52),
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.white.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               paragraphs[i],
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 13,
-                height: 1.35,
-                color: theme.colorScheme.onSurface.withAlpha(214),
+                fontSize: 15,
+                height: 1.45,
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
               ),
             ),
           ),

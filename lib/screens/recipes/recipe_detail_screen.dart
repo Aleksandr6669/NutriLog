@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:nutri_log/models/recipe.dart';
@@ -7,14 +6,13 @@ import 'package:nutri_log/screens/recipes/edit_recipe_screen.dart';
 import 'package:nutri_log/styles/app_styles.dart';
 import 'package:nutri_log/widgets/glass_app_bar_background.dart';
 import 'package:nutri_log/l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../models/user_profile.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../services/cloud_data_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
@@ -44,7 +42,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   String _calculateContextHash(String context, Recipe recipe) {
-    // Простой хэш на основе контекста профиля и данных рецепта
     final recipeData =
         '${recipe.name}${recipe.ingredients.length}${recipe.nutrients['calories']}';
     return base64Encode(utf8.encode('$context|$recipeData'));
@@ -57,7 +54,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final currentHash =
         _calculateContextHash(profile.richContextSummary(context), widget.recipe);
 
-    // 1. Пытаемся загрузить из локального кэша
     final prefs = await SharedPreferences.getInstance();
     final userId = CloudDataService.instance.currentUserId ?? 'guest';
     final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
@@ -70,12 +66,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           setState(() {
             _personalAdvice = decoded['advice'];
           });
-          // Do not return; continue to trigger background refresh
         }
       }
     }
 
-    // 2. Если нет в кэше или хэш не совпадает — загружаем из облака или генерируем
     if (CloudDataService.instance.isSignedIn) {
       final cloudData = await CloudDataService.instance
           .readMap('personalRecipeAdvice_${widget.recipe.id}');
@@ -85,23 +79,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           setState(() {
             _personalAdvice = advice;
           });
-          // Сохраняем в локальный кэш
           await prefs.setString(
               cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
-          // Do not return; continue to trigger background refresh
         }
       }
     }
 
-    // 3. Always trigger a fresh generation in the background if premium
-    if (profile.isPersonalAdviceAvailable) {
-      unawaited(_generateNewAdvice(profile.richContextSummary(context), currentHash));
-    }
+    // Always fetch fresh expert advice (personalized if fields filled, light advice if empty)
+    _generateNewAdvice(profile.richContextSummary(context), currentHash);
   }
 
   Future<void> _generateNewAdvice(String healthConditions, String hash) async {
-    // Разрешаем генерацию при пустых ограничениях по здоровью для точечных советов по БЖУ и блюду
-
+    if (!mounted) return;
     setState(() => _isLoadingAdvice = true);
     try {
       final advice = await _geminiRecipeService.generateMedicalAdvice(
@@ -120,7 +109,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           _isLoadingAdvice = false;
         });
 
-        // Сохраняем в локальный кэш
         final profile = context.read<ProfileProvider>().profile;
         if (profile != null) {
           final prefs = await SharedPreferences.getInstance();
@@ -129,7 +117,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           await prefs.setString(
               cacheKey, json.encode({'advice': advice, 'hash': hash}));
 
-          // Сохраняем в облако
           if (CloudDataService.instance.isSignedIn) {
             await CloudDataService.instance
                 .writeMap('personalRecipeAdvice_${widget.recipe.id}', {
@@ -565,20 +552,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = context.read<ProfileProvider>().profile;
-    final isRestricted = profile != null && !profile.isPersonalAdviceAvailable;
+    
+    final hasExpertContext = profile != null &&
+        (profile.medicContext.isNotEmpty ||
+            profile.dietitianContext.isNotEmpty ||
+            profile.trainerContext.isNotEmpty);
 
     return Card(
-      color: isRestricted
-          ? Colors.grey.shade100
-          : Colors.blue.withValues(alpha: 0.05),
+      color: Colors.blue.withValues(alpha: 0.05),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-            color: isRestricted
-                ? Colors.grey.shade300
-                : Colors.blue.withValues(alpha: 0.2),
-            width: 1),
+        side: BorderSide(color: Colors.blue.withValues(alpha: 0.2), width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -588,23 +573,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             Row(
               children: [
                 Icon(
-                  isRestricted ? Symbols.lock : Symbols.psychology,
-                  color: isRestricted ? Colors.grey : Colors.blue.shade700,
+                  Symbols.psychology,
+                  color: theme.colorScheme.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.healthAdviceTitle,
+                    hasExpertContext ? l10n.healthAdviceTitle : 'Советы экспертов и ИИ',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isRestricted
-                          ? Colors.grey.shade700
-                          : Colors.blue.shade900,
+                      color: Colors.blue.shade900,
                     ),
                   ),
                 ),
-                if (_isLoadingAdvice && !isRestricted)
+                if (_isLoadingAdvice)
                   const SizedBox(
                     width: 14,
                     height: 14,
@@ -613,57 +596,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            if (isRestricted) ...[
-              Text(
-                l10n.personalAdvicePremiumOnly,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: Colors.grey.shade600),
-              ),
+            if (_personalAdvice.isNotEmpty) ...[
+              _buildDisclaimer(l10n, theme),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push('/subscription',
-                      extra: SubscriptionTier.premium),
-                  icon: const Icon(Symbols.bolt, size: 16),
-                  label: Text(l10n.upgradeToPremium),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.orange.shade800,
-                    side: BorderSide(color: Colors.orange.shade300),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+              ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
+            ] else if (_isLoadingAdvice)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(strokeWidth: 2),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.moderationChecking,
+                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
+              )
+            else
+              Text(
+                'Загрузка легких рекомендаций по питанию...',
+                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
-            ] else ...[
-              if (_personalAdvice.isNotEmpty) ...[
-                _buildDisclaimer(l10n, theme),
-                const SizedBox(height: 12),
-                ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
-              ] else if (_isLoadingAdvice)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      children: [
-                        const CircularProgressIndicator(strokeWidth: 2),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.moderationChecking,
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                Text(
-                  l10n.healthConditionsHint,
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-                ),
-            ],
           ],
         ),
       ),
@@ -711,7 +668,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final dietitianText = dietitianMatch?.group(1)?.trim() ?? '';
     final trainerText = trainerMatch?.group(1)?.trim() ?? '';
 
-    // If parsing fails, just show the raw string
     if (doctorText.isEmpty && dietitianText.isEmpty && trainerText.isEmpty) {
       return [
         Text(advice, style: theme.textTheme.bodySmall),

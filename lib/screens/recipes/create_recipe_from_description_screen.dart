@@ -169,7 +169,7 @@ class _CreateRecipeFromDescriptionScreenState
       final draft = await _geminiService.generateRecipeFromDescription(
         description: description,
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions: profile?.healthConditions ?? '',
+        healthConditions: '',
         aiContext: profile?.aiContext ?? '',
         profile: profile,
       );

@@ -412,7 +412,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get canBeLeftEmpty => 'Можна залишити порожнім';
 
   @override
-  String get additionalForAi => 'Додатковий контекст для ШІ-цілей';
+  String get additionalForAi => 'Налаштування ШІ';
 
   @override
   String get additionalForAiHint =>

@@ -321,44 +321,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (result == true) _refreshProfile();
             },
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileContextField(
-                    theme: theme,
-                    title: l10n.additionalForAi,
-                    value: profile.aiContext,
-                    fallback: 'Не указан. Расскажите ИИ о своих предпочтениях для персонализации питания.',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'Персональные настройки ИИ для углубленной аналитики и подбора питания. Включают ваши личные предпочтения, рекомендации врачей и тренеров, а также особенности физической активности.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.45,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const Divider(height: 20),
-                  _buildProfileContextField(
-                    theme: theme,
-                    title: l10n.medicContextTitle,
-                    value: profile.medicContext,
-                    fallback: 'Не указан. Аллергии, хронические заболевания, ограничения.',
-                  ),
-                  const Divider(height: 20),
-                  _buildProfileContextField(
-                    theme: theme,
-                    title: l10n.dietitianContextTitle,
-                    value: profile.dietitianContext,
-                    fallback: 'Не указан. Диетические предпочтения, режим питания.',
-                  ),
-                  const Divider(height: 20),
-                  _buildProfileContextField(
-                    theme: theme,
-                    title: l10n.trainerContextTitle,
-                    value: profile.trainerContext,
-                    fallback: 'Не указан. Режим тренировок, спортивные цели.',
-                  ),
-                  const Divider(height: 20),
-                  _buildProfileContextField(
-                    theme: theme,
-                    title: l10n.activityContextTitle,
-                    value: profile.activityContext,
-                    fallback: 'Не указан. Физическая нагрузка, хобби, шаги.',
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Нажмите на иконку карандаша справа, чтобы просмотреть или изменить подробные анкеты.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.hintColor,
+                ),
               ),
             ],
           ),
@@ -538,8 +516,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Icon(icon, color: theme.colorScheme.primary),
                 const SizedBox(width: 12),
-                Text(title, style: theme.textTheme.titleLarge),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 IconButton(
                   onPressed: onEdit,
                   icon: const Icon(Icons.edit, size: 20),
@@ -557,32 +541,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileContextField({
-    required ThemeData theme,
-    required String title,
-    required String value,
-    required String fallback,
-  }) {
-    final hasValue = value.isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.labelMedium
-              ?.copyWith(color: theme.hintColor),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          hasValue ? value : fallback,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: hasValue ? theme.textTheme.bodyLarge?.color : theme.hintColor,
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildInfoRow(ThemeData theme, String label, String value) {
     return Padding(

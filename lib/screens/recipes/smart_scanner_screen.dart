@@ -213,7 +213,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         imageMimeType: _detectMimeType(_capturedImage!.name),
         description: description,
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions: profile?.healthConditions ?? '',
+        healthConditions: '',
         aiContext: profile?.aiContext ?? '',
       );
 
@@ -257,18 +257,17 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         draft = await _geminiService.generateRecipeFromDescription(
           description: prompt,
           locale: Localizations.localeOf(context).languageCode,
-          healthConditions: profile?.healthConditions ?? '',
+          healthConditions: '',
           aiContext: profile?.aiContext ?? '',
         );
         if (draft.name.isEmpty || draft.name.toLowerCase() == 'unknown') {
           throw Exception(l10n.productNotFoundError);
         }
       } else {
-        final profile = context.read<ProfileProvider>().profile;
         draft = await _geminiService.generateRecipeFromBarcode(
           productData: product,
           locale: Localizations.localeOf(context).languageCode,
-          healthConditions: profile?.healthConditions ?? '',
+          healthConditions: '',
         );
       }
 

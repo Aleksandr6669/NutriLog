@@ -411,7 +411,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get canBeLeftEmpty => 'Can be left empty';
 
   @override
-  String get additionalForAi => 'Additional context for AI targets';
+  String get additionalForAi => 'AI Settings';
 
   @override
   String get additionalForAiHint =>

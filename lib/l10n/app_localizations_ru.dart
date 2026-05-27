@@ -412,7 +412,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get canBeLeftEmpty => 'Можно оставить пустым';
 
   @override
-  String get additionalForAi => 'Дополнительный контекст для ИИ-целей';
+  String get additionalForAi => 'Настройки ИИ';
 
   @override
   String get additionalForAiHint =>

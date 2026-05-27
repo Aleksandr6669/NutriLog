@@ -287,8 +287,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             .where((i) => i.name.isNotEmpty)
             .toList(),
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions:
-            context.read<ProfileProvider>().profile?.healthConditions ?? '',
+        healthConditions: '',
         isReadyProduct: _isReadyProduct,
       );
 
@@ -612,7 +611,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         clarification: _clarificationController.text,
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions: profile != null ? profile.richContextSummary(context) : '',
+        healthConditions: '',
         profile: profile,
         aiContext: profile?.aiContext ?? '',
       );

@@ -1311,6 +1311,8 @@ Rules:
     required String activityTypes,
     required String aiContext,
     String trainerContext = '',
+    String dietitianContext = '',
+    String activityContext = '',
     required int calorieGoal,
     required int proteinGoal,
     required int fatGoal,
@@ -1440,10 +1442,11 @@ User name: ${userName.trim().isEmpty ? 'friend' : userName.trim()}
 Primary goal type: $goalType
 User activity types: ${activityTypes.trim().isEmpty ? 'not specified' : activityTypes.trim()}
 
-${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
-${trainerContext.isNotEmpty ? 'TRAINER MEAL PLAN: This user follows a personal trainer\'s nutrition plan. When suggesting recipes and recommendations, prioritize foods and portions that align with this plan:\n$trainerContext' : ''}
+${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS / MEDICAL CONTEXT (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
+${dietitianContext.isNotEmpty ? 'DIETITIAN CONTEXT / NUTRITION RULES (MANDATORY): $dietitianContext\nNote: All suggested recipe recommendations and daily menus MUST respect these dietetic guidelines.' : ''}
+${trainerContext.isNotEmpty ? 'TRAINER MEAL PLAN (HIGH PRIORITY): This user follows a personal trainer\'s nutrition plan. When suggesting recipes, combinations, and recommendations, prioritize foods, portion structures, and rules from this plan:\n$trainerContext' : ''}
+${activityContext.isNotEmpty ? 'PHYSICAL ACTIVITY CONTEXT / EXTRA LOAD (MANDATORY): $activityContext\nNote: Calorie balance and protein timings should be adjusted according to this training workload.' : ''}
 User context/preferences: ${aiContext.trim().isEmpty ? 'not specified' : aiContext.trim()}
-Expert Context (Health/Fitness): ${healthConditions.trim().isEmpty ? 'not specified' : healthConditions.trim()}
 
 Goals and progress:
 - Calorie goal: $calorieGoal kcal
@@ -1521,7 +1524,7 @@ Additional Rules for Recipes:
 - Do NOT make up recipe names that are similar to existing ones but not exact; if it's a new suggestion, use its common name.
 
 Task:
-1) Create a full, warm and supportive weekly/monthly/yearly analysis (NOT short): 10-16 sentences.
+1) Create a concise, strictly to the point weekly/monthly/yearly analysis: 4-6 sentences. Keep it short, actionable, and focused on key facts. Avoid generic filler.
 2) Start with personal addressing using the user's name naturally.
 3) Mention key achievements and where user is behind goals.
 4) Mention what foods/dishes are consumed most often.
@@ -1529,26 +1532,29 @@ Task:
 6) Add practical meal plan recommendations for the next period (what and when to eat) focused on deficits/excesses.
 7) If suitable recipes from the list exist, include exact recipe names from the provided list in "recipeName".
 8) If no suitable recipe exists in the user's list, suggest ANY common healthy dish (e.g., "Pasta Bolognese", "Greek Salad", "Grilled Chicken with Vegetables") that fits their health profile and nutritional needs. Put its common name in "recipeName" and explain its benefits in "action".
-9) Add snack recommendations only if they are actually needed for this user.
+9) Add snack recommendations only if they are actually needed/allowed for this user.
 10) If snack is needed, prefer adding snack with recipeName from priority snack candidates.
 11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
 12) Use previous reports memory to keep recommendations consistent and progressive.
 13) Reuse previously recommended recipes when still relevant, otherwise suggest better alternatives from current list.
 14) Personalization priority: use foods the user actually eats often first, then gently correct preparation/portion/frequency instead of replacing everything.
 15) If a frequently consumed product is not ideal, suggest a nearby alternative from available recipes or a modification of the same product.
-16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks),
-    UNLESS goal type is muscle gain or weight gain.
+16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks), UNLESS goal type is muscle gain or weight gain.
 17) If goal type is muscle gain, higher-protein recommendations are acceptable and should be explained as intentional.
 18) HEALTH AND SAFETY FILTER (STRICT): Ensure all recommendations, meal tips, and advice strictly exclude any foods, ingredients, or activities that are harmful according to the user's specific Expert Context ($healthConditions). This applies to ALL periods (week, month, year). Never recommend anything that violates these constraints.
-18) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
-19) Dish Composition Analysis: You MUST analyze the detailed nutritional breakdown of the actual dishes consumed (calories, macros, sugar, sodium). If a specific dish the user ate has excessive sodium, high sugar, or inadequate protein, point this out specifically in your overview and suggest adjustments.
-20) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
-21) Build overview in 3 mini-paragraphs separated by blank lines:
+19) Recommendations must be coherent with user's goal type and current macro gaps (do not recommend what is already excessive).
+20) Dish Composition Analysis: You MUST analyze the detailed nutritional breakdown of the actual dishes consumed (calories, macros, sugar, sodium). If a specific dish the user ate has excessive sodium, high sugar, or inadequate protein, point this out specifically in your overview and suggest adjustments.
+21) Write as a personal coach-assistant: warm, motivating, and specific, without generic fluff.
+22) Build overview in 3 mini-paragraphs separated by blank lines:
   A) progress snapshot and positive reinforcement,
   B) diagnosis of nutrition/activity bottlenecks,
   C) specific plan for the next period.
-21) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
-22) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details of the food/dish (for example: "Овсяная каша с миндалем и ягодами для медленных углеводов" or "Омлет со шпинатом и цельнозерновым тостом для качественного белка").
+23) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
+24) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details of the food/dish (for example: "Овсяная каша с миндалем и ягодами для медленных углеводов" or "Омлет со шпинатом и цельнозерновым тостом для качественного белка").
+25) RECOMMENDATION MEAL PLAN FLEXIBILITY & DYNAMIC COMBINATIONS (CRITICAL):
+  * You are fully allowed and encouraged to recommend multiple dishes or food items for a single mealtime to form a rich combined meal. For example, for "breakfast", you can return multiple items in the list (e.g., one item for Eggs and another item for Oatmeal/Cottage Cheese).
+  * For lunch or dinner, you can suggest a complete meal consisting of multiple items or just a single dish (e.g., only Soup for lunch, or Soup + Salad + Meat).
+  * You can completely omit snack recommendations (do not add any "snack" mealtimes) if the trainer meal plan or macro guidelines do not require snacks, or if they prescribe a 3-meal pattern without snacks. If the trainer plan forbids or doesn't mention snacks, feel free to not recommend any snack items at all.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 

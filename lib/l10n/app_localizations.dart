@@ -883,7 +883,7 @@ abstract class AppLocalizations {
   /// No description provided for @additionalForAi.
   ///
   /// In en, this message translates to:
-  /// **'Additional context for AI targets'**
+  /// **'AI Settings'**
   String get additionalForAi;
 
   /// No description provided for @additionalForAiHint.
