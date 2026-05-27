@@ -1503,9 +1503,14 @@ Task:
   C) specific plan for the next period.
 23) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
 24) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details of the food/dish (for example: "Овсяная каша с миндалем и ягодами для медленных углеводов" or "Омлет со шпинатом и цельнозерновым тостом для качественного белка").
-25) RECOMMENDATION MEAL PLAN FLEXIBILITY & DYNAMIC COMBINATIONS (CRITICAL):
-  * For each active mealtime (breakfast, lunch, dinner), you can recommend exactly one, two, or even three dishes/recipes based on the user's goals and information (for example, a single main dish, or a combination of multiple dishes like a main course + salad + soup). Prioritize healthy eating standards, dishes/recipes that already exist in the user's available recipes list, and foods that the user consumes most frequently.
-  * You can completely omit snack recommendations (do not add any "snack" mealtimes) if the trainer meal plan or macro guidelines do not require snacks, or if they prescribe a 3-meal pattern without snacks. If the trainer plan forbids or doesn't mention snacks, feel free to not recommend any snack items at all.
+25) RECOMMENDATION MEAL PLAN ADAPTATION & DYNAMIC COMBINATIONS (CRITICAL):
+  * Strictly adapt the recommended meal structure and number of dishes to the user's explicit preferences, calorie needs, and trainer contexts:
+    - SKIP MEAL ENTIRELY: If the user states in their context/preferences (aiContext) or dietitian/trainer context that they do not eat breakfast, skip breakfast, or dislike breakfast ("я не люблю завтракать" / "пропускаю завтрак"), you MUST completely omit "breakfast" from the recommendations list (recommend 0 dishes for breakfast). The same applies to any other mealtime they skip or dislike.
+    - SINGLE DISH ONLY: If a single dish or food item is already highly caloric and sufficient for the target calorie/nutrient volume of that meal (e.g. the user states they eat 10 eggs in the morning, or a massive high-calorie portion), or if the user prefers simplicity, recommend strictly EXACTLY ONE dish/recipe for that mealtime. Never suggest extra side dishes or salads if one main high-calorie dish is plenty ("не нужно указывать еще чтото бо я не выдержу").
+    - MULTIPLE DISHES (2 to 4): Recommend multiple dishes (two, three, or four) for a single mealtime ONLY if:
+      a) The user's primary goal is weight/muscle gain and requires a high volume of food/calories that cannot be satisfied by one standard dish.
+      b) The trainer context (trainerContext) or dietitian guidelines explicitly prescribe a multi-dish combination (e.g., "soup + salad + main course") or a specific number of items. In this case, strictly obey the trainer's plan.
+    - Snacking: You can completely omit snack recommendations (do not add any "snack" mealtimes) if the trainer plan or macro guidelines do not require snacks, or if they prescribe a 3-meal pattern.
 26) DEFAULT STANDARDS WHEN DATA IS MISSING (CRITICAL):
   * If the user's AI settings, health conditions, dietitian guidelines, or trainer meal plans are empty or "not specified", you MUST fall back to providing standard, default healthy eating recommendations that align perfectly with the user's chosen primary goal type ($goalType) and general macro/nutritional norms.
 
