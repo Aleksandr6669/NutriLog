@@ -95,14 +95,14 @@ class HomeWidgetSyncService {
       }
     }
 
-    // final calorieGoal = profile.calorieGoal.round();
-    // final proteinGoal = profile.proteinGoal;
-    // final fatGoal = profile.fatGoal;
-    // final carbsGoal = profile.carbsGoal;
-    // final waterGoalLiters = (profile.waterGoal / 1000.0).toStringAsFixed(1);
-
-    // final lang = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
-
+    final calorieGoal = profile.calorieGoal;
+    final proteinGoal = profile.proteinGoal;
+    final fatGoal = profile.fatGoal;
+    final carbsGoal = profile.carbsGoal;
+    final waterGoal = profile.waterGoal;
+    final stepsGoal = profile.stepsGoal;
+    final weightGoal = profile.weightGoal;
+    final weightCurrent = profile.weight;
 
     final Map<String, dynamic> data = {
       'calories': '$consumed',
@@ -116,6 +116,14 @@ class HomeWidgetSyncService {
       'water': waterLiters,
       'water_value': waterLiters,
       'steps': stepsString,
+      'calorie_goal': '$calorieGoal',
+      'protein_goal': '$proteinGoal',
+      'fat_goal': '$fatGoal',
+      'carbs_goal': '$carbsGoal',
+      'water_goal': '$waterGoal',
+      'steps_goal': '$stepsGoal',
+      'weight_goal': '$weightGoal',
+      'weight_current': '$weightCurrent',
     };
 
     // Данные записываем ВСЕГДА — это дёшево и не расходует бюджет iOS.
