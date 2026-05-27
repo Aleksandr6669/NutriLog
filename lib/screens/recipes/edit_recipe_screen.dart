@@ -612,7 +612,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         clarification: _clarificationController.text,
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions: profile?.healthConditions ?? '',
+        healthConditions: profile != null ? profile.richContextSummary(context) : '',
         profile: profile,
         aiContext: profile?.aiContext ?? '',
       );
