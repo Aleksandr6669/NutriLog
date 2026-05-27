@@ -101,17 +101,40 @@ class HomeWidgetSyncService {
     final carbsGoal = profile.carbsGoal;
     final waterGoalLiters = (profile.waterGoal / 1000.0).toStringAsFixed(1);
 
+    final lang = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    final String ofWord;
+    final String gUnit;
+    final String kcalUnit;
+    final String lUnit;
+
+    if (lang == 'uk') {
+      ofWord = 'з';
+      gUnit = 'г';
+      kcalUnit = 'ккал';
+      lUnit = 'л';
+    } else if (lang == 'ru') {
+      ofWord = 'из';
+      gUnit = 'г';
+      kcalUnit = 'ккал';
+      lUnit = 'л';
+    } else {
+      ofWord = 'of';
+      gUnit = 'g';
+      kcalUnit = 'kcal';
+      lUnit = 'L';
+    }
+
     final Map<String, dynamic> data = {
-      'calories': '$consumed из $calorieGoal',
-      'proteins': '$protein из $proteinGoalг',
-      'fats': '$fat из $fatGoalг',
-      'carbs': '$carbs из $carbsGoalг',
-      'proteins_val': '$protein из $proteinGoal',
-      'fats_val': '$fat из $fatGoal',
-      'carbs_val': '$carbs из $carbsGoal',
-      'calories_summary': '$consumed из $calorieGoal ккал',
-      'water': '$waterLiters из $waterGoalLiters Л',
-      'water_value': '$waterLiters из $waterGoalLiters Л',
+      'calories': '$consumed $ofWord $calorieGoal',
+      'proteins': '$protein $ofWord $proteinGoal$gUnit',
+      'fats': '$fat $ofWord $fatGoal$gUnit',
+      'carbs': '$carbs $ofWord $carbsGoal$gUnit',
+      'proteins_val': '$protein $ofWord $proteinGoal',
+      'fats_val': '$fat $ofWord $fatGoal',
+      'carbs_val': '$carbs $ofWord $carbsGoal',
+      'calories_summary': '$consumed $ofWord $calorieGoal $kcalUnit',
+      'water': '$waterLiters $ofWord $waterGoalLiters $lUnit',
+      'water_value': '$waterLiters $ofWord $waterGoalLiters $lUnit',
       'steps': stepsString,
     };
 
