@@ -2463,57 +2463,10 @@ Rules:
     return hasImage;
   }
 
+
+
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
-
-  Future<String> _requestStringWithAutoRetry({
-    required Map<String, dynamic> body,
-    String? apiKeyOverride,
-    String? locale,
-    String featureName = 'AI Request',
-  }) async {
-    final settings = await _settingsService.load();
-    final maxAttempts = settings.aiRetryAttempts;
-    final retryDelay = Duration(seconds: settings.aiRetryDelaySeconds);
-
-    Object? lastError;
-
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        final response = await _requestWithGemini(
-          body: body,
-          apiKeyOverride: apiKeyOverride,
-          locale: locale,
-          models: [settings.geminiModel],
-          settings: settings,
-          featureName: featureName,
-        );
-
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final text = _extractText(payload, locale).trim();
-        if (text.isEmpty) {
-          throw GeminiRecipeException(_messages(locale).aiEmptyTextError);
-        }
-
-        return text;
-      } catch (e) {
-        lastError = e;
-        if (attempt < maxAttempts) {
-          var currentDelay = retryDelay;
-          if (e is GeminiRecipeException && e.statusCode == 429) {
-            currentDelay = Duration(seconds: 12 + (attempt * 10));
-          }
-          await Future<void>.delayed(currentDelay);
-        }
-      }
-    }
-
-    if (lastError is GeminiRecipeException) {
-      throw lastError;
-    }
-    throw GeminiRecipeException(
-        '${_messages(locale).aiGeneralError}: ${lastError.toString()}');
-  }
 
   Future<Map<String, dynamic>> _requestDecodedJsonWithAutoRetry({
     required Map<String, dynamic> body,

@@ -3208,6 +3208,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current Plan'**
   String get currentPlan;
+
+  /// No description provided for @popular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popular;
+
+  /// No description provided for @dishType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dish Type'**
+  String get dishType;
+
+  /// No description provided for @recipeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get recipeLabel;
+
+  /// No description provided for @readyProductLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready Product'**
+  String get readyProductLabel;
 }
 
 class _AppLocalizationsDelegate

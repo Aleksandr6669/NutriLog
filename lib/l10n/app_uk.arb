@@ -636,5 +636,9 @@
   "changePlanHint": "Натисніть на іконку, щоб змінити тариф",
   "selectPlan": "Обрати тариф",
   "currentPlan": "Поточний тариф",
-  "recipeAiNoIngredientsError": "Додайте хоча б один інгредієнт із назвою для розрахунку"
+  "recipeAiNoIngredientsError": "Додайте хоча б один інгредієнт із назвою для розрахунку",
+  "popular": "Популярний",
+  "dishType": "Тип страви",
+  "recipeLabel": "Рецепт",
+  "readyProductLabel": "Готовий продукт"
 }

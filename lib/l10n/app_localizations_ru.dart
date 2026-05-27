@@ -1728,4 +1728,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get currentPlan => 'Текущий тариф';
+
+  @override
+  String get popular => 'Популярный';
+
+  @override
+  String get dishType => 'Тип блюда';
+
+  @override
+  String get recipeLabel => 'Рецепт';
+
+  @override
+  String get readyProductLabel => 'Готовый продукт';
 }

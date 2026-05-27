@@ -1722,4 +1722,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currentPlan => 'Current Plan';
+
+  @override
+  String get popular => 'Popular';
+
+  @override
+  String get dishType => 'Dish Type';
+
+  @override
+  String get recipeLabel => 'Recipe';
+
+  @override
+  String get readyProductLabel => 'Ready Product';
 }

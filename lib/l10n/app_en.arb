@@ -635,5 +635,9 @@
   "featureAiGoals": "AI Daily Goal Calculation",
   "changePlanHint": "Tap the icon to change your plan",
   "selectPlan": "Select Plan",
-  "currentPlan": "Current Plan"
+  "currentPlan": "Current Plan",
+  "popular": "Popular",
+  "dishType": "Dish Type",
+  "recipeLabel": "Recipe",
+  "readyProductLabel": "Ready Product"
 }

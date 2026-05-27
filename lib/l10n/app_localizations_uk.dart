@@ -1726,4 +1726,16 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get currentPlan => 'Поточний тариф';
+
+  @override
+  String get popular => 'Популярний';
+
+  @override
+  String get dishType => 'Тип страви';
+
+  @override
+  String get recipeLabel => 'Рецепт';
+
+  @override
+  String get readyProductLabel => 'Готовий продукт';
 }

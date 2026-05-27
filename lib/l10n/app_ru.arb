@@ -634,5 +634,9 @@
   "featureAiGoals": "ИИ-расчет дневных целей",
   "changePlanHint": "Нажмите на иконку, чтобы изменить тариф",
   "selectPlan": "Выбрать тариф",
-  "currentPlan": "Текущий тариф"
+  "currentPlan": "Текущий тариф",
+  "popular": "Популярный",
+  "dishType": "Тип блюда",
+  "recipeLabel": "Рецепт",
+  "readyProductLabel": "Готовый продукт"
 }

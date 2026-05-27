@@ -58,7 +58,6 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -174,9 +173,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   color: color,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'POPULAR',
-                  style: TextStyle(
+                child: Text(
+                  l10n.popular.toUpperCase(),
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold),

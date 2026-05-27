@@ -595,7 +595,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Рекомендации",
+                    l10n.healthAdviceTitle,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isRestricted

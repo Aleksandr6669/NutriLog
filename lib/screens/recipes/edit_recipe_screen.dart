@@ -449,24 +449,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     }
   }
 
-  String _nutrientUnit(String key) {
-    switch (key) {
-      case 'calories':
-        return l10n.kcal;
-      case 'cholesterol':
-      case 'sodium':
-      case 'potassium':
-      case 'calcium':
-      case 'iron':
-        return l10n.mg;
-      case 'vitamin_a':
-      case 'vitamin_d':
-        return l10n.mcg;
-      default:
-        return l10n.grams;
-    }
-  }
-
   Map<String, double> _collectCurrentNutrients() {
     final nutrients = <String, double>{};
     for (final key in _nutrientKeys) {
@@ -1583,7 +1565,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              "Тип блюда",
+              l10n.dishType,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -1594,16 +1576,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             SizedBox(
               width: double.infinity,
               child: SegmentedButton<bool>(
-                segments: const <ButtonSegment<bool>>[
+                segments: <ButtonSegment<bool>>[
                   ButtonSegment<bool>(
                     value: false,
-                    label: Text('Рецепт'),
-                    icon: Icon(Symbols.menu_book),
+                    label: Text(l10n.recipeLabel),
+                    icon: const Icon(Symbols.menu_book),
                   ),
                   ButtonSegment<bool>(
                     value: true,
-                    label: Text('Готовый продукт'),
-                    icon: Icon(Symbols.box),
+                    label: Text(l10n.readyProductLabel),
+                    icon: const Icon(Symbols.box),
                   ),
                 ],
                 selected: <bool>{_isReadyProduct},
