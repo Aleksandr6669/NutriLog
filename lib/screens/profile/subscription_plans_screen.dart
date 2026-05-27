@@ -166,7 +166,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
           if (isPopular)
             Positioned(
               top: 20,
-              right: 20,
+              right: 20,     
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
