@@ -20,6 +20,10 @@ class EditAiContextScreen extends StatefulWidget {
 class _EditAiContextScreenState extends State<EditAiContextScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _aiContextController;
+  late TextEditingController _medicContextController;
+  late TextEditingController _dietitianContextController;
+  late TextEditingController _trainerContextController;
+  late TextEditingController _activityContextController;
 
   @override
   void initState() {
@@ -27,11 +31,27 @@ class _EditAiContextScreenState extends State<EditAiContextScreen> {
     _aiContextController = TextEditingController(
       text: widget.profile.aiContext,
     );
+    _medicContextController = TextEditingController(
+      text: widget.profile.medicContext,
+    );
+    _dietitianContextController = TextEditingController(
+      text: widget.profile.dietitianContext,
+    );
+    _trainerContextController = TextEditingController(
+      text: widget.profile.trainerContext,
+    );
+    _activityContextController = TextEditingController(
+      text: widget.profile.activityContext,
+    );
   }
 
   @override
   void dispose() {
     _aiContextController.dispose();
+    _medicContextController.dispose();
+    _dietitianContextController.dispose();
+    _trainerContextController.dispose();
+    _activityContextController.dispose();
     super.dispose();
   }
 
@@ -39,6 +59,12 @@ class _EditAiContextScreenState extends State<EditAiContextScreen> {
     if (_formKey.currentState!.validate()) {
       final updatedProfile = widget.profile.copyWith(
         aiContext: _aiContextController.text.trim(),
+        medicContext: _medicContextController.text.trim(),
+        dietitianContext: _dietitianContextController.text.trim(),
+        trainerContext: _trainerContextController.text.trim(),
+        activityContext: _activityContextController.text.trim(),
+        // Синхронизируем healthConditions для совместимости со старым кодом
+        healthConditions: _medicContextController.text.trim(),
       );
       await context.read<ProfileProvider>().updateProfile(updatedProfile);
       if (mounted) Navigator.pop(context, true);
@@ -97,62 +123,110 @@ class _EditAiContextScreenState extends State<EditAiContextScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppStyles.cardRadius,
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Symbols.psychology,
-                            size: 20,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            l10n.additionalForAi,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _aiContextController,
-                        maxLines: 8,
-                        minLines: 4,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Примеры предпочтений: "Не ем рыбу", "Интервальное голодание с 12:00 до 20:00", "Тренируюсь утром натощак", "Сладкоежка, добавь полезные перекусы".',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                                color: AppColors.primary, width: 2),
-                          ),
-                        ),
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                ),
+              _buildContextCard(
+                theme: theme,
+                title: l10n.additionalForAi,
+                icon: Symbols.psychology,
+                controller: _aiContextController,
+                hintText: 'Примеры предпочтений: "Не ем рыбу", "Интервальное голодание с 12:00 до 20:00", "Тренируюсь утром натощак", "Сладкоежка, добавь полезные перекусы".',
+              ),
+              const SizedBox(height: 16),
+              _buildContextCard(
+                theme: theme,
+                title: l10n.medicContextTitle,
+                icon: Symbols.medical_services,
+                controller: _medicContextController,
+                hintText: l10n.medicContextHint,
+              ),
+              const SizedBox(height: 16),
+              _buildContextCard(
+                theme: theme,
+                title: l10n.dietitianContextTitle,
+                icon: Symbols.nutrition,
+                controller: _dietitianContextController,
+                hintText: l10n.dietitianContextHint,
+              ),
+              const SizedBox(height: 16),
+              _buildContextCard(
+                theme: theme,
+                title: l10n.trainerContextTitle,
+                icon: Symbols.fitness_center,
+                controller: _trainerContextController,
+                hintText: l10n.trainerContextHint,
+              ),
+              const SizedBox(height: 16),
+              _buildContextCard(
+                theme: theme,
+                title: l10n.activityContextTitle,
+                icon: Symbols.directions_run,
+                controller: _activityContextController,
+                hintText: l10n.activityContextHint,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContextCard({
+    required ThemeData theme,
+    required String title,
+    required IconData icon,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: AppStyles.cardRadius,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: controller,
+              maxLines: null,
+              minLines: 3,
+              decoration: InputDecoration(
+                hintText: hintText,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                      color: AppColors.primary, width: 2),
+                ),
+              ),
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
       ),
     );

@@ -55,7 +55,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     if (profile == null) return;
 
     final currentHash =
-        _calculateContextHash(profile.healthConditions, widget.recipe);
+        _calculateContextHash(profile.richContextSummary(context), widget.recipe);
 
     // 1. Пытаемся загрузить из локального кэша
     final prefs = await SharedPreferences.getInstance();
@@ -95,7 +95,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     // 3. Always trigger a fresh generation in the background if premium
     if (profile.isPersonalAdviceAvailable) {
-      unawaited(_generateNewAdvice(profile.healthConditions, currentHash));
+      unawaited(_generateNewAdvice(profile.richContextSummary(context), currentHash));
     }
   }
 

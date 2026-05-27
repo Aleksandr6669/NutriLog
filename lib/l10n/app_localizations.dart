@@ -889,7 +889,7 @@ abstract class AppLocalizations {
   /// No description provided for @additionalForAiHint.
   ///
   /// In en, this message translates to:
-  /// **'For example: sedentary work, early training, food restrictions. Can be left empty.'**
+  /// **'This section is used by AI for personalized health recommendations, menu analysis, diet planning, and recipe generation. Complete these fields for the most precise advice.'**
   String get additionalForAiHint;
 
   /// No description provided for @aiCalculatingGoals.
@@ -3232,6 +3232,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ready Product'**
   String get readyProductLabel;
+
+  /// No description provided for @medicContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical recommendations / restrictions'**
+  String get medicContextTitle;
+
+  /// No description provided for @dietitianContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dietitian recommendations / preferences'**
+  String get dietitianContextTitle;
+
+  /// No description provided for @trainerContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trainer recommendations / goals and nutrition'**
+  String get trainerContextTitle;
+
+  /// No description provided for @activityContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal physical activity'**
+  String get activityContextTitle;
+
+  /// No description provided for @medicContextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies, chronic conditions, medical restrictions...'**
+  String get medicContextHint;
+
+  /// No description provided for @dietitianContextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dietary preferences, meal frequency, eating habits...'**
+  String get dietitianContextHint;
+
+  /// No description provided for @trainerContextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout routine, sports nutrition, macronutrient goals and stamina...'**
+  String get trainerContextHint;
+
+  /// No description provided for @activityContextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily steps, active hobbies, typical daily activity...'**
+  String get activityContextHint;
 }
 
 class _AppLocalizationsDelegate

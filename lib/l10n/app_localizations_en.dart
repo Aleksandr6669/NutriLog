@@ -415,7 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get additionalForAiHint =>
-      'For example: sedentary work, early training, food restrictions. Can be left empty.';
+      'This section is used by AI for personalized health recommendations, menu analysis, diet planning, and recipe generation. Complete these fields for the most precise advice.';
 
   @override
   String get aiCalculatingGoals => 'AI is calculating targets...';
@@ -1734,4 +1734,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readyProductLabel => 'Ready Product';
+
+  @override
+  String get medicContextTitle => 'Medical recommendations / restrictions';
+
+  @override
+  String get dietitianContextTitle => 'Dietitian recommendations / preferences';
+
+  @override
+  String get trainerContextTitle =>
+      'Trainer recommendations / goals and nutrition';
+
+  @override
+  String get activityContextTitle => 'Personal physical activity';
+
+  @override
+  String get medicContextHint =>
+      'Allergies, chronic conditions, medical restrictions...';
+
+  @override
+  String get dietitianContextHint =>
+      'Dietary preferences, meal frequency, eating habits...';
+
+  @override
+  String get trainerContextHint =>
+      'Workout routine, sports nutrition, macronutrient goals and stamina...';
+
+  @override
+  String get activityContextHint =>
+      'Daily steps, active hobbies, typical daily activity...';
 }

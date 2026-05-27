@@ -262,21 +262,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   theme, l10n.weight, '${profile.weight} ${l10n.weightUnit}'),
               _buildInfoRow(
                   theme, l10n.gender, profile.gender.localizedLabel(context)),
-              if (profile.healthConditions.isNotEmpty) ...[
-                const Divider(height: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.healthConditionsTitle,
-                        style: theme.textTheme.labelMedium
-                            ?.copyWith(color: theme.hintColor)),
-                    const SizedBox(height: 4),
-                    Text(profile.healthConditions,
-                        style: theme.textTheme.bodyLarge
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 16),
@@ -336,16 +321,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (result == true) _refreshProfile();
             },
             children: [
-              Text(
-                profile.aiContext.isNotEmpty
-                    ? profile.aiContext
-                    : 'Не указан. Расскажите ИИ о своих предпочтениях для персонализации питания.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: profile.aiContext.isNotEmpty
-                      ? theme.textTheme.bodyLarge?.color
-                      : theme.hintColor,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileContextField(
+                    theme: theme,
+                    title: l10n.additionalForAi,
+                    value: profile.aiContext,
+                    fallback: 'Не указан. Расскажите ИИ о своих предпочтениях для персонализации питания.',
+                  ),
+                  const Divider(height: 20),
+                  _buildProfileContextField(
+                    theme: theme,
+                    title: l10n.medicContextTitle,
+                    value: profile.medicContext,
+                    fallback: 'Не указан. Аллергии, хронические заболевания, ограничения.',
+                  ),
+                  const Divider(height: 20),
+                  _buildProfileContextField(
+                    theme: theme,
+                    title: l10n.dietitianContextTitle,
+                    value: profile.dietitianContext,
+                    fallback: 'Не указан. Диетические предпочтения, режим питания.',
+                  ),
+                  const Divider(height: 20),
+                  _buildProfileContextField(
+                    theme: theme,
+                    title: l10n.trainerContextTitle,
+                    value: profile.trainerContext,
+                    fallback: 'Не указан. Режим тренировок, спортивные цели.',
+                  ),
+                  const Divider(height: 20),
+                  _buildProfileContextField(
+                    theme: theme,
+                    title: l10n.activityContextTitle,
+                    value: profile.activityContext,
+                    fallback: 'Не указан. Физическая нагрузка, хобби, шаги.',
+                  ),
+                ],
               ),
             ],
           ),
@@ -529,7 +542,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Spacer(),
                 IconButton(
                   onPressed: onEdit,
-                  icon: const Icon(Symbols.edit, size: 20),
+                  icon: const Icon(Icons.edit, size: 20),
                   tooltip: l10n.edit,
                 )
               ],
@@ -541,6 +554,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileContextField({
+    required ThemeData theme,
+    required String title,
+    required String value,
+    required String fallback,
+  }) {
+    final hasValue = value.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.labelMedium
+              ?.copyWith(color: theme.hintColor),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          hasValue ? value : fallback,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: hasValue ? theme.textTheme.bodyLarge?.color : theme.hintColor,
+          ),
+        ),
+      ],
     );
   }
 

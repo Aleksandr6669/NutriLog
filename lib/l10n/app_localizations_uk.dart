@@ -416,7 +416,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get additionalForAiHint =>
-      'Наприклад: сидяча робота, ранні тренування, обмеження в їжі. Можна залишити порожнім.';
+      'Цей розділ використовується ШІ для персональних рекомендацій щодо здоров\'я, аналізу меню, складання раціону та рецептів. Заповніть ці поля для максимально точних порад.';
 
   @override
   String get aiCalculatingGoals => 'Нейромережа розраховує цілі...';
@@ -1738,4 +1738,33 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get readyProductLabel => 'Готовий продукт';
+
+  @override
+  String get medicContextTitle => 'Рекомендації медика / обмеження';
+
+  @override
+  String get dietitianContextTitle => 'Рекомендації дієтолога / уподобання';
+
+  @override
+  String get trainerContextTitle =>
+      'Рекомендації тренера / спортивні цілі та харчування';
+
+  @override
+  String get activityContextTitle => 'Особиста фізична активність';
+
+  @override
+  String get medicContextHint =>
+      'Алергії, хронічні захворювання, медичні обмеження...';
+
+  @override
+  String get dietitianContextHint =>
+      'Дієтичні уподобання, режим харчування, звички...';
+
+  @override
+  String get trainerContextHint =>
+      'Режим тренувань, спортивне харчування, цілі з витривалості та БЖВ...';
+
+  @override
+  String get activityContextHint =>
+      'Денна активність, хобі, типичне навантаження протягом дня...';
 }

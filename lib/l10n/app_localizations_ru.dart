@@ -416,7 +416,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get additionalForAiHint =>
-      'Например: сидячая работа, ранние тренировки, ограничения в еде. Можно оставить пустым.';
+      'Этот раздел используется ИИ для персональных рекомендаций по здоровью, анализа меню, составления рациона и рецептов. Заполните эти поля для максимально точных советов.';
 
   @override
   String get aiCalculatingGoals => 'Нейросеть рассчитывает цели...';
@@ -1740,4 +1740,33 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get readyProductLabel => 'Готовый продукт';
+
+  @override
+  String get medicContextTitle => 'Рекомендации медика / ограничения';
+
+  @override
+  String get dietitianContextTitle => 'Рекомендации диетолога / предпочтения';
+
+  @override
+  String get trainerContextTitle =>
+      'Рекомендации тренера / спортивные цели и питание';
+
+  @override
+  String get activityContextTitle => 'Личная физическая активность';
+
+  @override
+  String get medicContextHint =>
+      'Аллергии, хронические заболевания, медицинские ограничения...';
+
+  @override
+  String get dietitianContextHint =>
+      'Диетические предпочтения, режим питания, привычки...';
+
+  @override
+  String get trainerContextHint =>
+      'Режим тренировок, спортивное питание, цели по БЖУ и выносливости...';
+
+  @override
+  String get activityContextHint =>
+      'Дневная активность, хобби, типичная нагрузка в течение дня...';
 }

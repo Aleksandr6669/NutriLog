@@ -131,7 +131,7 @@
   "sportsActivities": "What sports/activities do you do",
   "canBeLeftEmpty": "Can be left empty",
   "additionalForAi": "Additional context for AI targets",
-  "additionalForAiHint": "For example: sedentary work, early training, food restrictions. Can be left empty.",
+  "additionalForAiHint": "This section is used by AI for personalized health recommendations, menu analysis, diet planning, and recipe generation. Complete these fields for the most precise advice.",
   "aiCalculatingGoals": "AI is calculating targets...",
   "aiCalculateGoals": "Calculate daily targets with AI",
   "aiGoalsNotice": "AI calculates targets based on your parameters. It is recommended to review values before saving.",
@@ -639,5 +639,13 @@
   "popular": "Popular",
   "dishType": "Dish Type",
   "recipeLabel": "Recipe",
-  "readyProductLabel": "Ready Product"
+  "readyProductLabel": "Ready Product",
+  "medicContextTitle": "Medical recommendations / restrictions",
+  "dietitianContextTitle": "Dietitian recommendations / preferences",
+  "trainerContextTitle": "Trainer recommendations / goals and nutrition",
+  "activityContextTitle": "Personal physical activity",
+  "medicContextHint": "Allergies, chronic conditions, medical restrictions...",
+  "dietitianContextHint": "Dietary preferences, meal frequency, eating habits...",
+  "trainerContextHint": "Workout routine, sports nutrition, macronutrient goals and stamina...",
+  "activityContextHint": "Daily steps, active hobbies, typical daily activity..."
 }

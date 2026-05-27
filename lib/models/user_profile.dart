@@ -51,6 +51,10 @@ class UserProfile {
   final List<Map<String, dynamic>> weightHistory;
   final SubscriptionTier tier;
   final DateTime? subscriptionUntil;
+  final String medicContext;
+  final String dietitianContext;
+  final String trainerContext;
+  final String activityContext;
 
   int get age {
     final today = DateTime.now();
@@ -60,6 +64,17 @@ class UserProfile {
       years--;
     }
     return years;
+  }
+
+  String richContextSummary(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sb = StringBuffer();
+    if (aiContext.isNotEmpty) sb.writeln('${l10n.additionalForAi}: $aiContext');
+    if (medicContext.isNotEmpty) sb.writeln('${l10n.medicContextTitle}: $medicContext');
+    if (dietitianContext.isNotEmpty) sb.writeln('${l10n.dietitianContextTitle}: $dietitianContext');
+    if (trainerContext.isNotEmpty) sb.writeln('${l10n.trainerContextTitle}: $trainerContext');
+    if (activityContext.isNotEmpty) sb.writeln('${l10n.activityContextTitle}: $activityContext');
+    return sb.toString().trim();
   }
 
   const UserProfile({
@@ -84,6 +99,10 @@ class UserProfile {
     required this.weightHistory,
     this.tier = SubscriptionTier.free,
     this.subscriptionUntil,
+    this.medicContext = '',
+    this.dietitianContext = '',
+    this.trainerContext = '',
+    this.activityContext = '',
   });
 
   bool get isAiFeatureAvailable {
@@ -126,6 +145,10 @@ class UserProfile {
     List<Map<String, dynamic>>? weightHistory,
     SubscriptionTier? tier,
     DateTime? subscriptionUntil,
+    String? medicContext,
+    String? dietitianContext,
+    String? trainerContext,
+    String? activityContext,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -149,6 +172,10 @@ class UserProfile {
       weightHistory: weightHistory ?? this.weightHistory,
       tier: tier ?? this.tier,
       subscriptionUntil: subscriptionUntil ?? this.subscriptionUntil,
+      medicContext: medicContext ?? this.medicContext,
+      dietitianContext: dietitianContext ?? this.dietitianContext,
+      trainerContext: trainerContext ?? this.trainerContext,
+      activityContext: activityContext ?? this.activityContext,
     );
   }
 
@@ -187,6 +214,10 @@ class UserProfile {
       subscriptionUntil: json['subscriptionUntil'] != null
           ? DateTime.parse(json['subscriptionUntil'] as String)
           : null,
+      medicContext: (json['medicContext'] as String? ?? '').trim(),
+      dietitianContext: (json['dietitianContext'] as String? ?? '').trim(),
+      trainerContext: (json['trainerContext'] as String? ?? '').trim(),
+      activityContext: (json['activityContext'] as String? ?? '').trim(),
     );
   }
 
@@ -213,6 +244,10 @@ class UserProfile {
       'weightHistory': weightHistory,
       'tier': tier.name,
       'subscriptionUntil': subscriptionUntil?.toIso8601String(),
+      'medicContext': medicContext,
+      'dietitianContext': dietitianContext,
+      'trainerContext': trainerContext,
+      'activityContext': activityContext,
     };
   }
 }

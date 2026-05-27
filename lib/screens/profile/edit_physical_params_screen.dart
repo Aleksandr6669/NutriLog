@@ -26,7 +26,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
-  late TextEditingController _healthConditionsController;
   late Gender _gender;
   late DateTime _birthDate;
 
@@ -40,8 +39,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         TextEditingController(text: widget.profile.height.toString());
     _weightController =
         TextEditingController(text: widget.profile.weight.toString());
-    _healthConditionsController =
-        TextEditingController(text: widget.profile.healthConditions);
   }
 
   Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
@@ -63,7 +60,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     _nameController.dispose();
     _heightController.dispose();
     _weightController.dispose();
-    _healthConditionsController.dispose();
     super.dispose();
   }
 
@@ -75,7 +71,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
         birthDate: _birthDate,
         height: int.tryParse(_heightController.text) ?? 0,
         weight: double.tryParse(_weightController.text) ?? 0,
-        healthConditions: _healthConditionsController.text,
       );
       await context.read<ProfileProvider>().updateProfile(updatedProfile);
       if (mounted) Navigator.pop(context, true);
@@ -165,18 +160,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                     : null,
                 decoration: AppStyles.inputDecoration(
                     l10n.currentWeightKg, Symbols.weight),
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _healthConditionsController,
-                minLines: 3,
-                maxLines: 5,
-                decoration: AppStyles.inputDecoration(
-                        l10n.healthConditionsTitle, Symbols.medical_services)
-                    .copyWith(
-                  helperText: l10n.healthConditionsHint,
-                ),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ],
