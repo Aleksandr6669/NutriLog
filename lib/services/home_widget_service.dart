@@ -95,13 +95,13 @@ class HomeWidgetSyncService {
       }
     }
 
-    final calorieGoal = profile.calorieGoal.round();
-    final proteinGoal = profile.proteinGoal;
-    final fatGoal = profile.fatGoal;
-    final carbsGoal = profile.carbsGoal;
-    final waterGoalLiters = (profile.waterGoal / 1000.0).toStringAsFixed(1);
+    // final calorieGoal = profile.calorieGoal.round();
+    // final proteinGoal = profile.proteinGoal;
+    // final fatGoal = profile.fatGoal;
+    // final carbsGoal = profile.carbsGoal;
+    // final waterGoalLiters = (profile.waterGoal / 1000.0).toStringAsFixed(1);
 
-    final lang = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    // final lang = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
 
 
     final Map<String, dynamic> data = {
