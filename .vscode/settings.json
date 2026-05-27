@@ -9,5 +9,8 @@
   },
   "remote.autoForwardPortsFallback": 0,
   "cmake.ignoreCMakeListsMissing": true,
-  "livePreview.defaultPreviewPath": "/web_tools/nutrilog_studio/index.html"
+  "livePreview.defaultPreviewPath": "/web_tools/nutrilog_studio/index.html",
+  "github-actions.workflows.pinned.workflows": [
+    ".github/workflows/android_build_signed.yml"
+  ]
 }

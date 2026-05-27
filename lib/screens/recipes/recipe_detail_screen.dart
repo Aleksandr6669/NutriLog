@@ -51,8 +51,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null) return;
 
+    final richSummary = profile.richContextSummary(context);
     final currentHash =
-        _calculateContextHash(profile.richContextSummary(context), widget.recipe);
+        _calculateContextHash(richSummary, widget.recipe);
 
     final prefs = await SharedPreferences.getInstance();
     final userId = CloudDataService.instance.currentUserId ?? 'guest';
@@ -86,11 +87,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
 
     // Always fetch fresh expert advice (personalized if fields filled, light advice if empty)
-    _generateNewAdvice(profile.richContextSummary(context), currentHash);
+    if (mounted) {
+      _generateNewAdvice(richSummary, currentHash);
+    }
   }
 
   Future<void> _generateNewAdvice(String healthConditions, String hash) async {
     if (!mounted) return;
+    final languageCode = Localizations.localeOf(context).languageCode;
     setState(() => _isLoadingAdvice = true);
     try {
       final advice = await _geminiRecipeService.generateMedicalAdvice(
@@ -100,7 +104,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         nutrients: widget.recipe.nutrients,
         healthConditions: healthConditions,
         clarification: widget.recipe.clarification,
-        locale: Localizations.localeOf(context).languageCode,
+        locale: languageCode,
       );
 
       if (mounted) {
@@ -551,19 +555,46 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget _buildPersonalAdviceCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final profile = context.read<ProfileProvider>().profile;
     
-    final hasExpertContext = profile != null &&
-        (profile.medicContext.isNotEmpty ||
-            profile.dietitianContext.isNotEmpty ||
-            profile.trainerContext.isNotEmpty);
+    final isNewFormat = _personalAdvice.contains('[[IS_COMPATIBLE]]');
+    bool isCompatible = true;
+    String incompatibleReason = '';
+
+    if (isNewFormat) {
+      final isCompatibleMatch = RegExp(r'\[\[IS_COMPATIBLE\]\](.*?)(?=\[\[|$)').firstMatch(_personalAdvice);
+      final incompatibleReasonMatch = RegExp(r'\[\[INCOMPATIBLE_REASON\]\](.*?)(?=\[\[|$)').firstMatch(_personalAdvice);
+
+      isCompatible = isCompatibleMatch?.group(1)?.trim().toLowerCase() == 'true';
+      incompatibleReason = incompatibleReasonMatch?.group(1)?.trim() ?? '';
+    }
+
+    Color cardBgColor = Colors.blue.withValues(alpha: 0.04);
+    Color cardBorderColor = Colors.blue.withValues(alpha: 0.15);
+    Color titleColor = Colors.blue.shade900;
+    IconData headerIcon = Symbols.psychology;
+
+    if (_personalAdvice.isNotEmpty) {
+      if (isNewFormat) {
+        if (!isCompatible) {
+          cardBgColor = Colors.red.withValues(alpha: 0.04);
+          cardBorderColor = Colors.red.withValues(alpha: 0.15);
+          titleColor = Colors.red.shade900;
+          headerIcon = Symbols.warning;
+        } else {
+          cardBgColor = Colors.green.withValues(alpha: 0.04);
+          cardBorderColor = Colors.green.withValues(alpha: 0.15);
+          titleColor = Colors.green.shade900;
+          headerIcon = Symbols.check_circle;
+        }
+      }
+    }
 
     return Card(
-      color: Colors.blue.withValues(alpha: 0.05),
+      color: cardBgColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.blue.withValues(alpha: 0.2), width: 1),
+        side: BorderSide(color: cardBorderColor, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -573,17 +604,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             Row(
               children: [
                 Icon(
-                  Symbols.psychology,
-                  color: theme.colorScheme.primary,
+                  headerIcon,
+                  color: titleColor,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    hasExpertContext ? l10n.healthAdviceTitle : 'Советы экспертов и ИИ',
+                    isNewFormat 
+                        ? (isCompatible ? 'Совместимо с вашей диетой' : 'Не рекомендуется')
+                        : 'Анализ и рекомендации ИИ',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade900,
+                      color: titleColor,
                     ),
                   ),
                 ),
@@ -599,6 +632,36 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             if (_personalAdvice.isNotEmpty) ...[
               _buildDisclaimer(l10n, theme),
               const SizedBox(height: 12),
+              if (isNewFormat && !isCompatible && incompatibleReason.isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Symbols.error_med, color: Colors.red, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          incompatibleReason,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.red.shade800,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
             ] else if (_isLoadingAdvice)
               Center(
@@ -657,6 +720,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   List<Widget> _buildGroupedAdvice(
       String advice, ThemeData theme, AppLocalizations l10n) {
+    final isNewFormat = advice.contains('[[IS_COMPATIBLE]]');
+    if (isNewFormat) {
+      final adviceMatch = RegExp(r'\[\[ADVICE\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+      final mainAdvice = adviceMatch?.group(1)?.trim() ?? advice;
+      return [
+        Text(
+          mainAdvice,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 13,
+            height: 1.45,
+            color: Colors.black87,
+          ),
+        ),
+      ];
+    }
+
     final doctorMatch =
         RegExp(r'\[\[DOCTOR\]\](.*?)(?=\[\[|$)').firstMatch(advice);
     final dietitianMatch =

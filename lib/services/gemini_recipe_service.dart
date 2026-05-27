@@ -735,31 +735,40 @@ Rules:
         .join('\\n');
 
     final prompt = '''
-    Analyze the following recipe and provide professional recommendations as a team of experts.
+    Analyze the following recipe and provide professional nutritional recommendations.
     
-    CRITICAL INSTRUCTIONS:
-    1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
-    2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe).
-    3. If the user has no health conditions or custom settings specified (i.e. empty or "None specified"), the experts MUST provide their standard/default recommendations for this type of dish, and ALSO briefly describe the dish (its composition, key characteristics, or benefits) in their advice.
-    4. Provide strictly 1-2 concise sentences per expert.
+    ${_languageInstruction(locale)}
 
-    EXPERTS:
-    - MEDICAL DOCTOR: Focus on safety/risks regarding the user's conditions.
-    - PROFESSIONAL DIETITIAN: Focus on nutritional balance and diet fit.
-    - FITNESS TRAINER: Focus on energy, recovery, and active lifestyle suitability.
+    CRITICAL HEALTH & DIETARY FILTER (STRICT):
+    1. Carefully examine all user health conditions, dietary constraints, preferences, and contexts:
+       User Context & Constraints: ${healthConditions.isEmpty ? 'None specified' : healthConditions}
+    2. Check the recipe name, description, and ingredients for any forbidden or restricted items based on the user's constraints:
+       - VEGETARIAN / NO MEAT / NO FISH: If the user indicates they are vegetarian, vegan, or do not eat meat or fish (e.g., "вегетарианец", "не ем мясо", "не ем рыбу", "без мяса", "без рыбы", "веган", vegetarian, vegan, no meat, no fish, no poultry, etc.), you MUST check if this recipe contains any meat, chicken, beef, pork, turkey, duck, ham, bacon, sausage, fish, salmon, tuna, cod, trout, shrimp, crab, lobster, seafood, etc. If it does, you MUST set "isCompatible" to false, and set "incompatibleReason" to a clear Russian warning explaining exactly which ingredient is restricted and why (e.g., "Содержит рыбу, которую вам нельзя согласно вашим ограничениям" or "Содержит мясо (курицу), а вы вегетарианец").
+       - DIETARY AND HEALTH CONSTRAINTS: Check if any ingredient is strictly prohibited by user's medical or dietitian guidelines. If yes, set "isCompatible" to false and explain.
+    3. If there are no violations, set "isCompatible" to true and "incompatibleReason" to "".
+    
+    RECOMMENDATION & SUITABILITY RULES:
+    1. Provide a comprehensive, professional nutritional analysis of the dish based on the user's diet and workouts (if specified).
+    2. If the user is on a diet (e.g. calorie deficit, weight loss, muscle gain):
+       - Explain what is allowed/compatible in this dish and WHY (e.g. high protein helps muscle recovery, low calorie density fits a deficit).
+       - Explain what is needed/required and WHY (e.g. this dish is rich in fiber which is essential for your digestion on a deficit).
+       - Explain what is NOT allowed or should be limited, and WHY (e.g. avoid adding sour cream as it adds extra saturated fat).
+    3. Keep the advice highly relevant, personal, motivating, and strictly concise (3-5 sentences). Do NOT suggest generic tips that are unrelated to this specific dish.
+    4. Write under a single unified AI Assistant persona. Do NOT divide the advice into Doctor, Dietitian, or Trainer sections.
 
-  User health conditions: ${healthConditions.isEmpty ? 'None specified' : healthConditions}.
-  
-  Recipe Name: $recipeName
-  Description: $recipeDescription
-  Preparation Details/Clarification: $clarification
-  Ingredients: $ingredientsText
-  Nutrients: ${nutrients.entries.map((e) => '${e.key}: ${e.value}').join(', ')}
+    Recipe Name: $recipeName
+    Description: $recipeDescription
+    Preparation Details/Clarification: $clarification
+    Ingredients: $ingredientsText
+    Nutrients: ${nutrients.entries.map((e) => '${e.key}: ${e.value}').join(', ')}
 
-  Rules:
-  1. ${_languageInstruction(locale)}
-  2. Return ONLY JSON.
-  ''';
+    Return ONLY a JSON object with these keys:
+    {
+      "isCompatible": true|false,
+      "incompatibleReason": "warning explanation in Russian, or empty if compatible",
+      "advice": "detailed unified analysis and recommendations in Russian"
+    }
+    ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
       body: {
@@ -770,26 +779,25 @@ Rules:
         'response_schema': {
           'type': 'object',
           'properties': {
-            'doctor': {'type': 'string'},
-            'dietitian': {'type': 'string'},
-            'trainer': {'type': 'string'},
+            'isCompatible': {'type': 'boolean'},
+            'incompatibleReason': {'type': 'string'},
+            'advice': {'type': 'string'},
           },
-          'required': ['doctor', 'dietitian', 'trainer'],
+          'required': ['isCompatible', 'incompatibleReason', 'advice'],
         },
       },
       apiKeyOverride: apiKey,
       locale: locale,
-      featureName: 'Expert Advice',
+      featureName: 'AI Personal Advice',
     );
 
-    // Convert to a single formatted string for backward compatibility or parseable format
-    final doctor = _cleanupAdvice(decoded['doctor'] as String? ?? '');
-    final dietitian = _cleanupAdvice(decoded['dietitian'] as String? ?? '');
-    final trainer = _cleanupAdvice(decoded['trainer'] as String? ?? '');
+    final bool isCompatible = decoded['isCompatible'] == true;
+    final String incompatibleReason = _cleanupAdvice(decoded['incompatibleReason'] as String? ?? '');
+    final String advice = _cleanupAdvice(decoded['advice'] as String? ?? '');
 
-    if (doctor.isEmpty && dietitian.isEmpty && trainer.isEmpty) return '';
+    if (incompatibleReason.isEmpty && advice.isEmpty) return '';
 
-    return '[[DOCTOR]] $doctor [[DIETITIAN]] $dietitian [[TRAINER]] $trainer';
+    return '[[IS_COMPATIBLE]] $isCompatible [[INCOMPATIBLE_REASON]] $incompatibleReason [[ADVICE]] $advice';
   }
 
   String _cleanupAdvice(String advice) {
@@ -1513,6 +1521,10 @@ Task:
     - Snacking: You can completely omit snack recommendations (do not add any "snack" mealtimes) if the trainer plan or macro guidelines do not require snacks, or if they prescribe a 3-meal pattern.
 26) DEFAULT STANDARDS WHEN DATA IS MISSING (CRITICAL):
   * If the user's AI settings, health conditions, dietitian guidelines, or trainer meal plans are empty or "not specified", you MUST fall back to providing standard, default healthy eating recommendations that align perfectly with the user's chosen primary goal type ($goalType) and general macro/nutritional norms.
+27) VEGETARIAN / DIETARY EXCLUSIONS (CRITICAL):
+  * If the user specifies any dietary restriction, allergy, or preference (e.g. 'вегетарианец', 'не ем мясо', 'не ем рыбу', 'без мяса', 'без рыбы', vegetarian, vegan, no meat, no fish, etc.) in their settings (healthConditions, dietitianContext, trainerContext, or aiContext), you MUST STRICTLY respect it. Never recommend recipes or dishes containing these forbidden products (e.g. no chicken, beef, meat, fish, seafood, or pork in a vegetarian diet). If the user states they don't eat fish/meat, then do NOT suggest any dishes containing fish or meat. This is a hard constraint.
+28) STRICT MEAL PORTION LIMITATIONS (CRITICAL):
+  * If the user specifies they want only one dish/item for a meal (e.g. 'на завтрак что-то одно', 'одно блюдо на завтрак', 'only one dish for breakfast') in their settings or contexts, you MUST recommend strictly EXACTLY ONE dish/recipe for that meal time in the recommendations JSON list. You must NEVER recommend a combination or multiple items for that mealtime.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
