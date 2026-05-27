@@ -95,17 +95,23 @@ class HomeWidgetSyncService {
       }
     }
 
+    final calorieGoal = profile.calorieGoal.round();
+    final proteinGoal = profile.proteinGoal;
+    final fatGoal = profile.fatGoal;
+    final carbsGoal = profile.carbsGoal;
+    final waterGoalLiters = (profile.waterGoal / 1000.0).toStringAsFixed(1);
+
     final Map<String, dynamic> data = {
-      'calories': consumed.toString(),
-      'proteins': '$proteinг',
-      'fats': '$fatг',
-      'carbs': '$carbsг',
-      'proteins_val': protein.toString(),
-      'fats_val': fat.toString(),
-      'carbs_val': carbs.toString(),
-      'calories_summary': '$consumed ккал',
-      'water': '$waterLiters Л',
-      'water_value': '$waterLiters Л',
+      'calories': '$consumed из $calorieGoal',
+      'proteins': '$protein из $proteinGoalг',
+      'fats': '$fat из $fatGoalг',
+      'carbs': '$carbs из $carbsGoalг',
+      'proteins_val': '$protein из $proteinGoal',
+      'fats_val': '$fat из $fatGoal',
+      'carbs_val': '$carbs из $carbsGoal',
+      'calories_summary': '$consumed из $calorieGoal ккал',
+      'water': '$waterLiters из $waterGoalLiters Л',
+      'water_value': '$waterLiters из $waterGoalLiters Л',
       'steps': stepsString,
     };
 

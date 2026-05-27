@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../models/user_profile.dart';
 import '../../../styles/app_styles.dart';
 
 class ProgressCard extends StatelessWidget {
@@ -15,6 +16,7 @@ class ProgressCard extends StatelessWidget {
   final bool isWeight;
   final bool isWater;
   final bool useStrictGoalComparison;
+  final GoalType? goalType;
 
   const ProgressCard({
     super.key,
@@ -29,6 +31,7 @@ class ProgressCard extends StatelessWidget {
     this.isWeight = false,
     this.isWater = false,
     this.useStrictGoalComparison = false,
+    this.goalType,
   });
 
   @override
@@ -146,9 +149,22 @@ class ProgressCard extends StatelessWidget {
         metricValue ?? (series.isNotEmpty ? series.last : null);
     if (referenceValue == null) return null;
 
-    final meetsGoal = useStrictGoalComparison
-        ? referenceValue > goal!
-        : referenceValue >= goal!;
+    final bool meetsGoal;
+    if (isWeight && goalType != null) {
+      if (goalType == GoalType.loseWeight) {
+        meetsGoal = referenceValue <= goal!;
+      } else if (goalType == GoalType.gainWeight || goalType == GoalType.gainMuscle) {
+        meetsGoal = referenceValue >= goal!;
+      } else {
+        // Для поддержания веса или здорового питания: если вес примерно равен или ниже цели (в пределах 1.5 кг)
+        meetsGoal = (referenceValue - goal!).abs() <= 1.5 || referenceValue <= goal!;
+      }
+    } else {
+      meetsGoal = useStrictGoalComparison
+          ? referenceValue > goal!
+          : referenceValue >= goal!;
+    }
+
     var diffRatio = ((referenceValue - goal!) / goal!).clamp(-1.0, 1.0);
     if (!meetsGoal && diffRatio >= 0) {
       diffRatio = -0.12;

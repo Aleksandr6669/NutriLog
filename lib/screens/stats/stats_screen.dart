@@ -1211,6 +1211,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             color: Colors.orange,
             goal: profile.weightGoal,
             isWeight: true,
+            goalType: profile.goalType,
             metricValue: latestWeight,
             trendData: weightSeries),
         const SizedBox(height: 8),
