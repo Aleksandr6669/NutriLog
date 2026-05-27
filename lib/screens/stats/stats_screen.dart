@@ -1019,36 +1019,6 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   ],
                 ),
                 const SizedBox(height: 10),
-                if (profile.isPersonalAdviceAvailable)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.25),
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Symbols.info,
-                            size: 16, color: Colors.orange),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            l10n.statsAiNotMedicalAdvice,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 12),
                 _buildAiReportCard(
                   context,
                   theme,
@@ -1740,7 +1710,26 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withAlpha(255),
                     fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Symbols.info,
+                    size: 14, color: theme.hintColor.withValues(alpha: 0.7)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l10n.statsAiNotMedicalAdvice,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor.withValues(alpha: 0.7),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             if (!isPreparing && !_aiError && overviewText.isNotEmpty)
               _buildAiOverviewSections(theme, overviewText),
             const SizedBox(height: 8),
