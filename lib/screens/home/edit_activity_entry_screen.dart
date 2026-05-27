@@ -33,6 +33,21 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   String? _aiEstimateStatus;
   bool _isAiEstimateError = false;
 
+  static const Map<String, String> _iconLabelsRu = {
+    'fitness_center': 'Зал',
+    'directions_run': 'Бег',
+    'directions_walk': 'Ходьба',
+    'directions_bike': 'Велосипед',
+    'pool': 'Бассейн',
+    'sports_soccer': 'Футбол',
+    'sports_basketball': 'Баскетбол',
+    'sports_volleyball': 'Волейбол',
+    'sports_tennis': 'Теннис',
+    'sports_martial_arts': 'Борьба',
+    'self_improvement': 'Йога',
+    'hiking': 'Поход',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +86,22 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     );
   }
 
+  String _inferIconFromName(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('бег') || lower.contains('run')) return 'directions_run';
+    if (lower.contains('ходьб') || lower.contains('шаг') || lower.contains('walk')) return 'directions_walk';
+    if (lower.contains('вело') || lower.contains('байк') || lower.contains('bike')) return 'directions_bike';
+    if (lower.contains('плав') || lower.contains('бассейн') || lower.contains('swim') || lower.contains('pool')) return 'pool';
+    if (lower.contains('футб') || lower.contains('soccer') || lower.contains('football')) return 'sports_soccer';
+    if (lower.contains('баскет') || lower.contains('basketball')) return 'sports_basketball';
+    if (lower.contains('волей') || lower.contains('volleyball')) return 'sports_volleyball';
+    if (lower.contains('теннис') || lower.contains('tennis')) return 'sports_tennis';
+    if (lower.contains('борьб') || lower.contains('бокс') || lower.contains('каратэ') || lower.contains('martial')) return 'sports_martial_arts';
+    if (lower.contains('йог') || lower.contains('пилатес') || lower.contains('stretch') || lower.contains('yoga')) return 'self_improvement';
+    if (lower.contains('поход') || lower.contains('горы') || lower.contains('hike') || lower.contains('hiking')) return 'hiking';
+    return 'fitness_center';
+  }
+
   Future<void> _estimateCaloriesWithAi() async {
     final l10n = AppLocalizations.of(context)!;
     final source = _descriptionController.text.trim();
@@ -96,15 +127,18 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
       );
       if (!mounted) return;
       
-      _nameController.text = draft.name;
-      _descriptionController.text = draft.description;
-      _caloriesController.text = draft.calories.toString();
-      
+      // Option 2: Direct insertion, immediately populates the manual fields and automatically selects matching sport icon
       setState(() {
+        _nameController.text = draft.name;
+        _descriptionController.text = draft.description;
+        _caloriesController.text = draft.calories.toString();
+        _selectedIconName = _inferIconFromName(draft.name);
+        
         _isAiEstimating = false;
         _isAiEstimateError = false;
         _aiEstimateStatus = l10n.activityAiEstimated(draft.calories);
       });
+      HapticFeedback.mediumImpact();
     } on GeminiRecipeException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -129,17 +163,6 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Premium HSL-inspired gradient backgrounds for light/dark modes
-    final aiCardBg = isDark
-        ? [
-            const Color(0xFF1E3326).withValues(alpha: 0.8),
-            const Color(0xFF0F2218).withValues(alpha: 0.8)
-          ]
-        : [
-            const Color(0xFFE8F5E9).withValues(alpha: 0.8),
-            const Color(0xFFE0F2F1).withValues(alpha: 0.8)
-          ];
-
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       extendBodyBehindAppBar: true,
@@ -157,32 +180,12 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
         key: _formKey,
         child: SingleChildScrollView(
           padding: glassBodyPadding(context, top: 16, bottom: 40),
+          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. SMART AI ASSISTANT CARD (LOGICAL STEP 1)
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: aiCardBg,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: AppStyles.cardRadius,
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.primary.withValues(alpha: 0.4)
-                        : AppColors.primary.withValues(alpha: 0.25),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
+              // 1. SMART AI ASSISTANT CARD (Matches App Style Cards + Form Inputs)
+              Card(
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -200,6 +203,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                               Symbols.auto_awesome,
                               color: AppColors.primary,
                               size: 20,
+                              fill: 1.0,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -231,30 +235,11 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         controller: _descriptionController,
                         minLines: 2,
                         maxLines: 4,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: l10n.activityDescriptionLabel,
+                        decoration: AppStyles.inputDecoration(
+                          l10n.activityDescriptionLabel,
+                        ).copyWith(
                           hintText: l10n.activityDescriptionHint,
                           alignLabelWithHint: true,
-                          fillColor: isDark
-                              ? Colors.black.withValues(alpha: 0.4)
-                              : Colors.white.withValues(alpha: 0.8),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: AppStyles.mediumBorderRadius,
-                            borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: AppStyles.mediumBorderRadius,
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -278,16 +263,9 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                               }
                             },
                             style: FilledButton.styleFrom(
-                              backgroundColor: isAiAvailable
-                                  ? AppColors.primary
-                                  : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
-                              foregroundColor: isAiAvailable
-                                  ? Colors.white
-                                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
                               shape: RoundedRectangleBorder(
                                 borderRadius: AppStyles.mediumBorderRadius,
                               ),
-                              elevation: isAiAvailable ? 2 : 0,
                             ),
                             icon: _isAiEstimating
                                 ? const SizedBox(
@@ -303,13 +281,14 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                         ? Symbols.auto_awesome
                                         : Symbols.lock,
                                     size: 18,
+                                    fill: 1.0,
                                   ),
                             label: Text(
                               _isAiEstimating
                                   ? l10n.activityAiEstimating
                                   : l10n.activityAiEstimateButton,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -343,6 +322,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                     ? Colors.red
                                     : Colors.green,
                                 size: 20,
+                                fill: 1.0,
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -367,14 +347,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 2. MANUAL WORKOUT DETAILS CARD (LOGICAL STEP 2)
+              // 2. MANUAL WORKOUT DETAILS CARD (Matches App Style Cards + Form Inputs)
               Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppStyles.cardRadius,
-                  side: BorderSide(
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
-                  ),
-                ),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -390,12 +364,9 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       TextFormField(
                         controller: _nameController,
                         textInputAction: TextInputAction.next,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: l10n.activityNameLabel,
-                          prefixIcon: const Icon(Symbols.fitness_center, color: AppColors.primary),
+                        decoration: AppStyles.inputDecoration(
+                          l10n.activityNameLabel,
+                          Symbols.fitness_center,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -411,13 +382,11 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: l10n.burnedCaloriesLabel,
+                        decoration: AppStyles.inputDecoration(
+                          l10n.burnedCaloriesLabel,
+                          Symbols.local_fire_department,
+                        ).copyWith(
                           suffixText: l10n.kcal,
-                          prefixIcon: const Icon(Symbols.local_fire_department, color: Colors.orange),
                         ),
                         validator: (value) {
                           final calories = int.tryParse(value?.trim() ?? '');
@@ -433,14 +402,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 3. ICON SELECTION SECTION (LOGICAL STEP 3)
+              // 3. ICON SELECTION SECTION (With crystal clear text labels under sport icons)
               Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppStyles.cardRadius,
-                  side: BorderSide(
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
-                  ),
-                ),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -455,10 +418,12 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       const SizedBox(height: 14),
                       Wrap(
                         spacing: 12,
-                        runSpacing: 12,
+                        runSpacing: 16,
                         alignment: WrapAlignment.center,
                         children: ActivityEntry.iconOptions.entries.map((e) {
                           final isSelected = _selectedIconName == e.key;
+                          final label = _iconLabelsRu[e.key] ?? 'Спорт';
+                          
                           return InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
@@ -467,37 +432,65 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                 _selectedIconName = e.key;
                               });
                             },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.orange.withValues(alpha: 0.14)
-                                    : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.orange
-                                      : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
-                                  width: isSelected ? 2.0 : 1.0,
-                                ),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.orange.withValues(alpha: 0.2),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
+                            child: SizedBox(
+                              width: 60,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedScale(
+                                    scale: isSelected ? 1.08 : 1.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeOutBack,
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      width: 52,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primary.withValues(alpha: 0.15)
+                                            : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
+                                          width: isSelected ? 2.2 : 1.0,
                                         ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Icon(
-                                e.value,
-                                color: isSelected
-                                    ? Colors.orange
-                                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
-                                size: 24,
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Icon(
+                                        e.value,
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                                        size: 24,
+                                        fill: isSelected ? 1.0 : 0.0,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    label,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontSize: 10.5,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
