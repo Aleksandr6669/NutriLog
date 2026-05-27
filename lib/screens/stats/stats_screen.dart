@@ -1033,7 +1033,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Symbols.info, size: 16, color: Colors.orange),
+                        const Icon(Symbols.info,
+                            size: 16, color: Colors.orange),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -1279,6 +1280,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
 
     final target = normalize(name);
     if (target.isEmpty) return null;
+
+    // 1. Точное или подстрочное совпадение (высокий приоритет)
     for (final recipe in recipes) {
       final current = normalize(recipe.name);
       if (current == target ||
@@ -1287,6 +1290,62 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         return recipe;
       }
     }
+
+    // 2. Словесное пересечение (поиск по ключевым словам)
+    // Отсекаем союзы и короткие слова длиной 3 и менее символов
+    final targetWords = target.split(' ').where((w) => w.length > 3).toSet();
+    if (targetWords.isNotEmpty) {
+      Recipe? bestMatch;
+      int maxOverlap = 0;
+      for (final recipe in recipes) {
+        final currentWords = normalize(recipe.name)
+            .split(' ')
+            .where((w) => w.length > 3)
+            .toSet();
+        final intersection = targetWords.intersection(currentWords);
+        if (intersection.length > maxOverlap) {
+          maxOverlap = intersection.length;
+          bestMatch = recipe;
+        }
+      }
+      // Если есть совпадение хотя бы по одному ключевому слову
+      if (maxOverlap > 0) {
+        return bestMatch;
+      }
+    }
+
+    // 3. Совпадение по ингредиентам (если само блюдо не найдено по названию)
+    // Например, если ИИ рекомендует "яйца" или "гречку", а у пользователя нет рецепта "Яйца",
+    // но есть "Омлет" (в составе которого есть яйцо) или "Каша гречневая" (в составе гречка).
+    if (targetWords.isNotEmpty) {
+      // Нормализуем популярные ингредиенты для поиска соответствий (простейший стемминг)
+      final stemmedTargets = targetWords.map((w) {
+        if (w.startsWith('яйц') || w.startsWith('яйч')) return 'яйц';
+        if (w.startsWith('греч')) return 'греч';
+        if (w.startsWith('кури')) return 'кури';
+        if (w.startsWith('рыб')) return 'рыб';
+        if (w.startsWith('овся')) return 'овся';
+        if (w.startsWith('творо')) return 'творо';
+        if (w.startsWith('яблок')) return 'яблок';
+        if (w.startsWith('банан')) return 'банан';
+        if (w.length > 4) {
+          return w.substring(0, w.length - 2); // Отрезаем окончания для падежей
+        }
+        return w;
+      }).toSet();
+
+      for (final recipe in recipes) {
+        for (final ingredient in recipe.ingredients) {
+          final ingName = normalize(ingredient.name);
+          for (final stem in stemmedTargets) {
+            if (ingName.contains(stem)) {
+              return recipe; // Возвращаем рецепт, содержащий нужный ингредиент!
+            }
+          }
+        }
+      }
+    }
+
     return null;
   }
 
@@ -1617,7 +1676,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              const Icon(Symbols.workspace_premium, color: Colors.amber, size: 40),
+              const Icon(Symbols.workspace_premium,
+                  color: Colors.amber, size: 40),
               const SizedBox(height: 12),
               Text(
                 l10n.aiAnalyticsOnlyInPremium,
@@ -1629,7 +1689,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () => context.push('/subscription', extra: SubscriptionTier.premium),
+                onPressed: () => context.push('/subscription',
+                    extra: SubscriptionTier.premium),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   foregroundColor: Colors.white,
@@ -1716,67 +1777,111 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             else if (_aiRecommendations.isEmpty)
               const SizedBox.shrink()
             else
-              ..._aiRecommendations.map((item) {
-                final when = item['when'] ?? '';
-                final action = item['action'] ?? '';
-                final recipeName = item['recipeName'] ?? '';
-                final matchedRecipe = _findRecipeByName(recipeName, recipes);
-                final whenLabel = _localizedMealTime(when, l10n);
+              ...(() {
+                final grouped = <String, List<Map<String, String>>>{};
+                for (final item in _aiRecommendations) {
+                  final when = item['when'] ?? 'any';
+                  grouped.putIfAbsent(when, () => []).add(item);
+                }
 
-                return Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${l10n.statsAiMealTimeLabel}: $whenLabel',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                return grouped.entries.map((entry) {
+                  final when = entry.key;
+                  final items = entry.value;
+                  final whenLabel = _localizedMealTime(when, l10n);
+
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Symbols.restaurant_menu,
+                                size: 16, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              whenLabel.toUpperCase(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(action, style: theme.textTheme.bodySmall),
-                      if (recipeName.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          '${l10n.statsAiRecipeLabel}: $recipeName',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        const SizedBox(height: 8),
+                        ...items.map((item) {
+                          final action = item['action'] ?? '';
+                          final recipeName = item['recipeName'] ?? '';
+                          final matchedRecipe =
+                              _findRecipeByName(recipeName, recipes);
+
+                          return Padding(
+                            padding: EdgeInsets.only(
+                                bottom: item == items.last ? 0 : 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  action,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (recipeName.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${l10n.statsAiRecipeLabel}: $recipeName',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                                if (matchedRecipe != null)
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton.icon(
+                                      onPressed: () {
+                                        context.push(
+                                          '/recipe_detail',
+                                          extra: {'recipe': matchedRecipe},
+                                        );
+                                      },
+                                      icon: const Icon(Symbols.open_in_new,
+                                          size: 16),
+                                      label: Text(l10n.statsAiOpenRecipe),
+                                    ),
+                                  )
+                                else if (recipeName.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2.0),
+                                    child: Text(
+                                      l10n.statsAiRecipeNotFound,
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                  ),
+                                if (item != items.last)
+                                  const Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Divider(height: 1, thickness: 0.5),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
-                      if (matchedRecipe != null)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () {
-                              context.push(
-                                '/recipe_detail',
-                                extra: {'recipe': matchedRecipe},
-                              );
-                            },
-                            icon: const Icon(Symbols.open_in_new, size: 16),
-                            label: Text(l10n.statsAiOpenRecipe),
-                          ),
-                        )
-                      else if (recipeName.isNotEmpty)
-                        Text(
-                          l10n.statsAiRecipeNotFound,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }),
+                    ),
+                  );
+                });
+              })(),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -2093,7 +2198,8 @@ class _LineChart extends StatelessWidget {
                             labelResolver: (_) =>
                                 goalLabel ??
                                 (isWeight
-                                    ? l10n.statsGoalWeightKg(goal.toStringAsFixed(1))
+                                    ? l10n.statsGoalWeightKg(
+                                        goal.toStringAsFixed(1))
                                     : l10n.statsGoalKcal(goal.toInt())),
                           ),
                         ),

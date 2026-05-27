@@ -108,7 +108,8 @@ class _FabMenuItemState extends State<FabMenuItem>
                   final textStyle = TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: widget.isLocked ? Colors.grey.shade600 : Colors.black87,
+                    color:
+                        widget.isLocked ? Colors.grey.shade600 : Colors.black87,
                   );
 
                   return ClipRect(
@@ -169,7 +170,8 @@ class _FabMenuItemState extends State<FabMenuItem>
                     children: [
                       Icon(
                         widget.icon,
-                        color: widget.isLocked ? Colors.grey : AppColors.primary,
+                        color:
+                            widget.isLocked ? Colors.grey : AppColors.primary,
                         size: 24,
                       ),
                       if (widget.isLocked)

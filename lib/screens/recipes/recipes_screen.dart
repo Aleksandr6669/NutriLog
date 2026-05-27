@@ -754,9 +754,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
-                            final profile = context.read<ProfileProvider>().profile;
-                            if (profile == null || !profile.isAiFeatureAvailable) {
-                              context.push('/subscription', extra: SubscriptionTier.standard);
+                            final profile =
+                                context.read<ProfileProvider>().profile;
+                            if (profile == null ||
+                                !profile.isAiFeatureAvailable) {
+                              context.push('/subscription',
+                                  extra: SubscriptionTier.standard);
                               return;
                             }
                             await _navigateAndRefreshRoute('/recipe/scanner');
@@ -771,9 +774,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           isLocked: !isAiAvailable,
                           onTap: () async {
                             setState(() => _showFabMenu = false);
-                            final profile = context.read<ProfileProvider>().profile;
-                            if (profile == null || !profile.isAiFeatureAvailable) {
-                              context.push('/subscription', extra: SubscriptionTier.standard);
+                            final profile =
+                                context.read<ProfileProvider>().profile;
+                            if (profile == null ||
+                                !profile.isAiFeatureAvailable) {
+                              context.push('/subscription',
+                                  extra: SubscriptionTier.standard);
                               return;
                             }
                             await _navigateAndRefreshRoute(

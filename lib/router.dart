@@ -16,6 +16,7 @@ import 'screens/home/activity_log_screen.dart';
 import 'screens/profile/edit_goals_screen.dart';
 import 'screens/profile/edit_general_goals_screen.dart';
 import 'screens/profile/edit_physical_params_screen.dart';
+import 'screens/profile/edit_ai_context_screen.dart';
 import 'screens/profile/user_agreement_screen.dart';
 import 'screens/profile/changelog_screen.dart';
 import 'screens/profile/connections_notifications_screen.dart';
@@ -196,6 +197,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/profile/daily_goals',
       builder: (context, state) => EditGoalsScreen(
+          profile: (state.extra as Map)['profile'] as UserProfile),
+    ),
+    GoRoute(
+      path: '/profile/ai_context',
+      builder: (context, state) => EditAiContextScreen(
           profile: (state.extra as Map)['profile'] as UserProfile),
     ),
     GoRoute(

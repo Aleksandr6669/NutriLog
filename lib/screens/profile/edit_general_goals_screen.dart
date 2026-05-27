@@ -149,32 +149,6 @@ class _EditGeneralGoalsScreenState extends State<EditGeneralGoalsScreen> {
                 ),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Icon(Symbols.psychology,
-                        size: 20, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _aiContextController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText: l10n.additionalForAi,
-                        hintText: l10n.additionalForAiHint,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

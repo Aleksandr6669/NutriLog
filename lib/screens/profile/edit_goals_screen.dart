@@ -196,8 +196,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                       backgroundColor: !isAiAvailable
                           ? Colors.grey.withValues(alpha: 0.08)
                           : AppColors.primary.withValues(alpha: 0.08),
-                      foregroundColor:
-                          !isAiAvailable ? Colors.grey.shade600 : AppColors.primary,
+                      foregroundColor: !isAiAvailable
+                          ? Colors.grey.shade600
+                          : AppColors.primary,
                       elevation: 0,
                       side: BorderSide(
                         color: !isAiAvailable
@@ -211,7 +212,9 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Icon(isAiAvailable ? Symbols.auto_awesome : Symbols.lock),
+                        : Icon(isAiAvailable
+                            ? Symbols.auto_awesome
+                            : Symbols.lock),
                     label: Text(
                       _isAiFilling
                           ? l10n.aiCalculatingGoals

@@ -97,9 +97,9 @@ class HomeWidgetSyncService {
 
     final Map<String, dynamic> data = {
       'calories': consumed.toString(),
-      'proteins': '${protein}г',
-      'fats': '${fat}г',
-      'carbs': '${carbs}г',
+      'proteins': '$proteinг',
+      'fats': '$fatг',
+      'carbs': '$carbsг',
       'proteins_val': protein.toString(),
       'fats_val': fat.toString(),
       'carbs_val': carbs.toString(),
@@ -115,19 +115,20 @@ class HomeWidgetSyncService {
     for (final entry in data.entries) {
       final saved = await HomeWidget.saveWidgetData(entry.key, entry.value);
       if (saved != true) {
-        debugPrint(
-            'HOME_WIDGET: saveWidgetData failed for key "${entry.key}"');
+        debugPrint('HOME_WIDGET: saveWidgetData failed for key "${entry.key}"');
       } else {
         // Проверяем, читается ли значение обратно
         final readBack = await HomeWidget.getWidgetData(entry.key);
-        debugPrint('HOME_WIDGET: 🧪 Verified "${entry.key}" -> saved: "${entry.value}", read back: "$readBack"');
+        debugPrint(
+            'HOME_WIDGET: 🧪 Verified "${entry.key}" -> saved: "${entry.value}", read back: "$readBack"');
       }
     }
 
     // reloadTimelines вызываем ТОЛЬКО если данные реально изменились.
     // Это главная оптимизация: бережём бюджет iOS (~40-70 reload/день).
     if (dataHash == _lastWrittenHash) {
-      debugPrint('HOME_WIDGET: ⏭️ данные не изменились, пропускаем reloadTimelines');
+      debugPrint(
+          'HOME_WIDGET: ⏭️ данные не изменились, пропускаем reloadTimelines');
       return;
     }
     _lastWrittenHash = dataHash;
@@ -137,13 +138,16 @@ class HomeWidgetSyncService {
         try {
           await HomeWidget.updateWidget(
               androidName: 'NutriLargeWidgetProvider',
-              qualifiedAndroidName: 'com.nutrilog.app.NutriLargeWidgetProvider');
+              qualifiedAndroidName:
+                  'com.nutrilog.app.NutriLargeWidgetProvider');
           await HomeWidget.updateWidget(
               androidName: 'NutriSmallWidgetProvider',
-              qualifiedAndroidName: 'com.nutrilog.app.NutriSmallWidgetProvider');
+              qualifiedAndroidName:
+                  'com.nutrilog.app.NutriSmallWidgetProvider');
           await HomeWidget.updateWidget(
               androidName: 'NutriWaterWidgetProvider',
-              qualifiedAndroidName: 'com.nutrilog.app.NutriWaterWidgetProvider');
+              qualifiedAndroidName:
+                  'com.nutrilog.app.NutriWaterWidgetProvider');
         } catch (e, stack) {
           debugPrint('HOME_WIDGET: updateWidget failed: $e');
           debugPrint(stack.toString());

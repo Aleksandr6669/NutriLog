@@ -69,7 +69,7 @@ class ProfileProvider with ChangeNotifier {
 
     await _dailyLogService.syncProfileWeightFromLogs();
     _profile = await _service.loadProfile();
-    
+
     await _checkSubscriptionExpiration();
 
     _isLoading = false;

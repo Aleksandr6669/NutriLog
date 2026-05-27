@@ -36,7 +36,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final _geminiRecipeService = GeminiRecipeService();
   String _personalAdvice = '';
   bool _isLoadingAdvice = false;
-  String _lastAdviceContextHash = '';
 
   @override
   void initState() {
@@ -46,7 +45,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   String _calculateContextHash(String context, Recipe recipe) {
     // Простой хэш на основе контекста профиля и данных рецепта
-    final recipeData = '${recipe.name}${recipe.ingredients.length}${recipe.nutrients['calories']}';
+    final recipeData =
+        '${recipe.name}${recipe.ingredients.length}${recipe.nutrients['calories']}';
     return base64Encode(utf8.encode('$context|$recipeData'));
   }
 
@@ -54,8 +54,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null) return;
 
-    final currentHash = _calculateContextHash(profile.healthConditions, widget.recipe);
-    
+    final currentHash =
+        _calculateContextHash(profile.healthConditions, widget.recipe);
+
     // 1. Пытаемся загрузить из локального кэша
     final prefs = await SharedPreferences.getInstance();
     final userId = CloudDataService.instance.currentUserId ?? 'guest';
@@ -68,7 +69,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         if (mounted) {
           setState(() {
             _personalAdvice = decoded['advice'];
-            _lastAdviceContextHash = currentHash;
           });
           // Do not return; continue to trigger background refresh
         }
@@ -77,16 +77,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     // 2. Если нет в кэше или хэш не совпадает — загружаем из облака или генерируем
     if (CloudDataService.instance.isSignedIn) {
-      final cloudData = await CloudDataService.instance.readMap('personalRecipeAdvice_${widget.recipe.id}');
+      final cloudData = await CloudDataService.instance
+          .readMap('personalRecipeAdvice_${widget.recipe.id}');
       if (cloudData != null && cloudData['hash'] == currentHash) {
         final advice = cloudData['advice'] as String;
         if (mounted) {
           setState(() {
             _personalAdvice = advice;
-            _lastAdviceContextHash = currentHash;
           });
           // Сохраняем в локальный кэш
-          await prefs.setString(cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
+          await prefs.setString(
+              cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
           // Do not return; continue to trigger background refresh
         }
       }
@@ -99,8 +100,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Future<void> _generateNewAdvice(String healthConditions, String hash) async {
-    if (healthConditions.isEmpty) return;
-    
+    // Разрешаем генерацию при пустых ограничениях по здоровью для точечных советов по БЖУ и блюду
+
     setState(() => _isLoadingAdvice = true);
     try {
       final advice = await _geminiRecipeService.generateMedicalAdvice(
@@ -116,7 +117,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (mounted) {
         setState(() {
           _personalAdvice = advice;
-          _lastAdviceContextHash = hash;
           _isLoadingAdvice = false;
         });
 
@@ -126,11 +126,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           final prefs = await SharedPreferences.getInstance();
           final userId = CloudDataService.instance.currentUserId ?? 'guest';
           final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
-          await prefs.setString(cacheKey, json.encode({'advice': advice, 'hash': hash}));
+          await prefs.setString(
+              cacheKey, json.encode({'advice': advice, 'hash': hash}));
 
           // Сохраняем в облако
           if (CloudDataService.instance.isSignedIn) {
-            await CloudDataService.instance.writeMap('personalRecipeAdvice_${widget.recipe.id}', {
+            await CloudDataService.instance
+                .writeMap('personalRecipeAdvice_${widget.recipe.id}', {
               'advice': advice,
               'hash': hash,
               'updatedAt': DateTime.now().toIso8601String(),
@@ -147,7 +149,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Future<void> _openEditScreen(BuildContext context) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => EditRecipeScreen(recipe: widget.recipe)),
+      MaterialPageRoute(
+          builder: (_) => EditRecipeScreen(recipe: widget.recipe)),
     );
     if (result == true && context.mounted) {
       Navigator.of(context).pop(true);
@@ -194,11 +197,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
-            // Показываем персональный совет если он есть или грузится
-            if (_personalAdvice.isNotEmpty || _isLoadingAdvice) ...[
-              _buildPersonalAdviceCard(context),
-              const SizedBox(height: 24),
-            ],
+            _buildPersonalAdviceCard(context),
+            const SizedBox(height: 24),
             if (widget.recipe.ingredients.isNotEmpty) ...[
               _buildIngredientsCard(context),
               const SizedBox(height: 24),
@@ -454,21 +454,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             _nutrientGroup(l10n.mainNutrients, [
               _nutrientRow(
                   l10n.protein, widget.recipe.nutrients['protein'], l10n.grams),
-              _nutrientRow(l10n.carbs, widget.recipe.nutrients['carbs'], l10n.grams,
+              _nutrientRow(
+                  l10n.carbs, widget.recipe.nutrients['carbs'], l10n.grams,
                   subRows: [
-                    _nutrientSubRow(
-                        l10n.sugarSub, widget.recipe.nutrients['sugar'], l10n.grams),
-                    _nutrientSubRow(
-                        l10n.fiberSub, widget.recipe.nutrients['fiber'], l10n.grams),
+                    _nutrientSubRow(l10n.sugarSub,
+                        widget.recipe.nutrients['sugar'], l10n.grams),
+                    _nutrientSubRow(l10n.fiberSub,
+                        widget.recipe.nutrients['fiber'], l10n.grams),
                   ]),
               _nutrientRow(l10n.fat, widget.recipe.nutrients['fat'], l10n.grams,
                   subRows: [
                     _nutrientSubRow(l10n.saturatedFatSub,
                         widget.recipe.nutrients['saturated_fat'], l10n.grams),
-                    _nutrientSubRow(l10n.polyunsaturatedFatSub,
-                        widget.recipe.nutrients['polyunsaturated_fat'], l10n.grams),
-                    _nutrientSubRow(l10n.monounsaturatedFatSub,
-                        widget.recipe.nutrients['monounsaturated_fat'], l10n.grams),
+                    _nutrientSubRow(
+                        l10n.polyunsaturatedFatSub,
+                        widget.recipe.nutrients['polyunsaturated_fat'],
+                        l10n.grams),
+                    _nutrientSubRow(
+                        l10n.monounsaturatedFatSub,
+                        widget.recipe.nutrients['monounsaturated_fat'],
+                        l10n.grams),
                     _nutrientSubRow(l10n.transFatSub,
                         widget.recipe.nutrients['trans_fat'], l10n.grams),
                     _nutrientSubRow(l10n.cholesterolSub,
@@ -477,20 +482,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.minerals, [
-              _nutrientRow(l10n.sodium, widget.recipe.nutrients['sodium'], l10n.mg),
               _nutrientRow(
-                  l10n.potassium, widget.recipe.nutrients['potassium'], l10n.mg),
-              _nutrientRow(l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
+                  l10n.sodium, widget.recipe.nutrients['sodium'], l10n.mg),
+              _nutrientRow(l10n.potassium, widget.recipe.nutrients['potassium'],
+                  l10n.mg),
+              _nutrientRow(
+                  l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
               _nutrientRow(l10n.iron, widget.recipe.nutrients['iron'], l10n.mg),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.vitamins, [
-              _nutrientRow(
-                  l10n.vitaminA, widget.recipe.nutrients['vitamin_a'], l10n.mcg),
+              _nutrientRow(l10n.vitaminA, widget.recipe.nutrients['vitamin_a'],
+                  l10n.mcg),
               _nutrientRow(
                   l10n.vitaminC, widget.recipe.nutrients['vitamin_c'], l10n.mg),
-              _nutrientRow(
-                  l10n.vitaminD, widget.recipe.nutrients['vitamin_d'], l10n.mcg),
+              _nutrientRow(l10n.vitaminD, widget.recipe.nutrients['vitamin_d'],
+                  l10n.mcg),
             ]),
           ],
         ),
@@ -588,10 +595,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.healthAdviceTitle,
+                    "Рекомендации",
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isRestricted ? Colors.grey.shade700 : Colors.blue.shade900,
+                      color: isRestricted
+                          ? Colors.grey.shade700
+                          : Colors.blue.shade900,
                     ),
                   ),
                 ),
@@ -607,20 +616,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             if (isRestricted) ...[
               Text(
                 l10n.personalAdvicePremiumOnly,
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: Colors.grey.shade600),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      context.push('/subscription', extra: SubscriptionTier.premium),
+                  onPressed: () => context.push('/subscription',
+                      extra: SubscriptionTier.premium),
                   icon: const Icon(Symbols.bolt, size: 16),
                   label: Text(l10n.upgradeToPremium),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.orange.shade800,
                     side: BorderSide(color: Colors.orange.shade300),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
@@ -639,7 +650,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         const SizedBox(height: 12),
                         Text(
                           l10n.moderationChecking,
-                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -648,7 +660,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               else
                 Text(
                   l10n.healthConditionsHint,
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  style:
+                      theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                 ),
             ],
           ],
@@ -685,10 +698,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  List<Widget> _buildGroupedAdvice(String advice, ThemeData theme, AppLocalizations l10n) {
-    final doctorMatch = RegExp(r'\[\[DOCTOR\]\](.*?)(?=\[\[|$)').firstMatch(advice);
-    final dietitianMatch = RegExp(r'\[\[DIETITIAN\]\](.*?)(?=\[\[|$)').firstMatch(advice);
-    final trainerMatch = RegExp(r'\[\[TRAINER\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+  List<Widget> _buildGroupedAdvice(
+      String advice, ThemeData theme, AppLocalizations l10n) {
+    final doctorMatch =
+        RegExp(r'\[\[DOCTOR\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+    final dietitianMatch =
+        RegExp(r'\[\[DIETITIAN\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+    final trainerMatch =
+        RegExp(r'\[\[TRAINER\]\](.*?)(?=\[\[|$)').firstMatch(advice);
 
     final doctorText = doctorMatch?.group(1)?.trim() ?? '';
     final dietitianText = dietitianMatch?.group(1)?.trim() ?? '';
@@ -731,10 +748,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   String _localizeExpert(String key, AppLocalizations l10n) {
     final raw = l10n.healthConditionsTitle; // "Врач, Диетолог, Тренер"
-    final parts = raw.contains('(') 
-      ? raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).split(',')
-      : raw.split(',');
-    
+    final parts = raw.contains('(')
+        ? raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).split(',')
+        : raw.split(',');
+
     if (parts.length < 3) return key;
 
     return switch (key) {

@@ -172,7 +172,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   Future<void> _sendToAi() async {
     if (_isProcessing || _capturedImage == null) return;
 
-    final l10n = AppLocalizations.of(context)!;
     final profile = context.read<ProfileProvider>().profile;
     if (profile == null || !profile.isAiFeatureAvailable) {
       if (mounted) {
@@ -288,6 +287,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       icon: draft.icon,
       isUserRecipe: true,
       instructions: const [],
+      isReadyProduct: draft.isReadyProduct,
     );
   }
 
@@ -480,8 +480,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         onTap: isCaptured
             ? (isAiAvailable
                 ? _sendToAi
-                : () =>
-                    context.push('/subscription', extra: SubscriptionTier.standard))
+                : () => context.push('/subscription',
+                    extra: SubscriptionTier.standard))
             : _captureImage,
         borderRadius: BorderRadius.circular(20),
         child: Container(
@@ -534,31 +534,18 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
   Widget _buildScannerOverlay() {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 260,
-            height: 260,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primary, width: 2),
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black45,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              l10n.scannerHint,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
-          ),
-        ],
+    return Align(
+      alignment: const Alignment(0, 0.6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black45,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          l10n.scannerHint,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
       ),
     );
   }

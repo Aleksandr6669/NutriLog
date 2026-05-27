@@ -170,6 +170,8 @@ class _CreateRecipeFromDescriptionScreenState
         description: description,
         locale: Localizations.localeOf(context).languageCode,
         healthConditions: profile?.healthConditions ?? '',
+        aiContext: profile?.aiContext ?? '',
+        profile: profile,
       );
 
       if (!mounted) return;
@@ -253,7 +255,9 @@ class _CreateRecipeFromDescriptionScreenState
                           elevation: 0,
                           side: BorderSide(
                             color: (!isAiAvailable &&
-                                    _descriptionController.text.trim().isNotEmpty)
+                                    _descriptionController.text
+                                        .trim()
+                                        .isNotEmpty)
                                 ? Colors.grey.withValues(alpha: 0.25)
                                 : AppColors.primary.withValues(alpha: 0.25),
                           ),

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -72,6 +71,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   bool _isPublic = false;
   bool _isDonated = false;
+  bool _isReadyProduct = false;
 
   // Separate states for Public moderation
   bool _isPublicAiChecking = false;
@@ -126,10 +126,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _clarificationController = TextEditingController(
         text: widget.initialClarification ?? sourceRecipe?.clarification ?? '');
     _healthAdviceController = TextEditingController(
-        text: (widget.initialDraft?.healthAdvice ?? sourceRecipe?.healthAdvice ?? '').trim());
+        text: (widget.initialDraft?.healthAdvice ??
+                sourceRecipe?.healthAdvice ??
+                '')
+            .trim());
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
+    _isReadyProduct = sourceRecipe?.isReadyProduct ?? false;
 
     _nameController.addListener(_onDonateValidationInputChanged);
     _descriptionController.addListener(_onDonateValidationInputChanged);
@@ -231,23 +235,23 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   void _onDonateValidationInputChanged() {
     if (_isDonated) return;
-    
+
     setState(() {
       // If we change input, current AI status becomes stale if it was previously set
-      if (_donateAiStatus != null && _donateAiStatus != l10n.moderationNotChecked) {
+      if (_donateAiStatus != null &&
+          _donateAiStatus != l10n.moderationNotChecked) {
         _isDonateAiApproved = false;
         _donateAiStatus = l10n.moderationStale;
         _donateAiFixSuggestions = null;
       }
-      if (_publicAiStatus != null && _publicAiStatus != l10n.moderationNotChecked) {
+      if (_publicAiStatus != null &&
+          _publicAiStatus != l10n.moderationNotChecked) {
         _isPublicAiApproved = false;
         _publicAiStatus = l10n.moderationStale;
         _publicAiFixSuggestions = null;
       }
     });
   }
-
-
 
   Future<void> _runPublicModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
@@ -283,7 +287,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             .where((i) => i.name.isNotEmpty)
             .toList(),
         locale: Localizations.localeOf(context).languageCode,
-        healthConditions: context.read<ProfileProvider>().profile?.healthConditions ?? '',
+        healthConditions:
+            context.read<ProfileProvider>().profile?.healthConditions ?? '',
       );
 
       if (!mounted || requestId != _publicAiRequestId) return;
@@ -470,7 +475,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return nutrients;
   }
 
-
   static const List<String> _blockedWords = [
     'говно',
     'дерьм',
@@ -555,7 +559,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     return null;
   }
 
-
   void _onMacroChanged() {
     if (!_autoCalculateCalories || _isSyncingCalories) return;
     _applyAutoCalories();
@@ -626,13 +629,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
         healthConditions: profile?.healthConditions ?? '',
+        profile: profile,
+        aiContext: profile?.aiContext ?? '',
       );
 
       if (!mounted || requestId != _aiRequestId) return;
 
       _isSyncingCalories = true;
       for (final key in _nutrientKeys) {
-        _nutrientControllers[key]?.text = _formatNumber(result.nutrients[key] ?? 0);
+        _nutrientControllers[key]?.text =
+            _formatNumber(result.nutrients[key] ?? 0);
       }
       _isSyncingCalories = false;
 
@@ -779,8 +785,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         isPublic: _isPublic,
         ingredients: ingredients,
         healthAdvice: _healthAdviceController.text.trim(),
-        instructions:
-            (widget.recipe ?? widget.initialDraft)?.instructions ?? [],
+        instructions: _isReadyProduct
+            ? const []
+            : ((widget.recipe ?? widget.initialDraft)?.instructions ?? []),
+        isReadyProduct: _isReadyProduct,
       );
 
       if (widget.recipe == null) {
@@ -926,7 +934,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     ),
                     child: Icon(
                       icon,
-                      color: isSelected ? AppColors.primary : unselectedIcon, 
+                      color: isSelected ? AppColors.primary : unselectedIcon,
                     ),
                   ),
                 );
@@ -990,7 +998,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         isPublic: _isPublic,
         isDonated: _isDonated,
         ingredients: ingredients,
-        instructions: widget.recipe?.instructions ?? [],
+        instructions:
+            _isReadyProduct ? const [] : (widget.recipe?.instructions ?? []),
+        isReadyProduct: _isReadyProduct,
       );
 
       if (widget.recipe == null) {
@@ -1111,7 +1121,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       ? Colors.green.withValues(alpha: 0.1)
                       : (_isDonateAiChecking
                           ? Colors.blue.withValues(alpha: 0.05)
-                      : (_isDonateAiApproved == false && _donateAiStatus != null && _donateAiStatus != l10n.moderationNotChecked && _donateAiStatus != l10n.moderationStale
+                          : (_isDonateAiApproved == false &&
+                                  _donateAiStatus != null &&
+                                  _donateAiStatus !=
+                                      l10n.moderationNotChecked &&
+                                  _donateAiStatus != l10n.moderationStale
                               ? Colors.red.withValues(alpha: 0.08)
                               : Colors.blue.withValues(alpha: 0.05))),
                   borderRadius: BorderRadius.circular(10),
@@ -1120,7 +1134,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         ? Colors.green.withValues(alpha: 0.3)
                         : (_isDonateAiChecking
                             ? Colors.blue.withValues(alpha: 0.15)
-                            : (_isDonateAiApproved == false && _donateAiStatus != null && _donateAiStatus != l10n.moderationNotChecked && _donateAiStatus != l10n.moderationStale
+                            : (_isDonateAiApproved == false &&
+                                    _donateAiStatus != null &&
+                                    _donateAiStatus !=
+                                        l10n.moderationNotChecked &&
+                                    _donateAiStatus != l10n.moderationStale
                                 ? Colors.red.withValues(alpha: 0.25)
                                 : Colors.blue.withValues(alpha: 0.15))),
                   ),
@@ -1138,7 +1156,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                               ? Colors.blue
                               : (_isDonateAiApproved == false &&
                                       _donateAiStatus != null &&
-                                      _donateAiStatus != l10n.moderationNotChecked &&
+                                      _donateAiStatus !=
+                                          l10n.moderationNotChecked &&
                                       _donateAiStatus != l10n.moderationStale
                                   ? Colors.red
                                   : Colors.blue)),
@@ -1153,10 +1172,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           fontSize: 11,
                           color: _isDonateAiApproved
                               ? Colors.green.shade800
-                              : (_isDonateAiChecking ? Colors.blue.shade800 : null),
-                          fontWeight: (_isDonateAiApproved || _isDonateAiChecking)
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                              : (_isDonateAiChecking
+                                  ? Colors.blue.shade800
+                                  : null),
+                          fontWeight:
+                              (_isDonateAiApproved || _isDonateAiChecking)
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -1207,9 +1229,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                                 ? Symbols.verified
                                 : Symbols.lock),
                         size: 18),
-                label: Text(_isDonateAiApproved
-                    ? l10n.ready
-                    : l10n.checkRecipeButton),
+                label: Text(
+                    _isDonateAiApproved ? l10n.ready : l10n.checkRecipeButton),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
@@ -1311,7 +1332,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                       ? Colors.green.withValues(alpha: 0.1)
                       : (_isPublicAiChecking
                           ? Colors.blue.withValues(alpha: 0.05)
-                          : (_isPublicAiApproved == false && _publicAiStatus != null && _publicAiStatus != l10n.moderationNotChecked && _publicAiStatus != l10n.moderationStale
+                          : (_isPublicAiApproved == false &&
+                                  _publicAiStatus != null &&
+                                  _publicAiStatus !=
+                                      l10n.moderationNotChecked &&
+                                  _publicAiStatus != l10n.moderationStale
                               ? Colors.red.withValues(alpha: 0.08)
                               : Colors.blue.withValues(alpha: 0.05))),
                   borderRadius: BorderRadius.circular(10),
@@ -1320,7 +1345,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         ? Colors.green.withValues(alpha: 0.3)
                         : (_isPublicAiChecking
                             ? Colors.blue.withValues(alpha: 0.15)
-                            : (_isPublicAiApproved == false && _publicAiStatus != null && _publicAiStatus != l10n.moderationNotChecked && _publicAiStatus != l10n.moderationStale
+                            : (_isPublicAiApproved == false &&
+                                    _publicAiStatus != null &&
+                                    _publicAiStatus !=
+                                        l10n.moderationNotChecked &&
+                                    _publicAiStatus != l10n.moderationStale
                                 ? Colors.red.withValues(alpha: 0.25)
                                 : Colors.blue.withValues(alpha: 0.15))),
                   ),
@@ -1342,8 +1371,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                                   ? Colors.blue
                                   : (_isPublicAiApproved == false &&
                                           _publicAiStatus != null &&
-                                          _publicAiStatus != l10n.moderationNotChecked &&
-                                          _publicAiStatus != l10n.moderationStale
+                                          _publicAiStatus !=
+                                              l10n.moderationNotChecked &&
+                                          _publicAiStatus !=
+                                              l10n.moderationStale
                                       ? Colors.red
                                       : Colors.blue)),
                         ),
@@ -1354,7 +1385,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                                 ? l10n.moderationChecking
                                 : (_isPublicAiApproved
                                     ? l10n.moderationApproved
-                                    : (_publicAiStatus ?? l10n.moderationNotChecked)),
+                                    : (_publicAiStatus ??
+                                        l10n.moderationNotChecked)),
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 11,
                               color: _isPublicAiApproved
@@ -1417,9 +1449,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                               ? Symbols.verified
                               : Symbols.lock),
                       size: 18),
-              label: Text(_isPublicAiApproved
-                  ? l10n.ready
-                  : l10n.checkRecipeButton),
+              label: Text(
+                  _isPublicAiApproved ? l10n.ready : l10n.checkRecipeButton),
             ),
           ],
         ),
@@ -1547,6 +1578,45 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                   child:
                       Icon(_selectedIcon, size: 48, color: AppColors.primary),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Тип блюда",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<bool>(
+                segments: const <ButtonSegment<bool>>[
+                  ButtonSegment<bool>(
+                    value: false,
+                    label: Text('Рецепт'),
+                    icon: Icon(Symbols.menu_book),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    label: Text('Готовый продукт'),
+                    icon: Icon(Symbols.box),
+                  ),
+                ],
+                selected: <bool>{_isReadyProduct},
+                onSelectionChanged: (Set<bool> newSelection) {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _isReadyProduct = newSelection.first;
+                  });
+                },
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor:
+                      AppColors.primary.withValues(alpha: 0.16),
+                  selectedForegroundColor: AppColors.primary,
                 ),
               ),
             ),
@@ -1708,7 +1778,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 children: [
                   Builder(builder: (context) {
                     final profile = context.watch<ProfileProvider>().profile;
-                    final isAiAvailable = profile?.isAiFeatureAvailable ?? false;
+                    final isAiAvailable =
+                        profile?.isAiFeatureAvailable ?? false;
 
                     return SizedBox(
                       width: double.infinity,
@@ -1716,13 +1787,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         onPressed: (!_hasAnyIngredient || _isAiCalculating)
                             ? null
                             : (!isAiAvailable)
-                                ? () => _navigateToSubscription(SubscriptionTier.standard)
+                                ? () => _navigateToSubscription(
+                                    SubscriptionTier.standard)
                                 : _recalculateNutrientsWithAi,
                         icon: _isAiCalculating
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2))
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))
                             : Icon(
                                 (!isAiAvailable && _hasAnyIngredient)
                                     ? Symbols.lock
@@ -2052,7 +2125,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       },
     );
   }
-
 }
 
 String _normalizeIngredientUnit(String unit) {

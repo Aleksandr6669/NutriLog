@@ -230,7 +230,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                       ),
                       const SizedBox(height: 14),
                       Builder(builder: (context) {
-                        final profile = context.watch<ProfileProvider>().profile;
+                        final profile =
+                            context.watch<ProfileProvider>().profile;
                         final isAiAvailable =
                             profile?.isAiFeatureAvailable ?? false;
 

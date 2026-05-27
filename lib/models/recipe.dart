@@ -66,6 +66,7 @@ class Recipe {
   bool isUserRecipe;
   final bool isPublic;
   final bool isDonated;
+  final bool isReadyProduct;
 
   Recipe({
     required this.id,
@@ -80,6 +81,7 @@ class Recipe {
     this.isPublic = false,
     this.isDonated = false,
     this.healthAdvice = '',
+    this.isReadyProduct = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -112,6 +114,7 @@ class Recipe {
       isPublic: json['isPublic'] == true,
       isDonated: json['isDonated'] == true,
       healthAdvice: (json['healthAdvice'] as String? ?? '').trim(),
+      isReadyProduct: json['isReadyProduct'] == true,
     );
   }
 
@@ -120,6 +123,7 @@ class Recipe {
       id: '',
       name: '',
       icon: Icons.restaurant,
+      isReadyProduct: false,
     );
   }
 
@@ -138,6 +142,7 @@ class Recipe {
       'isPublic': isPublic,
       'isDonated': isDonated,
       'healthAdvice': healthAdvice,
+      'isReadyProduct': isReadyProduct,
     };
   }
 
@@ -154,6 +159,7 @@ class Recipe {
     bool? isPublic,
     bool? isDonated,
     String? healthAdvice,
+    bool? isReadyProduct,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -168,6 +174,7 @@ class Recipe {
       isPublic: isPublic ?? this.isPublic,
       isDonated: isDonated ?? this.isDonated,
       healthAdvice: healthAdvice ?? this.healthAdvice,
+      isReadyProduct: isReadyProduct ?? this.isReadyProduct,
     );
   }
 

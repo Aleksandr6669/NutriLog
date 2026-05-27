@@ -182,13 +182,10 @@ class RecipeService {
           .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
           .toList();
 
-      final donatedRecipes = donatedDocs
-          .whereType<Map>()
-          .map((rawMap) {
-            final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
-            return recipe.copyWith(isDonated: true, isPublic: true);
-          })
-          .toList();
+      final donatedRecipes = donatedDocs.whereType<Map>().map((rawMap) {
+        final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
+        return recipe.copyWith(isDonated: true, isPublic: true);
+      }).toList();
 
       await _savePublicRecipesToPrefs([...publicRecipes, ...donatedRecipes]);
     } catch (_) {
@@ -223,13 +220,10 @@ class RecipeService {
           .map((rawMap) => _mapPublicRecipeFromCloud(rawMap, uid))
           .toList();
 
-      final donatedRecipes = donatedDocs
-          .whereType<Map>()
-          .map((rawMap) {
-            final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
-            return recipe.copyWith(isDonated: true, isPublic: true);
-          })
-          .toList();
+      final donatedRecipes = donatedDocs.whereType<Map>().map((rawMap) {
+        final recipe = _mapPublicRecipeFromCloud(rawMap, uid);
+        return recipe.copyWith(isDonated: true, isPublic: true);
+      }).toList();
 
       await _savePublicRecipesToPrefs([...publicRecipes, ...donatedRecipes]);
     } catch (_) {

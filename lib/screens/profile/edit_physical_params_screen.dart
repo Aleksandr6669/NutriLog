@@ -163,8 +163,8 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
                 validator: (value) => value == null || value.isEmpty
                     ? l10n.enterYourWeight
                     : null,
-                decoration:
-                    AppStyles.inputDecoration(l10n.currentWeightKg, Symbols.weight),
+                decoration: AppStyles.inputDecoration(
+                    l10n.currentWeightKg, Symbols.weight),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 16),
@@ -215,15 +215,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     );
   }
 
-  int _calcAge(DateTime birthDate) {
-    final today = DateTime.now();
-    int years = today.year - birthDate.year;
-    if (today.month < birthDate.month ||
-        (today.month == birthDate.month && today.day < birthDate.day)) {
-      years--;
-    }
-    return years;
-  }
 
 
   Widget _buildGenderSelector(ThemeData theme) {

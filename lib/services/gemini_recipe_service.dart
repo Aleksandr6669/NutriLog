@@ -123,6 +123,7 @@ class GeminiRecipeService {
         'clarification': {'type': 'string'},
         'healthAdvice': {'type': 'string'},
         'icon': {'type': 'string'},
+        'isReadyProduct': {'type': 'boolean'},
         'ingredients': {
           'type': 'array',
           'items': {
@@ -148,6 +149,7 @@ class GeminiRecipeService {
         'clarification',
         'healthAdvice',
         'icon',
+        'isReadyProduct',
         'ingredients',
         'nutrients'
       ],
@@ -192,7 +194,8 @@ class GeminiRecipeService {
         },
         'healthAdvice': {
           'type': 'string',
-          'description': 'Medical warnings or advice based on user health context'
+          'description':
+              'Medical warnings or advice based on user health context'
         }
       },
       'required': ['approved', 'reason', 'fixSuggestions', 'healthAdvice']
@@ -271,6 +274,8 @@ class GeminiRecipeService {
     required String description,
     String? locale,
     String healthConditions = '',
+    String aiContext = '',
+    UserProfile? profile,
   }) async {
     final normalizedDescription = description.trim();
     if (normalizedDescription.isEmpty) {
@@ -279,16 +284,38 @@ class GeminiRecipeService {
       );
     }
 
+    final physicalStats = profile != null
+        ? '''
+USER PHYSICAL STATS:
+- Gender: ${profile.gender.name}
+- Age: ${profile.age} years old
+- Height: ${profile.height} cm
+- Current Weight: ${profile.weight} kg
+- Target Weight Goal: ${profile.weightGoal} kg
+- Daily Calorie Target: ${profile.calorieGoal} kcal
+- Daily Protein Target: ${profile.proteinGoal} g
+- Daily Carbs Target: ${profile.carbsGoal} g
+- Daily Fat Target: ${profile.fatGoal} g
+- Primary Goal Type: ${profile.goalType.name}
+- Activity Level: ${profile.activityFrequency.name}
+- Sports/Activity Types: ${profile.activityTypes}
+'''
+        : '';
+
     final prompt = '''
-You are a culinary assistant.
+You are a culinary assistant and expert nutritionist.
 ${_languageInstruction(locale)}
 Generate a recipe draft based on the user's description. 
 Note: The description may be from voice dictation, so it might lack punctuation, contain typos, or have unusual grammar. Parse it carefully to extract the intended dish name and ingredients.
 
+$physicalStats
+
+${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
+
+${aiContext.isNotEmpty ? 'USER AI PREFERENCES / LIFE CONTEXT (MANDATORY): $aiContext\nNote: You MUST adjust the portion sizes, ingredient choices, and cooking methods of the generated recipe to perfectly match this context (e.g. if the user says they are vegan, the recipe must be vegan; if they are on a low-carb diet, use low-carb alternatives; if they are feeding a family, adjust portion size to fit their specific context; if they train early, make it easy to digest, etc.).' : ''}
+
 Dish description:
 $normalizedDescription
-
-${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the requested recipe. Generate it exactly as described. If any part of the recipe is unsuitable for the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -298,6 +325,7 @@ Format:
   "description": "...",
   "clarification": "...",
   "icon": "restaurant",
+  "isReadyProduct": false,
   "ingredients": [
     {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
   ],
@@ -325,6 +353,7 @@ Format:
 
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
+- isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-4 lines). Write directly: what it is, possible brand or name, brief composition or cooking method in 2-3 words, key characteristics. Style: direct, no third-person, no filler phrases. Example: "Энергетик. Возможный бренд: Monster. Состав: кофеин, таурин, сахар, витамины группы B."
 - ingredient quantities must be realistic for ONE serving (1 person).
@@ -402,6 +431,7 @@ Format:
   "description": "...", // brief description, be sure to indicate type (e.g., energy drink, soda, protein bar, soup, etc.)
   "clarification": "...", // detailed "Important details" text for nutrition accuracy
   "icon": "restaurant",
+  "isReadyProduct": false,
   "ingredients": [
     {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
   ],
@@ -429,6 +459,7 @@ Format:
 
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
+- isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-5 lines). Write directly: what it is, visible brand if any, brief composition or cooking method, key details. Style: direct, no third-person, no filler phrases. Example: "Суп. Томатный, домашний. Ингредиенты: помидоры, лук, морковь, масло. Без сметаны."
 - ingredient quantities must be realistic for ONE serving (1 person).
@@ -547,7 +578,6 @@ Rules:
     return draft;
   }
 
-
   Future<NutrientEstimationResult> estimateNutrients({
     required String recipeName,
     required String recipeDescription,
@@ -555,6 +585,8 @@ Rules:
     String clarification = '',
     String? locale,
     String healthConditions = '',
+    UserProfile? profile,
+    String aiContext = '',
   }) async {
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
@@ -577,6 +609,24 @@ Rules:
       );
     }
 
+    final physicalStats = profile != null
+        ? '''
+USER PHYSICAL STATS:
+- Gender: ${profile.gender.name}
+- Age: ${profile.age} years old
+- Height: ${profile.height} cm
+- Current Weight: ${profile.weight} kg
+- Target Weight Goal: ${profile.weightGoal} kg
+- Daily Calorie Target: ${profile.calorieGoal} kcal
+- Daily Protein Target: ${profile.proteinGoal} g
+- Daily Carbs Target: ${profile.carbsGoal} g
+- Daily Fat Target: ${profile.fatGoal} g
+- Primary Goal Type: ${profile.goalType.name}
+- Activity Level: ${profile.activityFrequency.name}
+- Sports/Activity Types: ${profile.activityTypes}
+'''
+        : '';
+
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
@@ -584,6 +634,12 @@ Rules:
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
+
+  $physicalStats
+
+  ${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
+
+  ${aiContext.isNotEmpty ? 'USER AI PREFERENCES / LIFE CONTEXT (MANDATORY): $aiContext\nNote: You MUST adjust the portion sizes, ingredient choices, and cooking methods of the generated recipe to perfectly match this context (e.g. if the user says they are vegan, the recipe must be vegan; if they are on a low-carb diet, use low-carb alternatives; if they are feeding a family, adjust portion size to fit their specific context; if they train early, make it easy to digest, etc.).' : ''}
 
   TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide medical advice based on the user's health conditions.
 
@@ -652,7 +708,8 @@ Rules:
       featureName: 'Generic Meal Nutrition',
     );
 
-    final String healthAdvice = (decoded['healthAdvice'] as String? ?? '').trim();
+    final String healthAdvice =
+        (decoded['healthAdvice'] as String? ?? '').trim();
 
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
@@ -715,8 +772,6 @@ Rules:
     String clarification = '',
     String? locale,
   }) async {
-    if (healthConditions.isEmpty) return '';
-
     final apiKey = _resolveGeminiApiKey();
     if (apiKey.isEmpty) return '';
 
@@ -729,8 +784,8 @@ Rules:
     
     CRITICAL INSTRUCTIONS:
     1. ONLY provide advice that is RELEVANT to the actual ingredients in this recipe and the user's health conditions.
-    2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe and no dairy allergy).
-    3. If an expert (Doctor, Dietitian, or Trainer) has no specific advice or warnings for this recipe, they MUST return an EMPTY STRING.
+    2. DO NOT suggest excluding or adding ingredients that are NOT related to the recipe or health conditions (e.g., do not mention "excluding cottage cheese" if there is no dairy in the recipe).
+    3. If the user has no health conditions specified, the experts (especially Dietitian and Trainer) MUST still provide concise, highly targeted and practical advice about this recipe (e.g. nutrition balance, recovery benefits, or optimal consumption timing). Keep it strictly to the point and relevant to the dish.
     4. Provide strictly 1-2 concise sentences per expert.
 
     EXPERTS:
@@ -783,7 +838,11 @@ Rules:
   }
 
   String _cleanupAdvice(String advice) {
-    if (advice.isEmpty || advice.toLowerCase() == 'none' || advice.toLowerCase() == 'none.') return '';
+    if (advice.isEmpty ||
+        advice.toLowerCase() == 'none' ||
+        advice.toLowerCase() == 'none.') {
+      return '';
+    }
     // If AI accidentally returns JSON-like structure in a string field, try to extract text
     if (advice.contains('{"') || advice.contains('": "')) {
       try {
@@ -794,7 +853,10 @@ Rules:
       } catch (_) {
         // Not JSON, or malformed, proceed with regex cleanup
       }
-      return advice.replaceAll(RegExp(r'\{"?[^"]+"?:\s*"'), '').replaceAll(RegExp(r'"\s*\}?'), '').trim();
+      return advice
+          .replaceAll(RegExp(r'\{"?[^"]+"?:\s*"'), '')
+          .replaceAll(RegExp(r'"\s*\}?'), '')
+          .trim();
     }
     return advice;
   }
@@ -1433,6 +1495,8 @@ Previously recommended recipes (prefer continuity when still relevant):
 ${previousRecommendedRecipesContext.isEmpty ? '- none' : previousRecommendedRecipesContext}
 
 Additional Rules for Recipes:
+- You MUST analyze the "Available recipes in app" and "Actual food/meals consumed by user in this period" lists.
+- Active Preference: Prioritize recommending dishes and recipes that the user ALREADY consumes often or already has created in their "Available recipes in app" list. If the user eats a dish often, suggest it (with healthy adjustments if needed) and put its exact recipe name in "recipeName" so the app can link it.
 - If you find a suitable recipe in the "Available recipes in app" list, provide its EXACT name in "recipeName".
 - If no suitable recipe exists in the list, but you want to suggest a specific dish, provide its name in "recipeName" and describe it in "action". The app will handle the search.
 - Do NOT make up recipe names that are similar to existing ones but not exact; if it's a new suggestion, use its common name.
@@ -1465,7 +1529,7 @@ Task:
   B) diagnosis of nutrition/activity bottlenecks,
   C) specific plan for the next period.
 21) Include at least 5 numeric anchors in overview when possible (kcal, grams, steps, liters, workouts).
-22) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details.
+22) For each recommendation action, write exactly 1 short sentence (preferably up to 120 characters) with concrete execution details of the food/dish (for example: "Овсяная каша с миндалем и ягодами для медленных углеводов" or "Омлет со шпинатом и цельнозерновым тостом для качественного белка").
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
@@ -1474,15 +1538,16 @@ Return ONLY JSON object in this format:
   "overview": "single continuous analysis text",
   "recommendations": [
     {
-      "when": "breakfast|lunch|dinner|snack|any",
-      "action": "specific actionable advice",
+      "when": "breakfast|lunch|dinner|snack",
+      "action": "Конкретное блюдо или компонент приема пищи с описанием пользы",
       "recipeName": "exact recipe name from provided list or a new suggested dish name"
     }
   ]
 }
 
 Rules:
-- recommendations: 4 to 8 items
+- recommendations: 4 to 12 items
+- You can provide multiple separate items or recipe components (e.g. 1, 2, 3, or more) for a single meal time (like breakfast, lunch, dinner, or snack) if that meal consists of multiple dishes/components or if you want to suggest alternatives. Group them by setting their "when" field to the same value (e.g., "breakfast").
 - no markdown, no extra keys, no text outside JSON
 - do not output labels like "Part 1" or "Part 2"
 - do not add snack recommendation if snack is not needed
@@ -2588,6 +2653,7 @@ Rules:
       ingredients: ingredients,
       nutrients: nutrients,
       healthAdvice: rawHealthAdvice,
+      isReadyProduct: decoded['isReadyProduct'] == true,
     );
   }
 
@@ -3211,6 +3277,7 @@ class GeminiRecipeDraft {
   final IconData icon;
   final List<RecipeIngredient> ingredients;
   final Map<String, double> nutrients;
+  final bool isReadyProduct;
 
   const GeminiRecipeDraft({
     required this.name,
@@ -3220,6 +3287,7 @@ class GeminiRecipeDraft {
     required this.icon,
     required this.ingredients,
     required this.nutrients,
+    this.isReadyProduct = false,
   });
 }
 

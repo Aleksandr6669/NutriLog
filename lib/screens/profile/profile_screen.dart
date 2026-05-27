@@ -325,6 +325,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          _buildSectionCard(
+            context: context,
+            theme: theme,
+            title: l10n.additionalForAi,
+            icon: Symbols.auto_awesome,
+            onEdit: () async {
+              final result = await context
+                  .push('/profile/ai_context', extra: {'profile': profile});
+              if (result == true) _refreshProfile();
+            },
+            children: [
+              Text(
+                profile.aiContext.isNotEmpty
+                    ? profile.aiContext
+                    : 'Не указан. Расскажите ИИ о своих предпочтениях для персонализации питания.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: profile.aiContext.isNotEmpty
+                      ? theme.textTheme.bodyLarge?.color
+                      : theme.hintColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           _buildSimpleSettingsMenuCard(context, theme),
         ],
       ),
@@ -451,9 +476,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: () => Navigator.of(context, rootNavigator: true).push(
+                      onTap: () =>
+                          Navigator.of(context, rootNavigator: true).push(
                         MaterialPageRoute(
-                            builder: (context) => const SubscriptionPlansScreen()),
+                            builder: (context) =>
+                                const SubscriptionPlansScreen()),
                       ),
                       child: Column(
                         children: [
@@ -532,8 +559,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
-
   Widget _buildTierBadge(
       BuildContext context, ThemeData theme, UserProfile profile) {
     final l10n = AppLocalizations.of(context)!;
@@ -581,7 +606,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           if (profile.subscriptionUntil != null) ...[
             const SizedBox(width: 6),
-            Container(width: 1, height: 10, color: color.withValues(alpha: 0.3)),
+            Container(
+                width: 1, height: 10, color: color.withValues(alpha: 0.3)),
             const SizedBox(width: 6),
             Text(
               DateFormat.yMd(Localizations.localeOf(context).languageCode)
