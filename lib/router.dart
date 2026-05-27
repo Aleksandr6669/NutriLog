@@ -26,6 +26,7 @@ import 'screens/recipes/create_recipe_from_description_screen.dart';
 import 'screens/recipes/edit_recipe_screen.dart';
 import 'screens/recipes/recipe_detail_screen.dart';
 import 'screens/recipes/smart_scanner_screen.dart';
+
 import 'models/daily_log.dart';
 import 'models/recipe.dart';
 import 'models/food_item.dart';
@@ -171,6 +172,7 @@ final GoRouter appRouter = GoRouter(
       path: '/recipe/scanner',
       builder: (context, state) => const SmartScannerScreen(),
     ),
+
     GoRoute(
       path: '/recipe/edit',
       builder: (context, state) {

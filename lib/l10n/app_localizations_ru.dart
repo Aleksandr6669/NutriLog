@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get scannerHint => 'Наведите на штрих-код или сделайте фото';
+  String get scannerHint => 'Сделайте фото блюда или выберите из галереи';
 
   @override
   String get appTitle => 'NutriLog';
@@ -914,7 +914,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recipeFromPhotoTitle => 'Рецепт по фото';
 
   @override
-  String get recipeGenerateAndOpenEditor => 'Сгенерировать и открыть редактор';
+  String get recipeGenerateAndOpenEditor => 'Продолжить';
 
   @override
   String get recipeGenerating => 'Генерируем рецепт...';
@@ -1642,7 +1642,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get smartScannerTitle => 'Распознавание по фото';
 
   @override
-  String get bySmartScanner => 'По фото';
+  String get bySmartScanner => 'По фото и описанию';
 
   @override
   String get checkRecipeButton => 'Проверить рецепт';

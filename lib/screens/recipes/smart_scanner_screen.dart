@@ -5,12 +5,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/barcode_service.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../styles/app_colors.dart';
 import '../../widgets/glass_app_bar_background.dart';
@@ -28,15 +26,12 @@ class SmartScannerScreen extends StatefulWidget {
 
 class _SmartScannerScreenState extends State<SmartScannerScreen> {
   CameraController? _cameraController;
-  final BarcodeScanner _barcodeScanner = BarcodeScanner();
-  final BarcodeService _barcodeService = BarcodeService();
   final GeminiRecipeService _geminiService = GeminiRecipeService();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isProcessing = false;
   bool _isCameraInitialized = false;
-  bool _isScanning = false;
   XFile? _capturedImage;
   bool _isScanningAnimActive = false;
   Timer? _scanTimer;
@@ -83,63 +78,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       setState(() {
         _isCameraInitialized = true;
       });
-
-      _startBarcodeScanning();
     } catch (e) {
       debugPrint('Error initializing camera: $e');
-    }
-  }
-
-  void _startBarcodeScanning() {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      _cameraController!.startImageStream(_processCameraImage);
-    }
-  }
-
-  Future<void> _processCameraImage(CameraImage image) async {
-    if (_isProcessing || _isScanning || _capturedImage != null) return;
-
-    _isScanning = true;
-
-    try {
-      final camera = _cameraController!.description;
-      final rotation =
-          InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
-              InputImageRotation.rotation0deg;
-      final format = InputImageFormatValue.fromRawValue(image.format.raw) ??
-          InputImageFormat.nv21;
-
-      final metadata = InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
-        rotation: rotation,
-        format: format,
-        bytesPerRow: image.planes[0].bytesPerRow,
-      );
-
-      final WriteBuffer allBytes = WriteBuffer();
-      for (final Plane plane in image.planes) {
-        allBytes.putUint8List(plane.bytes);
-      }
-      final bytes = allBytes.done().buffer.asUint8List();
-
-      final inputImage = InputImage.fromBytes(bytes: bytes, metadata: metadata);
-      final barcodes = await _barcodeScanner.processImage(inputImage);
-
-      if (barcodes.isNotEmpty && !_isProcessing && _capturedImage == null) {
-        final String? code = barcodes.first.rawValue;
-        if (code != null) {
-          // Pause camera stream to process barcode
-          await _cameraController?.stopImageStream();
-          await _processBarcode(code);
-          return;
-        }
-      }
-    } catch (e) {
-      debugPrint('Error processing camera image: $e');
-    } finally {
-      if (mounted) {
-        _isScanning = false;
-      }
     }
   }
 
@@ -147,7 +87,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   void dispose() {
     _scanTimer?.cancel();
     _cameraController?.dispose();
-    _barcodeScanner.close();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -160,9 +99,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     }
 
     try {
-      if (_cameraController!.value.isStreamingImages) {
-        await _cameraController!.stopImageStream();
-      }
 
       final image = await _cameraController!.takePicture();
 
@@ -186,7 +122,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       _capturedImage = null;
       _isScanningAnimActive = false;
     });
-    _startBarcodeScanning();
   }
 
   Future<void> _sendToAi() async {
@@ -236,60 +171,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     }
   }
 
-  Future<void> _processBarcode(String code) async {
-    final l10n = AppLocalizations.of(context)!;
-    final profile = context.read<ProfileProvider>().profile;
-    if (profile == null || !profile.isAiFeatureAvailable) {
-      context.push('/subscription', extra: SubscriptionTier.standard);
-      return;
-    }
-
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-
-    try {
-      final product = await _barcodeService.fetchProductByBarcode(code);
-      GeminiRecipeDraft draft;
-      if (product == null) {
-        final prompt =
-            'Search the web for the nutritional information and ingredients of the product with barcode: "$code". Create a basic nutritional entry for the product you find. If you cannot find any product with this barcode, return an empty object or name it "Unknown".';
-        final profile = context.read<ProfileProvider>().profile;
-        draft = await _geminiService.generateRecipeFromDescription(
-          description: prompt,
-          locale: Localizations.localeOf(context).languageCode,
-          healthConditions: '',
-          aiContext: profile?.aiContext ?? '',
-        );
-        if (draft.name.isEmpty || draft.name.toLowerCase() == 'unknown') {
-          throw Exception(l10n.productNotFoundError);
-        }
-      } else {
-        draft = await _geminiService.generateRecipeFromBarcode(
-          productData: product,
-          locale: Localizations.localeOf(context).languageCode,
-          healthConditions: '',
-        );
-      }
-
-      if (!mounted) return;
-
-      context.pushReplacement(
-        '/recipe/edit',
-        extra: {
-          'initialDraft': _buildDraftRecipe(draft),
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-        // Resume scanning if error occurred
-        _startBarcodeScanning();
-      }
-    }
-  }
 
   String _detectMimeType(String fileName) {
     if (fileName.endsWith('.png')) return 'image/png';
@@ -361,10 +242,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                   maxWidth: 1920,
                 );
                 if (image == null) return;
-
-                if (_cameraController?.value.isStreamingImages == true) {
-                  await _cameraController?.stopImageStream();
-                }
 
                 setState(() {
                   _capturedImage = image;

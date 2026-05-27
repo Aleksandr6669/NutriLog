@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get scannerHint => 'Point at the barcode or take a photo';
+  String get scannerHint => 'Take a dish photo or choose from gallery';
 
   @override
   String get appTitle => 'NutriLog';
@@ -912,7 +912,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeFromPhotoTitle => 'Recipe from photo';
 
   @override
-  String get recipeGenerateAndOpenEditor => 'Generate and open editor';
+  String get recipeGenerateAndOpenEditor => 'Continue';
 
   @override
   String get recipeGenerating => 'Generating recipe...';
@@ -1636,7 +1636,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get smartScannerTitle => 'Photo Recognition';
 
   @override
-  String get bySmartScanner => 'By Photo';
+  String get bySmartScanner => 'By Photo & Description';
 
   @override
   String get checkRecipeButton => 'Check recipe';
