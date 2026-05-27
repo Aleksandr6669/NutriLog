@@ -214,6 +214,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         description: description,
         locale: Localizations.localeOf(context).languageCode,
         healthConditions: profile?.healthConditions ?? '',
+        aiContext: profile?.aiContext ?? '',
       );
 
       if (!mounted) return;
@@ -257,6 +258,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           description: prompt,
           locale: Localizations.localeOf(context).languageCode,
           healthConditions: profile?.healthConditions ?? '',
+          aiContext: profile?.aiContext ?? '',
         );
         if (draft.name.isEmpty || draft.name.toLowerCase() == 'unknown') {
           throw Exception(l10n.productNotFoundError);
@@ -456,20 +458,24 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                       ),
                     ),
                     child: TextField(
-                      controller: _descriptionController,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      maxLines: 1,
-                      decoration: InputDecoration(
-                        hintText: l10n.recipeDescriptionExample,
-                        hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        icon: const Icon(Symbols.edit,
-                            color: Colors.white70, size: 20),
-                      ),
-                    ),
+                       controller: _descriptionController,
+                       style: const TextStyle(color: Colors.white, fontSize: 15),
+                       maxLines: 1,
+                       decoration: InputDecoration(
+                         hintText: l10n.recipeDescriptionExample,
+                         hintStyle: TextStyle(
+                           color: Colors.white.withValues(alpha: 0.7),
+                           fontSize: 14,
+                         ),
+                         border: InputBorder.none,
+                         contentPadding: const EdgeInsets.symmetric(
+                           horizontal: 0, vertical: 10),
+                         prefixIcon: const Icon(Symbols.edit,
+                             color: Colors.white70, size: 20),
+                         prefixIconConstraints: const BoxConstraints(
+                           minWidth: 36, minHeight: 36),
+                       ),
+                     ),
                   ),
                 ),
               ),

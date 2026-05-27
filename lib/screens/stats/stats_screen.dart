@@ -537,6 +537,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         goalType: (aiInput['goalType'] as String? ?? '').trim(),
         activityTypes: (aiInput['activityTypes'] as String? ?? '').trim(),
         aiContext: (aiInput['aiContext'] as String? ?? '').trim(),
+        trainerContext: profile.trainerContext,
         calorieGoal: aiInput['calorieGoal'] as int,
         proteinGoal: aiInput['proteinGoal'] as int,
         fatGoal: aiInput['fatGoal'] as int,

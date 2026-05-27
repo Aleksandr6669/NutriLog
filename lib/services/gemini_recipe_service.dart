@@ -398,6 +398,7 @@ Rules:
     String description = '',
     String? locale,
     String healthConditions = '',
+    String aiContext = '',
   }) async {
     if (imageBytes.isEmpty) {
       throw GeminiRecipeException(
@@ -422,6 +423,8 @@ If the photo shows a home-cooked dish, identify it as precisely as possible, ide
 ${normalizedDescription.isEmpty ? '' : 'Additional user description: $normalizedDescription'}
 
 ${healthConditions.isNotEmpty ? 'USER HEALTH CONTEXT: $healthConditions\nNote: Do NOT modify the ingredients seen or requested. Generate the recipe as is. If any part contradicts the user\'s health conditions, provide a clear medical warning or advice in the "healthAdvice" field.' : ''}
+
+${aiContext.isNotEmpty ? 'USER PREFERENCES / LIFE CONTEXT: $aiContext' : ''}
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -1307,6 +1310,7 @@ Rules:
     required String goalType,
     required String activityTypes,
     required String aiContext,
+    String trainerContext = '',
     required int calorieGoal,
     required int proteinGoal,
     required int fatGoal,
@@ -1437,6 +1441,7 @@ Primary goal type: $goalType
 User activity types: ${activityTypes.trim().isEmpty ? 'not specified' : activityTypes.trim()}
 
 ${healthConditions.isNotEmpty ? 'CRITICAL HEALTH CONSTRAINTS (MANDATORY): $healthConditions\nNote: All advice and recipe recommendations MUST strictly adhere to these health constraints. Never suggest anything prohibited by these conditions.' : ''}
+${trainerContext.isNotEmpty ? 'TRAINER MEAL PLAN: This user follows a personal trainer\'s nutrition plan. When suggesting recipes and recommendations, prioritize foods and portions that align with this plan:\n$trainerContext' : ''}
 User context/preferences: ${aiContext.trim().isEmpty ? 'not specified' : aiContext.trim()}
 Expert Context (Health/Fitness): ${healthConditions.trim().isEmpty ? 'not specified' : healthConditions.trim()}
 
