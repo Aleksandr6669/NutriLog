@@ -1023,6 +1023,7 @@ Rules:
     Map<String, double>? nutrients,
     String? locale,
     String healthConditions = '',
+    bool isReadyProduct = false,
   }) async {
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
@@ -1038,6 +1039,12 @@ Reject if:
 - contains illegal content or clear spam;
 - the name or description is a random sequence of characters (gibberish);
 - the recipe name is completely meaningless (e.g. "a", "123", "test").
+
+SPECIAL INSTRUCTIONS FOR READY PRODUCTS / PACKAGED ITEMS (isReadyProduct = $isReadyProduct):
+- If isReadyProduct is true, the item is a packaged product, drink, bar, or supplement (e.g., energy drink, protein shake, snack).
+- The ingredients list for ready products may contain industrial components, chemical additives, standard preservatives, thickeners, or synthetic vitamins/nutrients (e.g., taurine, caffeine, sucralose, xanthan gum, citric acid, sodium benzoate, cyanocobalamin).
+- Do NOT reject the product for containing these industrial/chemical ingredients. Instead, check them for authenticity and validity (i.e. make sure they are standard, safe ingredients commonly and legally used in industrial food manufacturing for this type of product).
+- If the ingredients are valid and true to its class (e.g., typical safe ingredients of an energy drink) and do not contain toxic, illicit, prohibited, or clearly dangerous non-food poisons, it MUST be approved.
 
 Goal: Keep the public feed safe and clean from spam.
 
@@ -1095,6 +1102,7 @@ Return ONLY JSON:
     Map<String, double>? nutrients,
     String? locale,
     String healthConditions = '',
+    bool isReadyProduct = false,
   }) async {
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
@@ -1109,6 +1117,12 @@ Reject if:
 - ingredients are missing, clearly fake, or contain non-food items;
 - the proportions look physically impossible or dangerous;
 - the dish name is too vague (e.g. "Lunch", "Food") — we need specific dish names.
+
+SPECIAL INSTRUCTIONS FOR READY PRODUCTS / PACKAGED ITEMS (isReadyProduct = $isReadyProduct):
+- If isReadyProduct is true, the item is a packaged product, drink, bar, or supplement (e.g., energy drink, protein shake, snack).
+- The ingredients list for ready products may contain industrial components, chemical additives, standard preservatives, thickeners, or synthetic vitamins/nutrients (e.g., taurine, caffeine, sucralose, xanthan gum, citric acid, sodium benzoate, cyanocobalamin).
+- Do NOT reject the product for containing these industrial/chemical ingredients. Instead, check them for authenticity and validity (i.e. make sure they are standard, safe ingredients commonly and legally used in industrial food manufacturing for this type of product).
+- If the ingredients are valid and true to its class (e.g., typical safe ingredients of an energy drink) and do not contain toxic, illicit, prohibited, or clearly dangerous non-food poisons, it MUST be approved.
 
 Do NOT reject if:
 - cooking instructions (steps) are missing;

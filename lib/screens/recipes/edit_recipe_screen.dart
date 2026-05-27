@@ -289,6 +289,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         locale: Localizations.localeOf(context).languageCode,
         healthConditions:
             context.read<ProfileProvider>().profile?.healthConditions ?? '',
+        isReadyProduct: _isReadyProduct,
       );
 
       if (!mounted || requestId != _publicAiRequestId) return;
@@ -347,6 +348,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             .where((i) => i.name.isNotEmpty)
             .toList(),
         locale: Localizations.localeOf(context).languageCode,
+        isReadyProduct: _isReadyProduct,
       );
 
       if (!mounted || requestId != _donateAiRequestId) return;
