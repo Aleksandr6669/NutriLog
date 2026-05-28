@@ -249,9 +249,16 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
               ),
           ] else if (_isCameraInitialized && _cameraController != null)
             Positioned.fill(
-              // Using SizedBox.expand to ensure CameraPreview fills the background properly
-              // (might require clipping or BoxFit depending on aspect ratio, but we'll let CameraPreview handle it)
-              child: CameraPreview(_cameraController!),
+              child: ClipRect(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _cameraController!.value.previewSize?.height ?? 1080,
+                    height: _cameraController!.value.previewSize?.width ?? 1920,
+                    child: CameraPreview(_cameraController!),
+                  ),
+                ),
+              ),
             )
           else
             const Positioned.fill(

@@ -1540,6 +1540,10 @@ Task:
   * If the user specifies they want only one dish/item for a meal (e.g. 'на завтрак что-то одно', 'одно блюдо на завтрак', 'only one dish for breakfast') in their settings or contexts, you MUST recommend strictly EXACTXY ONE dish/recipe for that meal time in the recommendations JSON list. You must NEVER recommend a combination or multiple items for that mealtime.
 29) RECIPE UNIQUENESS & DIVERSITY (CRITICAL):
   * You MUST avoid recommending highly similar, overlapping, or redundant dishes at the same time or within the same report (e.g., do NOT recommend both "Baked Chicken" and "Chicken with Rice"; choose ONLY ONE best option). Ensure variety in the suggested ingredients and dishes, representing diverse food options throughout the day/week.
+30) NO DUPLICATE INGREDIENTS OR REDUNDANT PRODUCTS (CRITICAL):
+  * If a simple food, raw ingredient, or commercial product (e.g., "Butter Yagotynske 82%", "Apple", "Banana", "Milk 2.5%") is ALREADY listed or used as a component/ingredient inside other complex dishes or recipes that you are recommending in the same report, you MUST NOT recommend it separately as a standalone item/recipe in the "recipeName" field.
+  * You can recommend a simple food, snack, or commercial item (like "Apple", "Banana", "Greek Yogurt", "Butter Yagotynske 82%") in the "recipeName" field ONLY IF it is not already included as a part/ingredient of other suggested meals for that day/mealtime.
+  * Always check ingredients compatibility: if a product is already consumed as a part of a recipe, do not recommend it independently.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
