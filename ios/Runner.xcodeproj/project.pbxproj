@@ -770,7 +770,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = NutriLogWatch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app.X4HMJXZ332;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -818,7 +818,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = NutriLogWatch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app.X4HMJXZ332;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -864,7 +864,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = NutriLogWatch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.app.nutrilog.app.X4HMJXZ332;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
