@@ -140,7 +140,7 @@ class ProgressCard extends StatelessWidget {
 
   Widget? _buildTrendGraphic(ThemeData theme) {
     final series = (trendData ?? const <double>[])
-        .where((v) => v.isFinite)
+        .where((v) => v.isFinite && (!isWeight || v > 0.0))
         .toList(growable: false);
 
     if (goal == null || goal == 0) return null;
