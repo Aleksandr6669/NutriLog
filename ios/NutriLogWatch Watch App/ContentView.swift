@@ -176,7 +176,7 @@ struct DiaryView: View {
                         .trim(from: 0.0, to: CGFloat(min(1.0, Double(vm.caloriesConsumed) / max(1.0, Double(vm.caloriesTarget)))))
                         .stroke(
                             LinearGradient(
-                                colors: [Color(red: 0.11, green: 0.73, blue: 0.33), .emerald],
+                                gradient: Gradient(colors: [Color(red: 0.11, green: 0.73, blue: 0.33), .emerald]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
@@ -200,7 +200,7 @@ struct DiaryView: View {
                 VStack(spacing: 6) {
                     MacroBar(label: "Белки", consumed: vm.proteinsConsumed, target: vm.proteinsTarget, color: .orange)
                     MacroBar(label: "Жиры", consumed: vm.fatsConsumed, target: vm.fatsTarget, color: .blue)
-                    MacroBar(label: "Углеводы", consumed: vm.carbsConsumed, target: vm.carbsTarget, color: .cyan)
+                    MacroBar(label: "Углеводы", consumed: vm.carbsConsumed, target: vm.carbsTarget, color: .customCyan)
                 }
                 .padding(.top, 4)
             }
@@ -281,7 +281,7 @@ struct AnalyticsView: View {
                                 .fill(Color.white.opacity(0.1))
                                 .frame(height: 6)
                             Capsule()
-                                .fill(LinearGradient(colors: [.green, .emerald], startPoint: .leading, endPoint: .trailing))
+                                .fill(LinearGradient(gradient: Gradient(colors: [.green, .emerald]), startPoint: .leading, endPoint: .trailing))
                                 .frame(width: CGFloat(progress) * geo.size.width, height: 6)
                         }
                     }
@@ -353,7 +353,7 @@ struct QuickWaterView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(
                         LinearGradient(
-                            colors: [.blue.opacity(0.8), Color(red: 0.1, green: 0.5, blue: 0.9)],
+                            gradient: Gradient(colors: [.blue.opacity(0.8), Color(red: 0.1, green: 0.5, blue: 0.9)]),
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -377,12 +377,16 @@ struct QuickWaterView: View {
                     VStack {
                         Text("+250")
                             .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
                         Text("мл")
                             .font(.system(size: 8))
+                            .foregroundColor(.white.opacity(0.8))
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.blue.opacity(0.3))
+                    .cornerRadius(8)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color.blue.opacity(0.3))
+                .buttonStyle(.plain)
                 
                 Button(action: {
                     vm.addWater(ml: 500)
@@ -390,12 +394,16 @@ struct QuickWaterView: View {
                     VStack {
                         Text("+500")
                             .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
                         Text("мл")
                             .font(.system(size: 8))
+                            .foregroundColor(.white.opacity(0.8))
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.blue.opacity(0.5))
+                    .cornerRadius(8)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color.blue.opacity(0.5))
+                .buttonStyle(.plain)
             }
             .frame(height: 38)
         }
@@ -404,6 +412,7 @@ struct QuickWaterView: View {
 
 // Extensions for convenient color usage
 extension Color {
+    static let customCyan = Color(red: 0.2, green: 0.8, blue: 0.9)
     static let emerald = Color(red: 0.05, green: 0.65, blue: 0.3)
 }
 
