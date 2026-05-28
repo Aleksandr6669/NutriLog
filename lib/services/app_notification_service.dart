@@ -434,7 +434,7 @@ class AppNotificationService {
         title: title,
         body: body,
         notificationLayout: NotificationLayout.Default,
-        largeIcon: 'resource://mipmap/ic_launcher',
+        color: const Color(0xFF1DB954),
       ),
       schedule: NotificationCalendar(
         year: localTarget.year,
