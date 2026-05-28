@@ -788,9 +788,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             ),
             const SizedBox(height: 12),
             AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              switchInCurve: Curves.easeIn,
-              switchOutCurve: Curves.easeOut,
+              duration: const Duration(milliseconds: 500),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return SizeTransition(
+                  sizeFactor: animation,
+                  axis: Axis.vertical,
+                  axisAlignment: -1.0,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
               child: _personalAdvice.isNotEmpty
                   ? Column(
                       key: const ValueKey('advice-content-loaded'),

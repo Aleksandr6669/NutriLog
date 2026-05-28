@@ -1691,9 +1691,20 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     final overviewText = _aiOverview?.trim() ?? '';
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 550),
       switchInCurve: Curves.easeInOut,
       switchOutCurve: Curves.easeInOut,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return SizeTransition(
+          sizeFactor: animation,
+          axis: Axis.vertical,
+          axisAlignment: -1.0,
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+        );
+      },
       child: isPreparing
           ? _buildPreparingCard(theme, l10n)
           : (_aiError || (overviewText.isEmpty && _aiRecommendations.isEmpty)
