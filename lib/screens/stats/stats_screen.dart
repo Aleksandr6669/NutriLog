@@ -46,6 +46,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
   final ScrollController _scrollController = ScrollController();
+  final RecipeService _recipeService = RecipeService();
   late Future<Map<String, dynamic>> _statsFuture;
   String? _aiOverview;
   List<Map<String, String>> _aiRecommendations = const [];
@@ -57,12 +58,15 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   List<AiReportEntry> _aiReportHistory = const [];
   StreamSubscription<void>? _logCacheSubscription;
   StreamSubscription<void>? _profileCacheSubscription;
+  StreamSubscription<void>? _recipeCacheSubscription;
+  StreamSubscription<void>? _settingsCacheSubscription;
   Timer? _reloadDebounce;
   bool _isDebouncePending = false;
   bool _isAiLoading = false;
   Map<String, dynamic>? _lastLoadedStats;
   ModalRoute<dynamic>? _subscribedRoute;
   String? _lastDisplayedSignature;
+  String? _loadingSignature;
   // Per-period in-memory AI cache: avoids redundant AI calls on period switch.
   final Map<String,
           ({String? overview, List<Map<String, String>> recs, bool error})>
@@ -89,6 +93,23 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         if (mounted) _reloadStats(soft: true);
       });
     });
+    _recipeCacheSubscription = _recipeService.cacheUpdates.listen((_) {
+      if (!mounted) return;
+      _reloadDebounce?.cancel();
+      setState(() => _isDebouncePending = true);
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
+        if (mounted) _reloadStats(soft: true);
+      });
+    });
+    _settingsCacheSubscription =
+        NotificationSettingsService.cacheUpdates.listen((_) {
+      if (!mounted) return;
+      _reloadDebounce?.cancel();
+      setState(() => _isDebouncePending = true);
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
+        if (mounted) _reloadStats(soft: true);
+      });
+    });
   }
 
   Future<void> _loadHistory() async {
@@ -105,6 +126,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     _reloadDebounce?.cancel();
     _logCacheSubscription?.cancel();
     _profileCacheSubscription?.cancel();
+    _recipeCacheSubscription?.cancel();
+    _settingsCacheSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -125,12 +148,13 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     }
 
     final locale = Localizations.localeOf(context);
-    if (_lastLocale != locale) {
+    if (_lastLocale != null && _lastLocale != locale) {
       _lastLocale = locale;
       if (mounted) {
         _reloadStats();
       }
     }
+    _lastLocale ??= locale;
   }
 
   @override
@@ -419,6 +443,14 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         'goalType': profile.goalType.enLabel,
         'activityTypes': profile.activityTypes,
         'aiContext': profile.aiContext,
+        'medicContext': profile.medicContext,
+        'dietitianContext': profile.dietitianContext,
+        'trainerContext': profile.trainerContext,
+        'activityContext': profile.activityContext,
+        'healthConditions': profile.healthConditions,
+        'statsAiAssistantEnabled': aiAssistantEnabled,
+        'aiProvider': settings.aiProvider,
+        'geminiModel': settings.geminiModel,
         'calorieGoal': profile.calorieGoal,
         'proteinGoal': profile.proteinGoal,
         'fatGoal': profile.fatGoal,
@@ -524,15 +556,21 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     int requestId, {
     required String sourceSignature,
   }) async {
-    // Breather to avoid redundant requests during rapid UI interaction
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    if (!mounted || requestId != _dataRequestId) return;
-
-    setState(() {
-      _isAiLoading = true;
-    });
+    if (_loadingSignature == sourceSignature) return;
+    _loadingSignature = sourceSignature;
 
     try {
+      // Breather to avoid redundant requests during rapid UI interaction
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      if (!mounted || requestId != _dataRequestId) {
+        if (_loadingSignature == sourceSignature) _loadingSignature = null;
+        return;
+      }
+
+      setState(() {
+        _isAiLoading = true;
+      });
+
       final profile = context.read<ProfileProvider>().profile;
       if (profile == null || !profile.isAiAnalyticsAvailable) {
         if (mounted) {
@@ -693,6 +731,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       }
       if (!mounted || requestId != _dataRequestId) return;
       _fallbackToLastCachedReport();
+    } finally {
+      if (_loadingSignature == sourceSignature) {
+        _loadingSignature = null;
+      }
     }
   }
 
@@ -711,6 +753,11 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       'goalType': aiInput['goalType'],
       'activityTypes': aiInput['activityTypes'],
       'aiContext': aiInput['aiContext'],
+      'medicContext': aiInput['medicContext'],
+      'dietitianContext': aiInput['dietitianContext'],
+      'trainerContext': aiInput['trainerContext'],
+      'activityContext': aiInput['activityContext'],
+      'healthConditions': aiInput['healthConditions'],
       'calorieGoal': aiInput['calorieGoal'],
       'proteinGoal': aiInput['proteinGoal'],
       'fatGoal': aiInput['fatGoal'],
@@ -757,6 +804,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       'workouts': aiInput['workouts'],
       'avgActivityCalories': aiInput['avgActivityCalories'],
       'topFoods': aiInput['topFoods'],
+      'availableRecipeNames': aiInput['availableRecipeNames'],
+      'snackPriorityRecipes': aiInput['snackPriorityRecipes'],
     };
     return jsonEncode(signaturePayload);
   }
@@ -2066,26 +2115,20 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (var i = 0; i < paragraphs.length; i++)
-          Container(
-            width: double.infinity,
-            margin: EdgeInsets.only(bottom: i == paragraphs.length - 1 ? 0 : 8),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              paragraphs[i],
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 15,
-                height: 1.45,
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
-              ),
+        for (var i = 0; i < paragraphs.length; i++) ...[
+          Text(
+            paragraphs[i],
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 15,
+              height: 1.45,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
             ),
           ),
+          if (i < paragraphs.length - 1) const SizedBox(height: 12),
+        ],
       ],
     );
   }

@@ -2,4 +2,9 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/logo.png"
+  image_path: "assets/images/logo_transparent.png"
+  adaptive_icon_background: "@color/ic_launcher_background"
+  adaptive_icon_foreground: "assets/images/logo_transparent.png"
+  image_path_ios_dark_transparent: "assets/images/logo_transparent.png"
+  image_path_ios_tinted_grayscale: "assets/images/logo_transparent.png"
+  desaturate_tinted_to_grayscale_ios: true

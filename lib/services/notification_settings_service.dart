@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -83,6 +84,15 @@ class NotificationSettings {
 }
 
 class NotificationSettingsService {
+  static final StreamController<void> _cacheUpdatesController =
+      StreamController<void>.broadcast();
+  static Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
+
+  static void notifyListeners() {
+    if (!_cacheUpdatesController.isClosed) {
+      _cacheUpdatesController.add(null);
+    }
+  }
   static const _waterEnabledKey = 'notif_water_enabled';
   static const _waterMinutesKey = 'notif_water_minutes';
   static const _mealsEnabledKey = 'notif_meals_enabled';
@@ -185,11 +195,13 @@ class NotificationSettingsService {
     await prefs.setInt(_aiRetryDelayKey, settings.aiRetryDelaySeconds);
     await prefs.setInt(_aiTimeoutSecondsKey, settings.aiTimeoutSeconds);
     await prefs.setInt(_aiMaxTokensKey, settings.aiMaxTokens);
+    notifyListeners();
   }
 
   Future<void> updateMessagesEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_messagesEnabledKey, enabled);
+    notifyListeners();
   }
 
   static int _toMinutes(TimeOfDay value) => value.hour * 60 + value.minute;

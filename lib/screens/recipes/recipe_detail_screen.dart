@@ -46,16 +46,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   String _calculateContextHash(String context, Recipe recipe) {
+    final ingredientsStr = recipe.ingredients
+        .map((ing) => '${ing.name}|${ing.quantity}|${ing.unit}')
+        .join(',');
+    final nutrientsStr = recipe.nutrients.entries
+        .map((e) => '${e.key}:${e.value}')
+        .join(',');
     final recipeData =
-        '${recipe.name}${recipe.ingredients.length}${recipe.nutrients['calories']}';
+        '${recipe.name}|$ingredientsStr|$nutrientsStr|${recipe.description}|${recipe.clarification}';
     return base64Encode(utf8.encode('$context|$recipeData'));
   }
 
+  bool _isFetchingAdvice = false;
+
   Future<void> _loadPersonalAdvice() async {
+    if (_isFetchingAdvice) return;
+    _isFetchingAdvice = true;
+
     final profile = context.read<ProfileProvider>().profile;
-    if (profile == null) return;
+    if (profile == null) {
+      _isFetchingAdvice = false;
+      return;
+    }
 
     if (!profile.isPersonalAdviceAvailable) {
+      _isFetchingAdvice = false;
       return;
     }
 
@@ -74,8 +89,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         if (mounted) {
           setState(() {
             _personalAdvice = decoded['advice'];
+            _isLoadingAdvice = false;
           });
         }
+        _isFetchingAdvice = false;
+        return;
       }
     }
 
@@ -87,17 +105,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         if (mounted) {
           setState(() {
             _personalAdvice = advice;
+            _isLoadingAdvice = false;
           });
           await prefs.setString(
               cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
         }
+        _isFetchingAdvice = false;
+        return;
       }
     }
 
     // Always fetch fresh expert advice (personalized if fields filled, light advice if empty)
     if (mounted) {
-      _generateNewAdvice(richSummary, currentHash);
+      await _generateNewAdvice(richSummary, currentHash);
     }
+    _isFetchingAdvice = false;
   }
 
   Future<void> _generateNewAdvice(String healthConditions, String hash) async {
