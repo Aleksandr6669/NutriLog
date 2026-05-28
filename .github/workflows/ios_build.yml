@@ -37,14 +37,26 @@ jobs:
             PROVISIONING_PROFILE="" \
             DEVELOPMENT_TEAM="" \
             | xcpretty || true
-          # Fallback: check if archive was created
-          ls -la build/ios/archive/
-      - run: mkdir -p build/ios/iphoneos/Payload
-      - run: cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/iphoneos/Payload/Runner.app
-
-      - name: Zip output
-        run: zip -qq -r -9 FlutterIpaExport.ipa Payload
-        working-directory: build/ios/iphoneos
+          # Show archive structure for debugging
+          echo "=== Archive structure ==="
+          find build/ios/archive/ -name "*.app" -type d 2>/dev/null || echo "No .app found in archive"
+          ls -la build/ios/archive/ 2>/dev/null || echo "Archive directory not found"
+      - name: Package IPA
+        run: |
+          mkdir -p build/ios/iphoneos/Payload
+          # Search for Runner.app anywhere inside the archive
+          APP_PATH=$(find build/ios/archive/Runner.xcarchive -name "Runner.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Runner.app not found in archive!"
+            find build/ios/archive/ -type d | head -30
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
+          cp -r "$APP_PATH" build/ios/iphoneos/Payload/Runner.app
+          cd build/ios/iphoneos
+          zip -qq -r -9 FlutterIpaExport.ipa Payload
+          echo "IPA created successfully!"
+          ls -lh FlutterIpaExport.ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
