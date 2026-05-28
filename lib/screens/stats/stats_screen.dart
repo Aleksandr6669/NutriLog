@@ -59,6 +59,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   StreamSubscription<void>? _profileCacheSubscription;
   Timer? _reloadDebounce;
   bool _isDebouncePending = false;
+  bool _isAiLoading = false;
   Map<String, dynamic>? _lastLoadedStats;
   ModalRoute<dynamic>? _subscribedRoute;
   String? _lastDisplayedSignature;
@@ -527,6 +528,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     await Future<void>.delayed(const Duration(milliseconds: 600));
     if (!mounted || requestId != _dataRequestId) return;
 
+    setState(() {
+      _isAiLoading = true;
+    });
+
     try {
       final profile = context.read<ProfileProvider>().profile;
       if (profile == null || !profile.isAiAnalyticsAvailable) {
@@ -535,6 +540,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             _aiError = false;
             _aiOverview = null;
             _isDebouncePending = false;
+            _isAiLoading = false;
           });
         }
         return;
@@ -665,6 +671,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         _aiOverview = overview;
         _aiRecommendations = normalizedRecommendations;
         _aiError = false;
+        _isAiLoading = false;
         _lastDisplayedSignature = sourceSignature;
         _aiCacheByPeriod[aiInput['periodLabel'] as String? ?? _period.name] = (
           overview: overview,
@@ -674,10 +681,16 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       });
     } on GeminiRecipeException catch (e) {
       developer.log('AI report error: ${e.message}', name: 'StatsScreen');
+      if (mounted) {
+        setState(() => _isAiLoading = false);
+      }
       if (!mounted || requestId != _dataRequestId) return;
       _fallbackToLastCachedReport();
     } catch (e) {
       developer.log('AI report error: $e', name: 'StatsScreen');
+      if (mounted) {
+        setState(() => _isAiLoading = false);
+      }
       if (!mounted || requestId != _dataRequestId) return;
       _fallbackToLastCachedReport();
     }
@@ -1782,10 +1795,28 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.statsAnalysisFor(_periodLabel(context)),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withAlpha(255),
-                        fontWeight: FontWeight.bold)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.statsAnalysisFor(_periodLabel(context)),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(255),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (_isAiLoading)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1845,16 +1876,29 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Symbols.auto_awesome, color: AppColors.primary, size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.nutritionRecommendationsTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Symbols.auto_awesome, color: AppColors.primary, size: 22),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.nutritionRecommendationsTitle,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
                       ),
+                      if (_isAiLoading)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
