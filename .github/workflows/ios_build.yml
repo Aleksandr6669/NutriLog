@@ -17,8 +17,6 @@ jobs:
       - name: Create .env from secret
         run: |
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
-      - name: Fix xcodeproj gem for Xcode 16.4 (objectVersion 70)
-        run: gem install xcodeproj --no-document
       - name: Install CocoaPods dependencies
         run: pod install --repo-update
         working-directory: ios
