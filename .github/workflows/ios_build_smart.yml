@@ -24,8 +24,24 @@ jobs:
         run: pod install --repo-update
         working-directory: ios
 
-      - name: Flutter iOS config
-        run: flutter build ios --config-only --release --no-codesign --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+      - name: Fix Podfile cycle (Xcode 16 + Flutter)
+        working-directory: ios
+        run: |
+          # Disable dependency analysis for Flutter script phases to fix cycle error
+          ruby - <<'EOF'
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('Runner.xcodeproj')
+          project.targets.each do |target|
+            next unless target.name == 'Runner'
+            target.build_phases.each do |phase|
+              next unless phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+              if phase.name&.include?('Flutter') || phase.shell_script&.include?('flutter')
+                phase.always_out_of_date = '1'
+              end
+            end
+          end
+          project.save
+          EOF
 
       - name: Build Xcode Archive
         run: |
@@ -35,6 +51,7 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -archivePath $PWD/build/ios/archive/Runner.xcarchive \
+            -parallelizeTargets \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
@@ -42,38 +59,38 @@ jobs:
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             PROVISIONING_PROFILE="" \
             DEVELOPMENT_TEAM="" \
-            2>&1 | tail -50
-          echo "Exit code: $?"
+            2>&1 | grep -E "error:|warning:|BUILD|ARCHIVE|Cycle" | head -60
+          
+          echo "=== Exit code: $? ==="
 
       - name: Show archive structure
         if: always()
         run: |
-          echo "=== Checking archive ==="
+          echo "=== Archive structure ==="
           if [ -d "build/ios/archive/Runner.xcarchive" ]; then
-            find build/ios/archive/Runner.xcarchive -type d | head -40
+            find build/ios/archive/Runner.xcarchive -name "*.app" -type d
+            echo "--- Full structure ---"
+            find build/ios/archive/Runner.xcarchive -type d | head -30
           else
-            echo "❌ Archive not found!"
-            ls -la build/ios/ 2>/dev/null || echo "build/ios/ is empty"
+            echo "❌ Archive not created"
           fi
 
       - name: Package IPA
         run: |
           mkdir -p build/ios/iphoneos/Payload
 
-          # Search everywhere for Runner.app
           APP_PATH=$(find build/ios/archive/ -name "Runner.app" -type d 2>/dev/null | head -1)
 
           if [ -z "$APP_PATH" ]; then
-            echo "❌ Runner.app not found! Archive contents:"
-            find build/ios/archive/ -type f | head -30
+            echo "❌ Runner.app not found!"
             exit 1
           fi
 
-          echo "✅ Found: $APP_PATH"
+          echo "✅ Found app: $APP_PATH"
           cp -r "$APP_PATH" build/ios/iphoneos/Payload/Runner.app
           cd build/ios/iphoneos
           zip -qq -r -9 FlutterIpaExport.ipa Payload
-          echo "✅ IPA ready:"
+          echo "✅ IPA size:"
           ls -lh FlutterIpaExport.ipa
 
       - name: Upload IPA
