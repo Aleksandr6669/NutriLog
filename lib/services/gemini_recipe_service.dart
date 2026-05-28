@@ -9,9 +9,12 @@ import 'package:nutri_log/l10n/app_localizations.dart';
 
 import '../models/recipe.dart';
 import '../models/user_profile.dart';
+import '../models/ingredient_product.dart';
 import 'notification_settings_service.dart';
 import 'ai_error_log_service.dart';
 import 'recipe_loader.dart';
+import 'ingredient_db_service.dart';
+import 'user_habits_service.dart';
 import 'dart:ui' as ui;
 
 class GeminiRecipeService {
@@ -115,6 +118,19 @@ class GeminiRecipeService {
       nutrientProps[key] = {'type': 'number'};
     }
 
+    final extendedKeys = [
+      ...nutrientKeys,
+      'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
+      'zinc', 'copper', 'manganese', 'selenium',
+      'lead', 'mercury', 'cadmium', 'arsenic',
+      'nitrates', 'pesticides'
+    ];
+
+    final ingredientNutrientProps = <String, dynamic>{};
+    for (final key in extendedKeys) {
+      ingredientNutrientProps[key] = {'type': 'number'};
+    }
+
     return {
       'type': 'object',
       'properties': {
@@ -133,8 +149,15 @@ class GeminiRecipeService {
               'quantity': {'type': 'number'},
               'unit': {'type': 'string'},
               'ambiguous': {'type': 'boolean'},
+              'weightPerUnit': {'type': 'number'},
+              'isReadyProduct': {'type': 'boolean'},
+              'nutrients': {
+                'type': 'object',
+                'properties': ingredientNutrientProps,
+                'required': nutrientKeys,
+              },
             },
-            'required': ['name', 'quantity', 'unit', 'ambiguous'],
+            'required': ['name', 'quantity', 'unit', 'ambiguous', 'nutrients'],
           },
         },
         'nutrients': {
@@ -284,7 +307,7 @@ class GeminiRecipeService {
       );
     }
 
-
+    final userHabitsContext = await UserHabitsService.instance.compileUserHabitsContext();
 
     final prompt = '''
 You are a culinary assistant and expert nutritionist.
@@ -294,6 +317,8 @@ Note: The description may be from voice dictation, so it might lack punctuation,
 
 Dish description:
 $normalizedDescription
+
+$userHabitsContext
 
 Reply ONLY in JSON format, without explanations, markdown, or any text before or after the JSON. Ensure the output strictly follows the requested structure.
 
@@ -305,7 +330,24 @@ Format:
   "icon": "restaurant",
   "isReadyProduct": false,
   "ingredients": [
-    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
+    {
+      "name": "...",
+      "quantity": 100,
+      "unit": "g",
+      "ambiguous": false,
+      "weightPerUnit": 1, // Optional: Weight in grams of ONE unit (pcs, tsp, tbsp, pack)
+      "isReadyProduct": false,
+      "nutrients": {
+        "calories": 0, "protein": 0, "carbs": 0, "fat": 0, "fiber": 0, "sugar": 0,
+        "saturated_fat": 0, "polyunsaturated_fat": 0, "monounsaturated_fat": 0, "trans_fat": 0,
+        "cholesterol": 0, "sodium": 0, "potassium": 0, "vitamin_a": 0, "vitamin_c": 0,
+        "vitamin_d": 0, "calcium": 0, "iron": 0,
+        "vitamin_b1": 0, "vitamin_b2": 0, "vitamin_b6": 0, "vitamin_b12": 0,
+        "zinc": 0, "copper": 0, "manganese": 0, "selenium": 0,
+        "lead": 0, "mercury": 0, "cadmium": 0, "arsenic": 0,
+        "nitrates": 0, "pesticides": 0
+      }
+    }
   ],
   "nutrients": {
     "calories": 0,
@@ -337,12 +379,13 @@ Rules:
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0.
-- unit as a short string like: g, ml, pcs, tbsp, tsp.
-- nutrients as numbers only >= 0.
+- unit as a short string like: g, ml, pcs, tbsp, tsp, pack.
+- nutrients as numbers only >= 0. For each ingredient, nutrients object MUST represent nutritional values **per 100 grams** (or per 1 unit if quantity is in units like pcs/tsp/tbsp/pack and weightPerUnit is supplied) of this specific ingredient.
 - If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish.
 - CRITICAL BRAND & INGREDIENT MATCHING: If the user's description mentions a specific product, ingredient, or brand (e.g., 'масло Яготинское 82%', 'соус Хайнц', 'молоко Простоквашино'), you MUST explicitly extract and add this product/brand as an ingredient in the "ingredients" list with its exact name and brand specification (e.g., 'Масло Яготинское 82%'). Never omit such items, even if the user did not list them separately.
+- USER PORTION & SPICE ADAPTATION: Under "=== ПРЕДПОЧТЕНИЯ И ПРИВЫЧКИ ПОЛЬЗОВАТЕЛЯ ===" you will see the user's typical ingredient weights and favorite spices/additions. You MUST dynamically adjust the ingredient weights to match these typical portions (e.g., if user typical portion of pasta is 400g, put 400g instead of standard 200g) and automatically add favorite spices/additions (like black pepper) with their typical weights to compatible dishes, unless you are 100% sure they are inappropriate or absent.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -363,7 +406,7 @@ Rules:
       locale: locale,
       featureName: 'Recipe From Description',
     );
-    final textDraft = _draftFromDecodedJson(
+    final textDraft = await _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
       locale: locale,

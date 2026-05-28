@@ -25,6 +25,7 @@ class DataEncryptionService {
     'userRecipes',
     'aiReportHistory',
     'notificationSettings',
+    'ingredients_db',
   ];
 
   /// Генерирует ключ шифрования на основе UID пользователя.
