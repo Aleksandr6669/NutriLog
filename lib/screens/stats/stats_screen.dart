@@ -485,7 +485,15 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 })
             .toList(),
         'availableRecipeNames': allRecipes
-            .map((recipe) => recipe.name.trim())
+            .map((recipe) {
+              final desc = recipe.description.trim();
+              final clar = recipe.clarification.trim();
+              final details = [
+                if (desc.isNotEmpty) 'Описание: $desc',
+                if (clar.isNotEmpty) 'Уточнение: $clar',
+              ].join(', ');
+              return details.isNotEmpty ? '${recipe.name.trim()} ($details)' : recipe.name.trim();
+            })
             .where((name) => name.isNotEmpty)
             .toSet()
             .toList(),
@@ -1931,7 +1939,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                                           onPressed: () {
                                             context.push(
                                               '/recipe_detail',
-                                              extra: {'recipe': matchedRecipe},
+                                              extra: {
+                                                'recipe': matchedRecipe,
+                                                'hideEdit': true,
+                                              },
                                             );
                                           },
                                           icon: const Icon(Symbols.open_in_new,

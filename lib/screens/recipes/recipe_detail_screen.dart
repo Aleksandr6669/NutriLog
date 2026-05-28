@@ -20,12 +20,14 @@ class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
   final bool selectionMode;
   final bool isSelected;
+  final bool hideEdit;
 
   const RecipeDetailScreen({
     super.key,
     required this.recipe,
     this.selectionMode = false,
     this.isSelected = false,
+    this.hideEdit = false,
   });
 
   @override
@@ -174,7 +176,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               onPressed: () => Navigator.of(context).pop(true),
               tooltip: l10n.addToMeal,
             )
-          else if (widget.recipe.isUserRecipe && !widget.recipe.isDonated)
+          else if (widget.recipe.isUserRecipe && !widget.recipe.isDonated && !widget.hideEdit)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),
@@ -677,6 +679,39 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     if (profile == null || !profile.isPersonalAdviceAvailable) {
       return _buildPremiumAdviceStub(context, theme, l10n);
+    }
+
+    if (_personalAdvice.isEmpty) {
+      if (!_isLoadingAdvice) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadPersonalAdvice();
+        });
+      }
+
+      final locale = Localizations.localeOf(context).languageCode;
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(strokeWidth: 2.5),
+              const SizedBox(height: 12),
+              Text(
+                locale == 'ru'
+                    ? 'ИИ анализирует совместимость рецепта...'
+                    : (locale == 'uk'
+                        ? 'ШІ аналізує сумісність рецепту...'
+                        : 'AI is analyzing recipe compatibility...'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     
     final isNewFormat = _personalAdvice.contains('[[IS_COMPATIBLE]]');

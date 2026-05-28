@@ -161,6 +161,7 @@ final GoRouter appRouter = GoRouter(
           recipe: extra?['recipe'] as Recipe,
           selectionMode: extra?['selectionMode'] as bool? ?? false,
           isSelected: extra?['isSelected'] as bool? ?? false,
+          hideEdit: extra?['hideEdit'] as bool? ?? false,
         );
       },
     ),

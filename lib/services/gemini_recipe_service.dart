@@ -342,6 +342,7 @@ Rules:
 - If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
 - For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish.
+- CRITICAL BRAND & INGREDIENT MATCHING: If the user's description mentions a specific product, ingredient, or brand (e.g., 'масло Яготинское 82%', 'соус Хайнц', 'молоко Простоквашино'), you MUST explicitly extract and add this product/brand as an ingredient in the "ingredients" list with its exact name and brand specification (e.g., 'Масло Яготинское 82%'). Never omit such items, even if the user did not list them separately.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -450,6 +451,7 @@ Rules:
 - If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
 - If exact composition cannot be determined, estimate by analogy with typical products of this type.
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish or product type.
+- CRITICAL BRAND & INGREDIENT MATCHING: If the user's description or packaging in the photo mentions a specific product, ingredient, or brand (e.g., 'масло Яготинское 82%', 'соус Хайнц', 'молоко Простоквашино'), you MUST explicitly extract and add this product/brand as an ingredient in the "ingredients" list with its exact name and brand specification (e.g., 'Масло Яготинское 82%'). Never omit such items, even if the user did not list them separately.
 ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -1508,8 +1510,10 @@ Task:
 9) Add snack recommendations only if they are actually needed/allowed for this user.
 10) If snack is needed, prefer adding snack with recipeName from priority snack candidates.
 11) If protein or fiber is below goals, prioritize snack ideas with higher protein/fiber and lower sugar.
-12) Use previous reports memory to keep recommendations consistent and progressive.
-13) Reuse previously recommended recipes when still relevant, otherwise suggest better alternatives from current list.
+12) STRICT PRIORITIZATION HIERARCHY (CRITICAL):
+  * Priority 1 (Absolute Priority): The current active trainerContext, dietitianContext, healthConditions, and aiContext MUST be strictly, unconditionally, and fully obeyed. If any plan specifies certain dishes, food rules, or notes that "alternatives are possible" ("возможна альтернатива"), actively offer those alternatives and flexible options.
+  * Priority 2 (Secondary): Use previous reports memory ("Previous AI reports memory") to maintain conversational logic, menu continuity, and general progress. However, this is strictly secondary. Never let previous recommendations or past memory override, restrict, or conflict with current active plans (Priority 1). If a plan is deleted or changed, immediately dismiss any past memories related to it and prioritize the new rules or defaults.
+13) Suggest recipes primarily from the "Available recipes in app" list that perfectly match the active plan (Priority 1). You may reuse previously recommended recipes from the history ONLY if they do not conflict with Priority 1 and remain highly suitable for the user's current goal.
 14) Personalization priority: use foods the user actually eats often first, then gently correct preparation/portion/frequency instead of replacing everything.
 15) If a frequently consumed product is not ideal, suggest a nearby alternative from available recipes or a modification of the same product.
 16) Protein-aware rule: if avgProteinGrams is already >= proteinGoal, avoid recommending extra high-protein foods (like chicken/protein snacks), UNLESS goal type is muscle gain or weight gain.
@@ -1544,6 +1548,10 @@ Task:
   * If a simple food, raw ingredient, or commercial product (e.g., "Butter Yagotynske 82%", "Apple", "Banana", "Milk 2.5%") is ALREADY listed or used as a component/ingredient inside other complex dishes or recipes that you are recommending in the same report, you MUST NOT recommend it separately as a standalone item/recipe in the "recipeName" field.
   * You can recommend a simple food, snack, or commercial item (like "Apple", "Banana", "Greek Yogurt", "Butter Yagotynske 82%") in the "recipeName" field ONLY IF it is not already included as a part/ingredient of other suggested meals for that day/mealtime.
   * Always check ingredients compatibility: if a product is already consumed as a part of a recipe, do not recommend it independently.
+31) BRAND SPECIFICATIONS & INGREDIENT EXTRACTION FROM DESCRIPTIONS (CRITICAL):
+  * When analyzing the "Available recipes in app" (which includes descriptions and clarifications in parentheses), you MUST pay extreme attention to ingredients, brands, and fat percentages mentioned in their description/clarification fields (e.g., 'масло Яготинское 82%', 'соус Хайнц сырный'), even if they are not explicitly listed in the recipe's title.
+  * You MUST treat these products as active components of those recipes. Apply Rule 30 to them as well: do NOT recommend these branded products (like 'масло Яготинское 82%') separately, if the user already eats or is recommended to eat a recipe whose description mentions this exact brand/product.
+  * Always respect user-specified brands and fat percentages when making recommendations. When recommending recipes, output ONLY their clean name in the "recipeName" field (e.g., 'Салат'), excluding the details in parentheses.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 
