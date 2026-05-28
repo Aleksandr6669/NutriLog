@@ -1,0 +1,84 @@
+name: Build iOS IPA (Smart)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_ios_development:
+    name: 🍎 iOS Build Smart
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - run: flutter pub get
+
+      - name: Create .env from secret
+        run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+
+      - name: Install CocoaPods dependencies
+        run: pod install --repo-update
+        working-directory: ios
+
+      - name: Flutter iOS config
+        run: flutter build ios --config-only --release --no-codesign --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+
+      - name: Build Xcode Archive
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $PWD/build/ios/archive/Runner.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            PROVISIONING_PROFILE="" \
+            DEVELOPMENT_TEAM="" \
+            2>&1 | tail -50
+          echo "Exit code: $?"
+
+      - name: Show archive structure
+        if: always()
+        run: |
+          echo "=== Checking archive ==="
+          if [ -d "build/ios/archive/Runner.xcarchive" ]; then
+            find build/ios/archive/Runner.xcarchive -type d | head -40
+          else
+            echo "❌ Archive not found!"
+            ls -la build/ios/ 2>/dev/null || echo "build/ios/ is empty"
+          fi
+
+      - name: Package IPA
+        run: |
+          mkdir -p build/ios/iphoneos/Payload
+
+          # Search everywhere for Runner.app
+          APP_PATH=$(find build/ios/archive/ -name "Runner.app" -type d 2>/dev/null | head -1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Runner.app not found! Archive contents:"
+            find build/ios/archive/ -type f | head -30
+            exit 1
+          fi
+
+          echo "✅ Found: $APP_PATH"
+          cp -r "$APP_PATH" build/ios/iphoneos/Payload/Runner.app
+          cd build/ios/iphoneos
+          zip -qq -r -9 FlutterIpaExport.ipa Payload
+          echo "✅ IPA ready:"
+          ls -lh FlutterIpaExport.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: NutriLog-ipa
+          path: build/ios/iphoneos/FlutterIpaExport.ipa
+          retention-days: 7
