@@ -58,10 +58,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             PROVISIONING_PROFILE="" \
-            DEVELOPMENT_TEAM="" \
-            2>&1 | grep -E "error:|warning:|BUILD|ARCHIVE|Cycle" | head -60
-          
-          echo "=== Exit code: $? ==="
+            DEVELOPMENT_TEAM=""
 
       - name: Show archive structure
         if: always()
