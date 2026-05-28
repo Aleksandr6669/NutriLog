@@ -249,7 +249,7 @@ struct AnalyticsView: View {
         ScrollView {
             VStack(spacing: 8) {
                 HStack {
-                    Image(systemName: "chart.bar.xaxis.ascending")
+                    Image(systemName: "chart.bar.fill")
                         .foregroundColor(.orange)
                         .font(.title3)
                     Text("Цели")
