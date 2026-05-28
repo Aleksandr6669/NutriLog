@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#1C1C1E</color>
+    <!-- Dark Mode Widget Semantic Colors -->
+    <color name="widget_card_bg">#1E1E1E</color>
+    <color name="widget_circle_bg">#16261B</color>
+    <color name="widget_stroke_color">#2C2C2E</color>
+    <color name="widget_text_title">#1DB954</color>
+    <color name="widget_text_val">#FFFFFF</color>
+    <color name="widget_text_sub">#A0A0A0</color>
+    <color name="widget_divider">#2C2C2E</color>
 </resources>

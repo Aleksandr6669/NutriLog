@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/widget_calories_title"
-        android:textColor="#00C753"
+        android:textColor="@color/widget_text_title"
         android:textSize="10sp"
         android:textStyle="bold" />
 
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0"
-        android:textColor="#0F2317"
+        android:textColor="@color/widget_text_val"
         android:textSize="28sp"
         android:textStyle="bold"
         android:layout_marginTop="2dp" />
@@ -50,14 +50,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="#0F2317"
+                android:textColor="@color/widget_text_val"
                 android:textSize="12sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/widget_macro_protein_short"
-                android:textColor="#00C753"
+                android:textColor="@color/widget_text_title"
                 android:textSize="8sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -74,14 +74,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="#0F2317"
+                android:textColor="@color/widget_text_val"
                 android:textSize="12sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/widget_macro_fat_short"
-                android:textColor="#00C753"
+                android:textColor="@color/widget_text_title"
                 android:textSize="8sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -98,14 +98,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="#0F2317"
+                android:textColor="@color/widget_text_val"
                 android:textSize="12sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/widget_macro_carbs_short"
-                android:textColor="#00C753"
+                android:textColor="@color/widget_text_title"
                 android:textSize="8sp"
                 android:textStyle="bold" />
         </LinearLayout>

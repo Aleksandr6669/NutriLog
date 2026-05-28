@@ -199,7 +199,9 @@ class AppNotificationService {
 
     final lang = await _getLanguageCode();
     await AwesomeNotifications().initialize(
-      'resource://mipmap/launcher_icon',
+      defaultTargetPlatform == TargetPlatform.android
+          ? 'resource://drawable/notification_icon'
+          : null, // iOS will automatically use the active dynamic AppIcon
       [
         NotificationChannel(
           channelKey: 'nutrilog_reminders',
@@ -213,7 +215,7 @@ class AppNotificationService {
               : lang == 'uk'
                   ? 'Нагадування про воду та прийоми їжі'
                   : 'Water and meal reminders',
-          defaultColor: const Color(0xFF2196F3),
+          defaultColor: const Color(0xFF1DB954),
           importance: NotificationImportance.High,
           channelShowBadge: false,
         ),

@@ -240,6 +240,36 @@ class CloudDataService {
     });
   }
 
+  /// Читает общий нешифрованный документ в корневой коллекции `sharedData`
+  Future<Map<String, dynamic>?> readSharedMap(String key) async {
+    if (_forceLocalOnly) return null;
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      final snapshot = await _firestore
+          .collection('sharedData')
+          .doc(key)
+          .get()
+          .timeout(_cloudTimeout);
+      if (!snapshot.exists) return null;
+      return snapshot.data();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Записывает общий нешифрованный документ в корневой коллекции `sharedData`
+  Future<void> writeSharedMap(String key, Map<String, dynamic> data) async {
+    if (_forceLocalOnly) return;
+    try {
+      await FirebaseBootstrapService.ensureInitialized();
+      await _firestore
+          .collection('sharedData')
+          .doc(key)
+          .set(data, SetOptions(merge: false))
+          .timeout(_cloudTimeout);
+    } catch (_) {}
+  }
+
   /// Отправляет рецепт в коллекцию donatedRecipes.
   /// После записи никто (включая автора) не может изменить или удалить документ —
   /// это обеспечивается правилами Firestore (только create разрешён).

@@ -19,14 +19,8 @@ class IngredientDbService {
 
   Stream<void> get cacheUpdates => _cacheUpdatesController.stream;
 
-  static String _scopeSuffixFromCurrentUser() {
-    final uid = CloudDataService.instance.currentUserId?.trim();
-    if (uid == null || uid.isEmpty) return 'local';
-    return uid;
-  }
-
   static String _scopedKey() {
-    return 'ingredients_db_${_scopeSuffixFromCurrentUser()}';
+    return 'ingredients_db_global';
   }
 
   void _notifyCacheUpdated() {
@@ -106,29 +100,27 @@ class IngredientDbService {
       return updated;
     }
 
-    // Если локально нет, запрашиваем облако Firebase
-    if (CloudDataService.instance.isSignedIn) {
-      try {
-        final cloudData = await CloudDataService.instance.readMap('ingredients_db');
-        if (cloudData != null && cloudData['ingredients'] is Map) {
-          final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
-          if (ingredientsMap.containsKey(cleanName)) {
-            final raw = ingredientsMap[cleanName];
-            if (raw is Map<String, dynamic>) {
-              final product = IngredientProduct.fromJson(raw).copyWith(
-                lastAccessedAt: DateTime.now(),
-              );
-              _cache[cleanName] = product;
-              _evictOldestIfNeeded();
-              await _saveToPrefs();
-              _notifyCacheUpdated();
-              return product;
-            }
+    // Если локально нет, запрашиваем общее облако Firebase (shared_ingredients_db)
+    try {
+      final cloudData = await CloudDataService.instance.readSharedMap('shared_ingredients_db');
+      if (cloudData != null && cloudData['ingredients'] is Map) {
+        final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
+        if (ingredientsMap.containsKey(cleanName)) {
+          final raw = ingredientsMap[cleanName];
+          if (raw is Map<String, dynamic>) {
+            final product = IngredientProduct.fromJson(raw).copyWith(
+              lastAccessedAt: DateTime.now(),
+            );
+            _cache[cleanName] = product;
+            _evictOldestIfNeeded();
+            await _saveToPrefs();
+            _notifyCacheUpdated();
+            return product;
           }
         }
-      } catch (_) {
-        // Ошибка сети или прав: продолжаем работать по локальным данным
       }
+    } catch (_) {
+      // Ошибка сети или прав: продолжаем работать по локальным данным
     }
 
     return null;
@@ -160,12 +152,11 @@ class IngredientDbService {
   /// Синхронизация локальной базы с облаком Firestore
   Future<void> syncWithCloud() async {
     final cloudService = CloudDataService.instance;
-    if (!cloudService.isSignedIn) return;
 
     await _ensureLoaded();
 
     try {
-      final cloudData = await cloudService.readMap('ingredients_db');
+      final cloudData = await cloudService.readSharedMap('shared_ingredients_db');
       final Map<String, IngredientProduct> cloudCache = {};
       if (cloudData != null && cloudData['ingredients'] is Map) {
         final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
@@ -211,7 +202,7 @@ class IngredientDbService {
         toWrite[key] = value.toJson();
       });
 
-      await cloudService.writeMap('ingredients_db', {
+      await cloudService.writeSharedMap('shared_ingredients_db', {
         'ingredients': toWrite,
       });
     } catch (_) {
@@ -222,10 +213,9 @@ class IngredientDbService {
   /// Полное замещение локальных данных облачными
   Future<void> pullFromCloudReplaceLocal() async {
     final cloudService = CloudDataService.instance;
-    if (!cloudService.isSignedIn) return;
 
     try {
-      final cloudData = await cloudService.readMap('ingredients_db');
+      final cloudData = await cloudService.readSharedMap('shared_ingredients_db');
       if (cloudData != null && cloudData['ingredients'] is Map) {
         final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
         _cache.clear();

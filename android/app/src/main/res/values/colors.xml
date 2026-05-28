@@ -8,5 +8,12 @@
     <color name="nutrilog_text_secondary">#B0B0B0</color>
     <color name="nutrilog_protein">#FFB300</color>
     <color name="nutrilog_fat">#4FC3F7</color>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Light Mode Widget Semantic Colors -->
+    <color name="widget_card_bg">#FFFFFF</color>
+    <color name="widget_circle_bg">#F4FBF7</color>
+    <color name="widget_stroke_color">#E0E0E0</color>
+    <color name="widget_text_title">#00C753</color>
+    <color name="widget_text_val">#0F2317</color>
+    <color name="widget_text_sub">#8E998F</color>
+    <color name="widget_divider">#E0E0E0</color>
 </resources>

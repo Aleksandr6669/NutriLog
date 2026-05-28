@@ -406,7 +406,7 @@ Rules:
       locale: locale,
       featureName: 'Recipe From Description',
     );
-    final textDraft = await _draftFromDecodedJson(
+    final textDraft = _draftFromDecodedJson(
       decoded,
       fallbackDescription: normalizedDescription,
       locale: locale,
@@ -2626,6 +2626,38 @@ Rules:
             isAmbiguous: isAmbiguous,
           ),
         );
+
+        // Извлекаем нутриенты ингредиента и сохраняем его в глобальную базу
+        final rawIngNutrients = rawIngredient['nutrients'];
+        if (rawIngNutrients is Map<String, dynamic>) {
+          final Map<String, double> ingNutrients = {};
+          final extendedKeys = [
+            ...nutrientKeys,
+            'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
+            'zinc', 'copper', 'manganese', 'selenium',
+            'lead', 'mercury', 'cadmium', 'arsenic',
+            'nitrates', 'pesticides'
+          ];
+          for (final key in extendedKeys) {
+            if (rawIngNutrients.containsKey(key)) {
+              ingNutrients[key] = _toNonNegativeDouble(rawIngNutrients[key]);
+            }
+          }
+          final weightPerUnit = _toNonNegativeDouble(rawIngredient['weightPerUnit']);
+          final isReady = rawIngredient['isReadyProduct'] == true;
+
+          // Сохраняем асинхронно в общую базу продуктов
+          unawaited(IngredientDbService.instance.saveIngredient(
+            IngredientProduct(
+              name: name,
+              nutrients: ingNutrients,
+              weightPerUnit: weightPerUnit > 0 ? weightPerUnit : null,
+              isReadyProduct: isReady,
+              updatedAt: DateTime.now(),
+              lastAccessedAt: DateTime.now(),
+            ),
+          ));
+        }
       }
     }
 
