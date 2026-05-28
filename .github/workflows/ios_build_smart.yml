@@ -35,7 +35,7 @@ jobs:
             next unless target.name == 'Runner'
             target.build_phases.each do |phase|
               next unless phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
-              if phase.name&.include?('Flutter') || phase.name&.include?('Thin Binary') || phase.shell_script&.include?('flutter') || phase.shell_script&.include?('thin_control')
+              if phase.name&.include?('Flutter') || phase.name&.include?('Thin Binary') || phase.name&.include?('[CP] Copy Pods Resources') || phase.shell_script&.include?('flutter') || phase.shell_script&.include?('thin_control')
                 phase.always_out_of_date = '1'
               end
             end
