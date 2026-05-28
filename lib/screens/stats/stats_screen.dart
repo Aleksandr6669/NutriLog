@@ -76,7 +76,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       if (!mounted) return;
       _reloadDebounce?.cancel();
       setState(() => _isDebouncePending = true);
-      _reloadDebounce = Timer(const Duration(seconds: 3), () {
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
         if (mounted) _reloadStats(soft: true);
       });
     });
@@ -84,7 +84,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       if (!mounted) return;
       _reloadDebounce?.cancel();
       setState(() => _isDebouncePending = true);
-      _reloadDebounce = Timer(const Duration(seconds: 3), () {
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
         if (mounted) _reloadStats(soft: true);
       });
     });

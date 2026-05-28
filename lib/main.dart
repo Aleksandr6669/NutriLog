@@ -646,7 +646,15 @@ class _MainScreenShellState extends State<MainScreenShell>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: Scaffold(
-        body: widget.navigationShell,
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeInOut,
+          switchOutCurve: Curves.easeInOut,
+          child: KeyedSubtree(
+            key: ValueKey('main-tab-${widget.navigationShell.currentIndex}'),
+            child: widget.navigationShell,
+          ),
+        ),
         bottomNavigationBar: _BottomNavBar(
           currentIndex: widget.navigationShell.currentIndex,
           onTap: _onItemTapped,
