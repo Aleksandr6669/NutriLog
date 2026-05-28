@@ -51,7 +51,7 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -archivePath $PWD/build/ios/archive/Runner.xcarchive \
-            -parallelizeTargets \
+            -parallelizeTargets NO \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
