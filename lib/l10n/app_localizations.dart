@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @scannerHint.
   ///
   /// In en, this message translates to:
-  /// **'Point at the barcode or take a photo'**
+  /// **'Take a dish photo or choose from gallery'**
   String get scannerHint;
 
   /// No description provided for @appTitle.
@@ -1760,7 +1760,7 @@ abstract class AppLocalizations {
   /// No description provided for @recipeGenerateAndOpenEditor.
   ///
   /// In en, this message translates to:
-  /// **'Generate and open editor'**
+  /// **'Continue'**
   String get recipeGenerateAndOpenEditor;
 
   /// No description provided for @recipeGenerating.
@@ -3056,7 +3056,7 @@ abstract class AppLocalizations {
   /// No description provided for @bySmartScanner.
   ///
   /// In en, this message translates to:
-  /// **'By Photo'**
+  /// **'By Photo & Description'**
   String get bySmartScanner;
 
   /// No description provided for @checkRecipeButton.
