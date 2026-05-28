@@ -45,6 +45,13 @@ class WatchViewModel: NSObject, ObservableObject, WCSessionDelegate {
         // Activated
     }
     
+    #if os(iOS)
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    #endif
+    
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         DispatchQueue.main.async {
             if let calCons = message["caloriesConsumed"] as? Int { self.caloriesConsumed = calCons }
