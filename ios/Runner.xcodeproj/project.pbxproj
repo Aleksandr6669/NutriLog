@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -332,8 +332,8 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				5EE4DB008520FAABB46F5151 /* [CP] Copy Pods Resources */,
 				6C88E8C92FA590D3002EDAB8 /* Embed Foundation Extensions */,
-				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				6C692D762FC88AD000BBCB26 /* Embed Watch Content */,
+				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
