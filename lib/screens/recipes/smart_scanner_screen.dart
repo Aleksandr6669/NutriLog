@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
@@ -33,19 +32,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   bool _isProcessing = false;
   bool _isCameraInitialized = false;
   XFile? _capturedImage;
-  bool _isScanningAnimActive = false;
-  Timer? _scanTimer;
-
-  void _startScanTimer() {
-    _scanTimer?.cancel();
-    _scanTimer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        setState(() {
-          _isScanningAnimActive = false;
-        });
-      }
-    });
-  }
 
   @override
   void initState() {
@@ -85,7 +71,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
   @override
   void dispose() {
-    _scanTimer?.cancel();
     _cameraController?.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -104,9 +89,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
       setState(() {
         _capturedImage = image;
-        _isScanningAnimActive = true;
       });
-      _startScanTimer();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -117,10 +100,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   }
 
   void _clearCapturedImage() {
-    _scanTimer?.cancel();
     setState(() {
       _capturedImage = null;
-      _isScanningAnimActive = false;
     });
   }
 
@@ -245,9 +226,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
 
                 setState(() {
                   _capturedImage = image;
-                  _isScanningAnimActive = true;
                 });
-                _startScanTimer();
               },
             ),
         ],
@@ -262,7 +241,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                 fit: BoxFit.cover,
               ),
             ),
-            if (_isScanningAnimActive)
+            if (_isProcessing)
               const Positioned.fill(
                 child: IgnorePointer(
                   child: NeuralScanOverlay(),
@@ -471,6 +450,24 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
   }
 }
 
+class ScanParticle {
+  Offset position;
+  double size;
+  double maxOpacity;
+  double speed;
+  double progress;
+  Color color;
+
+  ScanParticle({
+    required this.position,
+    required this.size,
+    required this.maxOpacity,
+    required this.speed,
+    required this.progress,
+    required this.color,
+  });
+}
+
 class NeuralScanOverlay extends StatefulWidget {
   const NeuralScanOverlay({super.key});
 
@@ -481,14 +478,51 @@ class NeuralScanOverlay extends StatefulWidget {
 class _NeuralScanOverlayState extends State<NeuralScanOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final List<ScanParticle> _particles = [];
+  final math.Random _random = math.Random();
+  Size? _lastSize;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000), // Speed up slightly
-    )..repeat();
+      duration: const Duration(seconds: 2),
+    )..addListener(_updateParticles)..repeat();
+  }
+
+  void _initializeParticles(Size size) {
+    _particles.clear();
+    for (int i = 0; i < 45; i++) {
+      _particles.add(_createParticle(size, randomProgress: true));
+    }
+  }
+
+  ScanParticle _createParticle(Size size, {bool randomProgress = false}) {
+    final isWhite = _random.nextBool();
+    return ScanParticle(
+      position: Offset(
+        _random.nextDouble() * size.width,
+        _random.nextDouble() * size.height,
+      ),
+      size: 3.0 + _random.nextDouble() * 7.0, // от 3 до 10 логических пикселей
+      maxOpacity: 0.15 + _random.nextDouble() * 0.4, // полупрозрачные
+      speed: 0.008 + _random.nextDouble() * 0.016, // разная скорость затухания
+      progress: randomProgress ? _random.nextDouble() : 0.0,
+      color: isWhite ? Colors.white : AppColors.primary,
+    );
+  }
+
+  void _updateParticles() {
+    if (_lastSize == null) return;
+    setState(() {
+      for (int i = 0; i < _particles.length; i++) {
+        _particles[i].progress += _particles[i].speed;
+        if (_particles[i].progress >= 1.0) {
+          _particles[i] = _createParticle(_lastSize!);
+        }
+      }
+    });
   }
 
   @override
@@ -499,81 +533,41 @@ class _NeuralScanOverlayState extends State<NeuralScanOverlay>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        if (_lastSize != size) {
+          _lastSize = size;
+          _initializeParticles(size);
+        }
         return CustomPaint(
-          painter: SonarScannerPainter(
-            progress: _controller.value,
-            primaryColor: AppColors.primary,
-          ),
+          size: size,
+          painter: ParticlesPainter(particles: _particles),
         );
       },
     );
   }
 }
 
-class SonarScannerPainter extends CustomPainter {
-  final double progress;
-  final Color primaryColor;
+class ParticlesPainter extends CustomPainter {
+  final List<ScanParticle> particles;
 
-  SonarScannerPainter({
-    required this.progress,
-    required this.primaryColor,
-  });
+  ParticlesPainter({required this.particles});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final maxRadius = size.width * 0.95;
-
-    // Draw concentric echolocation rings
-    // 3 rings with staggered start times
-    for (int i = 0; i < 3; i++) {
-      final ringProgress = (progress + (i / 3.0)) % 1.0;
-      final radius = maxRadius * ringProgress;
-      final opacity = (1.0 - ringProgress).clamp(0.0, 1.0);
-
-      final ringPaint = Paint()
-        ..color = primaryColor.withValues(alpha: opacity * 0.4)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0 + (3.0 * (1.0 - ringProgress));
-
-      canvas.drawCircle(center, radius, ringPaint);
-
-      // Add small glowing particles on the ring edge
-      final particlePaint = Paint()
-        ..color = Colors.white.withValues(alpha: opacity * 0.7)
+    for (final particle in particles) {
+      final opacity = (particle.maxOpacity * math.sin(particle.progress * math.pi)).clamp(0.0, 1.0);
+      final paint = Paint()
+        ..color = particle.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;
 
-      // Draw 6 particles spaced around the ring
-      for (int p = 0; p < 6; p++) {
-        final angle = (p * math.pi / 3.0) + (progress * 2 * math.pi * 0.2);
-        final px = center.dx + radius * math.cos(angle);
-        final py = center.dy + radius * math.sin(angle);
-        canvas.drawCircle(Offset(px, py), 4.0, particlePaint);
-      }
+      canvas.drawCircle(particle.position, particle.size, paint);
     }
-
-    // Draw a rotating sonar radar sweep line
-    final sweepAngle = progress * 2 * math.pi;
-    final sweepPaint = Paint()
-      ..shader = SweepGradient(
-        colors: [
-          primaryColor.withValues(alpha: 0.05),
-          primaryColor.withValues(alpha: 0.28),
-          primaryColor.withValues(alpha: 0.0),
-        ],
-        stops: const [0.0, 0.9, 1.0],
-        transform: GradientRotation(sweepAngle),
-      ).createShader(Rect.fromCircle(center: center, radius: maxRadius))
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(center, maxRadius, sweepPaint);
   }
 
   @override
-  bool shouldRepaint(covariant SonarScannerPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.primaryColor != primaryColor;
+  bool shouldRepaint(covariant ParticlesPainter oldDelegate) {
+    return true;
   }
 }

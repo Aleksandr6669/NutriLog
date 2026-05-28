@@ -532,6 +532,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAiReportTitle => 'AI Report';
 
   @override
+  String get nutritionRecommendationsTitle => 'Nutrition Recommendations';
+
+  @override
   String get statsAiOverviewTitle => 'Part 1. Goal Analysis';
 
   @override

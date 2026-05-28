@@ -1537,7 +1537,9 @@ Task:
 27) VEGETARIAN / DIETARY EXCLUSIONS (CRITICAL):
   * If the user specifies any dietary restriction, allergy, or preference (e.g. 'вегетарианец', 'не ем мясо', 'не ем рыбу', 'без мяса', 'без рыбы', vegetarian, vegan, no meat, no fish, etc.) in their settings (healthConditions, dietitianContext, trainerContext, or aiContext), you MUST STRICTLY respect it. Never recommend recipes or dishes containing these forbidden products (e.g. no chicken, beef, meat, fish, seafood, or pork in a vegetarian diet). If the user states they don't eat fish/meat, then do NOT suggest any dishes containing fish or meat. This is a hard constraint.
 28) STRICT MEAL PORTION LIMITATIONS (CRITICAL):
-  * If the user specifies they want only one dish/item for a meal (e.g. 'на завтрак что-то одно', 'одно блюдо на завтрак', 'only one dish for breakfast') in their settings or contexts, you MUST recommend strictly EXACTLY ONE dish/recipe for that meal time in the recommendations JSON list. You must NEVER recommend a combination or multiple items for that mealtime.
+  * If the user specifies they want only one dish/item for a meal (e.g. 'на завтрак что-то одно', 'одно блюдо на завтрак', 'only one dish for breakfast') in their settings or contexts, you MUST recommend strictly EXACTXY ONE dish/recipe for that meal time in the recommendations JSON list. You must NEVER recommend a combination or multiple items for that mealtime.
+29) RECIPE UNIQUENESS & DIVERSITY (CRITICAL):
+  * You MUST avoid recommending highly similar, overlapping, or redundant dishes at the same time or within the same report (e.g., do NOT recommend both "Baked Chicken" and "Chicken with Rice"; choose ONLY ONE best option). Ensure variety in the suggested ingredients and dishes, representing diverse food options throughout the day/week.
 
 Snack likely needed by metrics right now: ${snackLikelyNeeded ? 'yes' : 'no'}
 

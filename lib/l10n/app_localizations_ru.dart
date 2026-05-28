@@ -534,6 +534,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsAiReportTitle => 'Отчет от AI';
 
   @override
+  String get nutritionRecommendationsTitle => 'Рекомендации по питанию';
+
+  @override
   String get statsAiOverviewTitle => 'Часть 1. Анализ по целям';
 
   @override

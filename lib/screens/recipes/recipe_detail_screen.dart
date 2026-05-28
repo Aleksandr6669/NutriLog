@@ -752,61 +752,73 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            if (_personalAdvice.isNotEmpty) ...[
-              _buildDisclaimer(l10n, theme),
-              const SizedBox(height: 12),
-              if (isNewFormat && !isCompatible && incompatibleReason.isNotEmpty) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Symbols.error_med, color: Colors.red, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          incompatibleReason,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.red.shade800,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            height: 1.4,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeIn,
+              switchOutCurve: Curves.easeOut,
+              child: _personalAdvice.isNotEmpty
+                  ? Column(
+                      key: const ValueKey('advice-content-loaded'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDisclaimer(l10n, theme),
+                        const SizedBox(height: 12),
+                        if (isNewFormat && !isCompatible && incompatibleReason.isNotEmpty) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Symbols.error_med, color: Colors.red, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    incompatibleReason,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.red.shade800,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(height: 12),
+                        ],
+                        ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
+                      ],
+                    )
+                  : _isLoadingAdvice
+                      ? Center(
+                          key: const ValueKey('advice-content-loading'),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Column(
+                              children: [
+                                const CircularProgressIndicator(strokeWidth: 2),
+                                const SizedBox(height: 12),
+                                Text(
+                                  l10n.moderationChecking,
+                                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'Загрузка легких рекомендаций по питанию...',
+                          key: const ValueKey('advice-content-idle'),
+                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              ..._buildGroupedAdvice(_personalAdvice, theme, l10n),
-            ] else if (_isLoadingAdvice)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
-                      const CircularProgressIndicator(strokeWidth: 2),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.moderationChecking,
-                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Text(
-                'Загрузка легких рекомендаций по питанию...',
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-              ),
+            ),
           ],
         ),
       ),

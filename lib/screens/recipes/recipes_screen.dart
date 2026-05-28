@@ -692,21 +692,27 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     ),
                   ),
                   Expanded(
-                    child: CustomScrollView(
-                      slivers: [
-                        if (_isLoading)
-                          const SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (_filteredRecipes.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: _buildEmptyState(),
-                          )
-                        else
-                          _buildRecipesList(),
-                      ],
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      switchInCurve: Curves.easeIn,
+                      switchOutCurve: Curves.easeOut,
+                      child: CustomScrollView(
+                        key: ValueKey('recipes-scroll-view-${_isLoading}-${_filteredRecipes.isEmpty}-${_filteredRecipes.length}'),
+                        slivers: [
+                          if (_isLoading)
+                            const SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else if (_filteredRecipes.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: _buildEmptyState(),
+                            )
+                          else
+                            _buildRecipesList(),
+                        ],
+                      ),
                     ),
                   ),
                 ],

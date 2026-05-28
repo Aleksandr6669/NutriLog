@@ -1096,6 +1096,12 @@ abstract class AppLocalizations {
   /// **'AI Report'**
   String get statsAiReportTitle;
 
+  /// No description provided for @nutritionRecommendationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition Recommendations'**
+  String get nutritionRecommendationsTitle;
+
   /// No description provided for @statsAiOverviewTitle.
   ///
   /// In en, this message translates to:
