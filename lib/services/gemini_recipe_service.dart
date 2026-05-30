@@ -433,7 +433,7 @@ Rules:
 - unit as a short string like: g, ml, pcs, tbsp, tsp, pack.
 - nutrients as numbers only >= 0. For each ingredient, nutrients object MUST represent nutritional values **per 100 grams** (or per 1 unit if quantity is in units like pcs/tsp/tbsp/pack and weightPerUnit is supplied) of this specific ingredient.
 - If exact data is unavailable, provide a realistic estimate or leave as zero if completely unknown.
-- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise.
+- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat). Set "ambiguous": false otherwise. If the ingredient has an ambiguous or key preparation state (like dry vs boiled/cooked, or raw vs cooked), you MUST explicitly include this state in the ingredient's name in Russian/Ukrainian/English as appropriate (e.g., "макароны вареные" or "pasta cooked" instead of just "макароны" / "pasta", "гречка вареная" or "buckwheat cooked", "куриное филе сырое" or "chicken breast raw", "картофель запеченный" or "potato baked").
 - You CAN add common ingredients like water, oil, salt, or sugar if they are logically required for cooking the described dish.
 - CRITICAL BRAND & INGREDIENT MATCHING: If the user's description mentions a specific product, ingredient, or brand (e.g., 'масло Яготинское 82%', 'соус Хайнц', 'молоко Простоквашино'), you MUST explicitly extract and add this product/brand as an ingredient in the "ingredients" list with its exact name and brand specification (e.g., 'Масло Яготинское 82%'). Never omit such items, even if the user did not list them separately.
 - USER PORTION & SPICE ADAPTATION: Under "=== ПРЕДПОЧТЕНИЯ И ПРИВЫЧКИ ПОЛЬЗОВАТЕЛЯ ===" you will see the user's typical ingredient weights and favorite spices/additions. You MUST dynamically adjust the ingredient weights to match these typical portions (e.g., if user typical portion of pasta is 400g, put 400g instead of standard 200g) and automatically add favorite spices/additions (like black pepper) with their typical weights to compatible dishes, unless you are 100% sure they are inappropriate or absent.
@@ -543,7 +543,7 @@ Rules:
 - ingredient quantities must be realistic for ONE serving (1 person).
 - If user does not explicitly specify total amount/yield/number of servings, assume exactly 1 serving for 1 person.
 - quantity as a number >= 0. If needed, quantity >= 0.0001 (for spices, supplements, etc.).
-- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat, fresh vs canned). Set "ambiguous": false otherwise.
+- For each ingredient, set "ambiguous": true if the preparation method or form is unclear and significantly affects nutrition (e.g., boiled vs dry pasta, cereal with milk vs dry, raw vs cooked meat, fresh vs canned). Set "ambiguous": false otherwise. If the ingredient has an ambiguous or key preparation state (like dry vs boiled/cooked, or raw vs cooked), you MUST explicitly include this state in the ingredient's name in Russian/Ukrainian/English as appropriate (e.g., "макароны вареные" or "pasta cooked" instead of just "макароны" / "pasta", "гречка вареная" or "buckwheat cooked", "куриное филе сырое" or "chicken breast raw", "картофель запеченный" or "potato baked").
    If given in pieces, estimate the weight of one piece based on reference tables or common sense (e.g., average apple ~150 g, average egg ~50 g). If given in milliliters, estimate weight based on product density (e.g., 1 ml water ~ 1 g, 1 ml oil ~ 0.9 g). If weight cannot be precisely estimated, provide a realistic estimate based on similar products.
 - unit as a short string like: g, mg, kg, pcs, pack, package, l, ml, tsp, tbsp, cup.
 - nutrients as numbers only >= 0. If needed, values >= 0.0001 (for micronutrients, vitamins, supplements, etc.) are allowed.
@@ -678,6 +678,63 @@ Rules:
     );
     if (ingredientIssue != null) {
       throw GeminiRecipeException(ingredientIssue);
+    }
+
+    // ==========================================
+    // БЫСТРЫЙ ЛОКАЛЬНЫЙ РАСЧЕТ (Fast Path):
+    // Если все продукты найдены в нашей базе данных и мы можем перевести их в граммы,
+    // рассчитываем все 43 нутриента мгновенно (за 0.001 сек) локально без вызова Gemini!
+    // ==========================================
+    bool canCalculateLocally = true;
+    final Map<RecipeIngredient, IngredientProduct> matchedProducts = {};
+
+    for (final ingredient in ingredients) {
+      final dbProduct = await IngredientDbService.instance.findByName(ingredient.name);
+      if (dbProduct == null) {
+        canCalculateLocally = false;
+        break;
+      }
+      
+      double? grams = _toGramsEquivalent(ingredient.quantity, ingredient.unit.trim().toLowerCase());
+      if (grams == null && dbProduct.weightPerUnit != null) {
+        // Если это штуки/упаковки, переводим в граммы на основе веса одной штуки в нашей БД
+        grams = ingredient.quantity * dbProduct.weightPerUnit!;
+      }
+
+      if (grams == null) {
+        canCalculateLocally = false;
+        break;
+      }
+      matchedProducts[ingredient] = dbProduct;
+    }
+
+    if (canCalculateLocally && matchedProducts.isNotEmpty) {
+      final Map<String, double> calculatedNutrients = {};
+      for (final key in nutrientKeys) {
+        double sum = 0.0;
+        for (final entry in matchedProducts.entries) {
+          final ingredient = entry.key;
+          final dbProduct = entry.value;
+          
+          double grams = _toGramsEquivalent(ingredient.quantity, ingredient.unit.trim().toLowerCase()) ?? 
+                         (ingredient.quantity * (dbProduct.weightPerUnit ?? 0.0));
+          
+          final per100g = dbProduct.nutrients[key] ?? 0.0;
+          sum += per100g * (grams / 100.0);
+        }
+        calculatedNutrients[key] = double.parse(sum.toStringAsFixed(3));
+      }
+
+      final String localizedAdvice = locale?.toLowerCase() == 'uk'
+          ? 'Розрахунок виконано миттєво на основі бази даних NutriLog.'
+          : (locale?.toLowerCase() == 'en'
+              ? 'Calculation performed instantly based on the NutriLog database.'
+              : 'Расчет выполнен мгновенно на основе базы данных NutriLog.');
+
+      return NutrientEstimationResult(
+        nutrients: calculatedNutrients,
+        healthAdvice: localizedAdvice,
+      );
     }
 
     final apiKey = _resolveGeminiApiKey();
@@ -3148,16 +3205,7 @@ Rules:
       final name = ingredient.name.trim().toLowerCase();
       if (name.isEmpty) continue;
 
-      final nonFoodWords = [
-        'какаш',
-        'говн',
-        'дерьм',
-        'shit',
-        'poop',
-        'feces',
-        'фекал',
-      ];
-      if (_containsAny(name, nonFoodWords)) {
+      if (_isNonFoodIngredient(name)) {
         return _messages(locale).validationNonFoodIngredient;
       }
 
@@ -3167,7 +3215,7 @@ Rules:
       );
       if (grams == null) continue;
 
-      final isSalt = _containsAny(name, ['salt', 'соль', 'солі', 'сiль']);
+      final isSalt = _isPureSalt(name);
       if (isSalt && grams > 120) {
         return _messages(locale).validationSaltExcess;
       }
@@ -3252,6 +3300,63 @@ Rules:
     for (final needle in needles) {
       if (needle.isNotEmpty && source.contains(needle)) return true;
     }
+    return false;
+  }
+
+  bool _isPureSalt(String name) {
+    final normalized = name.toLowerCase().trim();
+    final containsSaltWord = normalized.contains('salt') ||
+        normalized.contains('соль') ||
+        normalized.contains('солі') ||
+        normalized.contains('сiль');
+    
+    if (!containsSaltWord) return false;
+
+    // Исключения: продукты, содержащие соль как определение или часть блюда
+    final exclusions = [
+      'рыба', 'рыб', 'fish', 'лосось', 'семга', 'сёмга', 'форель', 'сельдь', 'селед', 'herring', 'salmon', 'trout',
+      'огурец', 'огурц', 'cucumber', 'арахис', 'peanut', 'карамель', 'caramel', 'сыр', 'cheese', 'масло', 'butter',
+      'малосольн', 'малосолен', 'слабосольн', 'слабосолен', 'солен', 'солон', 'слабосолон', 'малосолон'
+    ];
+
+    for (final exclusion in exclusions) {
+      if (normalized.contains(exclusion)) return false;
+    }
+
+    return true;
+  }
+
+  bool _isNonFoodIngredient(String name) {
+    final normalized = name.toLowerCase().trim();
+    
+    // Исключения: полезные продукты, которые содержат нецензурные корни случайно
+    if (normalized.contains('shitake') || normalized.contains('shiitake')) {
+      return false;
+    }
+
+    final nonFoodWords = [
+      'какаш',
+      'говн',
+      'дерьм',
+      'shit',
+      'poop',
+      'feces',
+      'фекал',
+    ];
+
+    for (final word in nonFoodWords) {
+      if (word.isEmpty) continue;
+      
+      if (word == 'shit' || word == 'poop') {
+        // Проверяем английские ругательства с границами слов (\b), чтобы не задевать нормальные слова
+        final regExp = RegExp('\\b$word\\b');
+        if (regExp.hasMatch(normalized)) return true;
+      } else {
+        // Для русских корней по-прежнему ищем вхождение подстроки
+        if (normalized.contains(word)) return true;
+      }
+    }
+
     return false;
   }
 

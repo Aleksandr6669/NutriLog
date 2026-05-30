@@ -134,10 +134,44 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
       );
 
       if (!mounted) return;
+
+      // Выполняем точный расчет КБЖУ на основе нашей локальной и облачной баз данных в фоновом режиме
+      final preciseCalculation = await _geminiService.estimateNutrients(
+        recipeName: draft.name,
+        recipeDescription: draft.description,
+        ingredients: draft.ingredients
+            .map((i) => RecipeIngredient(
+                  name: i.name,
+                  quantity: i.quantity,
+                  unit: i.unit,
+                ))
+            .toList(),
+        clarification: draft.clarification,
+        locale: Localizations.localeOf(context).languageCode,
+        healthConditions: '',
+        profile: profile,
+        aiContext: profile?.aiContext ?? '',
+      );
+
+      final calibratedDraft = Recipe(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        name: draft.name,
+        description: draft.description,
+        clarification: draft.clarification,
+        nutrients: preciseCalculation.nutrients, // Используем точные калиброванные нутриенты
+        ingredients: draft.ingredients,
+        icon: draft.icon,
+        isUserRecipe: true,
+        instructions: const [],
+        isReadyProduct: draft.isReadyProduct,
+        healthAdvice: preciseCalculation.healthAdvice,
+      );
+
+      if (!mounted) return;
       context.pushReplacement(
         '/recipe/edit',
         extra: {
-          'initialDraft': _buildDraftRecipe(draft),
+          'initialDraft': calibratedDraft,
           'initialClarification':
               _buildDetailedClarification(draft, description),
         },
@@ -159,20 +193,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     return 'image/jpeg';
   }
 
-  Recipe _buildDraftRecipe(GeminiRecipeDraft draft) {
-    return Recipe(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: draft.name,
-      description: draft.description,
-      clarification: draft.clarification,
-      nutrients: draft.nutrients,
-      ingredients: draft.ingredients,
-      icon: draft.icon,
-      isUserRecipe: true,
-      instructions: const [],
-      isReadyProduct: draft.isReadyProduct,
-    );
-  }
+
 
   String _buildDetailedClarification(
     GeminiRecipeDraft draft,

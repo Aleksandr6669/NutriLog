@@ -11,10 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nutri_log/models/user_profile.dart';
 import '../../providers/profile_provider.dart';
 import '../../services/gemini_recipe_service.dart';
-import '../../services/cloud_data_service.dart';
 import '../../services/recipe_advice_service.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class RecipeDetailScreen extends StatefulWidget {
