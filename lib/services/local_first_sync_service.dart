@@ -8,6 +8,7 @@ import 'cloud_data_service.dart';
 import 'daily_log_service.dart';
 import 'profile_service.dart';
 import 'recipe_service.dart';
+import 'recipe_advice_service.dart';
 
 enum SyncStatus { idle, syncing, synced, error }
 
@@ -30,6 +31,7 @@ class LocalFirstSyncService {
   StreamSubscription<Map<String, dynamic>?>? _profileDocSubscription;
   StreamSubscription<Map<String, dynamic>?>? _dailyLogsDocSubscription;
   StreamSubscription<Map<String, dynamic>?>? _recipesDocSubscription;
+  StreamSubscription<Map<String, dynamic>?>? _recipesAdviceDocSubscription;
   StreamSubscription<List<Map<String, dynamic>>>? _publicRecipesSubscription;
   Timer? _periodicSyncTimer;
   Timer? _realtimePullDebounce;
@@ -105,6 +107,7 @@ class LocalFirstSyncService {
       await ProfileService().syncWithCloud();
       await DailyLogService().syncWithCloud();
       await RecipeService().syncWithCloud();
+      await RecipeAdviceService().syncWithCloud();
       lastSyncedAt = DateTime.now();
       statusNotifier.value = SyncStatus.synced;
     } catch (_) {
@@ -142,6 +145,7 @@ class LocalFirstSyncService {
     final remoteProfile = await cloud.readMap('profile');
     final remoteDaily = await cloud.readMap('daily_logs');
     final remoteRecipes = await cloud.readMap('recipes');
+    final remoteAdvices = await cloud.readMap('recipe_advices');
 
     final hasProfile = remoteProfile != null && remoteProfile.isNotEmpty;
     final hasDiary = remoteDaily != null &&
@@ -150,8 +154,9 @@ class LocalFirstSyncService {
     final hasRecipes = remoteRecipes != null &&
         remoteRecipes['recipes'] is List &&
         (remoteRecipes['recipes'] as List).isNotEmpty;
+    final hasAdvices = remoteAdvices != null && remoteAdvices.isNotEmpty;
 
-    return hasProfile || hasDiary || hasRecipes;
+    return hasProfile || hasDiary || hasRecipes || hasAdvices;
   }
 
   Future<bool> needsSignInConflictResolution() async {
@@ -191,10 +196,12 @@ class LocalFirstSyncService {
       await ProfileService.clearCache();
       await DailyLogService.clearCache();
       await RecipeService.clearCache();
+      await RecipeAdviceService.clearCache();
 
       await ProfileService().pullFromCloudReplaceLocal();
       await DailyLogService().pullFromCloudReplaceLocal();
       await RecipeService().pullFromCloudReplaceLocal();
+      await RecipeAdviceService().pullFromCloudReplaceLocal();
 
       lastSyncedAt = DateTime.now();
       statusNotifier.value = SyncStatus.synced;
@@ -223,6 +230,11 @@ class LocalFirstSyncService {
       _scheduleRealtimePull();
     });
 
+    _recipesAdviceDocSubscription =
+        CloudDataService.instance.docStream('recipe_advices').listen((_) {
+      _scheduleRealtimePull();
+    });
+
     _publicRecipesSubscription =
         CloudDataService.instance.collectionStream('publicRecipes').listen((_) {
       _scheduleRealtimePull();
@@ -234,10 +246,12 @@ class LocalFirstSyncService {
     _profileDocSubscription?.cancel();
     _dailyLogsDocSubscription?.cancel();
     _recipesDocSubscription?.cancel();
+    _recipesAdviceDocSubscription?.cancel();
     _publicRecipesSubscription?.cancel();
     _profileDocSubscription = null;
     _dailyLogsDocSubscription = null;
     _recipesDocSubscription = null;
+    _recipesAdviceDocSubscription = null;
     _publicRecipesSubscription = null;
   }
 
@@ -262,6 +276,7 @@ class LocalFirstSyncService {
       await ProfileService().pullFromCloudReplaceLocal();
       await DailyLogService().pullFromCloudReplaceLocal();
       await RecipeService().pullFromCloudReplaceLocal();
+      await RecipeAdviceService().pullFromCloudReplaceLocal();
       lastSyncedAt = DateTime.now();
       statusNotifier.value = SyncStatus.synced;
     } catch (_) {

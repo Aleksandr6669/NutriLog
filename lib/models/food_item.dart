@@ -21,6 +21,32 @@ class NutritionalInfo {
   final double vitaminD; // mcg (micrograms) / IU
   final double calcium; // mg
   final double iron; // mg
+  final double vitaminE; // mg
+  final double vitaminK; // mcg
+  final double vitaminB1; // mg
+  final double vitaminB2; // mg
+  final double vitaminB3; // mg
+  final double vitaminB5; // mg
+  final double vitaminB6; // mg
+  final double vitaminB7; // mcg
+  final double vitaminB9; // mcg
+  final double vitaminB12; // mcg
+  final double magnesium; // mg
+  final double phosphorus; // mg
+  final double zinc; // mg
+  final double copper; // mg
+  final double manganese; // mg
+  final double selenium; // mcg
+  final double iodine; // mcg
+  final double chromium; // mcg
+  final double molybdenum; // mcg
+  final double fluoride; // mg
+  final double lead; // mcg
+  final double mercury; // mcg
+  final double cadmium; // mcg
+  final double arsenic; // mcg
+  final double nitrates; // mg
+  final double pesticides; // mcg
 
   NutritionalInfo({
     required this.calories,
@@ -41,6 +67,32 @@ class NutritionalInfo {
     this.vitaminD = 0,
     this.calcium = 0,
     this.iron = 0,
+    this.vitaminE = 0,
+    this.vitaminK = 0,
+    this.vitaminB1 = 0,
+    this.vitaminB2 = 0,
+    this.vitaminB3 = 0,
+    this.vitaminB5 = 0,
+    this.vitaminB6 = 0,
+    this.vitaminB7 = 0,
+    this.vitaminB9 = 0,
+    this.vitaminB12 = 0,
+    this.magnesium = 0,
+    this.phosphorus = 0,
+    this.zinc = 0,
+    this.copper = 0,
+    this.manganese = 0,
+    this.selenium = 0,
+    this.iodine = 0,
+    this.chromium = 0,
+    this.molybdenum = 0,
+    this.fluoride = 0,
+    this.lead = 0,
+    this.mercury = 0,
+    this.cadmium = 0,
+    this.arsenic = 0,
+    this.nitrates = 0,
+    this.pesticides = 0,
   });
 
   factory NutritionalInfo.fromJson(Map<String, dynamic> json) {
@@ -65,6 +117,32 @@ class NutritionalInfo {
       vitaminD: (json['vitaminD'] as num?)?.toDouble() ?? 0,
       calcium: (json['calcium'] as num?)?.toDouble() ?? 0,
       iron: (json['iron'] as num?)?.toDouble() ?? 0,
+      vitaminE: (json['vitaminE'] as num?)?.toDouble() ?? 0,
+      vitaminK: (json['vitaminK'] as num?)?.toDouble() ?? 0,
+      vitaminB1: (json['vitaminB1'] as num?)?.toDouble() ?? 0,
+      vitaminB2: (json['vitaminB2'] as num?)?.toDouble() ?? 0,
+      vitaminB3: (json['vitaminB3'] as num?)?.toDouble() ?? 0,
+      vitaminB5: (json['vitaminB5'] as num?)?.toDouble() ?? 0,
+      vitaminB6: (json['vitaminB6'] as num?)?.toDouble() ?? 0,
+      vitaminB7: (json['vitaminB7'] as num?)?.toDouble() ?? 0,
+      vitaminB9: (json['vitaminB9'] as num?)?.toDouble() ?? 0,
+      vitaminB12: (json['vitaminB12'] as num?)?.toDouble() ?? 0,
+      magnesium: (json['magnesium'] as num?)?.toDouble() ?? 0,
+      phosphorus: (json['phosphorus'] as num?)?.toDouble() ?? 0,
+      zinc: (json['zinc'] as num?)?.toDouble() ?? 0,
+      copper: (json['copper'] as num?)?.toDouble() ?? 0,
+      manganese: (json['manganese'] as num?)?.toDouble() ?? 0,
+      selenium: (json['selenium'] as num?)?.toDouble() ?? 0,
+      iodine: (json['iodine'] as num?)?.toDouble() ?? 0,
+      chromium: (json['chromium'] as num?)?.toDouble() ?? 0,
+      molybdenum: (json['molybdenum'] as num?)?.toDouble() ?? 0,
+      fluoride: (json['fluoride'] as num?)?.toDouble() ?? 0,
+      lead: (json['lead'] as num?)?.toDouble() ?? 0,
+      mercury: (json['mercury'] as num?)?.toDouble() ?? 0,
+      cadmium: (json['cadmium'] as num?)?.toDouble() ?? 0,
+      arsenic: (json['arsenic'] as num?)?.toDouble() ?? 0,
+      nitrates: (json['nitrates'] as num?)?.toDouble() ?? 0,
+      pesticides: (json['pesticides'] as num?)?.toDouble() ?? 0,
     );
   }
 
@@ -91,6 +169,32 @@ class NutritionalInfo {
       vitaminD: vitaminD + other.vitaminD,
       calcium: calcium + other.calcium,
       iron: iron + other.iron,
+      vitaminE: vitaminE + other.vitaminE,
+      vitaminK: vitaminK + other.vitaminK,
+      vitaminB1: vitaminB1 + other.vitaminB1,
+      vitaminB2: vitaminB2 + other.vitaminB2,
+      vitaminB3: vitaminB3 + other.vitaminB3,
+      vitaminB5: vitaminB5 + other.vitaminB5,
+      vitaminB6: vitaminB6 + other.vitaminB6,
+      vitaminB7: vitaminB7 + other.vitaminB7,
+      vitaminB9: vitaminB9 + other.vitaminB9,
+      vitaminB12: vitaminB12 + other.vitaminB12,
+      magnesium: magnesium + other.magnesium,
+      phosphorus: phosphorus + other.phosphorus,
+      zinc: zinc + other.zinc,
+      copper: copper + other.copper,
+      manganese: manganese + other.manganese,
+      selenium: selenium + other.selenium,
+      iodine: iodine + other.iodine,
+      chromium: chromium + other.chromium,
+      molybdenum: molybdenum + other.molybdenum,
+      fluoride: fluoride + other.fluoride,
+      lead: lead + other.lead,
+      mercury: mercury + other.mercury,
+      cadmium: cadmium + other.cadmium,
+      arsenic: arsenic + other.arsenic,
+      nitrates: nitrates + other.nitrates,
+      pesticides: pesticides + other.pesticides,
     );
   }
 }

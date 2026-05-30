@@ -23,6 +23,7 @@ class NotificationSettings {
     required this.aiRetryDelaySeconds,
     required this.aiTimeoutSeconds,
     required this.aiMaxTokens,
+    required this.aiThinkingLevel,
   });
 
   final bool waterReminderEnabled;
@@ -41,6 +42,7 @@ class NotificationSettings {
   final int aiRetryDelaySeconds;
   final int aiTimeoutSeconds;
   final int aiMaxTokens;
+  final String aiThinkingLevel; // OFF | FAST | MEDIUM
 
   NotificationSettings copyWith({
     bool? waterReminderEnabled,
@@ -59,6 +61,7 @@ class NotificationSettings {
     int? aiRetryDelaySeconds,
     int? aiTimeoutSeconds,
     int? aiMaxTokens,
+    String? aiThinkingLevel,
   }) {
     return NotificationSettings(
       waterReminderEnabled: waterReminderEnabled ?? this.waterReminderEnabled,
@@ -79,6 +82,7 @@ class NotificationSettings {
       aiRetryDelaySeconds: aiRetryDelaySeconds ?? this.aiRetryDelaySeconds,
       aiTimeoutSeconds: aiTimeoutSeconds ?? this.aiTimeoutSeconds,
       aiMaxTokens: aiMaxTokens ?? this.aiMaxTokens,
+      aiThinkingLevel: aiThinkingLevel ?? this.aiThinkingLevel,
     );
   }
 }
@@ -109,6 +113,7 @@ class NotificationSettingsService {
   static const _aiRetryDelayKey = 'ai_retry_delay';
   static const _aiTimeoutSecondsKey = 'ai_timeout_seconds';
   static const _aiMaxTokensKey = 'ai_max_tokens';
+  static const _aiThinkingLevelKey = 'ai_thinking_level_v1';
 
   static const NotificationSettings defaults = NotificationSettings(
     waterReminderEnabled: true,
@@ -127,6 +132,7 @@ class NotificationSettingsService {
     aiRetryDelaySeconds: 1,
     aiTimeoutSeconds: 60,
     aiMaxTokens: 4096,
+    aiThinkingLevel: 'OFF',
   );
 
   Future<NotificationSettings> load() async {
@@ -169,6 +175,8 @@ class NotificationSettingsService {
       aiTimeoutSeconds:
           prefs.getInt(_aiTimeoutSecondsKey) ?? defaults.aiTimeoutSeconds,
       aiMaxTokens: prefs.getInt(_aiMaxTokensKey) ?? defaults.aiMaxTokens,
+      aiThinkingLevel:
+          prefs.getString(_aiThinkingLevelKey) ?? defaults.aiThinkingLevel,
     );
   }
 
@@ -195,6 +203,7 @@ class NotificationSettingsService {
     await prefs.setInt(_aiRetryDelayKey, settings.aiRetryDelaySeconds);
     await prefs.setInt(_aiTimeoutSecondsKey, settings.aiTimeoutSeconds);
     await prefs.setInt(_aiMaxTokensKey, settings.aiMaxTokens);
+    await prefs.setString(_aiThinkingLevelKey, settings.aiThinkingLevel);
     notifyListeners();
   }
 

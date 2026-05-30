@@ -100,11 +100,37 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     'cholesterol',
     'sodium',
     'potassium',
+    'calcium',
+    'iron',
     'vitamin_a',
     'vitamin_c',
     'vitamin_d',
-    'calcium',
-    'iron'
+    'vitamin_e',
+    'vitamin_k',
+    'vitamin_b1',
+    'vitamin_b2',
+    'vitamin_b3',
+    'vitamin_b5',
+    'vitamin_b6',
+    'vitamin_b7',
+    'vitamin_b9',
+    'vitamin_b12',
+    'magnesium',
+    'phosphorus',
+    'zinc',
+    'copper',
+    'manganese',
+    'selenium',
+    'iodine',
+    'chromium',
+    'molybdenum',
+    'fluoride',
+    'lead',
+    'mercury',
+    'cadmium',
+    'arsenic',
+    'nitrates',
+    'pesticides',
   ];
 
   @override
@@ -367,12 +393,104 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         return l10n.vitaminC;
       case 'vitamin_d':
         return l10n.vitaminD;
-      case 'calcium':
-        return l10n.calcium;
-      case 'iron':
-        return l10n.iron;
+
+      // Extra Vitamins
+      case 'vitamin_e':
+        return l10n.vitaminE;
+      case 'vitamin_k':
+        return l10n.vitaminK;
+      case 'vitamin_b1':
+        return l10n.vitaminB1;
+      case 'vitamin_b2':
+        return l10n.vitaminB2;
+      case 'vitamin_b3':
+        return l10n.vitaminB3;
+      case 'vitamin_b5':
+        return l10n.vitaminB5;
+      case 'vitamin_b6':
+        return l10n.vitaminB6;
+      case 'vitamin_b7':
+        return l10n.vitaminB7;
+      case 'vitamin_b9':
+        return l10n.vitaminB9;
+      case 'vitamin_b12':
+        return l10n.vitaminB12;
+
+      // Extra Minerals
+      case 'magnesium':
+        return l10n.magnesium;
+      case 'phosphorus':
+        return l10n.phosphorus;
+      case 'zinc':
+        return l10n.zinc;
+      case 'copper':
+        return l10n.copper;
+      case 'manganese':
+        return l10n.manganese;
+      case 'selenium':
+        return l10n.selenium;
+      case 'iodine':
+        return l10n.iodine;
+      case 'chromium':
+        return l10n.chromium;
+      case 'molybdenum':
+        return l10n.molybdenum;
+      case 'fluoride':
+        return l10n.fluoride;
+
+      // Heavy Metals & Contaminants
+      case 'lead':
+        return l10n.lead;
+      case 'mercury':
+        return l10n.mercury;
+      case 'cadmium':
+        return l10n.cadmium;
+      case 'arsenic':
+        return l10n.arsenic;
+      case 'nitrates':
+        return l10n.nitrates;
+      case 'pesticides':
+        return l10n.pesticides;
+
       default:
         return key;
+    }
+  }
+
+  String _getUnitForKey(String key) {
+    switch (key) {
+      case 'calories':
+        return l10n.kcal;
+      case 'protein':
+      case 'carbs':
+      case 'fat':
+      case 'fiber':
+      case 'sugar':
+      case 'saturated_fat':
+      case 'polyunsaturated_fat':
+      case 'monounsaturated_fat':
+      case 'trans_fat':
+        return l10n.grams;
+      case 'cholesterol':
+      case 'sodium':
+      case 'potassium':
+      case 'calcium':
+      case 'iron':
+      case 'vitamin_c':
+      case 'vitamin_b1':
+      case 'vitamin_b2':
+      case 'vitamin_b3':
+      case 'vitamin_b5':
+      case 'vitamin_b6':
+      case 'magnesium':
+      case 'phosphorus':
+      case 'zinc':
+      case 'copper':
+      case 'manganese':
+      case 'fluoride':
+        return l10n.mg;
+      default:
+        return l10n.mcg;
     }
   }
 
@@ -1461,13 +1579,38 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('sodium', l10n.sodium, l10n.mg),
-              ('potassium', l10n.potassium, l10n.mg)
+              ('sodium', _nutrientLabel('sodium'), _getUnitForKey('sodium')),
+              ('potassium', _nutrientLabel('potassium'), _getUnitForKey('potassium'))
             ]),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('calcium', l10n.calcium, l10n.mg),
-              ('iron', l10n.iron, l10n.mg)
+              ('calcium', _nutrientLabel('calcium'), _getUnitForKey('calcium')),
+              ('iron', _nutrientLabel('iron'), _getUnitForKey('iron'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('magnesium', _nutrientLabel('magnesium'), _getUnitForKey('magnesium')),
+              ('phosphorus', _nutrientLabel('phosphorus'), _getUnitForKey('phosphorus'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('zinc', _nutrientLabel('zinc'), _getUnitForKey('zinc')),
+              ('copper', _nutrientLabel('copper'), _getUnitForKey('copper'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('manganese', _nutrientLabel('manganese'), _getUnitForKey('manganese')),
+              ('selenium', _nutrientLabel('selenium'), _getUnitForKey('selenium'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('iodine', _nutrientLabel('iodine'), _getUnitForKey('iodine')),
+              ('chromium', _nutrientLabel('chromium'), _getUnitForKey('chromium'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('molybdenum', _nutrientLabel('molybdenum'), _getUnitForKey('molybdenum')),
+              ('fluoride', _nutrientLabel('fluoride'), _getUnitForKey('fluoride'))
             ]),
             const SizedBox(height: 14),
             Text(l10n.vitamins,
@@ -1475,9 +1618,51 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _nutrientRow([
-              ('vitamin_a', l10n.vitaminA, l10n.mcg),
-              ('vitamin_c', l10n.vitaminC, l10n.mg),
-              ('vitamin_d', l10n.vitaminD, l10n.mcg)
+              ('vitamin_a', _nutrientLabel('vitamin_a'), _getUnitForKey('vitamin_a')),
+              ('vitamin_c', _nutrientLabel('vitamin_c'), _getUnitForKey('vitamin_c')),
+              ('vitamin_d', _nutrientLabel('vitamin_d'), _getUnitForKey('vitamin_d'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_e', _nutrientLabel('vitamin_e'), _getUnitForKey('vitamin_e')),
+              ('vitamin_k', _nutrientLabel('vitamin_k'), _getUnitForKey('vitamin_k'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_b1', _nutrientLabel('vitamin_b1'), _getUnitForKey('vitamin_b1')),
+              ('vitamin_b2', _nutrientLabel('vitamin_b2'), _getUnitForKey('vitamin_b2')),
+              ('vitamin_b3', _nutrientLabel('vitamin_b3'), _getUnitForKey('vitamin_b3'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_b5', _nutrientLabel('vitamin_b5'), _getUnitForKey('vitamin_b5')),
+              ('vitamin_b6', _nutrientLabel('vitamin_b6'), _getUnitForKey('vitamin_b6')),
+              ('vitamin_b7', _nutrientLabel('vitamin_b7'), _getUnitForKey('vitamin_b7'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('vitamin_b9', _nutrientLabel('vitamin_b9'), _getUnitForKey('vitamin_b9')),
+              ('vitamin_b12', _nutrientLabel('vitamin_b12'), _getUnitForKey('vitamin_b12'))
+            ]),
+            const SizedBox(height: 14),
+            Text(
+              l10n.heavyMetalsAndContaminants,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('lead', _nutrientLabel('lead'), _getUnitForKey('lead')),
+              ('mercury', _nutrientLabel('mercury'), _getUnitForKey('mercury'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('cadmium', _nutrientLabel('cadmium'), _getUnitForKey('cadmium')),
+              ('arsenic', _nutrientLabel('arsenic'), _getUnitForKey('arsenic'))
+            ]),
+            const SizedBox(height: 8),
+            _nutrientRow([
+              ('nitrates', _nutrientLabel('nitrates'), _getUnitForKey('nitrates')),
+              ('pesticides', _nutrientLabel('pesticides'), _getUnitForKey('pesticides'))
             ]),
             const SizedBox(height: 24),
             Padding(

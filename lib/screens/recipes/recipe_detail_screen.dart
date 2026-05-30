@@ -12,6 +12,7 @@ import 'package:nutri_log/models/user_profile.dart';
 import '../../providers/profile_provider.dart';
 import '../../services/gemini_recipe_service.dart';
 import '../../services/cloud_data_service.dart';
+import '../../services/recipe_advice_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,6 +39,156 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final _geminiRecipeService = GeminiRecipeService();
   String _personalAdvice = '';
   bool _isLoadingAdvice = false;
+
+  String _localizeInline({
+    required String ru,
+    required String en,
+    required String uk,
+  }) {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'en') return en;
+    if (code == 'uk') return uk;
+    return ru;
+  }
+
+  String _nutrientLabel(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'calories':
+        return l10n.calories;
+      case 'protein':
+        return l10n.protein;
+      case 'carbs':
+        return l10n.carbs;
+      case 'fat':
+        return l10n.fat;
+      case 'fiber':
+        return l10n.fiberSub;
+      case 'sugar':
+        return l10n.sugarSub;
+      case 'saturated_fat':
+        return l10n.saturatedFatSub;
+      case 'polyunsaturated_fat':
+        return l10n.polyunsaturatedFatSub;
+      case 'monounsaturated_fat':
+        return l10n.monounsaturatedFatSub;
+      case 'trans_fat':
+        return l10n.transFatSub;
+      case 'cholesterol':
+        return l10n.cholesterolSub;
+      case 'sodium':
+        return l10n.sodium;
+      case 'potassium':
+        return l10n.potassium;
+      case 'calcium':
+        return l10n.calcium;
+      case 'iron':
+        return l10n.iron;
+      case 'vitamin_a':
+        return l10n.vitaminA;
+      case 'vitamin_c':
+        return l10n.vitaminC;
+      case 'vitamin_d':
+        return l10n.vitaminD;
+      
+      // Extra Vitamins
+      case 'vitamin_e':
+        return l10n.vitaminE;
+      case 'vitamin_k':
+        return l10n.vitaminK;
+      case 'vitamin_b1':
+        return l10n.vitaminB1;
+      case 'vitamin_b2':
+        return l10n.vitaminB2;
+      case 'vitamin_b3':
+        return l10n.vitaminB3;
+      case 'vitamin_b5':
+        return l10n.vitaminB5;
+      case 'vitamin_b6':
+        return l10n.vitaminB6;
+      case 'vitamin_b7':
+        return l10n.vitaminB7;
+      case 'vitamin_b9':
+        return l10n.vitaminB9;
+      case 'vitamin_b12':
+        return l10n.vitaminB12;
+
+      // Extra Minerals
+      case 'magnesium':
+        return l10n.magnesium;
+      case 'phosphorus':
+        return l10n.phosphorus;
+      case 'zinc':
+        return l10n.zinc;
+      case 'copper':
+        return l10n.copper;
+      case 'manganese':
+        return l10n.manganese;
+      case 'selenium':
+        return l10n.selenium;
+      case 'iodine':
+        return l10n.iodine;
+      case 'chromium':
+        return l10n.chromium;
+      case 'molybdenum':
+        return l10n.molybdenum;
+      case 'fluoride':
+        return l10n.fluoride;
+
+      // Heavy Metals & Contaminants
+      case 'lead':
+        return l10n.lead;
+      case 'mercury':
+        return l10n.mercury;
+      case 'cadmium':
+        return l10n.cadmium;
+      case 'arsenic':
+        return l10n.arsenic;
+      case 'nitrates':
+        return l10n.nitrates;
+      case 'pesticides':
+        return l10n.pesticides;
+
+      default:
+        return key;
+    }
+  }
+
+  String _getUnitForKey(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'calories':
+        return l10n.kcal;
+      case 'protein':
+      case 'carbs':
+      case 'fat':
+      case 'fiber':
+      case 'sugar':
+      case 'saturated_fat':
+      case 'polyunsaturated_fat':
+      case 'monounsaturated_fat':
+      case 'trans_fat':
+        return l10n.grams;
+      case 'cholesterol':
+      case 'sodium':
+      case 'potassium':
+      case 'calcium':
+      case 'iron':
+      case 'vitamin_c':
+      case 'vitamin_b1':
+      case 'vitamin_b2':
+      case 'vitamin_b3':
+      case 'vitamin_b5':
+      case 'vitamin_b6':
+      case 'magnesium':
+      case 'phosphorus':
+      case 'zinc':
+      case 'copper':
+      case 'manganese':
+      case 'fluoride':
+        return l10n.mg;
+      default:
+        return l10n.mcg;
+    }
+  }
 
   @override
   void initState() {
@@ -78,37 +229,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final currentHash =
         _calculateContextHash(richSummary, widget.recipe);
 
-    final prefs = await SharedPreferences.getInstance();
-    final userId = CloudDataService.instance.currentUserId ?? 'guest';
-    final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
-    final cachedData = prefs.getString(cacheKey);
+    final adviceService = RecipeAdviceService();
+    final cachedData = await adviceService.getAdvice(widget.recipe.id);
 
     if (cachedData != null) {
-      final decoded = json.decode(cachedData);
-      if (decoded['hash'] == currentHash) {
+      if (cachedData['hash'] == currentHash) {
         if (mounted) {
           setState(() {
-            _personalAdvice = decoded['advice'];
+            _personalAdvice = cachedData['advice'] as String;
             _isLoadingAdvice = false;
           });
-        }
-        _isFetchingAdvice = false;
-        return;
-      }
-    }
-
-    if (CloudDataService.instance.isSignedIn) {
-      final cloudData = await CloudDataService.instance
-          .readMap('personalRecipeAdvice_${widget.recipe.id}');
-      if (cloudData != null && cloudData['hash'] == currentHash) {
-        final advice = cloudData['advice'] as String;
-        if (mounted) {
-          setState(() {
-            _personalAdvice = advice;
-            _isLoadingAdvice = false;
-          });
-          await prefs.setString(
-              cacheKey, json.encode({'advice': advice, 'hash': currentHash}));
         }
         _isFetchingAdvice = false;
         return;
@@ -145,20 +275,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
         final profile = context.read<ProfileProvider>().profile;
         if (profile != null) {
-          final prefs = await SharedPreferences.getInstance();
-          final userId = CloudDataService.instance.currentUserId ?? 'guest';
-          final cacheKey = 'personal_advice_${userId}_${widget.recipe.id}';
-          await prefs.setString(
-              cacheKey, json.encode({'advice': advice, 'hash': hash}));
-
-          if (CloudDataService.instance.isSignedIn) {
-            await CloudDataService.instance
-                .writeMap('personalRecipeAdvice_${widget.recipe.id}', {
-              'advice': advice,
-              'hash': hash,
-              'updatedAt': DateTime.now().toIso8601String(),
-            });
-          }
+          await RecipeAdviceService().saveAdvice(widget.recipe.id, advice, hash);
         }
       }
     } catch (e) {
@@ -510,6 +627,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               _nutrientRow(
                   l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
               _nutrientRow(l10n.iron, widget.recipe.nutrients['iron'], l10n.mg),
+              _nutrientRow(
+                  _nutrientLabel('magnesium', l10n), widget.recipe.nutrients['magnesium'], _getUnitForKey('magnesium', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('phosphorus', l10n), widget.recipe.nutrients['phosphorus'], _getUnitForKey('phosphorus', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('zinc', l10n), widget.recipe.nutrients['zinc'], _getUnitForKey('zinc', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('copper', l10n), widget.recipe.nutrients['copper'], _getUnitForKey('copper', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('manganese', l10n), widget.recipe.nutrients['manganese'], _getUnitForKey('manganese', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('selenium', l10n), widget.recipe.nutrients['selenium'], _getUnitForKey('selenium', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('iodine', l10n), widget.recipe.nutrients['iodine'], _getUnitForKey('iodine', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('chromium', l10n), widget.recipe.nutrients['chromium'], _getUnitForKey('chromium', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('molybdenum', l10n), widget.recipe.nutrients['molybdenum'], _getUnitForKey('molybdenum', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('fluoride', l10n), widget.recipe.nutrients['fluoride'], _getUnitForKey('fluoride', l10n)),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.vitamins, [
@@ -519,7 +656,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   l10n.vitaminC, widget.recipe.nutrients['vitamin_c'], l10n.mg),
               _nutrientRow(l10n.vitaminD, widget.recipe.nutrients['vitamin_d'],
                   l10n.mcg),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_e', l10n), widget.recipe.nutrients['vitamin_e'], _getUnitForKey('vitamin_e', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_k', l10n), widget.recipe.nutrients['vitamin_k'], _getUnitForKey('vitamin_k', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b1', l10n), widget.recipe.nutrients['vitamin_b1'], _getUnitForKey('vitamin_b1', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b2', l10n), widget.recipe.nutrients['vitamin_b2'], _getUnitForKey('vitamin_b2', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b3', l10n), widget.recipe.nutrients['vitamin_b3'], _getUnitForKey('vitamin_b3', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b5', l10n), widget.recipe.nutrients['vitamin_b5'], _getUnitForKey('vitamin_b5', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b6', l10n), widget.recipe.nutrients['vitamin_b6'], _getUnitForKey('vitamin_b6', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b7', l10n), widget.recipe.nutrients['vitamin_b7'], _getUnitForKey('vitamin_b7', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b9', l10n), widget.recipe.nutrients['vitamin_b9'], _getUnitForKey('vitamin_b9', l10n)),
+              _nutrientRow(
+                  _nutrientLabel('vitamin_b12', l10n), widget.recipe.nutrients['vitamin_b12'], _getUnitForKey('vitamin_b12', l10n)),
             ]),
+            const Divider(height: 24),
+            _nutrientGroup(
+              l10n.heavyMetalsAndContaminants,
+              [
+                _nutrientRow(
+                    _nutrientLabel('lead', l10n), widget.recipe.nutrients['lead'], _getUnitForKey('lead', l10n)),
+                _nutrientRow(
+                    _nutrientLabel('mercury', l10n), widget.recipe.nutrients['mercury'], _getUnitForKey('mercury', l10n)),
+                _nutrientRow(
+                    _nutrientLabel('cadmium', l10n), widget.recipe.nutrients['cadmium'], _getUnitForKey('cadmium', l10n)),
+                _nutrientRow(
+                    _nutrientLabel('arsenic', l10n), widget.recipe.nutrients['arsenic'], _getUnitForKey('arsenic', l10n)),
+                _nutrientRow(
+                    _nutrientLabel('nitrates', l10n), widget.recipe.nutrients['nitrates'], _getUnitForKey('nitrates', l10n)),
+                _nutrientRow(
+                    _nutrientLabel('pesticides', l10n), widget.recipe.nutrients['pesticides'], _getUnitForKey('pesticides', l10n)),
+              ],
+            ),
           ],
         ),
       ),

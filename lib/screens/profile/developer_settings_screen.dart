@@ -117,6 +117,8 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           _buildAiTimeoutPicker(),
           const Divider(height: 1, indent: 56),
           _buildAiMaxTokensPicker(),
+          const Divider(height: 1, indent: 56),
+          _buildThinkingLevelPicker(),
         ],
       ),
     );
@@ -352,6 +354,49 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildThinkingLevelPicker() {
+    final Map<String, String> levels = {
+      'OFF': 'Отключен (Быстрый режим)',
+      'FAST': 'Быстрый разбор (Минимальное размышление)',
+      'MEDIUM': 'Глубокий анализ (Medium thinking level)',
+    };
+
+    final currentLevel = _settings!.aiThinkingLevel;
+    final currentLabel = levels[currentLevel] ?? currentLevel;
+
+    return ListTile(
+      leading: const Icon(Icons.psychology_alt, color: Colors.purpleAccent),
+      title: const Text('Режим рассуждения (Thinking)'),
+      subtitle: Text(currentLabel),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: levels.entries
+                  .map((entry) => ListTile(
+                        title: Text(entry.value),
+                        trailing: currentLevel == entry.key
+                            ? const Icon(Icons.check, color: Colors.green)
+                            : null,
+                        onTap: () {
+                          _saveSettings(_settings!.copyWith(aiThinkingLevel: entry.key));
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 

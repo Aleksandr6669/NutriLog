@@ -39,11 +39,37 @@ class GeminiRecipeService {
     'cholesterol',
     'sodium',
     'potassium',
+    'calcium',
+    'iron',
     'vitamin_a',
     'vitamin_c',
     'vitamin_d',
-    'calcium',
-    'iron',
+    'vitamin_e',
+    'vitamin_k',
+    'vitamin_b1',
+    'vitamin_b2',
+    'vitamin_b3',
+    'vitamin_b5',
+    'vitamin_b6',
+    'vitamin_b7',
+    'vitamin_b9',
+    'vitamin_b12',
+    'magnesium',
+    'phosphorus',
+    'zinc',
+    'copper',
+    'manganese',
+    'selenium',
+    'iodine',
+    'chromium',
+    'molybdenum',
+    'fluoride',
+    'lead',
+    'mercury',
+    'cadmium',
+    'arsenic',
+    'nitrates',
+    'pesticides',
   ];
 
   static const List<String> _allowedIconNames = [
@@ -118,13 +144,7 @@ class GeminiRecipeService {
       nutrientProps[key] = {'type': 'number'};
     }
 
-    final extendedKeys = [
-      ...nutrientKeys,
-      'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
-      'zinc', 'copper', 'manganese', 'selenium',
-      'lead', 'mercury', 'cadmium', 'arsenic',
-      'nitrates', 'pesticides'
-    ];
+    final extendedKeys = nutrientKeys;
 
     final ingredientNutrientProps = <String, dynamic>{};
     for (final key in extendedKeys) {
@@ -186,10 +206,35 @@ class GeminiRecipeService {
     }
     props['healthAdvice'] = {'type': 'string'};
 
+    final extendedKeys = nutrientKeys;
+
+    final ingredientNutrientProps = <String, dynamic>{};
+    for (final key in extendedKeys) {
+      ingredientNutrientProps[key] = {'type': 'number'};
+    }
+
+    props['ingredients'] = {
+      'type': 'array',
+      'items': {
+        'type': 'object',
+        'properties': {
+          'name': {'type': 'string'},
+          'nutrients': {
+            'type': 'object',
+            'properties': ingredientNutrientProps,
+            'required': nutrientKeys,
+          },
+          'weightPerUnit': {'type': 'number'},
+          'isReadyProduct': {'type': 'boolean'},
+        },
+        'required': ['name', 'nutrients'],
+      },
+    };
+
     return {
       'type': 'object',
       'properties': props,
-      'required': [...nutrientKeys, 'healthAdvice'],
+      'required': [...nutrientKeys, 'healthAdvice', 'ingredients'],
     };
   }
 
@@ -312,6 +357,12 @@ class GeminiRecipeService {
     final prompt = '''
 You are a culinary assistant and expert nutritionist.
 ${_languageInstruction(locale)}
+
+CRITICAL STEP-BY-STEP REASONING INSTRUCTION (MANDATORY):
+1. Before generating the final JSON recipe draft, mentally calculate and analyze the composition of the dish step-by-step in your mind (Chain-of-Thought).
+2. Distribute the dish into individual ingredients, estimate their exact weights in grams and nutrient values.
+3. Your final output recipe "nutrients" MUST represent the sum of the nutrients of its "ingredients" scaled by their weights.
+
 Generate a recipe draft based on the user's description. 
 Note: The description may be from voice dictation, so it might lack punctuation, contain typos, or have unusual grammar. Parse it carefully to extract the intended dish name and ingredients.
 
@@ -400,7 +451,6 @@ Rules:
         'top_p': 1,
         'stream': false,
         'enable_tools': true,
-        'thinking_level': 'MEDIUM',
         'response_schema': _getRecipeSchema(),
       },
       locale: locale,
@@ -432,6 +482,12 @@ Rules:
     final textPrompt = '''
 You are a culinary assistant and food expert.
 ${_languageInstruction(locale)}
+
+CRITICAL STEP-BY-STEP REASONING INSTRUCTION (MANDATORY):
+1. Before generating the final JSON recipe draft, mentally calculate and analyze the composition of the dish/product in the photo step-by-step in your mind (Chain-of-Thought).
+2. Distribute the dish into individual ingredients, estimate their exact weights in grams and nutrient values.
+3. Your final output recipe "nutrients" MUST represent the sum of the nutrients of its "ingredients" scaled by their weights.
+
 Your task is to identify the product or dish in the photo as accurately as possible (and from the description if provided), identify all main and hidden ingredients, and determine the product type (e.g., energy drink, soda, protein bar, soup, salad, pastry, etc.).
 
 If the photo shows a packaged product (e.g., energy drink, soda, chocolate, snacks, yogurt, protein supplement, bar, ready meal, etc.), be sure to indicate its type in the description field and identify the composition (ingredients) as thoroughly as possible, even if some are not visible but can be inferred from packaging, color, shape, brand, or product type.
@@ -520,6 +576,7 @@ Rules:
         'temperature': 0.3,
         'top_p': 1,
         'stream': false,
+        'enable_tools': true,
         'response_schema': _getRecipeSchema(),
       },
       locale: locale,
@@ -586,7 +643,6 @@ Rules:
         ],
         'temperature': 0.1,
         'enable_tools': true,
-        'thinking_level': 'MEDIUM',
         'response_schema': _getRecipeSchema(),
       },
       locale: locale,
@@ -633,6 +689,24 @@ Rules:
 
 
 
+    final List<String> knownIngredientsInfo = [];
+    for (final ingredient in ingredients) {
+      final dbProduct = await IngredientDbService.instance.findByName(ingredient.name);
+      if (dbProduct != null) {
+        final nuts = dbProduct.nutrients;
+        final List<String> parts = [];
+        for (final key in nutrientKeys) {
+          final val = nuts[key];
+          if (val != null) {
+            parts.add('$key: ${val.toStringAsFixed(3)}');
+          }
+        }
+        knownIngredientsInfo.add(
+          '- ${dbProduct.name}: ${parts.join(", ")} per 100g (isReadyProduct: ${dbProduct.isReadyProduct})'
+        );
+      }
+    }
+
     final ingredientsText = ingredients
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
@@ -641,7 +715,14 @@ Rules:
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
 
-  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND optionally provide a general positive nutritional tip in the "healthAdvice" field.
+  TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide a general positive nutritional tip in the "healthAdvice" field, AND provide the exact nutrient composition for each individual ingredient inside the "ingredients" list.
+
+  CRITICAL STEP-BY-STEP REASONING INSTRUCTION (MANDATORY):
+  1. Before generating the final JSON recipe draft, mentally calculate and analyze the composition of the dish step-by-step in your mind (Chain-of-Thought).
+  2. Distribute the dish into individual ingredients, estimate their exact weights in grams and nutrient values.
+  3. Your final output recipe "nutrients" MUST represent the sum of the nutrients of its "ingredients" scaled by their weights.
+
+  ${knownIngredientsInfo.isNotEmpty ? 'REFERENCE INGREDIENTS NUTRIENT VALUES (MANDATORY):\nUse these exact per-100g nutrient values for these ingredients in your calculations:\n${knownIngredientsInfo.join('\n')}\n' : ''}
 
   CRITICAL RULES:
   ...
@@ -681,13 +762,14 @@ Rules:
 
   Ingredient names may be in any language (English, Russian, Ukrainian, mixed spellings). Correctly interpret them as food products before calculation.
 
-  Reply with ONLY a JSON object. Keys: ${nutrientKeys.join(', ')} (all numeric doubles, no units, no negatives, no nulls). Return {} only if completely unable to estimate. No markdown, no text, no explanations outside JSON.
+  Reply with ONLY a JSON object that strictly adheres to the requested JSON schema.
+  Include all total recipe nutrients as top-level fields (like calories, protein, fat, carbs, fiber, sugar, etc.), the "healthAdvice" field, and the "ingredients" list where each ingredient object contains its "name" and its "nutrients" object (containing per-100g or per-unit values).
 
-  JSON value units:
+  Top-level and ingredient-level JSON value units:
   - calories: kcal
   - protein, carbs, fat, fiber, sugar, saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat: grams
-  - cholesterol, sodium, potassium, calcium, iron, vitamin_c: milligrams
-  - vitamin_a, vitamin_d: micrograms
+  - cholesterol, sodium, potassium, calcium, iron, vitamin_c, vitamin_b1, vitamin_b2, vitamin_b3, vitamin_b5, vitamin_b6, magnesium, phosphorus, zinc, copper, manganese, fluoride: milligrams
+  - vitamin_a, vitamin_d, vitamin_e, vitamin_k, vitamin_b7, vitamin_b9, vitamin_b12, selenium, iodine, chromium, molybdenum, lead, mercury, cadmium, arsenic, nitrates, pesticides: micrograms
   ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -700,7 +782,6 @@ Rules:
         ],
         'temperature': 0.1,
         'enable_tools': true,
-        'thinking_level': 'MEDIUM',
         'response_schema': _getNutrientEstimationSchema(),
       },
       apiKeyOverride: apiKey,
@@ -710,6 +791,45 @@ Rules:
 
     final String healthAdvice =
         (decoded['healthAdvice'] as String? ?? '').trim();
+
+    final rawIngredients = decoded['ingredients'];
+    if (rawIngredients is List) {
+      for (final rawIngredient in rawIngredients) {
+        if (rawIngredient is! Map<String, dynamic>) continue;
+        final name = (rawIngredient['name'] as String? ?? '').trim();
+        if (name.isEmpty) continue;
+
+        final rawIngNutrients = rawIngredient['nutrients'];
+        if (rawIngNutrients is Map<String, dynamic>) {
+          final Map<String, double> ingNutrients = {};
+          final extendedKeys = [
+            ...nutrientKeys,
+            'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
+            'zinc', 'copper', 'manganese', 'selenium',
+            'lead', 'mercury', 'cadmium', 'arsenic',
+            'nitrates', 'pesticides'
+          ];
+          for (final key in extendedKeys) {
+            if (rawIngNutrients.containsKey(key)) {
+              ingNutrients[key] = _toNonNegativeDouble(rawIngNutrients[key]);
+            }
+          }
+          final weightPerUnit = _toNonNegativeDouble(rawIngredient['weightPerUnit']);
+          final isReady = rawIngredient['isReadyProduct'] == true;
+
+          unawaited(IngredientDbService.instance.saveIngredient(
+            IngredientProduct(
+              name: name,
+              nutrients: ingNutrients,
+              weightPerUnit: weightPerUnit > 0 ? weightPerUnit : null,
+              isReadyProduct: isReady,
+              updatedAt: DateTime.now(),
+              lastAccessedAt: DateTime.now(),
+            ),
+          ));
+        }
+      }
+    }
 
     final finalNutrients = <String, double>{};
     for (final key in nutrientKeys) {
@@ -2360,7 +2480,7 @@ Rules:
 
       final systemInstruction = body['system_instruction'] as String?;
       final enableTools = body['enable_tools'] == true;
-      final thinkingLevel = body['thinking_level'] as String?;
+      final thinkingLevel = settings.aiThinkingLevel != 'OFF' ? settings.aiThinkingLevel : null;
       final isThinkingModel = models.first.contains('thinking');
 
       for (final modelName in models) {
