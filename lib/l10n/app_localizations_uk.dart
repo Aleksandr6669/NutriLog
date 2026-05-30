@@ -1855,4 +1855,8 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get scannerAiInvisibleTip =>
       'ІІ не бачить соуси та олію. Напишіть деталі вище для точності.';
+
+  @override
+  String get descriptionAiTip =>
+      'ШІ рахує точніше, якщо ви вкажете деталі: спосіб обробки (варений/смажений) та наявність соусів/олії.';
 }

@@ -676,5 +676,6 @@
   "nitrates": "Nitrates",
   "pesticides": "Pesticides",
   "heavyMetalsAndContaminants": "Heavy Metals & Contaminants",
-  "scannerAiInvisibleTip": "AI cannot see sauces or oil. Add details above for precision."
+  "scannerAiInvisibleTip": "AI cannot see sauces or oil. Add details above for precision.",
+  "descriptionAiTip": "AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils."
 }

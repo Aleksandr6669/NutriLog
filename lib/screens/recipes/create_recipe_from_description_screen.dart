@@ -362,6 +362,27 @@ class _CreateRecipeFromDescriptionScreenState
                 label: l10n.recipeDescriptionExample,
               ),
             ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Symbols.info, color: AppColors.primary, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.descriptionAiTip,
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

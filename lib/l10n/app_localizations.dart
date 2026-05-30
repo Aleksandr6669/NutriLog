@@ -3454,6 +3454,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI cannot see sauces or oil. Add details above for precision.'**
   String get scannerAiInvisibleTip;
+
+  /// No description provided for @descriptionAiTip.
+  ///
+  /// In en, this message translates to:
+  /// **'AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils.'**
+  String get descriptionAiTip;
 }
 
 class _AppLocalizationsDelegate

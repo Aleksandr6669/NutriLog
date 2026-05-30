@@ -38,17 +38,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String _personalAdvice = '';
   bool _isLoadingAdvice = false;
 
-  String _localizeInline({
-    required String ru,
-    required String en,
-    required String uk,
-  }) {
-    final code = Localizations.localeOf(context).languageCode;
-    if (code == 'en') return en;
-    if (code == 'uk') return uk;
-    return ru;
-  }
-
   String _nutrientLabel(String key, AppLocalizations l10n) {
     switch (key) {
       case 'calories':

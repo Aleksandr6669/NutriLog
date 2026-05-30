@@ -1857,4 +1857,8 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get scannerAiInvisibleTip =>
       'ИИ не видит соусы и масло. Напишите детали выше для точности.';
+
+  @override
+  String get descriptionAiTip =>
+      'ИИ считает точнее, если вы укажете детали: способ обработки (вареный/жареный) и наличие соусов/масел.';
 }

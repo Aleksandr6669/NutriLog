@@ -1851,4 +1851,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scannerAiInvisibleTip =>
       'AI cannot see sauces or oil. Add details above for precision.';
+
+  @override
+  String get descriptionAiTip =>
+      'AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils.';
 }
