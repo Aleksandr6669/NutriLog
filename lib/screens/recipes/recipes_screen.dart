@@ -697,7 +697,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       switchInCurve: Curves.easeIn,
                       switchOutCurve: Curves.easeOut,
                       child: CustomScrollView(
-                        key: ValueKey('recipes-scroll-view-$_isLoading-${_filteredRecipes.isEmpty}-${_filteredRecipes.length}'),
+                        key: ValueKey('recipes-scroll-view-$_isLoading-${_filteredRecipes.isEmpty}'),
                         slivers: [
                           if (_isLoading)
                             const SliverFillRemaining(

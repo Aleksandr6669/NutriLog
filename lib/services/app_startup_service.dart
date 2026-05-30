@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'cloud_data_service.dart';
+import 'profile_service.dart';
+import 'daily_log_service.dart';
+import 'recipe_service.dart';
 
 class StartupState {
   final bool needsOnboarding;
@@ -65,12 +71,64 @@ class AppStartupService {
       onTimeout: () => '0.0.0+0',
     );
 
-    final profileStr = prefs.getString('user_profile') ?? '';
-    final onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
-    final hasAcceptedAgreement = prefs.getBool(_agreementAcceptedKey) ?? false;
-    final isEmptyName = profileStr.contains('"name":""');
+    var profileStr = prefs.getString('user_profile') ?? '';
+    var onboardingCompleted = prefs.getBool(_onboardingDoneKey) ?? false;
+    var hasAcceptedAgreement = prefs.getBool(_agreementAcceptedKey) ?? false;
+    var isEmptyName = profileStr.isEmpty || profileStr.contains('"name":""');
 
-    // Если есть бэкап в iCloud/Google Drive с пройденным онбордингом - используем его
+    // Если данные профиля уже есть в SharedPreferences (например, восстановлены операционной системой/бэкапом),
+    // но флаги завершения онбординга или соглашения сброшены — мы автоматически считаем их пройденными и используем
+    if (!isEmptyName) {
+      if (!onboardingCompleted) {
+        onboardingCompleted = true;
+        await prefs.setBool(_onboardingDoneKey, true);
+        debugPrint('STARTUP: Valid profile found in SharedPreferences. Auto-completing onboarding.');
+      }
+      if (!hasAcceptedAgreement) {
+        hasAcceptedAgreement = true;
+        await prefs.setBool(_agreementAcceptedKey, true);
+        debugPrint('STARTUP: Valid profile found in SharedPreferences. Auto-accepting agreement.');
+      }
+    }
+
+    // Если локальных данных нет, но сессия Firebase Auth сохранилась в Keychain/Smart Lock (приложение переустановили)
+    if ((!onboardingCompleted || profileStr.isEmpty || isEmptyName) &&
+        CloudDataService.instance.isSignedIn) {
+      try {
+        debugPrint('STARTUP: User is signed in but local profile is missing. Attempting cloud recovery...');
+        // Пробуем быстро восстановить профиль из Firestore
+        await ProfileService().pullFromCloudReplaceLocal().timeout(
+          const Duration(seconds: 3),
+        );
+        
+        // Перечитываем сохранённые значения профиля
+        profileStr = prefs.getString('user_profile') ?? '';
+        isEmptyName = profileStr.isEmpty || profileStr.contains('"name":""');
+
+        if (!isEmptyName) {
+          debugPrint('STARTUP: Cloud profile successfully recovered. Skipping onboarding.');
+          onboardingCompleted = true;
+          hasAcceptedAgreement = true;
+          await prefs.setBool(_onboardingDoneKey, true);
+          await prefs.setBool(_agreementAcceptedKey, true);
+
+          // Загружаем лог и рецепты асинхронно, чтобы не задерживать запуск
+          unawaited(DailyLogService().pullFromCloudReplaceLocal().timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => {},
+          ));
+          unawaited(RecipeService().pullFromCloudReplaceLocal().timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => {},
+          ));
+        } else {
+          debugPrint('STARTUP: Cloud recovery succeeded but profile is empty.');
+        }
+      } catch (e) {
+        debugPrint('STARTUP: Cloud recovery failed: $e');
+      }
+    }
+
     final needsOnboarding =
         !onboardingCompleted || profileStr.isEmpty || isEmptyName;
 

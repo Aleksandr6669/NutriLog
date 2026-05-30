@@ -73,12 +73,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isDonated = false;
   bool _isReadyProduct = false;
 
-  // Separate states for Public moderation
-  bool _isPublicAiChecking = false;
-  bool _isPublicAiApproved = false;
-  String? _publicAiStatus;
-  String? _publicAiFixSuggestions;
-
   // Separate states for Donate (Community) moderation
   bool _isDonateAiChecking = false;
   bool _isDonateAiApproved = false;
@@ -86,13 +80,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   String? _donateAiFixSuggestions;
 
   Timer? _donateAiDebounce;
-  Timer? _publicAiDebounce;
   Timer? _nutritionAiDebounce;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _nutrientsActionKey = GlobalKey();
   int _aiRequestId = 0;
   int _donateAiRequestId = 0;
-  int _publicAiRequestId = 0;
 
   final List<String> _nutrientKeys = [
     'calories',
@@ -203,16 +195,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _resetModeration({bool resetCalculated = true}) {
-    if (_isPublicAiApproved ||
-        _isDonateAiApproved ||
+    if (_isDonateAiApproved ||
         _isPublic ||
         (resetCalculated && _isNutritionCalculated)) {
       if (mounted) {
         setState(() {
-          _isPublicAiApproved = false;
           _isDonateAiApproved = false;
           _isPublic = false;
-          _publicAiStatus = null;
           _donateAiStatus = null;
           if (resetCalculated) {
             _isNutritionCalculated = false;
@@ -244,73 +233,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         _donateAiStatus = l10n.moderationStale;
         _donateAiFixSuggestions = null;
       }
-      if (_publicAiStatus != null &&
-          _publicAiStatus != l10n.moderationNotChecked) {
-        _isPublicAiApproved = false;
-        _publicAiStatus = l10n.moderationStale;
-        _publicAiFixSuggestions = null;
-      }
     });
   }
 
-  Future<void> _runPublicModeration() async {
-    if (!_isFormReadyForDonate || _isDonated) return;
 
-    final profile = context.read<ProfileProvider>().profile;
-    if (profile == null || !profile.isAiFeatureAvailable) {
-      setState(() {
-        _isPublicAiChecking = false;
-        _publicAiStatus = l10n.featureNotAvailableInFree;
-        _isPublicAiApproved = false;
-      });
-      return;
-    }
-
-    final requestId = ++_publicAiRequestId;
-    setState(() {
-      _isPublicAiChecking = true;
-      _publicAiStatus = l10n.moderationChecking;
-      _publicAiFixSuggestions = null;
-    });
-
-    try {
-      final result = await _geminiRecipeService.moderateRecipeForPublic(
-        recipeName: _nameController.text,
-        recipeDescription: _descriptionController.text,
-        clarification: _clarificationController.text,
-        ingredients: _ingredientItems
-            .map((item) => RecipeIngredient(
-                  name: item.nameController.text.trim(),
-                  quantity: _parseAmount(item.quantityController.text),
-                  unit: item.unit.trim(),
-                ))
-            .where((i) => i.name.isNotEmpty)
-            .toList(),
-        locale: Localizations.localeOf(context).languageCode,
-        healthConditions: '',
-        isReadyProduct: _isReadyProduct,
-      );
-
-      if (!mounted || requestId != _publicAiRequestId) return;
-
-      setState(() {
-        _isPublicAiChecking = false;
-        _isPublicAiApproved = result.approved;
-        _publicAiStatus = result.reason;
-        _publicAiFixSuggestions = result.fixSuggestions;
-        if (result.healthAdvice.isNotEmpty &&
-            _healthAdviceController.text.trim().isEmpty) {
-          _healthAdviceController.text = result.healthAdvice;
-        }
-      });
-    } catch (e) {
-      if (!mounted || requestId != _publicAiRequestId) return;
-      setState(() {
-        _isPublicAiChecking = false;
-        _publicAiStatus = e.toString();
-      });
-    }
-  }
 
   Future<void> _runDonateModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
@@ -672,7 +598,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   @override
   void dispose() {
     _donateAiDebounce?.cancel();
-    _publicAiDebounce?.cancel();
     _nutritionAiDebounce?.cancel();
     _nutrientControllers['protein']?.removeListener(_onMacroChanged);
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
@@ -1242,204 +1167,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
-  Widget _buildVisibilityCard() {
-    final theme = Theme.of(context);
-    final canManageVisibility = widget.recipe?.isUserRecipe ?? true;
-    final canEnablePublic = canManageVisibility &&
-        !_isDonated &&
-        _isPublicAiApproved &&
-        !_isPublicAiChecking;
-    final canToggleVisibility =
-        _isPublic ? (canManageVisibility && !_isDonated) : canEnablePublic;
-    return Card(
-      elevation: 0.5,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: AppStyles.cardRadius,
-        side: BorderSide(
-          color: Colors.blue.withValues(alpha: 0.35),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.makePublic,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isPublic ? l10n.publicRecipe : l10n.privateRecipe,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: _isPublic
-                              ? Colors.blue.shade700
-                              : Colors.grey.shade600,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch.adaptive(
-                  value: _isPublic,
-                  onChanged: canToggleVisibility
-                      ? (value) {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            _isPublic = value;
-                          });
-                        }
-                      : null,
-                ),
-              ],
-            ),
-            if (_isPublic || _publicAiStatus != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _isPublicAiApproved
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : (_isPublicAiChecking
-                          ? Colors.blue.withValues(alpha: 0.05)
-                          : (_isPublicAiApproved == false &&
-                                  _publicAiStatus != null &&
-                                  _publicAiStatus !=
-                                      l10n.moderationNotChecked &&
-                                  _publicAiStatus != l10n.moderationStale
-                              ? Colors.red.withValues(alpha: 0.08)
-                              : Colors.blue.withValues(alpha: 0.05))),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _isPublicAiApproved
-                        ? Colors.green.withValues(alpha: 0.3)
-                        : (_isPublicAiChecking
-                            ? Colors.blue.withValues(alpha: 0.15)
-                            : (_isPublicAiApproved == false &&
-                                    _publicAiStatus != null &&
-                                    _publicAiStatus !=
-                                        l10n.moderationNotChecked &&
-                                    _publicAiStatus != l10n.moderationStale
-                                ? Colors.red.withValues(alpha: 0.25)
-                                : Colors.blue.withValues(alpha: 0.15))),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          _isPublicAiApproved
-                              ? Symbols.verified
-                              : (_isPublicAiChecking
-                                  ? Symbols.sync
-                                  : Symbols.info),
-                          size: 14,
-                          color: _isPublicAiApproved
-                              ? Colors.green
-                              : (_isPublicAiChecking
-                                  ? Colors.blue
-                                  : (_isPublicAiApproved == false &&
-                                          _publicAiStatus != null &&
-                                          _publicAiStatus !=
-                                              l10n.moderationNotChecked &&
-                                          _publicAiStatus !=
-                                              l10n.moderationStale
-                                      ? Colors.red
-                                      : Colors.blue)),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            _isPublicAiChecking
-                                ? l10n.moderationChecking
-                                : (_isPublicAiApproved
-                                    ? l10n.moderationApproved
-                                    : (_publicAiStatus ??
-                                        l10n.moderationNotChecked)),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                              color: _isPublicAiApproved
-                                  ? Colors.green.shade800
-                                  : (_isPublicAiChecking
-                                      ? Colors.blue.shade800
-                                      : null),
-                              fontWeight:
-                                  (_isPublicAiApproved || _isPublicAiChecking)
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_publicAiFixSuggestions != null &&
-                        _publicAiFixSuggestions!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${l10n.aiClarificationLabel}: $_publicAiFixSuggestions',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 10, color: Colors.orange.shade800),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _isPublicAiApproved
-                  ? null
-                  : () {
-                      final profile = context.read<ProfileProvider>().profile;
-                      final isAiAvailable =
-                          profile?.isAiFeatureAvailable ?? false;
 
-                      if (!isAiAvailable) {
-                        _navigateToSubscription(SubscriptionTier.standard);
-                        return;
-                      }
-                      if (_isFormReadyForDonate && !_isPublicAiChecking) {
-                        _runPublicModeration();
-                      }
-                    },
-              icon: _isPublicAiChecking
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(
-                      _isPublicAiApproved
-                          ? Symbols.verified
-                          : ((context
-                                      .read<ProfileProvider>()
-                                      .profile
-                                      ?.isAiFeatureAvailable ??
-                                  false)
-                              ? Symbols.verified
-                              : Symbols.lock),
-                      size: 18),
-              label: Text(
-                  _isPublicAiApproved ? l10n.ready : l10n.checkRecipeButton),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1503,8 +1231,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const SizedBox(height: 20),
                     _buildNutrientsCard(),
                     const SizedBox(height: 24),
-                    _buildVisibilityCard(),
-                    const SizedBox(height: 12),
                     _buildDonateCard(),
                     if (widget.recipe != null) ...[
                       const SizedBox(height: 12),
