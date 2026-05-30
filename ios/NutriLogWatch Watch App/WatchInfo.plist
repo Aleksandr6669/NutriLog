@@ -6,6 +6,10 @@
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.app.nutrilog.app.X4HMJXZ332.watchkitapp</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>WatchOS</string>
