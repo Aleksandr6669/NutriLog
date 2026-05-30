@@ -205,8 +205,8 @@ class IngredientDbService {
       await cloudService.writeSharedMap('shared_ingredients_db', {
         'ingredients': toWrite,
       });
-    } catch (_) {
-      // Ошибка сети — синхронизация повторится при следующем запуске или по таймеру
+    } catch (e) {
+      print('[IngredientDbService] Sync with cloud failed: $e');
     }
   }
 
@@ -228,8 +228,8 @@ class IngredientDbService {
         await _saveToPrefs();
         _notifyCacheUpdated();
       }
-    } catch (_) {
-      // Ошибка сети: оставляем локальный кеш
+    } catch (e) {
+      print('[IngredientDbService] Pull from cloud failed: $e');
     }
   }
 }
