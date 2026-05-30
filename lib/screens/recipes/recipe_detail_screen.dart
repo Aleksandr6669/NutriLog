@@ -48,6 +48,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         return l10n.carbs;
       case 'fat':
         return l10n.fat;
+      case 'alcohol':
+        return l10n.localeName == 'ru' ? 'Алкоголь' : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol');
       case 'fiber':
         return l10n.fiberSub;
       case 'sugar':
@@ -153,6 +155,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       case 'polyunsaturated_fat':
       case 'monounsaturated_fat':
       case 'trans_fat':
+      case 'alcohol':
         return l10n.grams;
       case 'cholesterol':
       case 'sodium':
@@ -604,6 +607,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     _nutrientSubRow(l10n.cholesterolSub,
                         widget.recipe.nutrients['cholesterol'], l10n.mg),
                   ]),
+              _nutrientRow(
+                  l10n.localeName == 'ru' ? 'Алкоголь' : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol'),
+                  widget.recipe.nutrients['alcohol'],
+                  l10n.grams),
             ]),
             const Divider(height: 24),
             _nutrientGroup(l10n.minerals, [

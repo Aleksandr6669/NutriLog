@@ -92,6 +92,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     'protein',
     'carbs',
     'fat',
+    'alcohol',
     'fiber',
     'sugar',
     'saturated_fat',
@@ -195,6 +196,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['protein']?.addListener(_onMacroChanged);
     _nutrientControllers['carbs']?.addListener(_onMacroChanged);
     _nutrientControllers['fat']?.addListener(_onMacroChanged);
+    _nutrientControllers['alcohol']?.addListener(_onMacroChanged);
 
     unawaited(_applyInitialAutomation(isFromDraft: isFromDraft));
 
@@ -346,8 +348,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final protein = recipeNutrients['protein'] ?? 0;
     final carbs = recipeNutrients['carbs'] ?? 0;
     final fat = recipeNutrients['fat'] ?? 0;
+    final alcohol = recipeNutrients['alcohol'] ?? 0;
     final calories = recipeNutrients['calories'] ?? 0;
-    final calculated = protein * 4 + carbs * 4 + fat * 9;
+    final calculated = protein * 4 + carbs * 4 + fat * 9 + alcohol * 7;
     return (calories - calculated).abs() < 0.2;
   }
 
@@ -380,6 +383,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         return l10n.carbs;
       case 'fat':
         return l10n.fat;
+      case 'alcohol':
+        return _localizeInline(ru: 'Алкоголь', en: 'Alcohol', uk: 'Алкоголь');
       case 'fiber':
         return l10n.fiberSub;
       case 'sugar':
@@ -475,6 +480,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       case 'protein':
       case 'carbs':
       case 'fat':
+      case 'alcohol':
       case 'fiber':
       case 'sugar':
       case 'saturated_fat':
@@ -606,7 +612,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     final protein = _parseAmount(_nutrientControllers['protein']?.text ?? '0');
     final carbs = _parseAmount(_nutrientControllers['carbs']?.text ?? '0');
     final fat = _parseAmount(_nutrientControllers['fat']?.text ?? '0');
-    final calories = protein * 4 + carbs * 4 + fat * 9;
+    final alcohol = _parseAmount(_nutrientControllers['alcohol']?.text ?? '0');
+    final calories = protein * 4 + carbs * 4 + fat * 9 + alcohol * 7;
 
     _isSyncingCalories = true;
     _nutrientControllers['calories']?.text = _formatNumber(calories);
@@ -744,6 +751,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['protein']?.removeListener(_onMacroChanged);
     _nutrientControllers['carbs']?.removeListener(_onMacroChanged);
     _nutrientControllers['fat']?.removeListener(_onMacroChanged);
+    _nutrientControllers['alcohol']?.removeListener(_onMacroChanged);
     _nutrientControllers['calories']
         ?.removeListener(_onDonateValidationInputChanged);
     _nameController.removeListener(_onDonateValidationInputChanged);
