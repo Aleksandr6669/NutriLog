@@ -675,5 +675,6 @@
   "arsenic": "Arsenic (As)",
   "nitrates": "Nitrates",
   "pesticides": "Pesticides",
-  "heavyMetalsAndContaminants": "Heavy Metals & Contaminants"
+  "heavyMetalsAndContaminants": "Heavy Metals & Contaminants",
+  "scannerAiInvisibleTip": "AI cannot see sauces or oil. Add details above for precision."
 }

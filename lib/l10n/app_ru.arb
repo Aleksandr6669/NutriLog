@@ -674,5 +674,6 @@
   "arsenic": "Мышьяк (As)",
   "nitrates": "Нитраты",
   "pesticides": "Пестициды",
-  "heavyMetalsAndContaminants": "Тяжелые металлы и примеси"
+  "heavyMetalsAndContaminants": "Тяжелые металлы и примеси",
+  "scannerAiInvisibleTip": "ИИ не видит соусы и масло. Напишите детали выше для точности."
 }

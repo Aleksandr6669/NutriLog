@@ -1847,4 +1847,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heavyMetalsAndContaminants => 'Heavy Metals & Contaminants';
+
+  @override
+  String get scannerAiInvisibleTip =>
+      'AI cannot see sauces or oil. Add details above for precision.';
 }

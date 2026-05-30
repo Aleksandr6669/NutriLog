@@ -676,5 +676,6 @@
   "arsenic": "Миш'як (As)",
   "nitrates": "Нітрати",
   "pesticides": "Пестициди",
-  "heavyMetalsAndContaminants": "Важкі метали та домішки"
+  "heavyMetalsAndContaminants": "Важкі метали та домішки",
+  "scannerAiInvisibleTip": "ІІ не бачить соуси та олію. Напишіть деталі вище для точності."
 }

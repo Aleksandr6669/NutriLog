@@ -322,45 +322,78 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
           // Description Field (Glassmorphism)
           if (_capturedImage != null)
             Positioned(
-              bottom: 140,
+              bottom: 120,
               left: 20,
               right: 20,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1.5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: TextField(
+                           controller: _descriptionController,
+                           style: const TextStyle(color: Colors.white, fontSize: 15),
+                           maxLines: 1,
+                           decoration: InputDecoration(
+                             hintText: l10n.recipeDescriptionExample,
+                             hintStyle: TextStyle(
+                               color: Colors.white.withValues(alpha: 0.7),
+                               fontSize: 14,
+                             ),
+                             border: InputBorder.none,
+                             contentPadding: const EdgeInsets.symmetric(
+                               horizontal: 0, vertical: 10),
+                             prefixIcon: const Icon(Symbols.edit,
+                                 color: Colors.white70, size: 20),
+                             prefixIconConstraints: const BoxConstraints(
+                               minWidth: 36, minHeight: 36),
+                           ),
+                         ),
                       ),
                     ),
-                    child: TextField(
-                       controller: _descriptionController,
-                       style: const TextStyle(color: Colors.white, fontSize: 15),
-                       maxLines: 1,
-                       decoration: InputDecoration(
-                         hintText: l10n.recipeDescriptionExample,
-                         hintStyle: TextStyle(
-                           color: Colors.white.withValues(alpha: 0.7),
-                           fontSize: 14,
-                         ),
-                         border: InputBorder.none,
-                         contentPadding: const EdgeInsets.symmetric(
-                           horizontal: 0, vertical: 10),
-                         prefixIcon: const Icon(Symbols.edit,
-                             color: Colors.white70, size: 20),
-                         prefixIconConstraints: const BoxConstraints(
-                           minWidth: 36, minHeight: 36),
-                       ),
-                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(Symbols.info, color: Colors.white, size: 14),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.scannerAiInvisibleTip,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 11,
+                              shadows: const [
+                                Shadow(
+                                  color: Colors.black54,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 3,
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
 

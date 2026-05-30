@@ -3448,6 +3448,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heavy Metals & Contaminants'**
   String get heavyMetalsAndContaminants;
+
+  /// No description provided for @scannerAiInvisibleTip.
+  ///
+  /// In en, this message translates to:
+  /// **'AI cannot see sauces or oil. Add details above for precision.'**
+  String get scannerAiInvisibleTip;
 }
 
 class _AppLocalizationsDelegate

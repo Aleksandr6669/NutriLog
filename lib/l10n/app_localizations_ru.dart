@@ -1853,4 +1853,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get heavyMetalsAndContaminants => 'Тяжелые металлы и примеси';
+
+  @override
+  String get scannerAiInvisibleTip =>
+      'ИИ не видит соусы и масло. Напишите детали выше для точности.';
 }

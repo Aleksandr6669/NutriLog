@@ -1851,4 +1851,8 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get heavyMetalsAndContaminants => 'Важкі метали та домішки';
+
+  @override
+  String get scannerAiInvisibleTip =>
+      'ІІ не бачить соуси та олію. Напишіть деталі вище для точності.';
 }
