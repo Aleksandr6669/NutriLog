@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentSteps =
         context.read<DailyLogProvider>().currentLog?.steps ?? 0;
     final controller = TextEditingController(
-      text: currentSteps.toString(),
+      text: currentSteps == 0 ? '' : currentSteps.toString(),
     );
 
     final manualSteps = await showModalBottomSheet<int>(
@@ -225,6 +225,31 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                           Navigator.of(context).pop(parsed);
                         },
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Symbols.info, color: AppColors.primary, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'ru'
+                                    ? 'Внесение точного количества шагов помогает ИИ корректно рассчитывать дневную норму калорий и нагрузку.'
+                                    : (Localizations.localeOf(context).languageCode == 'uk'
+                                        ? 'Внесення точної кількості кроків допомагає ШІ коректно розраховувати денну норму калорій та навантаження.'
+                                        : 'Entering accurate steps helps AI calculate daily calorie budget and physical load correctly.'),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 11,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Row(

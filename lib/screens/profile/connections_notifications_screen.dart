@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,6 +57,11 @@ class _ConnectionsNotificationsScreenState
   bool _syncedDiary = false;
   late final VoidCallback _syncStatusListener;
 
+  bool _isDevModeEnabled = false;
+  int _devTapCount = 0;
+  DateTime? _lastDevTapTime;
+  StreamSubscription<void>? _devModeSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +88,14 @@ class _ConnectionsNotificationsScreenState
     ));
     _btnAnimController.forward();
     _loadSettings();
+    _devModeSubscription = NotificationSettingsService.cacheUpdates.listen((_) async {
+      final isDev = await _settingsService.isDevModeEnabled();
+      if (mounted) {
+        setState(() {
+          _isDevModeEnabled = isDev;
+        });
+      }
+    });
     _syncStatusListener = _onSyncStatusChanged;
     LocalFirstSyncService.instance.statusNotifier
         .addListener(_syncStatusListener);
@@ -115,6 +129,7 @@ class _ConnectionsNotificationsScreenState
   @override
   void dispose() {
     _btnAnimController.dispose();
+    _devModeSubscription?.cancel();
     LocalFirstSyncService.instance.statusNotifier
         .removeListener(_syncStatusListener);
     super.dispose();
@@ -216,11 +231,13 @@ class _ConnectionsNotificationsScreenState
   Future<void> _loadSettings() async {
     final settings = await _settingsService.load();
     final lastSync = await CloudDataService.instance.getLastSyncAt();
+    final isDev = await _settingsService.isDevModeEnabled();
     if (!mounted) return;
 
     setState(() {
       _settings = settings;
       _lastSyncAt = lastSync;
+      _isDevModeEnabled = isDev;
       _loading = false;
     });
   }
@@ -1000,6 +1017,50 @@ class _ConnectionsNotificationsScreenState
                       leading: const Icon(Symbols.info),
                       title: Text(l10n.version),
                       subtitle: Text(version),
+                      onTap: () async {
+                        final now = DateTime.now();
+                        if (_lastDevTapTime == null ||
+                            now.difference(_lastDevTapTime!) > const Duration(milliseconds: 1500)) {
+                          _devTapCount = 0;
+                        }
+                        _devTapCount++;
+                        _lastDevTapTime = now;
+
+                        if (_isDevModeEnabled) {
+                          return;
+                        }
+
+                        if (_devTapCount >= 3 && _devTapCount < 7) {
+                          final stepsRemaining = 7 - _devTapCount;
+                          final message = Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Вы в $stepsRemaining шагах от того, чтобы стать разработчиком!'
+                              : (Localizations.localeOf(context).languageCode == 'uk'
+                                  ? 'Ви за $stepsRemaining кроків від того, щоб стати розробником!'
+                                  : 'You are $stepsRemaining steps away from becoming a developer!');
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        } else if (_devTapCount == 7) {
+                          _devTapCount = 0;
+                          await _settingsService.setDevModeEnabled(true);
+                          final message = Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Теперь вы разработчик!'
+                              : (Localizations.localeOf(context).languageCode == 'uk'
+                                  ? 'Тепер ви розробник!'
+                                  : 'You are now a developer!');
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              backgroundColor: Colors.green.shade700,
+                            ),
+                          );
+                        }
+                      },
                       trailing: TextButton(
                         onPressed: () async {
                           final state = await AppStartupService().loadState();
@@ -1015,8 +1076,8 @@ class _ConnectionsNotificationsScreenState
                           Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (context) => WhatsNewScreen(
-                                version: state.currentVersion,
-                                text: text,
+                                  version: state.currentVersion,
+                                  text: text,
                               ),
                             ),
                           );
@@ -1046,16 +1107,18 @@ class _ConnectionsNotificationsScreenState
               onTap: () => context.push('/profile/agreement'),
             ),
           ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Symbols.developer_mode, color: Colors.purple),
-              title: Text(l10n.developerSettingsTitle),
-              subtitle: Text(l10n.developerSettingsSubtitle),
-              trailing: const Icon(Symbols.chevron_right),
-              onTap: () => context.push('/profile/developer'),
+          if (_isDevModeEnabled) ...[
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Symbols.developer_mode, color: Colors.purple),
+                title: Text(l10n.developerSettingsTitle),
+                subtitle: Text(l10n.developerSettingsSubtitle),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () => context.push('/profile/developer'),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

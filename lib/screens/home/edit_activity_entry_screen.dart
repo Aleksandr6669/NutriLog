@@ -54,8 +54,11 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     _nameController = TextEditingController(text: widget.entry?.name ?? '');
     _descriptionController =
         TextEditingController(text: widget.entry?.description ?? '');
-    _caloriesController =
-        TextEditingController(text: widget.entry?.calories.toString() ?? '');
+    _caloriesController = TextEditingController(
+      text: (widget.entry == null || widget.entry!.calories == 0)
+          ? ''
+          : widget.entry!.calories.toString(),
+    );
     _selectedIconName = widget.entry?.iconName ?? ActivityEntry.defaultIconName;
   }
 
@@ -395,6 +398,31 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                           }
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Symbols.info, color: AppColors.primary, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'ru'
+                                    ? 'Внесение точного количества сожженных калорий помогает ИИ правильно балансировать ваш дневной рацион.'
+                                    : (Localizations.localeOf(context).languageCode == 'uk'
+                                        ? 'Внесення точної кількості спалених калорій допомагає ШІ правильно балансувати ваш денний раціон.'
+                                        : 'Entering accurate calories burned helps AI balance your daily diet and energy intake properly.'),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 11,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

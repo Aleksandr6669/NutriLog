@@ -35,18 +35,18 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   @override
   void initState() {
     super.initState();
-    _calorieGoalController =
-        TextEditingController(text: widget.profile.calorieGoal.toString());
-    _waterGoalController =
-        TextEditingController(text: widget.profile.waterGoal.toString());
-    _stepsGoalController =
-        TextEditingController(text: widget.profile.stepsGoal.toString());
-    _proteinGoalController =
-        TextEditingController(text: widget.profile.proteinGoal.toString());
-    _carbsGoalController =
-        TextEditingController(text: widget.profile.carbsGoal.toString());
-    _fatGoalController =
-        TextEditingController(text: widget.profile.fatGoal.toString());
+    _calorieGoalController = TextEditingController(
+        text: widget.profile.calorieGoal == 0 ? '' : widget.profile.calorieGoal.toString());
+    _waterGoalController = TextEditingController(
+        text: widget.profile.waterGoal == 0 ? '' : widget.profile.waterGoal.toString());
+    _stepsGoalController = TextEditingController(
+        text: widget.profile.stepsGoal == 0 ? '' : widget.profile.stepsGoal.toString());
+    _proteinGoalController = TextEditingController(
+        text: widget.profile.proteinGoal == 0 ? '' : widget.profile.proteinGoal.toString());
+    _carbsGoalController = TextEditingController(
+        text: widget.profile.carbsGoal == 0 ? '' : widget.profile.carbsGoal.toString());
+    _fatGoalController = TextEditingController(
+        text: widget.profile.fatGoal == 0 ? '' : widget.profile.fatGoal.toString());
   }
 
   @override
@@ -63,12 +63,12 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final updatedProfile = widget.profile.copyWith(
-        calorieGoal: int.parse(_calorieGoalController.text),
-        waterGoal: int.parse(_waterGoalController.text),
-        stepsGoal: int.parse(_stepsGoalController.text),
-        proteinGoal: int.parse(_proteinGoalController.text),
-        carbsGoal: int.parse(_carbsGoalController.text),
-        fatGoal: int.parse(_fatGoalController.text),
+        calorieGoal: int.tryParse(_calorieGoalController.text) ?? 0,
+        waterGoal: int.tryParse(_waterGoalController.text) ?? 0,
+        stepsGoal: int.tryParse(_stepsGoalController.text) ?? 0,
+        proteinGoal: int.tryParse(_proteinGoalController.text) ?? 0,
+        carbsGoal: int.tryParse(_carbsGoalController.text) ?? 0,
+        fatGoal: int.tryParse(_fatGoalController.text) ?? 0,
       );
 
       await context.read<ProfileProvider>().updateProfile(updatedProfile);

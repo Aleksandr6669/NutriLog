@@ -213,6 +213,19 @@ class NotificationSettingsService {
     notifyListeners();
   }
 
+  static const _devModeKey = 'developer_mode_enabled';
+
+  Future<bool> isDevModeEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_devModeKey) ?? false;
+  }
+
+  Future<void> setDevModeEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_devModeKey, enabled);
+    notifyListeners();
+  }
+
   static int _toMinutes(TimeOfDay value) => value.hour * 60 + value.minute;
 
   static TimeOfDay _fromMinutes(int minutes) {

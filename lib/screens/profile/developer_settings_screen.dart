@@ -80,6 +80,28 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
             _buildErrorLogsCard(),
             const SizedBox(height: 24),
             _buildWarningCard(),
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.red.shade50,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.red.shade200),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.developer_mode_off, color: Colors.red),
+                title: const Text('Выйти из режима разработчика', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Настройки разработчика будут скрыты из меню настроек.'),
+                onTap: () async {
+                  await NotificationSettingsService().setDevModeEnabled(false);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Режим разработчика отключен')),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),

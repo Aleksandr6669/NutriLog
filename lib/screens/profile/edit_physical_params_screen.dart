@@ -36,9 +36,9 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     _gender = widget.profile.gender;
     _birthDate = widget.profile.birthDate;
     _heightController =
-        TextEditingController(text: widget.profile.height.toString());
+        TextEditingController(text: widget.profile.height == 0 ? '' : widget.profile.height.toString());
     _weightController =
-        TextEditingController(text: widget.profile.weight.toString());
+        TextEditingController(text: widget.profile.weight == 0 ? '' : widget.profile.weight.toString());
   }
 
   Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
