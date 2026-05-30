@@ -3286,6 +3286,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily steps, active hobbies, typical daily activity...'**
   String get activityContextHint;
+
+  /// No description provided for @vitaminE.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin E (Tocopherol)'**
+  String get vitaminE;
+
+  /// No description provided for @vitaminK.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin K (Phylloquinone)'**
+  String get vitaminK;
+
+  /// No description provided for @vitaminB1.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B1 (Thiamine)'**
+  String get vitaminB1;
+
+  /// No description provided for @vitaminB2.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B2 (Riboflavin)'**
+  String get vitaminB2;
+
+  /// No description provided for @vitaminB3.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B3 (Niacin)'**
+  String get vitaminB3;
+
+  /// No description provided for @vitaminB5.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B5 (Pantothenic Acid)'**
+  String get vitaminB5;
+
+  /// No description provided for @vitaminB6.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B6 (Pyridoxine)'**
+  String get vitaminB6;
+
+  /// No description provided for @vitaminB7.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B7 (Biotin)'**
+  String get vitaminB7;
+
+  /// No description provided for @vitaminB9.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B9 (Folate)'**
+  String get vitaminB9;
+
+  /// No description provided for @vitaminB12.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin B12 (Cobalamin)'**
+  String get vitaminB12;
+
+  /// No description provided for @magnesium.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnesium'**
+  String get magnesium;
+
+  /// No description provided for @phosphorus.
+  ///
+  /// In en, this message translates to:
+  /// **'Phosphorus'**
+  String get phosphorus;
+
+  /// No description provided for @zinc.
+  ///
+  /// In en, this message translates to:
+  /// **'Zinc'**
+  String get zinc;
+
+  /// No description provided for @copper.
+  ///
+  /// In en, this message translates to:
+  /// **'Copper'**
+  String get copper;
+
+  /// No description provided for @manganese.
+  ///
+  /// In en, this message translates to:
+  /// **'Manganese'**
+  String get manganese;
+
+  /// No description provided for @selenium.
+  ///
+  /// In en, this message translates to:
+  /// **'Selenium'**
+  String get selenium;
+
+  /// No description provided for @iodine.
+  ///
+  /// In en, this message translates to:
+  /// **'Iodine'**
+  String get iodine;
+
+  /// No description provided for @chromium.
+  ///
+  /// In en, this message translates to:
+  /// **'Chromium'**
+  String get chromium;
+
+  /// No description provided for @molybdenum.
+  ///
+  /// In en, this message translates to:
+  /// **'Molybdenum'**
+  String get molybdenum;
+
+  /// No description provided for @fluoride.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluoride'**
+  String get fluoride;
+
+  /// No description provided for @lead.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead (Pb)'**
+  String get lead;
+
+  /// No description provided for @mercury.
+  ///
+  /// In en, this message translates to:
+  /// **'Mercury (Hg)'**
+  String get mercury;
+
+  /// No description provided for @cadmium.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadmium (Cd)'**
+  String get cadmium;
+
+  /// No description provided for @arsenic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arsenic (As)'**
+  String get arsenic;
+
+  /// No description provided for @nitrates.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrates'**
+  String get nitrates;
+
+  /// No description provided for @pesticides.
+  ///
+  /// In en, this message translates to:
+  /// **'Pesticides'**
+  String get pesticides;
+
+  /// No description provided for @heavyMetalsAndContaminants.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy Metals & Contaminants'**
+  String get heavyMetalsAndContaminants;
 }
 
 class _AppLocalizationsDelegate

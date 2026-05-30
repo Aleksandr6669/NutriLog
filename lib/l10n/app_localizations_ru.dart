@@ -1772,4 +1772,85 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get activityContextHint =>
       'Дневная активность, хобби, типичная нагрузка в течение дня...';
+
+  @override
+  String get vitaminE => 'Витамин E (Токоферол)';
+
+  @override
+  String get vitaminK => 'Витамин K (Филлохинон)';
+
+  @override
+  String get vitaminB1 => 'Витамин B1 (Тиамин)';
+
+  @override
+  String get vitaminB2 => 'Витамин B2 (Рибофлавин)';
+
+  @override
+  String get vitaminB3 => 'Витамин B3 (Ниацин)';
+
+  @override
+  String get vitaminB5 => 'Витамин B5 (Пантотеновая к-та)';
+
+  @override
+  String get vitaminB6 => 'Витамин B6 (Пиридоксин)';
+
+  @override
+  String get vitaminB7 => 'Витамин B7 (Биотин)';
+
+  @override
+  String get vitaminB9 => 'Витамин B9 (Фолиевая к-та)';
+
+  @override
+  String get vitaminB12 => 'Витамин B12 (Кобаламин)';
+
+  @override
+  String get magnesium => 'Магний';
+
+  @override
+  String get phosphorus => 'Фосфор';
+
+  @override
+  String get zinc => 'Цинк';
+
+  @override
+  String get copper => 'Медь';
+
+  @override
+  String get manganese => 'Марганец';
+
+  @override
+  String get selenium => 'Селен';
+
+  @override
+  String get iodine => 'Йод';
+
+  @override
+  String get chromium => 'Хром';
+
+  @override
+  String get molybdenum => 'Молибден';
+
+  @override
+  String get fluoride => 'Фторид';
+
+  @override
+  String get lead => 'Свинец (Pb)';
+
+  @override
+  String get mercury => 'Ртуть (Hg)';
+
+  @override
+  String get cadmium => 'Кадмий (Cd)';
+
+  @override
+  String get arsenic => 'Мышьяк (As)';
+
+  @override
+  String get nitrates => 'Нитраты';
+
+  @override
+  String get pesticides => 'Пестициды';
+
+  @override
+  String get heavyMetalsAndContaminants => 'Тяжелые металлы и примеси';
 }

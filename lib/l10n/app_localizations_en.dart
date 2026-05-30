@@ -1766,4 +1766,85 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get activityContextHint =>
       'Daily steps, active hobbies, typical daily activity...';
+
+  @override
+  String get vitaminE => 'Vitamin E (Tocopherol)';
+
+  @override
+  String get vitaminK => 'Vitamin K (Phylloquinone)';
+
+  @override
+  String get vitaminB1 => 'Vitamin B1 (Thiamine)';
+
+  @override
+  String get vitaminB2 => 'Vitamin B2 (Riboflavin)';
+
+  @override
+  String get vitaminB3 => 'Vitamin B3 (Niacin)';
+
+  @override
+  String get vitaminB5 => 'Vitamin B5 (Pantothenic Acid)';
+
+  @override
+  String get vitaminB6 => 'Vitamin B6 (Pyridoxine)';
+
+  @override
+  String get vitaminB7 => 'Vitamin B7 (Biotin)';
+
+  @override
+  String get vitaminB9 => 'Vitamin B9 (Folate)';
+
+  @override
+  String get vitaminB12 => 'Vitamin B12 (Cobalamin)';
+
+  @override
+  String get magnesium => 'Magnesium';
+
+  @override
+  String get phosphorus => 'Phosphorus';
+
+  @override
+  String get zinc => 'Zinc';
+
+  @override
+  String get copper => 'Copper';
+
+  @override
+  String get manganese => 'Manganese';
+
+  @override
+  String get selenium => 'Selenium';
+
+  @override
+  String get iodine => 'Iodine';
+
+  @override
+  String get chromium => 'Chromium';
+
+  @override
+  String get molybdenum => 'Molybdenum';
+
+  @override
+  String get fluoride => 'Fluoride';
+
+  @override
+  String get lead => 'Lead (Pb)';
+
+  @override
+  String get mercury => 'Mercury (Hg)';
+
+  @override
+  String get cadmium => 'Cadmium (Cd)';
+
+  @override
+  String get arsenic => 'Arsenic (As)';
+
+  @override
+  String get nitrates => 'Nitrates';
+
+  @override
+  String get pesticides => 'Pesticides';
+
+  @override
+  String get heavyMetalsAndContaminants => 'Heavy Metals & Contaminants';
 }
