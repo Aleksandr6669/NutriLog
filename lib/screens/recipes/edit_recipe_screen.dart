@@ -81,6 +81,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
   Timer? _donateAiDebounce;
   Timer? _nutritionAiDebounce;
+  late _RecipeCalculatableState _lastCalculatedState;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _nutrientsActionKey = GlobalKey();
   int _aiRequestId = 0;
@@ -196,6 +197,20 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nutrientControllers['fat']?.addListener(_onMacroChanged);
 
     unawaited(_applyInitialAutomation(isFromDraft: isFromDraft));
+
+    final initialIngredients = sourceRecipe?.ingredients ?? const [];
+    _lastCalculatedState = _RecipeCalculatableState(
+      ingredients: initialIngredients
+          .map((i) => RecipeIngredient(
+                name: i.name,
+                quantity: i.quantity,
+                unit: i.unit,
+              ))
+          .toList(),
+      description: sourceRecipe?.description ?? '',
+      clarification: widget.initialClarification ?? sourceRecipe?.clarification ?? '',
+      healthAdvice: (widget.initialDraft?.healthAdvice ?? sourceRecipe?.healthAdvice ?? '').trim(),
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onDonateValidationInputChanged();
@@ -341,11 +356,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   String _formatNumber(double value) {
-    final rounded = double.parse(value.toStringAsFixed(1));
-    if (rounded.truncateToDouble() == rounded) {
-      return rounded.toInt().toString();
-    }
-    return rounded.toStringAsFixed(1);
+    return value.toStringAsFixed(1);
   }
 
   String _localizeInline({
@@ -674,6 +685,19 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             _healthAdviceController.text.trim().isEmpty) {
           _healthAdviceController.text = result.healthAdvice;
         }
+        _lastCalculatedState = _RecipeCalculatableState(
+          ingredients: _ingredientItems
+              .map((item) => RecipeIngredient(
+                    name: item.nameController.text.trim(),
+                    quantity: _parseAmount(item.quantityController.text),
+                    unit: item.unit.trim(),
+                  ))
+              .where((i) => i.name.isNotEmpty)
+              .toList(),
+          description: _descriptionController.text,
+          clarification: _clarificationController.text,
+          healthAdvice: _healthAdviceController.text.trim(),
+        );
         _isAiCalculating = false;
         _aiStatus = l10n.recipeAiUpdated;
         _isAiError = false;
@@ -766,6 +790,22 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
+    if (_isStateChangedFromLastCalculation) {
+      setState(() {
+        _aiStatus = _recalculationRequiredMessage;
+        _isAiError = true;
+      });
+      _scrollToNutrientsAction();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_recalculationRequiredMessage),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.orange.shade800,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       if (_isPublic) {
         final sanityError = _blockedWordErrorInAllInputs();
@@ -845,6 +885,36 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     if (mounted) {
       Navigator.pop(context, true);
     }
+  }
+
+  bool get _isStateChangedFromLastCalculation {
+    final currentIngredients = _ingredientItems
+        .map((item) => RecipeIngredient(
+              name: item.nameController.text.trim(),
+              quantity: _parseAmount(item.quantityController.text),
+              unit: item.unit.trim(),
+            ))
+        .where((i) => i.name.isNotEmpty)
+        .toList();
+
+    final currentState = _RecipeCalculatableState(
+      ingredients: currentIngredients,
+      description: _descriptionController.text,
+      clarification: _clarificationController.text,
+      healthAdvice: _healthAdviceController.text.trim(),
+    );
+
+    return currentState != _lastCalculatedState;
+  }
+
+  String get _recalculationRequiredMessage {
+    final code = Localizations.localeOf(context).languageCode;
+    if (code == 'uk') {
+      return 'Склад або опис рецепту було змінено. Будь ласка, виконайте перерозрахунок харчової цінності перед збереженням або поверніть зміни.';
+    } else if (code == 'en') {
+      return 'The recipe ingredients or description have been modified. Please recalculate nutrition values before saving or revert your changes.';
+    }
+    return 'Состав или описание рецепта были изменены. Пожалуйста, выполните перерасчет пищевой ценности перед сохранением или верните изменения.';
   }
 
   bool get _hasAnyIngredient {
@@ -2117,4 +2187,42 @@ class _IngredientFormItem {
     nameController.dispose();
     quantityController.dispose();
   }
+}
+
+class _RecipeCalculatableState {
+  final List<RecipeIngredient> ingredients;
+  final String description;
+  final String clarification;
+  final String healthAdvice;
+
+  _RecipeCalculatableState({
+    required this.ingredients,
+    required this.description,
+    required this.clarification,
+    required this.healthAdvice,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! _RecipeCalculatableState) return false;
+
+    if (description != other.description) return false;
+    if (clarification != other.clarification) return false;
+    if (healthAdvice != other.healthAdvice) return false;
+
+    if (ingredients.length != other.ingredients.length) return false;
+    for (int i = 0; i < ingredients.length; i++) {
+      final a = ingredients[i];
+      final b = other.ingredients[i];
+      if (a.name != b.name || a.quantity != b.quantity || a.unit != b.unit) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(Object.hashAll(ingredients), description, clarification, healthAdvice);
 }
