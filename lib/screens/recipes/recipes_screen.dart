@@ -1006,11 +1006,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   await _editRecipe(recipe);
                   return false;
                 }
+                return true;
+              },
+              onDismissed: (direction) {
                 if (direction == DismissDirection.endToStart) {
-                  await _deleteRecipe(recipe);
-                  return true;
+                  _deleteRecipe(recipe);
                 }
-                return false;
               },
               child: item,
             );
