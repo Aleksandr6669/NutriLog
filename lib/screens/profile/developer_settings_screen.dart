@@ -88,7 +88,7 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
                 side: BorderSide(color: Colors.red.shade200),
               ),
               child: ListTile(
-                leading: const Icon(Icons.developer_mode_off, color: Colors.red),
+                leading: const Icon(Icons.developer_mode, color: Colors.red),
                 title: const Text('Выйти из режима разработчика', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                 subtitle: const Text('Настройки разработчика будут скрыты из меню настроек.'),
                 onTap: () async {
