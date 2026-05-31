@@ -666,6 +666,7 @@ Rules:
     String healthConditions = '',
     UserProfile? profile,
     String aiContext = '',
+    bool isReadyProduct = false,
   }) async {
     if (ingredients.isEmpty) {
       throw GeminiRecipeException(
@@ -772,9 +773,19 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
 
+    final readyProductRule = isReadyProduct ? '''
+  CRITICAL READY PRODUCT BRAND & VOLUME RULE (MANDATORY):
+  This recipe is marked as a READY PRODUCT (isReadyProduct = true).
+  The User Clarification/Brand field contains the exact Brand and Volume/Weight of this product (e.g., "$clarification").
+  You MUST scale all nutrient calculations and ingredient sizes in your final output to match EXACTLY this volume or weight specified in the clarification (e.g. if clarification says "500 мл" or "0.5л" or "500ml" or "0.5l", your calculations and output ingredient weight MUST represent exactly 500 ml / 500 g).
+  Do NOT assume smaller or standard sizes (like 350 ml or 0.33l) for the calculation when a specific volume/weight is provided in the clarification field! That volume is absolute!
+  ''' : '';
+
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
+
+  $readyProductRule
 
   TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide a general positive nutritional tip in the "healthAdvice" field, AND provide the exact nutrient composition for each individual ingredient inside the "ingredients" list.
 
