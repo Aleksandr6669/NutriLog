@@ -831,7 +831,7 @@ class _NutritionDetailsList extends StatelessWidget {
                   ? theme.textTheme.bodyMedium
                       ?.copyWith(color: theme.textTheme.bodySmall?.color)
                   : theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.normal)),
+                      ?.copyWith(fontWeight: FontWeight.bold)),
           Text(value,
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold)),

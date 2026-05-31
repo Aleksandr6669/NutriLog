@@ -5,6 +5,7 @@ class NutritionalInfo {
   final double protein;
   final double carbs;
   final double fat;
+  final double alcohol;
   // Detailed breakdown
   final double saturatedFat;
   final double polyunsaturatedFat;
@@ -53,6 +54,7 @@ class NutritionalInfo {
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.alcohol = 0,
     this.saturatedFat = 0,
     this.polyunsaturatedFat = 0,
     this.monounsaturatedFat = 0,
@@ -101,6 +103,7 @@ class NutritionalInfo {
       protein: (json['protein'] as num?)?.toDouble() ?? 0.0,
       carbs: (json['carbs'] as num?)?.toDouble() ?? 0.0,
       fat: (json['fat'] as num?)?.toDouble() ?? 0.0,
+      alcohol: (json['alcohol'] as num?)?.toDouble() ?? 0.0,
       saturatedFat: (json['saturatedFat'] as num?)?.toDouble() ?? 0.0,
       polyunsaturatedFat:
           (json['polyunsaturatedFat'] as num?)?.toDouble() ?? 0.0,
@@ -155,6 +158,7 @@ class NutritionalInfo {
       protein: protein + other.protein,
       carbs: carbs + other.carbs,
       fat: fat + other.fat,
+      alcohol: alcohol + other.alcohol,
       saturatedFat: saturatedFat + other.saturatedFat,
       polyunsaturatedFat: polyunsaturatedFat + other.polyunsaturatedFat,
       monounsaturatedFat: monounsaturatedFat + other.monounsaturatedFat,

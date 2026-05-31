@@ -470,6 +470,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildIngredientsCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final String clarificationText = widget.recipe.clarification.trim();
+    
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -480,6 +483,33 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (clarificationText.isNotEmpty) ...[
+              Text(
+                l10n.localeName == 'ru'
+                    ? 'Торговое наименование / Бренд'
+                    : (l10n.localeName == 'uk'
+                        ? 'Торгова назва / Бренд'
+                        : 'Commercial Brand / Name'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                clarificationText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1, thickness: 1),
+              const SizedBox(height: 16),
+            ],
             Text(
               l10n.ingredients,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

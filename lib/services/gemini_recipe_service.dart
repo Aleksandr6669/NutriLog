@@ -490,13 +490,14 @@ CRITICAL STEP-BY-STEP REASONING INSTRUCTION (MANDATORY):
 
 Your task is to identify the product or dish in the photo as accurately as possible (and from the description if provided), identify all main and hidden ingredients, and determine the product type (e.g., energy drink, soda, protein bar, soup, salad, pastry, etc.).
 
-If the photo shows a packaged product (e.g., energy drink, soda, chocolate, snacks, yogurt, protein supplement, bar, ready meal, etc.), be sure to indicate its type in the description field and identify the composition (ingredients) as thoroughly as possible, even if some are not visible but can be inferred from packaging, color, shape, brand, or product type.
+CLASSIFICATION RULES (MANDATORY):
+- "isReadyProduct" MUST be set to true for ANY packaged, factory-produced, or ready-to-consume food items or drinks. This includes: beer (пиво), energy drinks (энергетики), sodas (газировка), juice packages, protein bars, chocolates, store-bought snacks, yogurts, and similar ready manufactured products.
+- "isReadyProduct" MUST be set to false ONLY for home-cooked meals or multi-ingredient dishes that require preparation (e.g., salad, soup, sandwich, home-made cake).
 
-If the product is an energy drink (e.g., Non Stop, Adrenaline, Red Bull, Monster, etc.), mention this in the description and list all typical components in ingredients (e.g., water, sugar, caffeine, taurine, B-vitamins, flavorings, colorants, preservatives, etc.), even if not visible in the photo but typical for such drinks.
-
-If the product is a soda, juice, dairy product, protein bar, chocolate, snacks, pastry, fast food, etc., also identify the type and composition by analogy.
-
-If the photo shows a home-cooked dish, identify it as precisely as possible, identify the main ingredients and estimate their quantities.
+PORTION & WEIGHT SCALE RULES (MANDATORY):
+- Carefully determine the TOTAL volume or weight of the portion/product shown. If the description mentions a volume or weight (e.g. "0.5 литра", "500 мл", "500g"), you MUST use EXACTLY that volume/weight as the total portion weight!
+- For packaged drinks/sodas/beer: The ingredients list should contain the product itself (e.g. "Пиво Tuborg Green" or "Энергетический напиток") with the EXACT volume/weight in quantity (e.g. 500.0 ml or 500.0 g). DO NOT generate generic ingredients like "Вода 500мл, Ячменный солод 25г, Хмель 5г" unless the user explicitly requested to write a DIY home brewing recipe! If it's a commercial product (like beer, soda, energy drink), the ingredients list should represent the product itself as a single item or its main components in a realistic commercial serving.
+- For ready products (isReadyProduct: true): The recipe "nutrients" MUST represent the total nutritional value for the ENTIRE portion shown/specified (e.g. if the package is 500ml or 500g, the top-level "nutrients" MUST be scaled to 500g/500ml, NOT left as 100g values!). Meanwhile, individual ingredients inside the "ingredients" list must have their "nutrients" specified strictly per 100g or per 1 unit.
 
 ${normalizedDescription.isEmpty ? '' : 'Additional user description: $normalizedDescription'}
 
@@ -511,7 +512,7 @@ Format:
   "icon": "restaurant",
   "isReadyProduct": false,
   "ingredients": [
-    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false}
+    {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false, "weightPerUnit": 1, "isReadyProduct": false, "nutrients": {}}
   ],
   "nutrients": {
     "calories": 0,
@@ -730,6 +731,9 @@ Rules:
           : (locale?.toLowerCase() == 'en'
               ? 'Calculation performed instantly based on the NutriLog database.'
               : 'Расчет выполнен мгновенно на основе базы данных NutriLog.');
+
+      // Имитация запроса к нейросети (задержка в 1 секунду)
+      await Future.delayed(const Duration(seconds: 1));
 
       return NutrientEstimationResult(
         nutrients: calculatedNutrients,

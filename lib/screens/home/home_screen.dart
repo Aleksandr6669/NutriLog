@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _waterKey = GlobalKey();
   final GlobalKey _weightKey = GlobalKey();
 
+  Timer? _midnightUpdateTimer;
+  Timer? _periodicHalfHourTimer;
   String? _lastHandledUri;
 
   @override
@@ -56,6 +59,32 @@ class _HomeScreenState extends State<HomeScreen> {
     // уже после того как Firebase инициализирован.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadLogForSelectedDate();
+    });
+    _setupMidnightTimer();
+    _setupHalfHourTimer();
+  }
+
+  void _setupMidnightTimer() {
+    _midnightUpdateTimer?.cancel();
+    _midnightUpdateTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (!mounted) return;
+      final now = DateTime.now();
+      if (!DateUtils.isSameDay(_selectedDay, now)) {
+        setState(() {
+          _selectedDay = now;
+          _focusedDay = now;
+        });
+        _loadLogForSelectedDate();
+      }
+    });
+  }
+
+  void _setupHalfHourTimer() {
+    _periodicHalfHourTimer?.cancel();
+    _periodicHalfHourTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+      if (mounted) {
+        _loadLogForSelectedDate();
+      }
     });
   }
 
@@ -128,6 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _midnightUpdateTimer?.cancel();
+    _periodicHalfHourTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }

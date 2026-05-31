@@ -158,6 +158,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _nameController.addListener(_onDonateValidationInputChanged);
     _descriptionController.addListener(_onDonateValidationInputChanged);
     _clarificationController.addListener(_onDonateValidationInputChanged);
+    _clarificationController.addListener(_onClarificationChanged);
     _healthAdviceController.addListener(_onDonateValidationInputChanged);
 
     // Если initialDraft (создание по фото/описанию) — нутриенты заполняются данными от AI
@@ -225,6 +226,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   void _onIngredientChanged() {
+    _resetModeration(resetCalculated: true);
+  }
+
+  void _onClarificationChanged() {
     _resetModeration(resetCalculated: true);
   }
 
@@ -1543,18 +1548,48 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               decoration: AppStyles.underlineInputDecoration(
                   label: l10n.recipeDescriptionLabel),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _clarificationController,
-              minLines: 2,
-              maxLines: 5,
-              decoration: AppStyles.underlineInputDecoration(
-                label: l10n.aiClarificationLabel,
-              ).copyWith(
-                hintText: l10n.aiClarificationHint,
-                alignLabelWithHint: true,
+            if (_isReadyProduct || _clarificationController.text.trim().isNotEmpty) ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _clarificationController,
+                minLines: 1,
+                maxLines: 2,
+                decoration: AppStyles.underlineInputDecoration(
+                  label: l10n.localeName == 'ru'
+                      ? 'Торговая марка / Бренд и объем (Обязательно)'
+                      : (l10n.localeName == 'uk'
+                          ? 'Торгова марка / Бренд та об\'єм (Обов\'язково)'
+                          : 'Brand & Volume (Required)'),
+                ).copyWith(
+                  hintText: l10n.localeName == 'ru'
+                      ? 'Пример: Tuborg Green 0.5л, Monster Energy 500мл'
+                      : (l10n.localeName == 'uk'
+                          ? 'Приклад: Tuborg Green 0.5л, Monster Energy 500мл'
+                          : 'Example: Tuborg Green 0.5l, Monster Energy 500ml'),
+                ),
+                validator: (value) {
+                  if (_isReadyProduct) {
+                    if (value == null || value.trim().isEmpty) {
+                      return l10n.localeName == 'ru'
+                          ? 'Пожалуйста, введите бренд и объем готового продукта'
+                          : (l10n.localeName == 'uk'
+                              ? 'Будь ласка, введіть бренд та об\'єм готового продукту'
+                              : 'Please enter the brand and volume of the ready product');
+                    }
+                    final normalized = value.toLowerCase();
+                    final hasVolume = normalized.contains(RegExp(r'\d+\s*(мл|л|г|ml|l|g|oz|pcs|шт)'));
+                    if (!hasVolume) {
+                      return l10n.localeName == 'ru'
+                          ? 'Обязательно укажите объем или вес продукта (например, 0.5л, 500мл, 100г)'
+                          : (l10n.localeName == 'uk'
+                              ? 'Обов\'язково вкажіть об\'єм або вагу продукту (наприклад, 0.5л, 500мл, 100г)'
+                              : 'You must specify the volume or weight of the product (e.g. 0.5l, 500ml, 100g)');
+                    }
+                  }
+                  return null;
+                },
               ),
-            ),
+            ],
           ],
         ),
       ),
