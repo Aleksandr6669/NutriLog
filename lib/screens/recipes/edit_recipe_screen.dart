@@ -1522,6 +1522,15 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   HapticFeedback.selectionClick();
                   setState(() {
                     _isReadyProduct = newSelection.first;
+                    if (_isReadyProduct) {
+                      if (_ingredientItems.isEmpty) {
+                        _addIngredientRow();
+                      } else if (_ingredientItems.length > 1) {
+                        while (_ingredientItems.length > 1) {
+                          _removeIngredientRow(1);
+                        }
+                      }
+                    }
                   });
                 },
                 style: SegmentedButton.styleFrom(
@@ -1888,6 +1897,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildIngredientsCard() {
+    final title = _isReadyProduct
+        ? (l10n.localeName == 'ru'
+            ? 'Информация о продукте'
+            : (l10n.localeName == 'uk'
+                ? 'Інформація про продукт'
+                : 'Product Details'))
+        : l10n.ingredients;
+
     return Card(
       elevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -1900,15 +1917,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(l10n.ingredients,
+                  child: Text(title,
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
-                IconButton(
-                  tooltip: l10n.addIngredient,
-                  onPressed: _addIngredientRow,
-                  icon: const Icon(Symbols.add_circle),
-                ),
+                if (!_isReadyProduct)
+                  IconButton(
+                    tooltip: l10n.addIngredient,
+                    onPressed: _addIngredientRow,
+                    icon: const Icon(Symbols.add_circle),
+                  ),
               ],
             ),
             const SizedBox(height: 8),
@@ -1928,7 +1946,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.nameController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                              label: l10n.ingredientLabel,
+                              label: _isReadyProduct
+                                  ? (l10n.localeName == 'ru'
+                                      ? 'Название продукта'
+                                      : (l10n.localeName == 'uk'
+                                          ? 'Назва продукту'
+                                          : 'Product Name'))
+                                  : l10n.ingredientLabel,
                             ).copyWith(
                               suffixIcon: item.isAmbiguous
                                   ? Tooltip(
@@ -1972,7 +1996,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.quantityController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                                label: l10n.quantityLabel),
+                              label: _isReadyProduct
+                                  ? (l10n.localeName == 'ru'
+                                      ? 'Количество / Объем'
+                                      : (l10n.localeName == 'uk'
+                                          ? 'Кількість / Об\'єм'
+                                          : 'Quantity / Volume'))
+                                  : l10n.quantityLabel,
+                            ),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
                             inputFormatters: [
@@ -2020,25 +2051,28 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          tooltip: l10n.delete,
-                          onPressed: () => _removeIngredientRow(index),
-                          icon: const Icon(
-                            Symbols.remove_circle,
-                            color: Colors.redAccent,
+                        if (!_isReadyProduct) ...[
+                          const SizedBox(width: 4),
+                          IconButton(
+                            tooltip: l10n.delete,
+                            onPressed: () => _removeIngredientRow(index),
+                            icon: const Icon(
+                              Symbols.remove_circle,
+                              color: Colors.redAccent,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               );
             }),
-            Text(
-              l10n.ingredientExamples,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            if (!_isReadyProduct)
+              Text(
+                l10n.ingredientExamples,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
           ],
         ),
       ),
