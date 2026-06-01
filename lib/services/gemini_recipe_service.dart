@@ -2630,9 +2630,9 @@ Rules:
             statusCode: response.statusCode,
           );
 
-          if (response.statusCode == 429) {
+          if (response.statusCode == 429 || response.statusCode == 400) {
             _rateLimitResetTime =
-                DateTime.now().add(const Duration(seconds: 10));
+                DateTime.now().add(const Duration(seconds: 5));
           }
           final isRetryableStatus = response.statusCode == 400 ||
               response.statusCode == 403 ||
@@ -2735,8 +2735,14 @@ Rules:
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
+        final currentBody = Map<String, dynamic>.from(body);
+        if (attempt > 1) {
+          final currentTemp = currentBody['temperature'] ?? 0.2;
+          currentBody['temperature'] = (currentTemp as double) + 0.15;
+        }
+
         final response = await _requestWithGemini(
-          body: body,
+          body: currentBody,
           locale: locale,
           models: [settings.geminiModel],
           settings: settings,
@@ -2769,8 +2775,10 @@ Rules:
         if (attempt < maxAttempts) {
           var currentDelay = retryDelay;
           if (e is GeminiRecipeException && e.statusCode == 429) {
-            // Respect 429 rate limits with significantly longer wait
             currentDelay = Duration(seconds: 12 + (attempt * 10));
+          } else {
+            final configSeconds = settings.aiRetryDelaySeconds;
+            currentDelay = Duration(seconds: configSeconds < 5 ? 5 : configSeconds);
           }
           await Future<void>.delayed(currentDelay);
         }

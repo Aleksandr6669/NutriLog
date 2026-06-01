@@ -485,11 +485,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           children: [
             if (clarificationText.isNotEmpty) ...[
               Text(
-                l10n.localeName == 'ru'
-                    ? 'Торговое наименование / Бренд'
-                    : (l10n.localeName == 'uk'
-                        ? 'Торгова назва / Бренд'
-                        : 'Commercial Brand / Name'),
+                widget.recipe.isReadyProduct
+                    ? (l10n.localeName == 'ru'
+                        ? 'Торговое наименование / Бренд'
+                        : (l10n.localeName == 'uk'
+                            ? 'Торгова назва / Бренд'
+                            : 'Commercial Brand / Name'))
+                    : (l10n.localeName == 'ru'
+                        ? 'Дополнительные детали'
+                        : (l10n.localeName == 'uk'
+                            ? 'Додаткові деталі'
+                            : 'Additional Details')),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
