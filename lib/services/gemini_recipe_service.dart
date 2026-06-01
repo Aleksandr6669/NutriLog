@@ -2551,7 +2551,6 @@ Rules:
       );
 
       final systemInstruction = body['system_instruction'] as String?;
-      final enableTools = body['enable_tools'] == true;
       final thinkingLevel = settings.aiThinkingLevel != 'OFF' ? settings.aiThinkingLevel : null;
       final isThinkingModel = models.first.contains('thinking');
 
@@ -2574,10 +2573,7 @@ Rules:
                 {'text': systemInstruction.trim()}
               ]
             },
-          'tools': [
-            {'googleSearch': {}},
-            if (enableTools) {'codeExecution': <String, dynamic>{}},
-          ],
+
           'generationConfig': {
             'temperature': body['temperature'] ?? 0.2,
             'topP': body['top_p'] ?? 1,
