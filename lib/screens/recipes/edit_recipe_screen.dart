@@ -1565,46 +1565,22 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               maxLines: 3,
               decoration: AppStyles.underlineInputDecoration(
                 label: _isReadyProduct
-                    ? (l10n.localeName == 'ru'
-                        ? 'Торговая марка / Бренд и объем (Обязательно)'
-                        : (l10n.localeName == 'uk'
-                            ? 'Торгова марка / Бренд та об\'єм (Обов\'язково)'
-                            : 'Brand & Volume (Required)'))
-                    : (l10n.localeName == 'ru'
-                        ? 'Дополнительные детали (Опционально)'
-                        : (l10n.localeName == 'uk'
-                            ? 'Додаткові деталі (Опціонально)'
-                            : 'Additional Details (Optional)')),
+                    ? l10n.brandAndVolumeRequired
+                    : l10n.additionalDetailsOptional,
               ).copyWith(
                 hintText: _isReadyProduct
-                    ? (l10n.localeName == 'ru'
-                        ? 'Пример: Tuborg Green 0.5л, Monster Energy 500мл'
-                        : (l10n.localeName == 'uk'
-                            ? 'Приклад: Tuborg Green 0.5л, Monster Energy 500мл'
-                            : 'Example: Tuborg Green 0.5l, Monster Energy 500ml'))
-                    : (l10n.localeName == 'ru'
-                        ? 'Уточните детали для ИИ (сорт, бренд, особенности), чтобы точнее рассчитать калории'
-                        : (l10n.localeName == 'uk'
-                            ? 'Уточніть деталі для ШІ (сорт, бренд, особливості), щоб точніше розрахувати калорії'
-                            : 'Specify details for the AI (variety, brand, features) to calculate calories more accurately')),
+                    ? l10n.brandAndVolumeHint
+                    : l10n.additionalDetailsHint,
               ),
               validator: (value) {
                 if (_isReadyProduct) {
                   if (value == null || value.trim().isEmpty) {
-                    return l10n.localeName == 'ru'
-                        ? 'Пожалуйста, введите бренд и объем готового продукта'
-                        : (l10n.localeName == 'uk'
-                            ? 'Будь ласка, введіть бренд та об\'єм готового продукту'
-                            : 'Please enter the brand and volume of the ready product');
+                    return l10n.enterBrandAndVolume;
                   }
                   final normalized = value.toLowerCase();
                   final hasVolume = normalized.contains(RegExp(r'\d+\s*(мл|л|г|ml|l|g|oz|pcs|шт)'));
                   if (!hasVolume) {
-                    return l10n.localeName == 'ru'
-                        ? 'Обязательно укажите объем или вес продукта (например, 0.5л, 500мл, 100г)'
-                        : (l10n.localeName == 'uk'
-                            ? 'Обов\'язково вкажіть об\'єм або вагу продукту (наприклад, 0.5л, 500мл, 100г)'
-                            : 'You must specify the volume or weight of the product (e.g. 0.5l, 500ml, 100g)');
+                    return l10n.specifyVolumeOrWeight;
                   }
                 }
                 return null;
@@ -1897,13 +1873,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   Widget _buildIngredientsCard() {
-    final title = _isReadyProduct
-        ? (l10n.localeName == 'ru'
-            ? 'Информация о продукте'
-            : (l10n.localeName == 'uk'
-                ? 'Інформація про продукт'
-                : 'Product Details'))
-        : l10n.ingredients;
+    final title = _isReadyProduct ? l10n.productDetails : l10n.ingredients;
 
     return Card(
       elevation: 0.5,
@@ -1946,13 +1916,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.nameController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                              label: _isReadyProduct
-                                  ? (l10n.localeName == 'ru'
-                                      ? 'Название продукта'
-                                      : (l10n.localeName == 'uk'
-                                          ? 'Назва продукту'
-                                          : 'Product Name'))
-                                  : l10n.ingredientLabel,
+                              label: _isReadyProduct ? l10n.productName : l10n.ingredientLabel,
                             ).copyWith(
                               suffixIcon: item.isAmbiguous
                                   ? Tooltip(
@@ -1982,6 +1946,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             minLines: 1,
                             maxLines: 2,
                             textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return _isReadyProduct ? l10n.enterProductName : l10n.enterName;
+                              }
+                              return null;
+                            },
                             onChanged: (_) {
                               if (item.isAmbiguous) {
                                 setState(() => item.isAmbiguous = false);
@@ -1996,13 +1966,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.quantityController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                              label: _isReadyProduct
-                                  ? (l10n.localeName == 'ru'
-                                      ? 'Количество / Объем'
-                                      : (l10n.localeName == 'uk'
-                                          ? 'Кількість / Об\'єм'
-                                          : 'Quantity / Volume'))
-                                  : l10n.quantityLabel,
+                              label: _isReadyProduct ? l10n.quantityOrVolume : l10n.quantityLabel,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
@@ -2011,6 +1975,16 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                                   RegExp(r'^\d*[\.,]?\d*'))
                             ],
                             textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return _isReadyProduct ? l10n.enterQuantity : l10n.requiredField;
+                              }
+                              final parsed = double.tryParse(value.replaceAll(',', '.'));
+                              if (parsed == null || parsed <= 0) {
+                                return l10n.enterNumberGreaterThanZero;
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),

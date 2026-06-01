@@ -677,5 +677,16 @@
   "pesticides": "Pesticides",
   "heavyMetalsAndContaminants": "Heavy Metals & Contaminants",
   "scannerAiInvisibleTip": "AI cannot see sauces or oil. Add details above for precision.",
-  "descriptionAiTip": "AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils."
+  "descriptionAiTip": "AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils.",
+  "productDetails": "Product Details",
+  "productName": "Product Name",
+  "quantityOrVolume": "Quantity / Volume",
+  "brandAndVolumeRequired": "Brand & Volume (Required)",
+  "additionalDetailsOptional": "Additional Details (Optional)",
+  "brandAndVolumeHint": "Example: Coca-Cola 0.5l, protein bar 60g",
+  "additionalDetailsHint": "Specify details for the AI (variety, brand, features) to calculate calories more accurately",
+  "enterBrandAndVolume": "Please enter the brand and volume of the ready product",
+  "specifyVolumeOrWeight": "Please specify the volume or weight of the product (e.g., 0.5l, 500ml, 100g)",
+  "enterProductName": "Enter product name",
+  "enterQuantity": "Enter quantity"
 }

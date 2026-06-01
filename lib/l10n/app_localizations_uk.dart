@@ -1859,4 +1859,42 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get descriptionAiTip =>
       'ШІ рахує точніше, якщо ви вкажете деталі: спосіб обробки (варений/смажений) та наявність соусів/олії.';
+
+  @override
+  String get productDetails => 'Інформація про продукт';
+
+  @override
+  String get productName => 'Назва продукту';
+
+  @override
+  String get quantityOrVolume => 'Кількість / Об\'єм';
+
+  @override
+  String get brandAndVolumeRequired =>
+      'Торгова марка / Бренд та об\'єм (Обов\'язково)';
+
+  @override
+  String get additionalDetailsOptional => 'Додаткові деталі (Опціонально)';
+
+  @override
+  String get brandAndVolumeHint =>
+      'Приклад: Coca-Cola 0.5л, протеїновий батончик 60г';
+
+  @override
+  String get additionalDetailsHint =>
+      'Уточніть деталі для ШІ (сорт, бренд, особливості), щоб точніше розрахувати калорії';
+
+  @override
+  String get enterBrandAndVolume =>
+      'Будь ласка, ввіть бренд та об\'єм готового продукту';
+
+  @override
+  String get specifyVolumeOrWeight =>
+      'Обов\'язково вкажіть об\'єм або вагу продукту (наприклад, 0.5л, 500мл, 100г)';
+
+  @override
+  String get enterProductName => 'Введіть назву продукту';
+
+  @override
+  String get enterQuantity => 'Введіть кількість';
 }

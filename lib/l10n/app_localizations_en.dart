@@ -1855,4 +1855,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get descriptionAiTip =>
       'AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils.';
+
+  @override
+  String get productDetails => 'Product Details';
+
+  @override
+  String get productName => 'Product Name';
+
+  @override
+  String get quantityOrVolume => 'Quantity / Volume';
+
+  @override
+  String get brandAndVolumeRequired => 'Brand & Volume (Required)';
+
+  @override
+  String get additionalDetailsOptional => 'Additional Details (Optional)';
+
+  @override
+  String get brandAndVolumeHint => 'Example: Coca-Cola 0.5l, protein bar 60g';
+
+  @override
+  String get additionalDetailsHint =>
+      'Specify details for the AI (variety, brand, features) to calculate calories more accurately';
+
+  @override
+  String get enterBrandAndVolume =>
+      'Please enter the brand and volume of the ready product';
+
+  @override
+  String get specifyVolumeOrWeight =>
+      'Please specify the volume or weight of the product (e.g., 0.5l, 500ml, 100g)';
+
+  @override
+  String get enterProductName => 'Enter product name';
+
+  @override
+  String get enterQuantity => 'Enter quantity';
 }

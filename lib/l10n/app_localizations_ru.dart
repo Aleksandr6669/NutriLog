@@ -1861,4 +1861,42 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get descriptionAiTip =>
       'ИИ считает точнее, если вы укажете детали: способ обработки (вареный/жареный) и наличие соусов/масел.';
+
+  @override
+  String get productDetails => 'Информация о продукте';
+
+  @override
+  String get productName => 'Название продукта';
+
+  @override
+  String get quantityOrVolume => 'Количество / Объем';
+
+  @override
+  String get brandAndVolumeRequired =>
+      'Торговая марка / Бренд и объем (Обязательно)';
+
+  @override
+  String get additionalDetailsOptional => 'Дополнительные детали (Опционально)';
+
+  @override
+  String get brandAndVolumeHint =>
+      'Пример: Coca-Cola 0.5л, протеиновый батончик 60г';
+
+  @override
+  String get additionalDetailsHint =>
+      'Уточните детали для ИИ (сорт, бренд, особенности), чтобы точнее рассчитать калории';
+
+  @override
+  String get enterBrandAndVolume =>
+      'Пожалуйста, введите бренд и объем готового продукта';
+
+  @override
+  String get specifyVolumeOrWeight =>
+      'Обязательно укажите объем или вес продукта (например, 0.5л, 500мл, 100г)';
+
+  @override
+  String get enterProductName => 'Введите название продукта';
+
+  @override
+  String get enterQuantity => 'Введите количество';
 }

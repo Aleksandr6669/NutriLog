@@ -3460,6 +3460,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI calculates better if you specify details: cooking method (boiled/fried) and any sauces or oils.'**
   String get descriptionAiTip;
+
+  /// No description provided for @productDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Details'**
+  String get productDetails;
+
+  /// No description provided for @productName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get productName;
+
+  /// No description provided for @quantityOrVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity / Volume'**
+  String get quantityOrVolume;
+
+  /// No description provided for @brandAndVolumeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand & Volume (Required)'**
+  String get brandAndVolumeRequired;
+
+  /// No description provided for @additionalDetailsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Details (Optional)'**
+  String get additionalDetailsOptional;
+
+  /// No description provided for @brandAndVolumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Coca-Cola 0.5l, protein bar 60g'**
+  String get brandAndVolumeHint;
+
+  /// No description provided for @additionalDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Specify details for the AI (variety, brand, features) to calculate calories more accurately'**
+  String get additionalDetailsHint;
+
+  /// No description provided for @enterBrandAndVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the brand and volume of the ready product'**
+  String get enterBrandAndVolume;
+
+  /// No description provided for @specifyVolumeOrWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Please specify the volume or weight of the product (e.g., 0.5l, 500ml, 100g)'**
+  String get specifyVolumeOrWeight;
+
+  /// No description provided for @enterProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter product name'**
+  String get enterProductName;
+
+  /// No description provided for @enterQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter quantity'**
+  String get enterQuantity;
 }
 
 class _AppLocalizationsDelegate
