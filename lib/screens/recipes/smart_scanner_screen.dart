@@ -162,7 +162,7 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         ingredients: draft.ingredients,
         icon: draft.icon,
         isUserRecipe: true,
-        instructions: const [],
+        instructions: draft.instructions,
         isReadyProduct: draft.isReadyProduct,
         healthAdvice: preciseCalculation.healthAdvice,
       );

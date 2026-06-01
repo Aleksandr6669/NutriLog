@@ -689,5 +689,11 @@
   "enterBrandAndVolume": "Будь ласка, ввіть бренд та об'єм готового продукту",
   "specifyVolumeOrWeight": "Обов'язково вкажіть об'єм або вагу продукту (наприклад, 0.5л, 500мл, 100г)",
   "enterProductName": "Введіть назву продукту",
-  "enterQuantity": "Введіть кількість"
+  "enterQuantity": "Введіть кількість",
+  "cookingMethod": "Спосіб приготування",
+  "cookingMethodPlaceholder": "Опишіть покроковий спосіб приготування страви...",
+  "productTypeLabel": "Тип продукту",
+  "readyProductType": "Готовий продукт",
+  "recipeType": "Рецепт",
+  "alcohol": "Алкоголь"
 }

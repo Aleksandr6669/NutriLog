@@ -1899,4 +1899,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get enterQuantity => 'Введите количество';
+
+  @override
+  String get cookingMethod => 'Способ приготовления';
+
+  @override
+  String get cookingMethodPlaceholder =>
+      'Опишите пошаговый способ приготовления блюда...';
+
+  @override
+  String get productTypeLabel => 'Тип продукта';
+
+  @override
+  String get readyProductType => 'Готовый продукт';
+
+  @override
+  String get recipeType => 'Рецепт';
+
+  @override
+  String get alcohol => 'Алкоголь';
 }

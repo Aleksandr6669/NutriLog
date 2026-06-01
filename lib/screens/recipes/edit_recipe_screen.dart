@@ -57,6 +57,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   late TextEditingController _descriptionController;
   late TextEditingController _clarificationController;
   late TextEditingController _healthAdviceController;
+  late TextEditingController _instructionsController;
   IconData _selectedIcon = Symbols.restaurant;
 
   // Nutrient controllers
@@ -72,6 +73,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isPublic = false;
   bool _isDonated = false;
   bool _isReadyProduct = false;
+
+  // Backup fields to restore ingredients and instructions when switching between Recipe and Ready Product
+  List<Map<String, dynamic>>? _recipeIngredientsBackup;
+  String? _recipeInstructionsBackup;
+  List<Map<String, dynamic>>? _readyProductIngredientsBackup;
 
   // Separate states for Donate (Community) moderation
   bool _isDonateAiChecking = false;
@@ -150,6 +156,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 sourceRecipe?.healthAdvice ??
                 '')
             .trim());
+    _instructionsController = TextEditingController(
+        text: (sourceRecipe?.instructions ?? const []).join('\n'));
     _selectedIcon = sourceRecipe?.icon ?? Symbols.restaurant;
     _isPublic = sourceRecipe?.isPublic ?? false;
     _isDonated = sourceRecipe?.isDonated ?? false;
@@ -213,6 +221,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       description: sourceRecipe?.description ?? '',
       clarification: widget.initialClarification ?? sourceRecipe?.clarification ?? '',
       healthAdvice: (widget.initialDraft?.healthAdvice ?? sourceRecipe?.healthAdvice ?? '').trim(),
+      instructions: (sourceRecipe?.instructions ?? const []).join('\n'),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -389,7 +398,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       case 'fat':
         return l10n.fat;
       case 'alcohol':
-        return _localizeInline(ru: 'Алкоголь', en: 'Alcohol', uk: 'Алкоголь');
+        return l10n.alcohol;
       case 'fiber':
         return l10n.fiberSub;
       case 'sugar':
@@ -408,6 +417,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         return l10n.sodium;
       case 'potassium':
         return l10n.potassium;
+      case 'calcium':
+        return l10n.calcium;
+      case 'iron':
+        return l10n.iron;
       case 'vitamin_a':
         return l10n.vitaminA;
       case 'vitamin_c':
@@ -499,16 +512,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       case 'calcium':
       case 'iron':
       case 'vitamin_c':
-      case 'vitamin_b1':
-      case 'vitamin_b2':
-      case 'vitamin_b3':
-      case 'vitamin_b5':
-      case 'vitamin_b6':
       case 'magnesium':
       case 'phosphorus':
-      case 'zinc':
-      case 'copper':
-      case 'manganese':
       case 'fluoride':
         return l10n.mg;
       default:
@@ -676,6 +681,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         recipeName: _nameController.text,
         recipeDescription: _descriptionController.text,
         clarification: _clarificationController.text,
+        instructions: _isReadyProduct ? '' : _instructionsController.text,
         ingredients: ingredients,
         locale: Localizations.localeOf(context).languageCode,
         healthConditions: '',
@@ -710,6 +716,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
           description: _descriptionController.text,
           clarification: _clarificationController.text,
           healthAdvice: _healthAdviceController.text.trim(),
+          instructions: _isReadyProduct ? '' : _instructionsController.text,
         );
         _isAiCalculating = false;
         _aiStatus = l10n.recipeAiUpdated;
@@ -768,6 +775,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     _clarificationController.dispose();
     _descriptionController.dispose();
     _healthAdviceController.dispose();
+    _instructionsController.dispose();
     for (var controller in _nutrientControllers.values) {
       controller.dispose();
     }
@@ -867,7 +875,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         healthAdvice: _healthAdviceController.text.trim(),
         instructions: _isReadyProduct
             ? const []
-            : ((widget.recipe ?? widget.initialDraft)?.instructions ?? []),
+            : _instructionsController.text
+                .split('\n')
+                .map((step) => step.trim())
+                .where((step) => step.isNotEmpty)
+                .toList(),
         isReadyProduct: _isReadyProduct,
       );
 
@@ -916,6 +928,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       description: _descriptionController.text,
       clarification: _clarificationController.text,
       healthAdvice: _healthAdviceController.text.trim(),
+      instructions: _isReadyProduct ? '' : _instructionsController.text,
     );
 
     return currentState != _lastCalculatedState;
@@ -1108,8 +1121,13 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         isPublic: _isPublic,
         isDonated: _isDonated,
         ingredients: ingredients,
-        instructions:
-            _isReadyProduct ? const [] : (widget.recipe?.instructions ?? []),
+        instructions: _isReadyProduct
+            ? const []
+            : _instructionsController.text
+                .split('\n')
+                .map((step) => step.trim())
+                .where((step) => step.isNotEmpty)
+                .toList(),
         isReadyProduct: _isReadyProduct,
       );
 
@@ -1430,6 +1448,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     const SizedBox(height: 16),
                     const SizedBox(height: 20),
                     _buildIngredientsCard(),
+                    if (!_isReadyProduct) ...[
+                      const SizedBox(height: 20),
+                      _buildInstructionsInputCard(),
+                    ],
                     const SizedBox(height: 20),
                     _buildNutrientsCard(),
                     const SizedBox(height: 24),
@@ -1476,9 +1498,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.mainInfo,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Center(
+              child: Text(
+                l10n.mainInfo,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
             const SizedBox(height: 24),
             Center(
               child: InkWell(
@@ -1520,18 +1545,93 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 selected: <bool>{_isReadyProduct},
                 onSelectionChanged: (Set<bool> newSelection) {
                   HapticFeedback.selectionClick();
-                  setState(() {
-                    _isReadyProduct = newSelection.first;
-                    if (_isReadyProduct) {
-                      if (_ingredientItems.isEmpty) {
-                        _addIngredientRow();
-                      } else if (_ingredientItems.length > 1) {
-                        while (_ingredientItems.length > 1) {
-                          _removeIngredientRow(1);
+                  final nextIsReadyProduct = newSelection.first;
+                  if (_isReadyProduct != nextIsReadyProduct) {
+                    setState(() {
+                      if (!_isReadyProduct) {
+                        // Backup current Recipe state before switching to Ready Product
+                        _recipeIngredientsBackup = _ingredientItems.map((item) => {
+                          'name': item.nameController.text,
+                          'quantity': item.quantityController.text,
+                          'unit': item.unit,
+                          'isAmbiguous': item.isAmbiguous,
+                        }).toList();
+                        _recipeInstructionsBackup = _instructionsController.text;
+                      } else {
+                        // Backup current Ready Product state before switching to Recipe
+                        _readyProductIngredientsBackup = _ingredientItems.map((item) => {
+                          'name': item.nameController.text,
+                          'quantity': item.quantityController.text,
+                          'unit': item.unit,
+                          'isAmbiguous': item.isAmbiguous,
+                        }).toList();
+                      }
+
+                      _isReadyProduct = nextIsReadyProduct;
+
+                      // Dispose existing controllers to avoid memory leaks
+                      for (final item in _ingredientItems) {
+                        _detachIngredientListeners(item);
+                        item.dispose();
+                      }
+                      _ingredientItems.clear();
+
+                      if (_isReadyProduct) {
+                        // Restore or set up Ready Product state
+                        if (_readyProductIngredientsBackup != null && _readyProductIngredientsBackup!.isNotEmpty) {
+                          for (final backed in _readyProductIngredientsBackup!) {
+                            final item = _IngredientFormItem(
+                              name: backed['name'] as String,
+                              quantity: backed['quantity'] as String,
+                              unit: backed['unit'] as String,
+                              isAmbiguous: backed['isAmbiguous'] as bool,
+                            );
+                            _attachIngredientListeners(item);
+                            _ingredientItems.add(item);
+                          }
+                        } else {
+                          // Try to copy the first ingredient name if it exists in backup
+                          String initialName = '';
+                          String initialQty = '';
+                          String initialUnit = 'g';
+                          if (_recipeIngredientsBackup != null && _recipeIngredientsBackup!.isNotEmpty) {
+                            initialName = _recipeIngredientsBackup!.first['name'] as String;
+                            initialQty = _recipeIngredientsBackup!.first['quantity'] as String;
+                            initialUnit = _recipeIngredientsBackup!.first['unit'] as String;
+                          }
+                          final item = _IngredientFormItem(
+                            name: initialName,
+                            quantity: initialQty,
+                            unit: initialUnit,
+                          );
+                          _attachIngredientListeners(item);
+                          _ingredientItems.add(item);
+                        }
+                        _instructionsController.clear();
+                      } else {
+                        // Restore Recipe state
+                        if (_recipeIngredientsBackup != null && _recipeIngredientsBackup!.isNotEmpty) {
+                          for (final backed in _recipeIngredientsBackup!) {
+                            final item = _IngredientFormItem(
+                              name: backed['name'] as String,
+                              quantity: backed['quantity'] as String,
+                              unit: backed['unit'] as String,
+                              isAmbiguous: backed['isAmbiguous'] as bool,
+                            );
+                            _attachIngredientListeners(item);
+                            _ingredientItems.add(item);
+                          }
+                          _instructionsController.text = _recipeInstructionsBackup ?? '';
+                        } else {
+                          final item = _IngredientFormItem();
+                          _attachIngredientListeners(item);
+                          _ingredientItems.add(item);
+                          _instructionsController.clear();
                         }
                       }
-                    }
-                  });
+                      _resetModeration(resetCalculated: true);
+                    });
+                  }
                 },
                 style: SegmentedButton.styleFrom(
                   selectedBackgroundColor:
@@ -1558,34 +1658,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               decoration: AppStyles.underlineInputDecoration(
                   label: l10n.recipeDescriptionLabel),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _clarificationController,
-              minLines: 1,
-              maxLines: 3,
-              decoration: AppStyles.underlineInputDecoration(
-                label: _isReadyProduct
-                    ? l10n.brandAndVolumeRequired
-                    : l10n.additionalDetailsOptional,
-              ).copyWith(
-                hintText: _isReadyProduct
-                    ? l10n.brandAndVolumeHint
-                    : l10n.additionalDetailsHint,
-              ),
-              validator: (value) {
-                if (_isReadyProduct) {
-                  if (value == null || value.trim().isEmpty) {
-                    return l10n.enterBrandAndVolume;
-                  }
-                  final normalized = value.toLowerCase();
-                  final hasVolume = normalized.contains(RegExp(r'\d+\s*(мл|л|г|ml|l|g|oz|pcs|шт)'));
-                  if (!hasVolume) {
-                    return l10n.specifyVolumeOrWeight;
-                  }
-                }
-                return null;
-              },
-            ),
+            // Clarification input field removed per user request
           ],
         ),
       ),
@@ -1865,6 +1938,55 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                   ],
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionsInputCard() {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.cookingMethod,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _instructionsController,
+              minLines: 3,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(
+                hintText: l10n.cookingMethodPlaceholder,
+                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              style: const TextStyle(fontSize: 15, height: 1.4),
             ),
           ],
         ),
@@ -2256,12 +2378,14 @@ class _RecipeCalculatableState {
   final String description;
   final String clarification;
   final String healthAdvice;
+  final String instructions;
 
   _RecipeCalculatableState({
     required this.ingredients,
     required this.description,
     required this.clarification,
     required this.healthAdvice,
+    required this.instructions,
   });
 
   @override
@@ -2272,6 +2396,7 @@ class _RecipeCalculatableState {
     if (description != other.description) return false;
     if (clarification != other.clarification) return false;
     if (healthAdvice != other.healthAdvice) return false;
+    if (instructions != other.instructions) return false;
 
     if (ingredients.length != other.ingredients.length) return false;
     for (int i = 0; i < ingredients.length; i++) {
@@ -2286,5 +2411,5 @@ class _RecipeCalculatableState {
 
   @override
   int get hashCode =>
-      Object.hash(Object.hashAll(ingredients), description, clarification, healthAdvice);
+      Object.hash(Object.hashAll(ingredients), description, clarification, healthAdvice, instructions);
 }

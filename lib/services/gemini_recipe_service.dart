@@ -160,6 +160,10 @@ class GeminiRecipeService {
         'healthAdvice': {'type': 'string'},
         'icon': {'type': 'string'},
         'isReadyProduct': {'type': 'boolean'},
+        'instructions': {
+          'type': 'array',
+          'items': {'type': 'string'}
+        },
         'ingredients': {
           'type': 'array',
           'items': {
@@ -194,7 +198,8 @@ class GeminiRecipeService {
         'icon',
         'isReadyProduct',
         'ingredients',
-        'nutrients'
+        'nutrients',
+        'instructions'
       ],
     };
   }
@@ -380,6 +385,7 @@ Format:
   "clarification": "...",
   "icon": "restaurant",
   "isReadyProduct": false,
+  "instructions": ["1. ...", "2. ..."], // step-by-step cooking instructions (empty array [] if isReadyProduct is true)
   "ingredients": [
     {
       "name": "...",
@@ -425,6 +431,7 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
+- instructions: MUST be an array of strings representing step-by-step preparation/cooking instructions (write in the user language like Russian/Ukrainian/English as appropriate). If isReadyProduct is set to true, this field MUST be an empty array []!
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-4 lines). Write directly: what it is, possible brand or name, brief composition or cooking method in 2-3 words, key characteristics. Style: direct, no third-person, no filler phrases. Example: "Энергетик. Возможный бренд: Monster. Состав: кофеин, таурин, сахар, витамины группы B."
 - ingredient quantities must be realistic for ONE serving (1 person).
@@ -511,6 +518,7 @@ Format:
   "clarification": "...", // detailed "Important details" text for nutrition accuracy
   "icon": "restaurant",
   "isReadyProduct": false,
+  "instructions": ["1. ...", "2. ..."], // step-by-step cooking instructions (empty array [] if isReadyProduct is true)
   "ingredients": [
     {"name": "...", "quantity": 100, "unit": "g", "ambiguous": false, "weightPerUnit": 1, "isReadyProduct": false, "nutrients": {}}
   ],
@@ -539,6 +547,7 @@ Format:
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
 - isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
+- instructions: MUST be an array of strings representing step-by-step preparation/cooking instructions (write in the user language like Russian/Ukrainian/English as appropriate). If isReadyProduct is set to true, this field MUST be an empty array []!
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-5 lines). Write directly: what it is, visible brand if any, brief composition or cooking method, key details. Style: direct, no third-person, no filler phrases. Example: "Суп. Томатный, домашний. Ингредиенты: помидоры, лук, морковь, масло. Без сметаны."
 - ingredient quantities must be realistic for ONE serving (1 person).
@@ -662,6 +671,7 @@ Rules:
     required String recipeDescription,
     required List<RecipeIngredient> ingredients,
     String clarification = '',
+    String instructions = '',
     String? locale,
     String healthConditions = '',
     UserProfile? profile,
@@ -781,11 +791,19 @@ Rules:
   Do NOT assume smaller or standard sizes (like 350 ml or 0.33l) for the calculation when a specific volume/weight is provided in the clarification field! That volume is absolute!
   ''' : '';
 
+    final instructionsRule = (!isReadyProduct && instructions.isNotEmpty) ? '''
+  COOKING METHOD & PREPARATION INSTRUCTIONS (CRITICAL):
+  The cooking/preparation instructions are:
+  $instructions
+  You MUST take this cooking/preparation method into account when calculating nutrients (e.g., consider heat treatment, boiling, frying, baking, water loss/retention, fat/oil absorption, etc.).
+  ''' : '';
+
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
   ${_languageInstruction(locale)}
 
   $readyProductRule
+  $instructionsRule
 
   TASK: Calculate the exact total nutritional value for ONE SERVING (for 1 person) of the recipe described below, AND provide a general positive nutritional tip in the "healthAdvice" field, AND provide the exact nutrient composition for each individual ingredient inside the "ingredients" list.
 
@@ -828,6 +846,7 @@ Rules:
   ${healthConditions.isNotEmpty ? '- User health context: $healthConditions' : ''}
   - Name: ${recipeName.trim().isEmpty ? 'Untitled' : recipeName.trim()}
   - Description: ${recipeDescription.trim().isEmpty ? '(not provided)' : recipeDescription.trim()}
+  ${(!isReadyProduct && instructions.isNotEmpty) ? '- Cooking instructions: $instructions' : ''}
   - Serving size: all ingredients below = 1 serving for 1 person
   - Ingredients (SECONDARY: quantities and consistency constraints):
   $ingredientsText
@@ -840,8 +859,8 @@ Rules:
   Top-level and ingredient-level JSON value units:
   - calories: kcal
   - protein, carbs, fat, fiber, sugar, saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat: grams
-  - cholesterol, sodium, potassium, calcium, iron, vitamin_c, vitamin_b1, vitamin_b2, vitamin_b3, vitamin_b5, vitamin_b6, magnesium, phosphorus, zinc, copper, manganese, fluoride: milligrams
-  - vitamin_a, vitamin_d, vitamin_e, vitamin_k, vitamin_b7, vitamin_b9, vitamin_b12, selenium, iodine, chromium, molybdenum, lead, mercury, cadmium, arsenic, nitrates, pesticides: micrograms
+  - cholesterol, sodium, potassium, calcium, iron, vitamin_c, magnesium, phosphorus, fluoride: milligrams
+  - vitamin_a, vitamin_d, vitamin_e, vitamin_k, vitamin_b1, vitamin_b2, vitamin_b3, vitamin_b5, vitamin_b6, vitamin_b7, vitamin_b9, vitamin_b12, zinc, copper, manganese, selenium, iodine, chromium, molybdenum, lead, mercury, cadmium, arsenic, nitrates, pesticides: micrograms
   ''';
 
     final decoded = await _requestDecodedJsonWithAutoRetry(
@@ -2882,6 +2901,16 @@ Rules:
       nutrients[key] = _toNonNegativeDouble(nutrientsMap[key]);
     }
 
+    final List<String> instructions = [];
+    final rawInstructions = decoded['instructions'];
+    if (rawInstructions is List) {
+      for (final step in rawInstructions) {
+        if (step is String && step.trim().isNotEmpty) {
+          instructions.add(step.trim());
+        }
+      }
+    }
+
     return GeminiRecipeDraft(
       name: rawName.isEmpty ? _messages(locale).newRecipeTitle : rawName,
       description:
@@ -2900,6 +2929,7 @@ Rules:
       nutrients: nutrients,
       healthAdvice: rawHealthAdvice,
       isReadyProduct: decoded['isReadyProduct'] == true,
+      instructions: instructions,
     );
   }
 
@@ -2994,6 +3024,13 @@ Rules:
         'смузи',
         'компот',
         'лимонад',
+        'пиво',
+        'эль',
+        'лагер',
+        'сидр',
+        'вино',
+        'водка',
+        'виски',
         'drink',
         'beverage',
         'soup',
@@ -3009,6 +3046,13 @@ Rules:
         'чай',
         'кава',
         'сік',
+        'beer',
+        'ale',
+        'lager',
+        'cider',
+        'wine',
+        'vodka',
+        'whiskey',
       ],
     );
 
@@ -3265,7 +3309,7 @@ Rules:
   bool _hasExplicitYieldOrVolumeInfo(String sourceText) {
     final text = sourceText.toLowerCase();
     return RegExp(
-      r'\b\d+(?:[\.,]\d+)?\s*(?:порц|порци|serv|serving)\b',
+      r'\b\d+(?:[\.,]\d+)?\s*(?:порц|порци|serv|serving|ml|мл|g|г|l|л)\b',
       caseSensitive: false,
     ).hasMatch(text);
   }
@@ -3572,6 +3616,7 @@ class GeminiRecipeDraft {
   final List<RecipeIngredient> ingredients;
   final Map<String, double> nutrients;
   final bool isReadyProduct;
+  final List<String> instructions;
 
   const GeminiRecipeDraft({
     required this.name,
@@ -3582,6 +3627,7 @@ class GeminiRecipeDraft {
     required this.ingredients,
     required this.nutrients,
     this.isReadyProduct = false,
+    this.instructions = const [],
   });
 }
 

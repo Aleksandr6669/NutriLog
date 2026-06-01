@@ -688,5 +688,11 @@
   "enterBrandAndVolume": "Please enter the brand and volume of the ready product",
   "specifyVolumeOrWeight": "Please specify the volume or weight of the product (e.g., 0.5l, 500ml, 100g)",
   "enterProductName": "Enter product name",
-  "enterQuantity": "Enter quantity"
+  "enterQuantity": "Enter quantity",
+  "cookingMethod": "Cooking Method",
+  "cookingMethodPlaceholder": "Describe the step-by-step cooking instructions...",
+  "productTypeLabel": "Product Type",
+  "readyProductType": "Ready Product",
+  "recipeType": "Recipe",
+  "alcohol": "Alcohol"
 }

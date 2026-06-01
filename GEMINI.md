@@ -649,7 +649,7 @@ void main() async {
 
 For text generation, summarization, or chat features, the AI will use a Gemini model.
 
-* **Model Selection**: The AI will default to `gemini-2.5-flash` for its balance of speed and capability.
+* **Model Selection**: The AI will default to `gemini-3.1-flash-lite` for its balance of speed and capability.
 * **Implementation**:
 
 ```
@@ -658,7 +658,7 @@ import 'package:firebase_ai/firebase_ai.dart';
 Future<String> generateText(String promptText) async {
   try {
     // 1. Get the generative model
-    final model = FirebaseVertexAI.instance.generativeModel(model: 'gemini-2.5-pro');
+    final model = FirebaseVertexAI.instance.generativeModel(model: 'gemini-3.1-flash-lite');
 
     // 2. Generate content
     final response = await model.generateContent([Content.text(promptText)]);
@@ -684,7 +684,7 @@ import 'package:firebase_ai/firebase_ai.dart';
 Future<String> analyzeImage(String promptText, Uint8List imageData) async {
   try {
     // 1. Get the generative model
-    final model = FirebaseVertexAI.instance.generativeModel(model: 'gemini-2.5-pro');
+    final model = FirebaseVertexAI.instance.generativeModel(model: 'gemini-3.1-pro-preview');
 
     // 2. Create the multimodal content
     final content = Content.multi([

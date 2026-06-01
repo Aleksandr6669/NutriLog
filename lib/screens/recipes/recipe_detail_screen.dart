@@ -49,7 +49,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       case 'fat':
         return l10n.fat;
       case 'alcohol':
-        return l10n.localeName == 'ru' ? 'Алкоголь' : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol');
+        return l10n.alcohol;
       case 'fiber':
         return l10n.fiberSub;
       case 'sugar':
@@ -163,16 +163,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       case 'calcium':
       case 'iron':
       case 'vitamin_c':
-      case 'vitamin_b1':
-      case 'vitamin_b2':
-      case 'vitamin_b3':
-      case 'vitamin_b5':
-      case 'vitamin_b6':
       case 'magnesium':
       case 'phosphorus':
-      case 'zinc':
-      case 'copper':
-      case 'manganese':
       case 'fluoride':
         return l10n.mg;
       default:
@@ -331,6 +323,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               _buildIngredientsCard(context),
               const SizedBox(height: 24),
             ],
+            if (!widget.recipe.isReadyProduct) ...[
+              _buildInstructionsCard(context),
+              const SizedBox(height: 24),
+            ],
             _buildNutrientsCard(context),
           ],
         ),
@@ -403,6 +399,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     textColor: statusColor,
                     background: statusColor.withValues(alpha: 0.12),
                   ),
+                  _metaChip(
+                    icon: widget.recipe.isReadyProduct ? Symbols.inventory_2 : Symbols.menu_book,
+                    text: widget.recipe.isReadyProduct ? l10n.readyProductType : l10n.recipeType,
+                    textColor: widget.recipe.isReadyProduct ? Colors.orange.shade800 : Colors.purple.shade800,
+                    background: widget.recipe.isReadyProduct ? Colors.orange.shade50 : Colors.purple.shade50,
+                  ),
                 ],
               ),
             ],
@@ -470,8 +472,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildIngredientsCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final String clarificationText = widget.recipe.clarification.trim();
     
     return Card(
       color: Colors.white,
@@ -483,39 +483,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (clarificationText.isNotEmpty) ...[
-              Text(
-                widget.recipe.isReadyProduct
-                    ? (l10n.localeName == 'ru'
-                        ? 'Торговое наименование / Бренд'
-                        : (l10n.localeName == 'uk'
-                            ? 'Торгова назва / Бренд'
-                            : 'Commercial Brand / Name'))
-                    : (l10n.localeName == 'ru'
-                        ? 'Дополнительные детали'
-                        : (l10n.localeName == 'uk'
-                            ? 'Додаткові деталі'
-                            : 'Additional Details')),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                clarificationText,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Divider(height: 1, thickness: 1),
-              const SizedBox(height: 16),
-            ],
+            // Clarification details visual block removed per user request
             Text(
               l10n.ingredients,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -539,6 +507,61 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final instructions = widget.recipe.instructions;
+    if (instructions.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      color: Colors.white,
+      elevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.cardRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.cookingMethod,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...instructions.map((step) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Icon(Symbols.circle, size: 6, color: theme.colorScheme.primary),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          step,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            height: 1.45,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
           ],
         ),
       ),

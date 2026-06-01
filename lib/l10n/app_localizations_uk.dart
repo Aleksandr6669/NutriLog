@@ -1897,4 +1897,23 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get enterQuantity => 'Введіть кількість';
+
+  @override
+  String get cookingMethod => 'Спосіб приготування';
+
+  @override
+  String get cookingMethodPlaceholder =>
+      'Опишіть покроковий спосіб приготування страви...';
+
+  @override
+  String get productTypeLabel => 'Тип продукту';
+
+  @override
+  String get readyProductType => 'Готовий продукт';
+
+  @override
+  String get recipeType => 'Рецепт';
+
+  @override
+  String get alcohol => 'Алкоголь';
 }

@@ -131,7 +131,7 @@ class _CreateRecipeFromDescriptionScreenState
       ingredients: draft.ingredients,
       icon: draft.icon,
       isUserRecipe: true,
-      instructions: const [],
+      instructions: draft.instructions,
     );
   }
 

@@ -602,18 +602,7 @@ class _NutritionDetailsList extends StatelessWidget {
     switch (key) {
       case 'magnesium':
       case 'phosphorus':
-      case 'zinc':
-      case 'copper':
-      case 'manganese':
       case 'fluoride':
-      case 'vitamin_e':
-      case 'vitamin_b1':
-      case 'vitamin_b2':
-      case 'vitamin_b3':
-      case 'vitamin_b5':
-      case 'vitamin_b6':
-      case 'lead':
-      case 'nitrates':
         return l10n.mg;
       default:
         return l10n.mcg;

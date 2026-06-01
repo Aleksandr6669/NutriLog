@@ -3526,6 +3526,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter quantity'**
   String get enterQuantity;
+
+  /// No description provided for @cookingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking Method'**
+  String get cookingMethod;
+
+  /// No description provided for @cookingMethodPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the step-by-step cooking instructions...'**
+  String get cookingMethodPlaceholder;
+
+  /// No description provided for @productTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Type'**
+  String get productTypeLabel;
+
+  /// No description provided for @readyProductType.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready Product'**
+  String get readyProductType;
+
+  /// No description provided for @recipeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get recipeType;
+
+  /// No description provided for @alcohol.
+  ///
+  /// In en, this message translates to:
+  /// **'Alcohol'**
+  String get alcohol;
 }
 
 class _AppLocalizationsDelegate

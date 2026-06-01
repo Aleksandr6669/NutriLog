@@ -1891,4 +1891,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterQuantity => 'Enter quantity';
+
+  @override
+  String get cookingMethod => 'Cooking Method';
+
+  @override
+  String get cookingMethodPlaceholder =>
+      'Describe the step-by-step cooking instructions...';
+
+  @override
+  String get productTypeLabel => 'Product Type';
+
+  @override
+  String get readyProductType => 'Ready Product';
+
+  @override
+  String get recipeType => 'Recipe';
+
+  @override
+  String get alcohol => 'Alcohol';
 }
