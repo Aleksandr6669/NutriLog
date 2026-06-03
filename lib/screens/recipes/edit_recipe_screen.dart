@@ -1091,6 +1091,37 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       return;
     }
 
+    final currentNutrients = _collectCurrentNutrients();
+    final hasBaseNutrients = (currentNutrients['calories'] ?? 0) > 0 ||
+        (currentNutrients['protein'] ?? 0) > 0 ||
+        (currentNutrients['carbs'] ?? 0) > 0 ||
+        (currentNutrients['fat'] ?? 0) > 0;
+
+    if (!hasBaseNutrients) {
+      setState(() {
+        _aiStatus = l10n.recipeAiCalculateRequired;
+        _isAiError = true;
+      });
+      _scrollToNutrientsAction();
+      return;
+    }
+
+    if (_isStateChangedFromLastCalculation) {
+      setState(() {
+        _aiStatus = _recalculationRequiredMessage;
+        _isAiError = true;
+      });
+      _scrollToNutrientsAction();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_recalculationRequiredMessage),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.orange.shade800,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isDonateAiChecking = true);
     try {
       // Сначала сохраняем/обновляем локальный рецепт без закрытия экрана.
