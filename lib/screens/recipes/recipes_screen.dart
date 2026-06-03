@@ -958,20 +958,35 @@ class _RecipesScreenState extends State<RecipesScreen> {
             );
 
             if (widget.selectionMode) {
+              final selectedCount = _selectedRecipeCounts[recipe.id] ?? 0;
+              final bool isItemSelected = selectedCount > 0;
+              
+              String getRemoveLabel() {
+                if (selectedCount <= 1) {
+                  final code = Localizations.localeOf(context).languageCode;
+                  if (code == 'uk') return 'Прибрати';
+                  if (code == 'en') return 'Remove';
+                  return 'Убрать';
+                }
+                return AppLocalizations.of(context)!.removeOnePortion;
+              }
+
               return Dismissible(
-                key: ValueKey('recipe-select-${recipe.id}-$isSelected'),
-                direction: DismissDirection.horizontal,
+                key: ValueKey('recipe-select-${recipe.id}-$isItemSelected-$selectedCount'),
+                direction: isItemSelected ? DismissDirection.horizontal : DismissDirection.endToStart,
                 background: _buildSwipeBackground(
                   alignment: Alignment.centerLeft,
                   color: Colors.red.shade400,
                   icon: Symbols.remove_circle,
-                  label: AppLocalizations.of(context)!.removeOnePortion,
+                  label: getRemoveLabel(),
                 ),
                 secondaryBackground: _buildSwipeBackground(
                   alignment: Alignment.centerRight,
                   color: AppColors.primary,
                   icon: Symbols.add_circle,
-                  label: AppLocalizations.of(context)!.addMore,
+                  label: isItemSelected
+                      ? AppLocalizations.of(context)!.addMore
+                      : AppLocalizations.of(context)!.add,
                 ),
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.endToStart) {
@@ -1278,16 +1293,12 @@ class _RecipeListItem extends StatelessWidget {
                             ? (isDeleteSelected
                                 ? Symbols.check_circle
                                 : Symbols.radio_button_unchecked)
-                            : (isSelected
-                                ? Symbols.check_circle
-                                : Symbols.add_circle),
+                            : Symbols.add_circle,
                         color: isDeleteMode
                             ? (isDeleteSelected
                                 ? Colors.red
                                 : theme.colorScheme.primary)
-                            : (isSelected
-                                ? Colors.green.shade600
-                                : theme.colorScheme.primary),
+                            : theme.colorScheme.primary,
                       ),
                       onPressed: onActionTap,
                       tooltip: isDeleteMode
