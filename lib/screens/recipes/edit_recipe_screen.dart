@@ -2427,46 +2427,82 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     String suffix, {
     bool readOnly = false,
   }) {
-    return TextFormField(
-      controller: controller,
-      readOnly: readOnly,
-      decoration:
-          AppStyles.underlineInputDecoration(label: label, suffix: suffix),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: nutrientKey == 'calories'
-          ? [
-              TextInputFormatter.withFunction((oldValue, newValue) {
-                final text = newValue.text;
-                if (text.isEmpty) return newValue;
-                final normalized = text.replaceAll(',', '.');
-                if (!RegExp(r'^\d*(?:\.\d{0,1})?$').hasMatch(normalized)) {
-                  return oldValue;
-                }
-                return newValue;
-              }),
-            ]
-          : [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*')),
-            ],
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return null;
-        }
-        if (double.tryParse(value.replaceAll(',', '.')) == null) {
-          return l10n.enterCorrectNumber;
-        }
-        if (nutrientKey == 'calories') {
-          final normalized = value.replaceAll(',', '.').trim();
-          final dotIndex = normalized.indexOf('.');
-          if (dotIndex >= 0) {
-            final fraction = normalized.substring(dotIndex + 1);
-            if (fraction.length > 1) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 32, // Fixed height to align the input fields vertically
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w500,
+                height: 1.1,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        const SizedBox(height: 2),
+        TextFormField(
+          controller: controller,
+          readOnly: readOnly,
+          decoration: InputDecoration(
+            suffixText: suffix,
+            alignLabelWithHint: true,
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
+            ),
+            border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: nutrientKey == 'calories'
+              ? [
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    final text = newValue.text;
+                    if (text.isEmpty) return newValue;
+                    final normalized = text.replaceAll(',', '.');
+                    if (!RegExp(r'^\d*(?:\.\d{0,1})?$').hasMatch(normalized)) {
+                      return oldValue;
+                    }
+                    return newValue;
+                  }),
+                ]
+              : [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*[\.,]?\d*')),
+                ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return null;
+            }
+            if (double.tryParse(value.replaceAll(',', '.')) == null) {
               return l10n.enterCorrectNumber;
             }
-          }
-        }
-        return null;
-      },
+            if (nutrientKey == 'calories') {
+              final normalized = value.replaceAll(',', '.').trim();
+              final dotIndex = normalized.indexOf('.');
+              if (dotIndex >= 0) {
+                final fraction = normalized.substring(dotIndex + 1);
+                if (fraction.length > 1) {
+                  return l10n.enterCorrectNumber;
+                }
+              }
+            }
+            return null;
+          },
+        ),
+      ],
     );
   }
 }

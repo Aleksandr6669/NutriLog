@@ -431,7 +431,7 @@ Format:
 
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
-- isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
+- isReadyProduct: set to true for ANY ready-to-eat/ready-to-consume food items or drinks that require NO cooking instructions or preparation steps. This includes: fruits (apple, banana, orange, etc.), raw vegetables, nuts, berries, glass of milk, a glass of water, raw eggs, as well as factory-packaged/branded products (SNICKERS bar, Activia, Coca-Cola). Set to false ONLY if it is a cooked dish or recipe that requires cooking/preparation instructions (e.g. salad, soup, pie, baked potatoes, omelet, pasta).
 - instructions: MUST be an array of strings representing step-by-step preparation/cooking instructions (write in the user language like Russian/Ukrainian/English as appropriate). If isReadyProduct is set to true, this field MUST be an empty array []!
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-4 lines). Write directly: what it is, possible brand or name, brief composition or cooking method in 2-3 words, key characteristics. Style: direct, no third-person, no filler phrases. Example: "Энергетик. Возможный бренд: Monster. Состав: кофеин, таурин, сахар, витамины группы B."
@@ -499,8 +499,8 @@ CRITICAL STEP-BY-STEP REASONING INSTRUCTION (MANDATORY):
 Your task is to identify the product or dish in the photo as accurately as possible (and from the description if provided), identify all main and hidden ingredients, and determine the product type (e.g., energy drink, soda, protein bar, soup, salad, pastry, etc.).
 
 CLASSIFICATION RULES (MANDATORY):
-- "isReadyProduct" MUST be set to true for ANY packaged, factory-produced, or ready-to-consume food items or drinks. This includes: beer (пиво), energy drinks (энергетики), sodas (газировка), juice packages, protein bars, chocolates, store-bought snacks, yogurts, and similar ready manufactured products.
-- "isReadyProduct" MUST be set to false ONLY for home-cooked meals or multi-ingredient dishes that require preparation (e.g., salad, soup, sandwich, home-made cake).
+- "isReadyProduct" MUST be set to true for ANY ready-to-eat/ready-to-consume food items, drinks, or ingredients that require NO cooking or preparation steps. This includes: fruits (apple, banana, berries, etc.), raw vegetables, nuts, glass of milk, a glass of water, raw eggs, as well as factory-packaged/branded items (SNICKERS bar, Activia yogurt, Coca-Cola, canned drinks).
+- "isReadyProduct" MUST be set to false ONLY for cooked/prepared dishes or recipes that require cooking instructions (e.g. salad, soup, sandwich, omelet, pie, baked dishes).
 
 PORTION & WEIGHT SCALE RULES (MANDATORY):
 - Carefully determine the TOTAL volume or weight of the portion/product shown. If the description mentions a volume or weight (e.g. "0.5 литра", "500 мл", "500g"), you MUST use EXACTLY that volume/weight as the total portion weight!
@@ -547,7 +547,7 @@ Format:
 
 Rules:
 - icon must be chosen only from this list: ${_allowedIconNames.join(', ')}.
-- isReadyProduct: set to true ONLY if the product is a ready-to-consume packaged or manufactured item (e.g. energy drink, soda, protein bar, yogurt cup, chips, packaged supplement, candy, ready store-bought snack) that requires NO cooking instructions or preparation steps. Set to false if it's a home-cooked recipe or dish that is made of multiple ingredients that require cooking or preparation.
+- isReadyProduct: set to true for ANY ready-to-eat/ready-to-consume food items or drinks that require NO cooking instructions or preparation steps. This includes: fruits (apple, banana, orange, etc.), raw vegetables, nuts, berries, glass of milk, a glass of water, raw eggs, as well as factory-packaged/branded products (SNICKERS bar, Activia, Coca-Cola). Set to false ONLY if it is a cooked dish or recipe that requires cooking/preparation instructions (e.g. salad, soup, pie, baked potatoes, omelet, pasta).
 - instructions: MUST be an array of strings representing step-by-step preparation/cooking instructions (write in the user language like Russian/Ukrainian/English as appropriate). If isReadyProduct is set to true, this field MUST be an empty array []!
 - ingredients must contain at least 1 item.
 - clarification: short direct description for "Important details" field (2-5 lines). Write directly: what it is, visible brand if any, brief composition or cooking method, key details. Style: direct, no third-person, no filler phrases. Example: "Суп. Томатный, домашний. Ингредиенты: помидоры, лук, морковь, масло. Без сметаны."
@@ -3105,13 +3105,11 @@ Rules:
 
     bool shouldDrop(RecipeIngredient ingredient) {
       final name = ingredient.name.toLowerCase();
-      final isWater =
-          _containsAny(name, const ['water', 'вода', 'воду', 'вода']);
       final isBroth = _containsAny(
         name,
         const ['broth', 'bouillon', 'бульон', 'бульйон'],
       );
-      if (!isWater && !isBroth) return false;
+      if (!isBroth) return false;
       if (isExplicitlyMentioned(ingredient)) return false;
       if (dishSuggestsLiquidBase) return false;
       return true;
