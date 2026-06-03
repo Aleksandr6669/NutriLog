@@ -153,11 +153,13 @@ class ProgressCard extends StatelessWidget {
     if (isWeight && goalType != null) {
       if (goalType == GoalType.loseWeight) {
         meetsGoal = referenceValue <= goal!;
-      } else if (goalType == GoalType.gainWeight || goalType == GoalType.gainMuscle) {
+      } else if (goalType == GoalType.gainWeight ||
+          goalType == GoalType.gainMuscle) {
         meetsGoal = referenceValue >= goal!;
       } else {
         // Для поддержания веса или здорового питания: если вес примерно равен или ниже цели (в пределах 1.5 кг)
-        meetsGoal = (referenceValue - goal!).abs() <= 1.5 || referenceValue <= goal!;
+        meetsGoal =
+            (referenceValue - goal!).abs() <= 1.5 || referenceValue <= goal!;
       }
     } else {
       meetsGoal = useStrictGoalComparison

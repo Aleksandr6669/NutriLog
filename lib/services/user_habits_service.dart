@@ -15,7 +15,8 @@ class UserHabitsService {
   Future<String> compileUserHabitsContext() async {
     try {
       // 1. Загружаем рецепты пользователя
-      final recipes = await RecipeService().loadUserRecipes(refreshPublicInBackground: false);
+      final recipes = await RecipeService()
+          .loadUserRecipes(refreshPublicInBackground: false);
       final userRecipes = recipes.where((r) => r.isUserRecipe).toList();
       final recentRecipes = userRecipes.reversed.take(20).toList();
 
@@ -36,7 +37,8 @@ class UserHabitsService {
         for (final meal in log.meals.values) {
           for (final foodItem in meal) {
             final ingredients = foodItem.recipeIngredients
-                .map((e) => RecipeIngredient.fromJson(Map<String, dynamic>.from(e)))
+                .map((e) =>
+                    RecipeIngredient.fromJson(Map<String, dynamic>.from(e)))
                 .toList();
             if (ingredients.isNotEmpty) {
               allIngredientLists.add(ingredients);
@@ -71,7 +73,8 @@ class UserHabitsService {
           }
 
           if (!seenInThisList.contains(name)) {
-            ingredientOccurrences[name] = (ingredientOccurrences[name] ?? 0) + 1;
+            ingredientOccurrences[name] =
+                (ingredientOccurrences[name] ?? 0) + 1;
             seenInThisList.add(name);
           }
         }
@@ -81,11 +84,13 @@ class UserHabitsService {
       final List<String> portionsContext = [];
       ingredientQuantities.forEach((name, quantities) {
         if (quantities.length >= 2) {
-          final average = quantities.reduce((a, b) => a + b) / quantities.length;
+          final average =
+              quantities.reduce((a, b) => a + b) / quantities.length;
           // Округляем до ближайших 10 грамм для красоты
           final rounded = (average / 10).round() * 10;
           if (rounded > 0) {
-            portionsContext.add('  - "$name": $rounded г (обычно пользователь использует именно столько)');
+            portionsContext.add(
+                '  - "$name": $rounded г (обычно пользователь использует именно столько)');
           }
         }
       });
@@ -95,7 +100,8 @@ class UserHabitsService {
       final totalMealsCount = allIngredientLists.length;
 
       ingredientOccurrences.forEach((name, count) {
-        final isFrequent = count >= 3 || (totalMealsCount >= 5 && count / totalMealsCount >= 0.2);
+        final isFrequent = count >= 3 ||
+            (totalMealsCount >= 5 && count / totalMealsCount >= 0.2);
 
         if (isFrequent) {
           final quantities = ingredientQuantities[name] ?? [];
@@ -114,26 +120,33 @@ class UserHabitsService {
               name.contains('приправ');
 
           if (isSpiceOrAddition || isCommonSpice) {
-            final qtyStr = avgQuantity > 0 ? '${avgQuantity.toStringAsFixed(1)} г' : 'по вкусу';
-            additionsContext.add('  - "$name" ($qtyStr): добавляется почти во все совместимые горячие блюда и салаты');
+            final qtyStr = avgQuantity > 0
+                ? '${avgQuantity.toStringAsFixed(1)} г'
+                : 'по вкусу';
+            additionsContext.add(
+                '  - "$name" ($qtyStr): добавляется почти во все совместимые горячие блюда и салаты');
           }
         }
       });
 
       final buffer = StringBuffer();
-      buffer.writeln('\n=== ПРЕДПОЧТЕНИЯ И ПРИВЫЧКИ ПОЛЬЗОВАТЕЛЯ (USER HABITS) ===');
+      buffer.writeln(
+          '\n=== ПРЕДПОЧТЕНИЯ И ПРИВЫЧКИ ПОЛЬЗОВАТЕЛЯ (USER HABITS) ===');
 
       if (portionsContext.isNotEmpty) {
-        buffer.writeln('Типичные размеры порций (если встретишь эти ингредиенты, используй эти веса вместо стандартных):');
+        buffer.writeln(
+            'Типичные размеры порций (если встретишь эти ингредиенты, используй эти веса вместо стандартных):');
         buffer.writeln(portionsContext.join('\n'));
       }
 
       if (additionsContext.isNotEmpty) {
-        buffer.writeln('Частые специи/добавки (автоматически добавляй их в совместимые блюда с указанным весом):');
+        buffer.writeln(
+            'Частые специи/добавки (автоматически добавляй их в совместимые блюда с указанным весом):');
         buffer.writeln(additionsContext.join('\n'));
       }
 
-      buffer.writeln('========================================================\n');
+      buffer.writeln(
+          '========================================================\n');
       return buffer.toString();
     } catch (_) {
       return '';

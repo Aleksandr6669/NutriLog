@@ -97,6 +97,7 @@ class NotificationSettingsService {
       _cacheUpdatesController.add(null);
     }
   }
+
   static const _waterEnabledKey = 'notif_water_enabled';
   static const _waterMinutesKey = 'notif_water_minutes';
   static const _mealsEnabledKey = 'notif_meals_enabled';

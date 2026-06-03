@@ -88,7 +88,8 @@ class _ConnectionsNotificationsScreenState
     ));
     _btnAnimController.forward();
     _loadSettings();
-    _devModeSubscription = NotificationSettingsService.cacheUpdates.listen((_) async {
+    _devModeSubscription =
+        NotificationSettingsService.cacheUpdates.listen((_) async {
       final isDev = await _settingsService.isDevModeEnabled();
       if (mounted) {
         setState(() {
@@ -1020,7 +1021,8 @@ class _ConnectionsNotificationsScreenState
                       onTap: () async {
                         final now = DateTime.now();
                         if (_lastDevTapTime == null ||
-                            now.difference(_lastDevTapTime!) > const Duration(milliseconds: 1500)) {
+                            now.difference(_lastDevTapTime!) >
+                                const Duration(milliseconds: 1500)) {
                           _devTapCount = 0;
                         }
                         _devTapCount++;
@@ -1032,9 +1034,12 @@ class _ConnectionsNotificationsScreenState
 
                         if (_devTapCount >= 3 && _devTapCount < 7) {
                           final stepsRemaining = 7 - _devTapCount;
-                          final message = Localizations.localeOf(context).languageCode == 'ru'
+                          final message = Localizations.localeOf(context)
+                                      .languageCode ==
+                                  'ru'
                               ? 'Вы в $stepsRemaining шагах от того, чтобы стать разработчиком!'
-                              : (Localizations.localeOf(context).languageCode == 'uk'
+                              : (Localizations.localeOf(context).languageCode ==
+                                      'uk'
                                   ? 'Ви за $stepsRemaining кроків від того, щоб стати розробником!'
                                   : 'You are $stepsRemaining steps away from becoming a developer!');
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -1047,9 +1052,12 @@ class _ConnectionsNotificationsScreenState
                         } else if (_devTapCount == 7) {
                           _devTapCount = 0;
                           await _settingsService.setDevModeEnabled(true);
-                          final message = Localizations.localeOf(context).languageCode == 'ru'
+                          final message = Localizations.localeOf(context)
+                                      .languageCode ==
+                                  'ru'
                               ? 'Теперь вы разработчик!'
-                              : (Localizations.localeOf(context).languageCode == 'uk'
+                              : (Localizations.localeOf(context).languageCode ==
+                                      'uk'
                                   ? 'Тепер ви розробник!'
                                   : 'You are now a developer!');
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -1076,8 +1084,8 @@ class _ConnectionsNotificationsScreenState
                           Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (context) => WhatsNewScreen(
-                                  version: state.currentVersion,
-                                  text: text,
+                                version: state.currentVersion,
+                                text: text,
                               ),
                             ),
                           );
@@ -1111,7 +1119,8 @@ class _ConnectionsNotificationsScreenState
             const SizedBox(height: 8),
             Card(
               child: ListTile(
-                leading: const Icon(Symbols.developer_mode, color: Colors.purple),
+                leading:
+                    const Icon(Symbols.developer_mode, color: Colors.purple),
                 title: Text(l10n.developerSettingsTitle),
                 subtitle: Text(l10n.developerSettingsSubtitle),
                 trailing: const Icon(Symbols.chevron_right),

@@ -35,10 +35,12 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
     _nameController = TextEditingController(text: widget.profile.name);
     _gender = widget.profile.gender;
     _birthDate = widget.profile.birthDate;
-    _heightController =
-        TextEditingController(text: widget.profile.height == 0 ? '' : widget.profile.height.toString());
-    _weightController =
-        TextEditingController(text: widget.profile.weight == 0 ? '' : widget.profile.weight.toString());
+    _heightController = TextEditingController(
+        text:
+            widget.profile.height == 0 ? '' : widget.profile.height.toString());
+    _weightController = TextEditingController(
+        text:
+            widget.profile.weight == 0 ? '' : widget.profile.weight.toString());
   }
 
   Widget _buildNameField(BuildContext context, AppLocalizations l10n) {
@@ -197,8 +199,6 @@ class _EditPhysicalParamsScreenState extends State<EditPhysicalParamsScreen> {
       ),
     );
   }
-
-
 
   Widget _buildGenderSelector(ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;

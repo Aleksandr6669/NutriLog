@@ -84,7 +84,6 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     }
 
     try {
-
       final image = await _cameraController!.takePicture();
 
       setState(() {
@@ -158,7 +157,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
         name: draft.name,
         description: draft.description,
         clarification: draft.clarification,
-        nutrients: preciseCalculation.nutrients, // Используем точные калиброванные нутриенты
+        nutrients: preciseCalculation
+            .nutrients, // Используем точные калиброванные нутриенты
         ingredients: draft.ingredients,
         icon: draft.icon,
         isUserRecipe: true,
@@ -186,14 +186,11 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
     }
   }
 
-
   String _detectMimeType(String fileName) {
     if (fileName.endsWith('.png')) return 'image/png';
     if (fileName.endsWith('.webp')) return 'image/webp';
     return 'image/jpeg';
   }
-
-
 
   String _buildDetailedClarification(
     GeminiRecipeDraft draft,
@@ -334,8 +331,8 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
@@ -345,24 +342,25 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                           ),
                         ),
                         child: TextField(
-                           controller: _descriptionController,
-                           style: const TextStyle(color: Colors.white, fontSize: 15),
-                           maxLines: 1,
-                           decoration: InputDecoration(
-                             hintText: l10n.recipeDescriptionExample,
-                             hintStyle: TextStyle(
-                               color: Colors.white.withValues(alpha: 0.7),
-                               fontSize: 14,
-                             ),
-                             border: InputBorder.none,
-                             contentPadding: const EdgeInsets.symmetric(
-                               horizontal: 0, vertical: 10),
-                             prefixIcon: const Icon(Symbols.edit,
-                                 color: Colors.white70, size: 20),
-                             prefixIconConstraints: const BoxConstraints(
-                               minWidth: 36, minHeight: 36),
-                           ),
-                         ),
+                          controller: _descriptionController,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15),
+                          maxLines: 1,
+                          decoration: InputDecoration(
+                            hintText: l10n.recipeDescriptionExample,
+                            hintStyle: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 14,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 10),
+                            prefixIcon: const Icon(Symbols.edit,
+                                color: Colors.white70, size: 20),
+                            prefixIconConstraints: const BoxConstraints(
+                                minWidth: 36, minHeight: 36),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -478,7 +476,9 @@ class _SmartScannerScreenState extends State<SmartScannerScreen> {
                         : (Localizations.localeOf(context).languageCode == 'uk'
                             ? 'Аналіз...'
                             : 'Analyzing...'))
-                    : (isCaptured ? l10n.recipeGenerateAndOpenEditor : l10n.camera),
+                    : (isCaptured
+                        ? l10n.recipeGenerateAndOpenEditor
+                        : l10n.camera),
                 style: TextStyle(
                   color: isCaptured ? Colors.white : AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -549,7 +549,9 @@ class _NeuralScanOverlayState extends State<NeuralScanOverlay>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..addListener(_updateParticles)..repeat();
+    )
+      ..addListener(_updateParticles)
+      ..repeat();
   }
 
   void _initializeParticles(Size size) {
@@ -618,7 +620,9 @@ class ParticlesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
-      final opacity = (particle.maxOpacity * math.sin(particle.progress * math.pi)).clamp(0.0, 1.0);
+      final opacity =
+          (particle.maxOpacity * math.sin(particle.progress * math.pi))
+              .clamp(0.0, 1.0);
       final paint = Paint()
         ..color = particle.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;

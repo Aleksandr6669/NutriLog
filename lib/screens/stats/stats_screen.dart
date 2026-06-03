@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/daily_log.dart';
 import '../../models/recipe.dart';
 import '../../models/user_profile.dart';
+import '../../models/food_item.dart';
 import '../../services/ai_report_history_service.dart';
 import '../../services/cloud_data_service.dart';
 import '../../services/daily_log_service.dart';
@@ -67,6 +68,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   ModalRoute<dynamic>? _subscribedRoute;
   String? _lastDisplayedSignature;
   String? _loadingSignature;
+  bool _showAllStatsNutrients = false;
   // Per-period in-memory AI cache: avoids redundant AI calls on period switch.
   final Map<String,
           ({String? overview, List<Map<String, String>> recs, bool error})>
@@ -275,42 +277,29 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     int logCount = filledLogs.length;
     if (logCount == 0) logCount = 1;
 
-    final totalCarbs = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.carbs);
-    final totalProtein = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.protein);
-    final totalFat =
-        filledLogs.fold<double>(0, (sum, log) => sum + log.totalNutrients.fat);
-    final totalCalories = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.calories);
-    final totalFiber = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.fiber);
-    final totalSugar = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.sugar);
-    final totalSaturatedFat = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.saturatedFat);
-    final totalPolyunsaturatedFat = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.polyunsaturatedFat);
-    final totalMonounsaturatedFat = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.monounsaturatedFat);
-    final totalTransFat = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.transFat);
-    final totalCholesterol = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.cholesterol);
-    final totalSodium = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.sodium);
-    final totalPotassium = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.potassium);
-    final totalVitaminA = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.vitaminA);
-    final totalVitaminC = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.vitaminC);
-    final totalVitaminD = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.vitaminD);
-    final totalCalcium = filledLogs.fold<double>(
-        0, (sum, log) => sum + log.totalNutrients.calcium);
-    final totalIron =
-        filledLogs.fold<double>(0, (sum, log) => sum + log.totalNutrients.iron);
+    final totalNutrients = filledLogs.fold<NutritionalInfo>(
+      NutritionalInfo.zero,
+      (sum, log) => sum + log.totalNutrients,
+    );
+
+    final totalCarbs = totalNutrients.carbs;
+    final totalProtein = totalNutrients.protein;
+    final totalFat = totalNutrients.fat;
+    final totalCalories = totalNutrients.calories;
+    final totalFiber = totalNutrients.fiber;
+    final totalSugar = totalNutrients.sugar;
+    final totalSaturatedFat = totalNutrients.saturatedFat;
+    final totalPolyunsaturatedFat = totalNutrients.polyunsaturatedFat;
+    final totalMonounsaturatedFat = totalNutrients.monounsaturatedFat;
+    final totalTransFat = totalNutrients.transFat;
+    final totalCholesterol = totalNutrients.cholesterol;
+    final totalSodium = totalNutrients.sodium;
+    final totalPotassium = totalNutrients.potassium;
+    final totalVitaminA = totalNutrients.vitaminA;
+    final totalVitaminC = totalNutrients.vitaminC;
+    final totalVitaminD = totalNutrients.vitaminD;
+    final totalCalcium = totalNutrients.calcium;
+    final totalIron = totalNutrients.iron;
     final totalMacros = totalCarbs + totalProtein + totalFat;
     final foodFrequency = <String, int>{};
     for (final log in filledLogs) {
@@ -416,6 +405,33 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     final avgVitaminDMcg = totalVitaminD / logCount;
     final avgCalciumMg = totalCalcium / logCount;
     final avgIronMg = totalIron / logCount;
+    final avgAlcoholGrams = totalNutrients.alcohol / logCount;
+    final avgVitaminEMg = totalNutrients.vitaminE / logCount;
+    final avgVitaminKMcg = totalNutrients.vitaminK / logCount;
+    final avgVitaminB1Mg = totalNutrients.vitaminB1 / logCount;
+    final avgVitaminB2Mg = totalNutrients.vitaminB2 / logCount;
+    final avgVitaminB3Mg = totalNutrients.vitaminB3 / logCount;
+    final avgVitaminB5Mg = totalNutrients.vitaminB5 / logCount;
+    final avgVitaminB6Mg = totalNutrients.vitaminB6 / logCount;
+    final avgVitaminB7Mcg = totalNutrients.vitaminB7 / logCount;
+    final avgVitaminB9Mcg = totalNutrients.vitaminB9 / logCount;
+    final avgVitaminB12Mcg = totalNutrients.vitaminB12 / logCount;
+    final avgMagnesiumMg = totalNutrients.magnesium / logCount;
+    final avgPhosphorusMg = totalNutrients.phosphorus / logCount;
+    final avgZincMg = totalNutrients.zinc / logCount;
+    final avgCopperMg = totalNutrients.copper / logCount;
+    final avgManganeseMg = totalNutrients.manganese / logCount;
+    final avgSeleniumMcg = totalNutrients.selenium / logCount;
+    final avgIodineMcg = totalNutrients.iodine / logCount;
+    final avgChromiumMcg = totalNutrients.chromium / logCount;
+    final avgMolybdenumMcg = totalNutrients.molybdenum / logCount;
+    final avgFluorideMg = totalNutrients.fluoride / logCount;
+    final avgLeadMcg = totalNutrients.lead / logCount;
+    final avgMercuryMcg = totalNutrients.mercury / logCount;
+    final avgCadmiumMcg = totalNutrients.cadmium / logCount;
+    final avgArsenicMcg = totalNutrients.arsenic / logCount;
+    final avgNitratesMg = totalNutrients.nitrates / logCount;
+    final avgPesticidesMcg = totalNutrients.pesticides / logCount;
 
     return {
       'calories': caloriesData,
@@ -473,6 +489,33 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         'avgVitaminDMcg': avgVitaminDMcg,
         'avgCalciumMg': avgCalciumMg,
         'avgIronMg': avgIronMg,
+        'avgAlcoholGrams': avgAlcoholGrams,
+        'avgVitaminEMg': avgVitaminEMg,
+        'avgVitaminKMcg': avgVitaminKMcg,
+        'avgVitaminB1Mg': avgVitaminB1Mg,
+        'avgVitaminB2Mg': avgVitaminB2Mg,
+        'avgVitaminB3Mg': avgVitaminB3Mg,
+        'avgVitaminB5Mg': avgVitaminB5Mg,
+        'avgVitaminB6Mg': avgVitaminB6Mg,
+        'avgVitaminB7Mcg': avgVitaminB7Mcg,
+        'avgVitaminB9Mcg': avgVitaminB9Mcg,
+        'avgVitaminB12Mcg': avgVitaminB12Mcg,
+        'avgMagnesiumMg': avgMagnesiumMg,
+        'avgPhosphorusMg': avgPhosphorusMg,
+        'avgZincMg': avgZincMg,
+        'avgCopperMg': avgCopperMg,
+        'avgManganeseMg': avgManganeseMg,
+        'avgSeleniumMcg': avgSeleniumMcg,
+        'avgIodineMcg': avgIodineMcg,
+        'avgChromiumMcg': avgChromiumMcg,
+        'avgMolybdenumMcg': avgMolybdenumMcg,
+        'avgFluorideMg': avgFluorideMg,
+        'avgLeadMcg': avgLeadMcg,
+        'avgMercuryMcg': avgMercuryMcg,
+        'avgCadmiumMcg': avgCadmiumMcg,
+        'avgArsenicMcg': avgArsenicMcg,
+        'avgNitratesMg': avgNitratesMg,
+        'avgPesticidesMcg': avgPesticidesMcg,
         'totalCalories': totalCalories,
         'totalProteinGrams': totalProtein,
         'totalFatGrams': totalFat,
@@ -525,7 +568,9 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 if (desc.isNotEmpty) 'Описание: $desc',
                 if (clar.isNotEmpty) 'Уточнение: $clar',
               ].join(', ');
-              return details.isNotEmpty ? '${recipe.name.trim()} ($details)' : recipe.name.trim();
+              return details.isNotEmpty
+                  ? '${recipe.name.trim()} ($details)'
+                  : recipe.name.trim();
             })
             .where((name) => name.isNotEmpty)
             .toSet()
@@ -1539,104 +1584,119 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     );
   }
 
+  String _nutrientLabel(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'magnesium':
+        return l10n.magnesium;
+      case 'phosphorus':
+        return l10n.phosphorus;
+      case 'zinc':
+        return l10n.zinc;
+      case 'copper':
+        return l10n.copper;
+      case 'manganese':
+        return l10n.manganese;
+      case 'selenium':
+        return l10n.selenium;
+      case 'iodine':
+        return l10n.iodine;
+      case 'chromium':
+        return l10n.chromium;
+      case 'molybdenum':
+        return l10n.molybdenum;
+      case 'fluoride':
+        return l10n.fluoride;
+      case 'vitamin_e':
+        return l10n.vitaminE;
+      case 'vitamin_k':
+        return l10n.vitaminK;
+      case 'vitamin_b1':
+        return l10n.vitaminB1;
+      case 'vitamin_b2':
+        return l10n.vitaminB2;
+      case 'vitamin_b3':
+        return l10n.vitaminB3;
+      case 'vitamin_b5':
+        return l10n.vitaminB5;
+      case 'vitamin_b6':
+        return l10n.vitaminB6;
+      case 'vitamin_b7':
+        return l10n.vitaminB7;
+      case 'vitamin_b9':
+        return l10n.vitaminB9;
+      case 'vitamin_b12':
+        return l10n.vitaminB12;
+      case 'lead':
+        return l10n.lead;
+      case 'mercury':
+        return l10n.mercury;
+      case 'cadmium':
+        return l10n.cadmium;
+      case 'arsenic':
+        return l10n.arsenic;
+      case 'nitrates':
+        return l10n.nitrates;
+      case 'pesticides':
+        return l10n.pesticides;
+      default:
+        return key;
+    }
+  }
+
+  String _getUnitForKey(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'magnesium':
+      case 'phosphorus':
+      case 'fluoride':
+        return l10n.mg;
+      default:
+        return l10n.mcg;
+    }
+  }
+
   Widget _buildAverageMetricsCard(ThemeData theme, Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
     final aiInput = data['aiInput'] as Map<String, dynamic>;
-    final metrics = <({String label, String value})>[
-      (
-        label: l10n.calories,
-        value: '${(aiInput['avgCalories'] as num).round()} ${l10n.kcal}'
-      ),
-      (
-        label: l10n.protein,
-        value:
-            '${(aiInput['avgProteinGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
-      ),
-      (
-        label: l10n.fat,
-        value:
-            '${(aiInput['avgFatGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
-      ),
-      (
-        label: l10n.carbs,
-        value:
-            '${(aiInput['avgCarbsGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
-      ),
-      (
-        label: l10n.fiber,
-        value:
-            '${(aiInput['avgFiberGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
-      ),
-      (
-        label: l10n.sugar,
-        value:
-            '${(aiInput['avgSugarGrams'] as num).toStringAsFixed(1)} ${l10n.gram}'
-      ),
-      (
-        label: l10n.sodium,
-        value:
-            '${(aiInput['avgSodiumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
-      ),
-      (
-        label: l10n.potassium,
-        value:
-            '${(aiInput['avgPotassiumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
-      ),
-      (
-        label: l10n.calcium,
-        value:
-            '${(aiInput['avgCalciumMg'] as num).toStringAsFixed(0)} ${l10n.mg}'
-      ),
-      (
-        label: l10n.iron,
-        value: '${(aiInput['avgIronMg'] as num).toStringAsFixed(1)} ${l10n.mg}'
-      ),
-      (
-        label: l10n.vitaminA,
-        value:
-            '${(aiInput['avgVitaminAMcg'] as num).toStringAsFixed(0)} ${l10n.mcg}'
-      ),
-      (
-        label: l10n.vitaminC,
-        value:
-            '${(aiInput['avgVitaminCMg'] as num).toStringAsFixed(1)} ${l10n.mg}'
-      ),
-      (
-        label: l10n.vitaminD,
-        value:
-            '${(aiInput['avgVitaminDMcg'] as num).toStringAsFixed(1)} ${l10n.mcg}'
-      ),
-    ];
 
-    Widget buildMetricRow(({String label, String value}) item, int index) {
-      final isEven = index.isEven;
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-        decoration: BoxDecoration(
-          color: isEven
-              ? theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.28)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
+    String val(String key, String unit, {int decimals = 1}) {
+      final value = aiInput[key];
+      if (value == null) return '0.0 $unit';
+      final double numValue = (value as num).toDouble();
+      return '${numValue.toStringAsFixed(decimals)} $unit';
+    }
+
+    Widget buildRow(String label, String value, {bool isSub = false}) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Text(
-                item.label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            Text(
+              label,
+              style: isSub
+                  ? theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodySmall?.color,
+                    )
+                  : theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+            ),
+            if (value.isNotEmpty)
+              Text(
+                value,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            Text(
-              item.value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
           ],
         ),
+      );
+    }
+
+    Widget buildDivider() {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.0),
+        child: Divider(height: 1, thickness: 1),
       );
     }
 
@@ -1659,11 +1719,286 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
               ),
             ),
             const SizedBox(height: 12),
-            Column(
-              children: [
-                for (var i = 0; i < metrics.length; i++)
-                  buildMetricRow(metrics[i], i),
-              ],
+            buildRow(l10n.calories, val('avgCalories', l10n.kcal, decimals: 1)),
+            buildDivider(),
+            buildRow(
+                l10n.protein, val('avgProteinGrams', l10n.gram, decimals: 1)),
+            buildRow(l10n.carbs, val('avgCarbsGrams', l10n.gram, decimals: 1)),
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Column(
+                children: [
+                  buildRow(l10n.sugarSub,
+                      val('avgSugarGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                  buildRow(l10n.fiberSub,
+                      val('avgFiberGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                ],
+              ),
+            ),
+            buildDivider(),
+            buildRow(l10n.fat, val('avgFatGrams', l10n.gram, decimals: 1)),
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Column(
+                children: [
+                  buildRow(l10n.saturatedFatSub,
+                      val('avgSaturatedFatGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                  buildRow(l10n.polyunsaturatedFatSub,
+                      val('avgPolyunsaturatedFatGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                  buildRow(l10n.monounsaturatedFatSub,
+                      val('avgMonounsaturatedFatGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                  buildRow(l10n.transFatSub,
+                      val('avgTransFatGrams', l10n.gram, decimals: 1),
+                      isSub: true),
+                  buildRow(l10n.cholesterolSub,
+                      val('avgCholesterolMg', l10n.mg, decimals: 1),
+                      isSub: true),
+                ],
+              ),
+            ),
+            buildRow(
+              l10n.localeName == 'ru'
+                  ? 'Алкоголь'
+                  : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol'),
+              val('avgAlcoholGrams', l10n.gram, decimals: 1),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: InkWell(
+                onTap: () => setState(() => _showAllStatsNutrients = !_showAllStatsNutrients),
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: theme.colorScheme.primary.withValues(alpha: _showAllStatsNutrients ? 0.15 : 0.08),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _showAllStatsNutrients ? Symbols.keyboard_arrow_up : Symbols.keyboard_arrow_down,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _showAllStatsNutrients
+                            ? (l10n.localeName == 'ru' ? 'Свернуть детали' : (l10n.localeName == 'uk' ? 'Згорнути деталі' : 'Hide details'))
+                            : (l10n.localeName == 'ru' ? 'Показать витамины и минералы' : (l10n.localeName == 'uk' ? 'Показати вітаміни та мінерали' : 'Show vitamins and minerals')),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            ClipRect(
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _showAllStatsNutrients
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildDivider(),
+                          buildRow(l10n.minerals, ''),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Column(
+                              children: [
+                                buildRow(
+                                    l10n.sodium, val('avgSodiumMg', l10n.mg, decimals: 1),
+                                    isSub: true),
+                                buildRow(l10n.potassium,
+                                    val('avgPotassiumMg', l10n.mg, decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    l10n.calcium, val('avgCalciumMg', l10n.mg, decimals: 1),
+                                    isSub: true),
+                                buildRow(l10n.iron, val('avgIronMg', l10n.mg, decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('magnesium', l10n),
+                                    val('avgMagnesiumMg', _getUnitForKey('magnesium', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('phosphorus', l10n),
+                                    val('avgPhosphorusMg', _getUnitForKey('phosphorus', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('zinc', l10n),
+                                    val('avgZincMg', _getUnitForKey('zinc', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('copper', l10n),
+                                    val('avgCopperMg', _getUnitForKey('copper', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('manganese', l10n),
+                                    val('avgManganeseMg', _getUnitForKey('manganese', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('selenium', l10n),
+                                    val('avgSeleniumMcg', _getUnitForKey('selenium', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('iodine', l10n),
+                                    val('avgIodineMcg', _getUnitForKey('iodine', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('chromium', l10n),
+                                    val('avgChromiumMcg', _getUnitForKey('chromium', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('molybdenum', l10n),
+                                    val('avgMolybdenumMcg',
+                                        _getUnitForKey('molybdenum', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('fluoride', l10n),
+                                    val('avgFluorideMg', _getUnitForKey('fluoride', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                              ],
+                            ),
+                          ),
+                          buildDivider(),
+                          buildRow(l10n.vitamins, ''),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Column(
+                              children: [
+                                buildRow(l10n.vitaminA,
+                                    val('avgVitaminAMcg', l10n.mcg, decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    l10n.vitaminC, val('avgVitaminCMg', l10n.mg, decimals: 1),
+                                    isSub: true),
+                                buildRow(l10n.vitaminD,
+                                    val('avgVitaminDMcg', l10n.mcg, decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_e', l10n),
+                                    val('avgVitaminEMg', _getUnitForKey('vitamin_e', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_k', l10n),
+                                    val('avgVitaminKMcg', _getUnitForKey('vitamin_k', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b1', l10n),
+                                    val('avgVitaminB1Mg', _getUnitForKey('vitamin_b1', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b2', l10n),
+                                    val('avgVitaminB2Mg', _getUnitForKey('vitamin_b2', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b3', l10n),
+                                    val('avgVitaminB3Mg', _getUnitForKey('vitamin_b3', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b5', l10n),
+                                    val('avgVitaminB5Mg', _getUnitForKey('vitamin_b5', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b6', l10n),
+                                    val('avgVitaminB6Mg', _getUnitForKey('vitamin_b6', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b7', l10n),
+                                    val('avgVitaminB7Mcg', _getUnitForKey('vitamin_b7', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b9', l10n),
+                                    val('avgVitaminB9Mcg', _getUnitForKey('vitamin_b9', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('vitamin_b12', l10n),
+                                    val('avgVitaminB12Mcg',
+                                        _getUnitForKey('vitamin_b12', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                              ],
+                            ),
+                          ),
+                          buildDivider(),
+                          buildRow(l10n.heavyMetalsAndContaminants, ''),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Column(
+                              children: [
+                                buildRow(
+                                    _nutrientLabel('lead', l10n),
+                                    val('avgLeadMcg', _getUnitForKey('lead', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('mercury', l10n),
+                                    val('avgMercuryMcg', _getUnitForKey('mercury', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('cadmium', l10n),
+                                    val('avgCadmiumMcg', _getUnitForKey('cadmium', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('arsenic', l10n),
+                                    val('avgArsenicMcg', _getUnitForKey('arsenic', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('nitrates', l10n),
+                                    val('avgNitratesMg', _getUnitForKey('nitrates', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                                buildRow(
+                                    _nutrientLabel('pesticides', l10n),
+                                    val('avgPesticidesMcg',
+                                        _getUnitForKey('pesticides', l10n),
+                                        decimals: 1),
+                                    isSub: true),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ),
           ],
         ),
@@ -1758,7 +2093,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           ? _buildPreparingCard(theme, l10n)
           : (_aiError || (overviewText.isEmpty && _aiRecommendations.isEmpty)
               ? _buildErrorCard(theme, l10n)
-              : _buildSuccessReport(context, theme, recipes, overviewText, l10n)),
+              : _buildSuccessReport(
+                  context, theme, recipes, overviewText, l10n)),
     );
   }
 
@@ -1882,7 +2218,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Symbols.info,
-                        size: 14, color: theme.hintColor.withValues(alpha: 0.7)),
+                        size: 14,
+                        color: theme.hintColor.withValues(alpha: 0.7)),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -1902,7 +2239,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.orange.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
@@ -1928,7 +2266,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             shape: RoundedRectangleBorder(
               borderRadius: AppStyles.largeBorderRadius,
               side: BorderSide(
-                  color: const Color.fromARGB(252, 179, 250, 209).withAlpha(51)),
+                  color:
+                      const Color.fromARGB(252, 179, 250, 209).withAlpha(51)),
             ),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -1940,7 +2279,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                     children: [
                       Row(
                         children: [
-                          const Icon(Symbols.auto_awesome, color: AppColors.primary, size: 22),
+                          const Icon(Symbols.auto_awesome,
+                              color: AppColors.primary, size: 22),
                           const SizedBox(width: 8),
                           Text(
                             l10n.nutritionRecommendationsTitle,
@@ -2010,8 +2350,9 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                               final recipeName = item['recipeName'] ?? '';
                               final matchedRecipe =
                                   _findRecipeByName(recipeName, recipes);
-                              final displayName =
-                                  matchedRecipe != null ? matchedRecipe.name : recipeName;
+                              final displayName = matchedRecipe != null
+                                  ? matchedRecipe.name
+                                  : recipeName;
 
                               return Padding(
                                 padding: EdgeInsets.only(
@@ -2021,7 +2362,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                                   children: [
                                     Text(
                                       action,
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                       ),
@@ -2030,9 +2372,11 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                                       const SizedBox(height: 4),
                                       Text(
                                         '${l10n.statsAiRecipeLabel}: $displayName',
-                                        style: theme.textTheme.bodySmall?.copyWith(
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.primary.withValues(alpha: 0.8),
+                                          color: AppColors.primary
+                                              .withValues(alpha: 0.8),
                                         ),
                                       ),
                                     ],
@@ -2055,16 +2399,19 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                                           style: TextButton.styleFrom(
                                             padding: EdgeInsets.zero,
                                             minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
                                         ),
                                       )
                                     else if (recipeName.isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 4.0),
                                         child: Text(
                                           l10n.statsAiRecipeNotFound,
-                                          style: theme.textTheme.bodySmall?.copyWith(
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
                                             color: Colors.grey.shade600,
                                             fontSize: 11,
                                             fontStyle: FontStyle.italic,
@@ -2075,7 +2422,8 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                                       const Padding(
                                         padding:
                                             EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Divider(height: 1, thickness: 0.5),
+                                        child:
+                                            Divider(height: 1, thickness: 0.5),
                                       ),
                                   ],
                                 ),

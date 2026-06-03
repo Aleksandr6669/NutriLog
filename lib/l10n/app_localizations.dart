@@ -3562,6 +3562,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alcohol'**
   String get alcohol;
+
+  /// No description provided for @cannotLogFutureMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot log meals for future dates'**
+  String get cannotLogFutureMeal;
+
+  /// No description provided for @recalculationRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The recipe ingredients or description have been modified. Please recalculate nutrition values before saving or revert your changes.'**
+  String get recalculationRequiredMessage;
 }
 
 class _AppLocalizationsDelegate

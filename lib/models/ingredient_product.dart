@@ -3,11 +3,14 @@ import 'package:flutter/foundation.dart';
 @immutable
 class IngredientProduct {
   final String name; // Уникальное имя (будет в нижнем регистре для поиска)
-  final Map<String, double> nutrients; // КБЖУ, витамины, минералы, металлы, токсины на 100г (или на 1 шт/упаковку)
-  final double? weightPerUnit; // Вес в граммах одной штуки (pcs), ложки (tsp/tbsp) или упаковки (pack)
+  final Map<String, double>
+      nutrients; // КБЖУ, витамины, минералы, металлы, токсины на 100г (или на 1 шт/упаковку)
+  final double?
+      weightPerUnit; // Вес в граммах одной штуки (pcs), ложки (tsp/tbsp) или упаковки (pack)
   final bool isReadyProduct; // Готовый упакованный продукт
   final DateTime updatedAt; // Время последнего обновления (для синхронизации)
-  final DateTime lastAccessedAt; // Время последнего использования (для LRU кэша)
+  final DateTime
+      lastAccessedAt; // Время последнего использования (для LRU кэша)
 
   const IngredientProduct({
     required this.name,

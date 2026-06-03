@@ -71,7 +71,8 @@ class RecipeAdviceService {
     unawaited(_syncAdvicesToCloudInBackground(advices));
   }
 
-  Future<void> _syncAdvicesToCloudInBackground(Map<String, dynamic> advices) async {
+  Future<void> _syncAdvicesToCloudInBackground(
+      Map<String, dynamic> advices) async {
     try {
       await CloudDataService.instance.writeMap('recipe_advices', advices);
     } catch (_) {

@@ -82,12 +82,14 @@ class AppStartupService {
       if (!onboardingCompleted) {
         onboardingCompleted = true;
         await prefs.setBool(_onboardingDoneKey, true);
-        debugPrint('STARTUP: Valid profile found in SharedPreferences. Auto-completing onboarding.');
+        debugPrint(
+            'STARTUP: Valid profile found in SharedPreferences. Auto-completing onboarding.');
       }
       if (!hasAcceptedAgreement) {
         hasAcceptedAgreement = true;
         await prefs.setBool(_agreementAcceptedKey, true);
-        debugPrint('STARTUP: Valid profile found in SharedPreferences. Auto-accepting agreement.');
+        debugPrint(
+            'STARTUP: Valid profile found in SharedPreferences. Auto-accepting agreement.');
       }
     }
 
@@ -95,18 +97,20 @@ class AppStartupService {
     if ((!onboardingCompleted || profileStr.isEmpty || isEmptyName) &&
         CloudDataService.instance.isSignedIn) {
       try {
-        debugPrint('STARTUP: User is signed in but local profile is missing. Attempting cloud recovery...');
+        debugPrint(
+            'STARTUP: User is signed in but local profile is missing. Attempting cloud recovery...');
         // Пробуем быстро восстановить профиль из Firestore
         await ProfileService().pullFromCloudReplaceLocal().timeout(
-          const Duration(seconds: 3),
-        );
-        
+              const Duration(seconds: 3),
+            );
+
         // Перечитываем сохранённые значения профиля
         profileStr = prefs.getString('user_profile') ?? '';
         isEmptyName = profileStr.isEmpty || profileStr.contains('"name":""');
 
         if (!isEmptyName) {
-          debugPrint('STARTUP: Cloud profile successfully recovered. Skipping onboarding.');
+          debugPrint(
+              'STARTUP: Cloud profile successfully recovered. Skipping onboarding.');
           onboardingCompleted = true;
           hasAcceptedAgreement = true;
           await prefs.setBool(_onboardingDoneKey, true);
@@ -114,13 +118,13 @@ class AppStartupService {
 
           // Загружаем лог и рецепты асинхронно, чтобы не задерживать запуск
           unawaited(DailyLogService().pullFromCloudReplaceLocal().timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => {},
-          ));
+                const Duration(seconds: 5),
+                onTimeout: () => {},
+              ));
           unawaited(RecipeService().pullFromCloudReplaceLocal().timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => {},
-          ));
+                const Duration(seconds: 5),
+                onTimeout: () => {},
+              ));
         } else {
           debugPrint('STARTUP: Cloud recovery succeeded but profile is empty.');
         }

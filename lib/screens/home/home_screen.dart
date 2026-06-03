@@ -81,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _setupHalfHourTimer() {
     _periodicHalfHourTimer?.cancel();
-    _periodicHalfHourTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+    _periodicHalfHourTimer =
+        Timer.periodic(const Duration(minutes: 30), (timer) {
       if (mounted) {
         _loadLogForSelectedDate();
       }
@@ -263,13 +264,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Symbols.info, color: AppColors.primary, size: 16),
+                            const Icon(Symbols.info,
+                                color: AppColors.primary, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                Localizations.localeOf(context).languageCode == 'ru'
+                                Localizations.localeOf(context).languageCode ==
+                                        'ru'
                                     ? 'Внесение точного количества шагов помогает ИИ корректно рассчитывать дневную норму калорий и нагрузку.'
-                                    : (Localizations.localeOf(context).languageCode == 'uk'
+                                    : (Localizations.localeOf(context)
+                                                .languageCode ==
+                                            'uk'
                                         ? 'Внесення точної кількості кроків допомагає ШІ коректно розраховувати денну норму калорій та навантаження.'
                                         : 'Entering accurate steps helps AI calculate daily calorie budget and physical load correctly.'),
                                 style: TextStyle(
@@ -333,6 +338,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected =
+        DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+    if (selected.isAfter(today)) return;
+
     if (!isSameDay(_selectedDay, selectedDay)) {
       HapticFeedback.selectionClick();
       setState(() {
@@ -557,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: TableCalendar(
               locale: Localizations.localeOf(context).languageCode,
               firstDay: DateTime.utc(2020, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
+              lastDay: DateTime.now(),
               focusedDay: _focusedDay,
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               onDaySelected: _onDaySelected,
@@ -1563,6 +1574,20 @@ class _MealCard extends StatelessWidget {
   });
 
   Future<void> _addFromRecipes(BuildContext context) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDate =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    if (mealDate.isAfter(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.cannotLogFutureMeal),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final selectedRecipes =
         await Navigator.of(context, rootNavigator: true).push<List<Recipe>>(
       MaterialPageRoute(
@@ -1582,8 +1607,24 @@ class _MealCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final isNotEaten = calories == '0';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDate =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final isFuture = mealDate.isAfter(today);
+
     return InkWell(
       onTap: () async {
+        if (isFuture) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.cannotLogFutureMeal),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
         final result = await context.push<bool>(
           '/meal/$mealKey',
           extra: {
@@ -1597,7 +1638,7 @@ class _MealCard extends StatelessWidget {
       },
       borderRadius: AppStyles.cardRadius,
       child: Opacity(
-        opacity: isNotEaten ? 0.7 : 1.0,
+        opacity: (isNotEaten || isFuture) ? 0.7 : 1.0,
         child: Card(
           shape: RoundedRectangleBorder(
             borderRadius: AppStyles.cardRadius,
@@ -1610,14 +1651,14 @@ class _MealCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                      color: isNotEaten
+                      color: (isNotEaten || isFuture)
                           ? (theme.brightness == Brightness.light
                               ? Colors.grey.shade100
                               : Colors.grey.shade800)
                           : iconBg,
                       borderRadius: AppStyles.mediumBorderRadius),
                   child: Icon(icon,
-                      color: isNotEaten
+                      color: (isNotEaten || isFuture)
                           ? (theme.brightness == Brightness.light
                               ? Colors.grey.shade400
                               : Colors.grey.shade600)
@@ -1642,7 +1683,7 @@ class _MealCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                if (!isNotEaten)
+                if (!isNotEaten && !isFuture)
                   Text('$calories ${AppLocalizations.of(context)!.kcal}',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(color: theme.colorScheme.onSurface)),
@@ -1655,14 +1696,17 @@ class _MealCard extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary,
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppColors.primary.withAlpha(77),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 5))
-                        ]),
+                        color:
+                            isFuture ? Colors.grey.shade400 : AppColors.primary,
+                        boxShadow: isFuture
+                            ? null
+                            : [
+                                BoxShadow(
+                                    color: AppColors.primary.withAlpha(77),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                    offset: const Offset(0, 5))
+                              ]),
                     child:
                         const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),

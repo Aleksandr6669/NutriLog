@@ -84,6 +84,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   bool _isDonateAiApproved = false;
   String? _donateAiStatus;
   String? _donateAiFixSuggestions;
+  bool _showAllEditNutrients = false;
 
   Timer? _donateAiDebounce;
   Timer? _nutritionAiDebounce;
@@ -219,8 +220,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
               ))
           .toList(),
       description: sourceRecipe?.description ?? '',
-      clarification: widget.initialClarification ?? sourceRecipe?.clarification ?? '',
-      healthAdvice: (widget.initialDraft?.healthAdvice ?? sourceRecipe?.healthAdvice ?? '').trim(),
+      clarification:
+          widget.initialClarification ?? sourceRecipe?.clarification ?? '',
+      healthAdvice: (widget.initialDraft?.healthAdvice ??
+              sourceRecipe?.healthAdvice ??
+              '')
+          .trim(),
       instructions: (sourceRecipe?.instructions ?? const []).join('\n'),
     );
 
@@ -292,8 +297,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
       }
     });
   }
-
-
 
   Future<void> _runDonateModeration() async {
     if (!_isFormReadyForDonate || _isDonated) return;
@@ -935,13 +938,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   }
 
   String get _recalculationRequiredMessage {
-    final code = Localizations.localeOf(context).languageCode;
-    if (code == 'uk') {
-      return 'Склад або опис рецепту було змінено. Будь ласка, виконайте перерозрахунок харчової цінності перед збереженням або поверніть зміни.';
-    } else if (code == 'en') {
-      return 'The recipe ingredients or description have been modified. Please recalculate nutrition values before saving or revert your changes.';
-    }
-    return 'Состав или описание рецепта были изменены. Пожалуйста, выполните перерасчет пищевой ценности перед сохранением или верните изменения.';
+    return AppLocalizations.of(context)!.recalculationRequiredMessage;
   }
 
   bool get _hasAnyIngredient {
@@ -1387,8 +1384,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1501,7 +1496,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             Center(
               child: Text(
                 l10n.mainInfo,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 24),
@@ -1550,21 +1546,26 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                     setState(() {
                       if (!_isReadyProduct) {
                         // Backup current Recipe state before switching to Ready Product
-                        _recipeIngredientsBackup = _ingredientItems.map((item) => {
-                          'name': item.nameController.text,
-                          'quantity': item.quantityController.text,
-                          'unit': item.unit,
-                          'isAmbiguous': item.isAmbiguous,
-                        }).toList();
-                        _recipeInstructionsBackup = _instructionsController.text;
+                        _recipeIngredientsBackup = _ingredientItems
+                            .map((item) => {
+                                  'name': item.nameController.text,
+                                  'quantity': item.quantityController.text,
+                                  'unit': item.unit,
+                                  'isAmbiguous': item.isAmbiguous,
+                                })
+                            .toList();
+                        _recipeInstructionsBackup =
+                            _instructionsController.text;
                       } else {
                         // Backup current Ready Product state before switching to Recipe
-                        _readyProductIngredientsBackup = _ingredientItems.map((item) => {
-                          'name': item.nameController.text,
-                          'quantity': item.quantityController.text,
-                          'unit': item.unit,
-                          'isAmbiguous': item.isAmbiguous,
-                        }).toList();
+                        _readyProductIngredientsBackup = _ingredientItems
+                            .map((item) => {
+                                  'name': item.nameController.text,
+                                  'quantity': item.quantityController.text,
+                                  'unit': item.unit,
+                                  'isAmbiguous': item.isAmbiguous,
+                                })
+                            .toList();
                       }
 
                       _isReadyProduct = nextIsReadyProduct;
@@ -1578,8 +1579,10 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
                       if (_isReadyProduct) {
                         // Restore or set up Ready Product state
-                        if (_readyProductIngredientsBackup != null && _readyProductIngredientsBackup!.isNotEmpty) {
-                          for (final backed in _readyProductIngredientsBackup!) {
+                        if (_readyProductIngredientsBackup != null &&
+                            _readyProductIngredientsBackup!.isNotEmpty) {
+                          for (final backed
+                              in _readyProductIngredientsBackup!) {
                             final item = _IngredientFormItem(
                               name: backed['name'] as String,
                               quantity: backed['quantity'] as String,
@@ -1594,10 +1597,14 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                           String initialName = '';
                           String initialQty = '';
                           String initialUnit = 'g';
-                          if (_recipeIngredientsBackup != null && _recipeIngredientsBackup!.isNotEmpty) {
-                            initialName = _recipeIngredientsBackup!.first['name'] as String;
-                            initialQty = _recipeIngredientsBackup!.first['quantity'] as String;
-                            initialUnit = _recipeIngredientsBackup!.first['unit'] as String;
+                          if (_recipeIngredientsBackup != null &&
+                              _recipeIngredientsBackup!.isNotEmpty) {
+                            initialName = _recipeIngredientsBackup!
+                                .first['name'] as String;
+                            initialQty = _recipeIngredientsBackup!
+                                .first['quantity'] as String;
+                            initialUnit = _recipeIngredientsBackup!
+                                .first['unit'] as String;
                           }
                           final item = _IngredientFormItem(
                             name: initialName,
@@ -1610,7 +1617,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                         _instructionsController.clear();
                       } else {
                         // Restore Recipe state
-                        if (_recipeIngredientsBackup != null && _recipeIngredientsBackup!.isNotEmpty) {
+                        if (_recipeIngredientsBackup != null &&
+                            _recipeIngredientsBackup!.isNotEmpty) {
                           for (final backed in _recipeIngredientsBackup!) {
                             final item = _IngredientFormItem(
                               name: backed['name'] as String,
@@ -1621,7 +1629,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             _attachIngredientListeners(item);
                             _ingredientItems.add(item);
                           }
-                          _instructionsController.text = _recipeInstructionsBackup ?? '';
+                          _instructionsController.text =
+                              _recipeInstructionsBackup ?? '';
                         } else {
                           final item = _IngredientFormItem();
                           _attachIngredientListeners(item);
@@ -1755,97 +1764,242 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
             ]),
             const SizedBox(height: 8),
             _nutrientRow([('cholesterol', l10n.cholesterolSub, l10n.mg)]),
-            const SizedBox(height: 14),
-            Text(l10n.minerals,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('sodium', _nutrientLabel('sodium'), _getUnitForKey('sodium')),
-              ('potassium', _nutrientLabel('potassium'), _getUnitForKey('potassium'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('calcium', _nutrientLabel('calcium'), _getUnitForKey('calcium')),
-              ('iron', _nutrientLabel('iron'), _getUnitForKey('iron'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('magnesium', _nutrientLabel('magnesium'), _getUnitForKey('magnesium')),
-              ('phosphorus', _nutrientLabel('phosphorus'), _getUnitForKey('phosphorus'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('zinc', _nutrientLabel('zinc'), _getUnitForKey('zinc')),
-              ('copper', _nutrientLabel('copper'), _getUnitForKey('copper'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('manganese', _nutrientLabel('manganese'), _getUnitForKey('manganese')),
-              ('selenium', _nutrientLabel('selenium'), _getUnitForKey('selenium'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('iodine', _nutrientLabel('iodine'), _getUnitForKey('iodine')),
-              ('chromium', _nutrientLabel('chromium'), _getUnitForKey('chromium'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('molybdenum', _nutrientLabel('molybdenum'), _getUnitForKey('molybdenum')),
-              ('fluoride', _nutrientLabel('fluoride'), _getUnitForKey('fluoride'))
-            ]),
-            const SizedBox(height: 14),
-            Text(l10n.vitamins,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('vitamin_a', _nutrientLabel('vitamin_a'), _getUnitForKey('vitamin_a')),
-              ('vitamin_c', _nutrientLabel('vitamin_c'), _getUnitForKey('vitamin_c')),
-              ('vitamin_d', _nutrientLabel('vitamin_d'), _getUnitForKey('vitamin_d'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('vitamin_e', _nutrientLabel('vitamin_e'), _getUnitForKey('vitamin_e')),
-              ('vitamin_k', _nutrientLabel('vitamin_k'), _getUnitForKey('vitamin_k'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('vitamin_b1', _nutrientLabel('vitamin_b1'), _getUnitForKey('vitamin_b1')),
-              ('vitamin_b2', _nutrientLabel('vitamin_b2'), _getUnitForKey('vitamin_b2')),
-              ('vitamin_b3', _nutrientLabel('vitamin_b3'), _getUnitForKey('vitamin_b3'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('vitamin_b5', _nutrientLabel('vitamin_b5'), _getUnitForKey('vitamin_b5')),
-              ('vitamin_b6', _nutrientLabel('vitamin_b6'), _getUnitForKey('vitamin_b6')),
-              ('vitamin_b7', _nutrientLabel('vitamin_b7'), _getUnitForKey('vitamin_b7'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('vitamin_b9', _nutrientLabel('vitamin_b9'), _getUnitForKey('vitamin_b9')),
-              ('vitamin_b12', _nutrientLabel('vitamin_b12'), _getUnitForKey('vitamin_b12'))
-            ]),
-            const SizedBox(height: 14),
-            Text(
-              l10n.heavyMetalsAndContaminants,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            Center(
+              child: InkWell(
+                onTap: () => setState(() => _showAllEditNutrients = !_showAllEditNutrients),
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: _showAllEditNutrients ? 0.15 : 0.08),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _showAllEditNutrients ? Symbols.keyboard_arrow_up : Symbols.keyboard_arrow_down,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _showAllEditNutrients
+                            ? (l10n.localeName == 'ru' ? 'Свернуть детали' : (l10n.localeName == 'uk' ? 'Згорнути деталі' : 'Hide details'))
+                            : (l10n.localeName == 'ru' ? 'Показать витамины и минералы' : (l10n.localeName == 'uk' ? 'Показати вітаміни та мінерали' : 'Show vitamins and minerals')),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('lead', _nutrientLabel('lead'), _getUnitForKey('lead')),
-              ('mercury', _nutrientLabel('mercury'), _getUnitForKey('mercury'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('cadmium', _nutrientLabel('cadmium'), _getUnitForKey('cadmium')),
-              ('arsenic', _nutrientLabel('arsenic'), _getUnitForKey('arsenic'))
-            ]),
-            const SizedBox(height: 8),
-            _nutrientRow([
-              ('nitrates', _nutrientLabel('nitrates'), _getUnitForKey('nitrates')),
-              ('pesticides', _nutrientLabel('pesticides'), _getUnitForKey('pesticides'))
-            ]),
+            ClipRect(
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _showAllEditNutrients
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 14),
+                          Text(l10n.minerals,
+                              style:
+                                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('sodium', _nutrientLabel('sodium'), _getUnitForKey('sodium')),
+                            (
+                              'potassium',
+                              _nutrientLabel('potassium'),
+                              _getUnitForKey('potassium')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('calcium', _nutrientLabel('calcium'), _getUnitForKey('calcium')),
+                            ('iron', _nutrientLabel('iron'), _getUnitForKey('iron'))
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'magnesium',
+                              _nutrientLabel('magnesium'),
+                              _getUnitForKey('magnesium')
+                            ),
+                            (
+                              'phosphorus',
+                              _nutrientLabel('phosphorus'),
+                              _getUnitForKey('phosphorus')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('zinc', _nutrientLabel('zinc'), _getUnitForKey('zinc')),
+                            ('copper', _nutrientLabel('copper'), _getUnitForKey('copper'))
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'manganese',
+                              _nutrientLabel('manganese'),
+                              _getUnitForKey('manganese')
+                            ),
+                            (
+                              'selenium',
+                              _nutrientLabel('selenium'),
+                              _getUnitForKey('selenium')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('iodine', _nutrientLabel('iodine'), _getUnitForKey('iodine')),
+                            (
+                              'chromium',
+                              _nutrientLabel('chromium'),
+                              _getUnitForKey('chromium')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'molybdenum',
+                              _nutrientLabel('molybdenum'),
+                              _getUnitForKey('molybdenum')
+                            ),
+                            (
+                              'fluoride',
+                              _nutrientLabel('fluoride'),
+                              _getUnitForKey('fluoride')
+                            )
+                          ]),
+                          const SizedBox(height: 14),
+                          Text(l10n.vitamins,
+                              style:
+                                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'vitamin_a',
+                              _nutrientLabel('vitamin_a'),
+                              _getUnitForKey('vitamin_a')
+                            ),
+                            (
+                              'vitamin_c',
+                              _nutrientLabel('vitamin_c'),
+                              _getUnitForKey('vitamin_c')
+                            ),
+                            (
+                              'vitamin_d',
+                              _nutrientLabel('vitamin_d'),
+                              _getUnitForKey('vitamin_d')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'vitamin_e',
+                              _nutrientLabel('vitamin_e'),
+                              _getUnitForKey('vitamin_e')
+                            ),
+                            (
+                              'vitamin_k',
+                              _nutrientLabel('vitamin_k'),
+                              _getUnitForKey('vitamin_k')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'vitamin_b1',
+                              _nutrientLabel('vitamin_b1'),
+                              _getUnitForKey('vitamin_b1')
+                            ),
+                            (
+                              'vitamin_b2',
+                              _nutrientLabel('vitamin_b2'),
+                              _getUnitForKey('vitamin_b2')
+                            ),
+                            (
+                              'vitamin_b3',
+                              _nutrientLabel('vitamin_b3'),
+                              _getUnitForKey('vitamin_b3')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'vitamin_b5',
+                              _nutrientLabel('vitamin_b5'),
+                              _getUnitForKey('vitamin_b5')
+                            ),
+                            (
+                              'vitamin_b6',
+                              _nutrientLabel('vitamin_b6'),
+                              _getUnitForKey('vitamin_b6')
+                            ),
+                            (
+                              'vitamin_b7',
+                              _nutrientLabel('vitamin_b7'),
+                              _getUnitForKey('vitamin_b7')
+                            )
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'vitamin_b9',
+                              _nutrientLabel('vitamin_b9'),
+                              _getUnitForKey('vitamin_b9')
+                            ),
+                            (
+                              'vitamin_b12',
+                              _nutrientLabel('vitamin_b12'),
+                              _getUnitForKey('vitamin_b12')
+                            )
+                          ]),
+                          const SizedBox(height: 14),
+                          Text(
+                            l10n.heavyMetalsAndContaminants,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('lead', _nutrientLabel('lead'), _getUnitForKey('lead')),
+                            ('mercury', _nutrientLabel('mercury'), _getUnitForKey('mercury'))
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            ('cadmium', _nutrientLabel('cadmium'), _getUnitForKey('cadmium')),
+                            ('arsenic', _nutrientLabel('arsenic'), _getUnitForKey('arsenic'))
+                          ]),
+                          const SizedBox(height: 8),
+                          _nutrientRow([
+                            (
+                              'nitrates',
+                              _nutrientLabel('nitrates'),
+                              _getUnitForKey('nitrates')
+                            ),
+                            (
+                              'pesticides',
+                              _nutrientLabel('pesticides'),
+                              _getUnitForKey('pesticides')
+                            )
+                          ]),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ),
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -1982,9 +2136,11 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                  borderSide:
+                      BorderSide(color: theme.colorScheme.primary, width: 1.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
               style: const TextStyle(fontSize: 15, height: 1.4),
             ),
@@ -2038,7 +2194,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.nameController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                              label: _isReadyProduct ? l10n.productName : l10n.ingredientLabel,
+                              label: _isReadyProduct
+                                  ? l10n.productName
+                                  : l10n.ingredientLabel,
                             ).copyWith(
                               suffixIcon: item.isAmbiguous
                                   ? Tooltip(
@@ -2070,7 +2228,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             textInputAction: TextInputAction.next,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return _isReadyProduct ? l10n.enterProductName : l10n.enterName;
+                                return _isReadyProduct
+                                    ? l10n.enterProductName
+                                    : l10n.enterName;
                               }
                               return null;
                             },
@@ -2088,7 +2248,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             controller: item.quantityController,
                             style: const TextStyle(fontSize: 13),
                             decoration: AppStyles.underlineInputDecoration(
-                              label: _isReadyProduct ? l10n.quantityOrVolume : l10n.quantityLabel,
+                              label: _isReadyProduct
+                                  ? l10n.quantityOrVolume
+                                  : l10n.quantityLabel,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
@@ -2099,9 +2261,12 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             textInputAction: TextInputAction.next,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return _isReadyProduct ? l10n.enterQuantity : l10n.requiredField;
+                                return _isReadyProduct
+                                    ? l10n.enterQuantity
+                                    : l10n.requiredField;
                               }
-                              final parsed = double.tryParse(value.replaceAll(',', '.'));
+                              final parsed =
+                                  double.tryParse(value.replaceAll(',', '.'));
                               if (parsed == null || parsed <= 0) {
                                 return l10n.enterNumberGreaterThanZero;
                               }
@@ -2410,6 +2575,6 @@ class _RecipeCalculatableState {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(Object.hashAll(ingredients), description, clarification, healthAdvice, instructions);
+  int get hashCode => Object.hash(Object.hashAll(ingredients), description,
+      clarification, healthAdvice, instructions);
 }

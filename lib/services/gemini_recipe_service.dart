@@ -357,7 +357,8 @@ class GeminiRecipeService {
       );
     }
 
-    final userHabitsContext = await UserHabitsService.instance.compileUserHabitsContext();
+    final userHabitsContext =
+        await UserHabitsService.instance.compileUserHabitsContext();
 
     final prompt = '''
 You are a culinary assistant and expert nutritionist.
@@ -701,13 +702,15 @@ Rules:
     final Map<RecipeIngredient, IngredientProduct> matchedProducts = {};
 
     for (final ingredient in ingredients) {
-      final dbProduct = await IngredientDbService.instance.findByName(ingredient.name);
+      final dbProduct =
+          await IngredientDbService.instance.findByName(ingredient.name);
       if (dbProduct == null) {
         canCalculateLocally = false;
         break;
       }
-      
-      double? grams = _toGramsEquivalent(ingredient.quantity, ingredient.unit.trim().toLowerCase());
+
+      double? grams = _toGramsEquivalent(
+          ingredient.quantity, ingredient.unit.trim().toLowerCase());
       if (grams == null && dbProduct.weightPerUnit != null) {
         // Если это штуки/упаковки, переводим в граммы на основе веса одной штуки в нашей БД
         grams = ingredient.quantity * dbProduct.weightPerUnit!;
@@ -727,10 +730,11 @@ Rules:
         for (final entry in matchedProducts.entries) {
           final ingredient = entry.key;
           final dbProduct = entry.value;
-          
-          double grams = _toGramsEquivalent(ingredient.quantity, ingredient.unit.trim().toLowerCase()) ?? 
-                         (ingredient.quantity * (dbProduct.weightPerUnit ?? 0.0));
-          
+
+          double grams = _toGramsEquivalent(
+                  ingredient.quantity, ingredient.unit.trim().toLowerCase()) ??
+              (ingredient.quantity * (dbProduct.weightPerUnit ?? 0.0));
+
           final per100g = dbProduct.nutrients[key] ?? 0.0;
           sum += per100g * (grams / 100.0);
         }
@@ -759,11 +763,10 @@ Rules:
       );
     }
 
-
-
     final List<String> knownIngredientsInfo = [];
     for (final ingredient in ingredients) {
-      final dbProduct = await IngredientDbService.instance.findByName(ingredient.name);
+      final dbProduct =
+          await IngredientDbService.instance.findByName(ingredient.name);
       if (dbProduct != null) {
         final nuts = dbProduct.nutrients;
         final List<String> parts = [];
@@ -774,8 +777,7 @@ Rules:
           }
         }
         knownIngredientsInfo.add(
-          '- ${dbProduct.name}: ${parts.join(", ")} per 100g (isReadyProduct: ${dbProduct.isReadyProduct})'
-        );
+            '- ${dbProduct.name}: ${parts.join(", ")} per 100g (isReadyProduct: ${dbProduct.isReadyProduct})');
       }
     }
 
@@ -783,20 +785,24 @@ Rules:
         .map((i) => '- ${i.name}: ${i.quantity} ${i.unit}'.trim())
         .join('\\n');
 
-    final readyProductRule = isReadyProduct ? '''
+    final readyProductRule = isReadyProduct
+        ? '''
   CRITICAL READY PRODUCT BRAND & VOLUME RULE (MANDATORY):
   This recipe is marked as a READY PRODUCT (isReadyProduct = true).
   The User Clarification/Brand field contains the exact Brand and Volume/Weight of this product (e.g., "$clarification").
   You MUST scale all nutrient calculations and ingredient sizes in your final output to match EXACTLY this volume or weight specified in the clarification (e.g. if clarification says "500 мл" or "0.5л" or "500ml" or "0.5l", your calculations and output ingredient weight MUST represent exactly 500 ml / 500 g).
   Do NOT assume smaller or standard sizes (like 350 ml or 0.33l) for the calculation when a specific volume/weight is provided in the clarification field! That volume is absolute!
-  ''' : '';
+  '''
+        : '';
 
-    final instructionsRule = (!isReadyProduct && instructions.isNotEmpty) ? '''
+    final instructionsRule = (!isReadyProduct && instructions.isNotEmpty)
+        ? '''
   COOKING METHOD & PREPARATION INSTRUCTIONS (CRITICAL):
   The cooking/preparation instructions are:
   $instructions
   You MUST take this cooking/preparation method into account when calculating nutrients (e.g., consider heat treatment, boiling, frying, baking, water loss/retention, fat/oil absorption, etc.).
-  ''' : '';
+  '''
+        : '';
 
     final prompt = '''
   You are a professional nutritionist specializing in precise per-serving nutritional calculations.
@@ -895,17 +901,28 @@ Rules:
           final Map<String, double> ingNutrients = {};
           final extendedKeys = [
             ...nutrientKeys,
-            'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
-            'zinc', 'copper', 'manganese', 'selenium',
-            'lead', 'mercury', 'cadmium', 'arsenic',
-            'nitrates', 'pesticides'
+            'vitamin_b1',
+            'vitamin_b2',
+            'vitamin_b6',
+            'vitamin_b12',
+            'zinc',
+            'copper',
+            'manganese',
+            'selenium',
+            'lead',
+            'mercury',
+            'cadmium',
+            'arsenic',
+            'nitrates',
+            'pesticides'
           ];
           for (final key in extendedKeys) {
             if (rawIngNutrients.containsKey(key)) {
               ingNutrients[key] = _toNonNegativeDouble(rawIngNutrients[key]);
             }
           }
-          final weightPerUnit = _toNonNegativeDouble(rawIngredient['weightPerUnit']);
+          final weightPerUnit =
+              _toNonNegativeDouble(rawIngredient['weightPerUnit']);
           final isReady = rawIngredient['isReadyProduct'] == true;
 
           unawaited(IngredientDbService.instance.saveIngredient(
@@ -998,9 +1015,12 @@ Rules:
     };
 
     final String exampleWarning = switch (code) {
-      'uk' => '"Містить рибу, яку вам не можна згідно з вашими обмеженнями" or "Містить м\'ясо (курку), а ви вегетаріанець"',
-      'en' => '"Contains fish, which you should avoid according to your constraints" or "Contains meat (chicken), and you are a vegetarian"',
-      _ => '"Содержит рыбу, которую вам нельзя согласно вашим ограничениям" or "Содержит мясо (курицу), а вы вегетарианец"',
+      'uk' =>
+        '"Містить рибу, яку вам не можна згідно з вашими обмеженнями" or "Містить м\'ясо (курку), а ви вегетаріанець"',
+      'en' =>
+        '"Contains fish, which you should avoid according to your constraints" or "Contains meat (chicken), and you are a vegetarian"',
+      _ =>
+        '"Содержит рыбу, которую вам нельзя согласно вашим ограничениям" or "Содержит мясо (курицу), а вы вегетарианец"',
     };
 
     final prompt = '''
@@ -1061,7 +1081,8 @@ Rules:
     );
 
     final bool isCompatible = decoded['isCompatible'] == true;
-    final String incompatibleReason = _cleanupAdvice(decoded['incompatibleReason'] as String? ?? '');
+    final String incompatibleReason =
+        _cleanupAdvice(decoded['incompatibleReason'] as String? ?? '');
     final String advice = _cleanupAdvice(decoded['advice'] as String? ?? '');
 
     if (incompatibleReason.isEmpty && advice.isEmpty) return '';
@@ -2570,7 +2591,8 @@ Rules:
       );
 
       final systemInstruction = body['system_instruction'] as String?;
-      final thinkingLevel = settings.aiThinkingLevel != 'OFF' ? settings.aiThinkingLevel : null;
+      final thinkingLevel =
+          settings.aiThinkingLevel != 'OFF' ? settings.aiThinkingLevel : null;
       final isThinkingModel = models.first.contains('thinking');
 
       for (final modelName in models) {
@@ -2592,7 +2614,6 @@ Rules:
                 {'text': systemInstruction.trim()}
               ]
             },
-
           'generationConfig': {
             'temperature': body['temperature'] ?? 0.2,
             'topP': body['top_p'] ?? 1,
@@ -2735,8 +2756,6 @@ Rules:
     return hasImage;
   }
 
-
-
   final NotificationSettingsService _settingsService =
       NotificationSettingsService();
 
@@ -2797,7 +2816,8 @@ Rules:
             currentDelay = Duration(seconds: 12 + (attempt * 10));
           } else {
             final configSeconds = settings.aiRetryDelaySeconds;
-            currentDelay = Duration(seconds: configSeconds < 5 ? 5 : configSeconds);
+            currentDelay =
+                Duration(seconds: configSeconds < 5 ? 5 : configSeconds);
           }
           await Future<void>.delayed(currentDelay);
         }
@@ -2848,17 +2868,28 @@ Rules:
           final Map<String, double> ingNutrients = {};
           final extendedKeys = [
             ...nutrientKeys,
-            'vitamin_b1', 'vitamin_b2', 'vitamin_b6', 'vitamin_b12',
-            'zinc', 'copper', 'manganese', 'selenium',
-            'lead', 'mercury', 'cadmium', 'arsenic',
-            'nitrates', 'pesticides'
+            'vitamin_b1',
+            'vitamin_b2',
+            'vitamin_b6',
+            'vitamin_b12',
+            'zinc',
+            'copper',
+            'manganese',
+            'selenium',
+            'lead',
+            'mercury',
+            'cadmium',
+            'arsenic',
+            'nitrates',
+            'pesticides'
           ];
           for (final key in extendedKeys) {
             if (rawIngNutrients.containsKey(key)) {
               ingNutrients[key] = _toNonNegativeDouble(rawIngNutrients[key]);
             }
           }
-          final weightPerUnit = _toNonNegativeDouble(rawIngredient['weightPerUnit']);
+          final weightPerUnit =
+              _toNonNegativeDouble(rawIngredient['weightPerUnit']);
           final isReady = rawIngredient['isReadyProduct'] == true;
 
           // Сохраняем асинхронно в общую базу продуктов
@@ -3372,14 +3403,42 @@ Rules:
         normalized.contains('соль') ||
         normalized.contains('солі') ||
         normalized.contains('сiль');
-    
+
     if (!containsSaltWord) return false;
 
     // Исключения: продукты, содержащие соль как определение или часть блюда
     final exclusions = [
-      'рыба', 'рыб', 'fish', 'лосось', 'семга', 'сёмга', 'форель', 'сельдь', 'селед', 'herring', 'salmon', 'trout',
-      'огурец', 'огурц', 'cucumber', 'арахис', 'peanut', 'карамель', 'caramel', 'сыр', 'cheese', 'масло', 'butter',
-      'малосольн', 'малосолен', 'слабосольн', 'слабосолен', 'солен', 'солон', 'слабосолон', 'малосолон'
+      'рыба',
+      'рыб',
+      'fish',
+      'лосось',
+      'семга',
+      'сёмга',
+      'форель',
+      'сельдь',
+      'селед',
+      'herring',
+      'salmon',
+      'trout',
+      'огурец',
+      'огурц',
+      'cucumber',
+      'арахис',
+      'peanut',
+      'карамель',
+      'caramel',
+      'сыр',
+      'cheese',
+      'масло',
+      'butter',
+      'малосольн',
+      'малосолен',
+      'слабосольн',
+      'слабосолен',
+      'солен',
+      'солон',
+      'слабосолон',
+      'малосолон'
     ];
 
     for (final exclusion in exclusions) {
@@ -3391,7 +3450,7 @@ Rules:
 
   bool _isNonFoodIngredient(String name) {
     final normalized = name.toLowerCase().trim();
-    
+
     // Исключения: полезные продукты, которые содержат нецензурные корни случайно
     if (normalized.contains('shitake') || normalized.contains('shiitake')) {
       return false;
@@ -3409,7 +3468,7 @@ Rules:
 
     for (final word in nonFoodWords) {
       if (word.isEmpty) continue;
-      
+
       if (word == 'shit' || word == 'poop') {
         // Проверяем английские ругательства с границами слов (\b), чтобы не задевать нормальные слова
         final regExp = RegExp('\\b$word\\b');

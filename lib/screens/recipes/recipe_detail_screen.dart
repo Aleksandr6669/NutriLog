@@ -14,7 +14,6 @@ import '../../services/gemini_recipe_service.dart';
 import '../../services/recipe_advice_service.dart';
 import 'dart:convert';
 
-
 class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
   final bool selectionMode;
@@ -37,6 +36,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final _geminiRecipeService = GeminiRecipeService();
   String _personalAdvice = '';
   bool _isLoadingAdvice = false;
+  bool _showAllRecipeNutrients = false;
 
   String _nutrientLabel(String key, AppLocalizations l10n) {
     switch (key) {
@@ -78,7 +78,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         return l10n.vitaminC;
       case 'vitamin_d':
         return l10n.vitaminD;
-      
+
       // Extra Vitamins
       case 'vitamin_e':
         return l10n.vitaminE;
@@ -182,9 +182,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final ingredientsStr = recipe.ingredients
         .map((ing) => '${ing.name}|${ing.quantity}|${ing.unit}')
         .join(',');
-    final nutrientsStr = recipe.nutrients.entries
-        .map((e) => '${e.key}:${e.value}')
-        .join(',');
+    final nutrientsStr =
+        recipe.nutrients.entries.map((e) => '${e.key}:${e.value}').join(',');
     final recipeData =
         '${recipe.name}|$ingredientsStr|$nutrientsStr|${recipe.description}|${recipe.clarification}';
     return base64Encode(utf8.encode('$context|$recipeData'));
@@ -208,8 +207,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
 
     final richSummary = profile.richContextSummary(context);
-    final currentHash =
-        _calculateContextHash(richSummary, widget.recipe);
+    final currentHash = _calculateContextHash(richSummary, widget.recipe);
 
     final adviceService = RecipeAdviceService();
     final cachedData = await adviceService.getAdvice(widget.recipe.id);
@@ -257,7 +255,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
         final profile = context.read<ProfileProvider>().profile;
         if (profile != null) {
-          await RecipeAdviceService().saveAdvice(widget.recipe.id, advice, hash);
+          await RecipeAdviceService()
+              .saveAdvice(widget.recipe.id, advice, hash);
         }
       }
     } catch (e) {
@@ -297,7 +296,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               onPressed: () => Navigator.of(context).pop(true),
               tooltip: l10n.addToMeal,
             )
-          else if (widget.recipe.isUserRecipe && !widget.recipe.isDonated && !widget.hideEdit)
+          else if (widget.recipe.isUserRecipe &&
+              !widget.recipe.isDonated &&
+              !widget.hideEdit)
             IconButton(
               icon: const Icon(Symbols.edit, weight: 400),
               onPressed: () => _openEditScreen(context),
@@ -400,10 +401,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     background: statusColor.withValues(alpha: 0.12),
                   ),
                   _metaChip(
-                    icon: widget.recipe.isReadyProduct ? Symbols.inventory_2 : Symbols.menu_book,
-                    text: widget.recipe.isReadyProduct ? l10n.readyProductType : l10n.recipeType,
-                    textColor: widget.recipe.isReadyProduct ? Colors.orange.shade800 : Colors.purple.shade800,
-                    background: widget.recipe.isReadyProduct ? Colors.orange.shade50 : Colors.purple.shade50,
+                    icon: widget.recipe.isReadyProduct
+                        ? Symbols.inventory_2
+                        : Symbols.menu_book,
+                    text: widget.recipe.isReadyProduct
+                        ? l10n.readyProductType
+                        : l10n.recipeType,
+                    textColor: widget.recipe.isReadyProduct
+                        ? Colors.orange.shade800
+                        : Colors.purple.shade800,
+                    background: widget.recipe.isReadyProduct
+                        ? Colors.orange.shade50
+                        : Colors.purple.shade50,
                   ),
                 ],
               ),
@@ -472,7 +481,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildIngredientsCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Card(
       color: Colors.white,
       elevation: 0.5,
@@ -546,7 +555,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
-                        child: Icon(Symbols.circle, size: 6, color: theme.colorScheme.primary),
+                        child: Icon(Symbols.circle,
+                            size: 6, color: theme.colorScheme.primary),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -667,86 +677,193 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         widget.recipe.nutrients['cholesterol'], l10n.mg),
                   ]),
               _nutrientRow(
-                  l10n.localeName == 'ru' ? 'Алкоголь' : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol'),
+                  l10n.localeName == 'ru'
+                      ? 'Алкоголь'
+                      : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol'),
                   widget.recipe.nutrients['alcohol'],
                   l10n.grams),
             ]),
-            const Divider(height: 24),
-            _nutrientGroup(l10n.minerals, [
-              _nutrientRow(
-                  l10n.sodium, widget.recipe.nutrients['sodium'], l10n.mg),
-              _nutrientRow(l10n.potassium, widget.recipe.nutrients['potassium'],
-                  l10n.mg),
-              _nutrientRow(
-                  l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
-              _nutrientRow(l10n.iron, widget.recipe.nutrients['iron'], l10n.mg),
-              _nutrientRow(
-                  _nutrientLabel('magnesium', l10n), widget.recipe.nutrients['magnesium'], _getUnitForKey('magnesium', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('phosphorus', l10n), widget.recipe.nutrients['phosphorus'], _getUnitForKey('phosphorus', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('zinc', l10n), widget.recipe.nutrients['zinc'], _getUnitForKey('zinc', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('copper', l10n), widget.recipe.nutrients['copper'], _getUnitForKey('copper', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('manganese', l10n), widget.recipe.nutrients['manganese'], _getUnitForKey('manganese', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('selenium', l10n), widget.recipe.nutrients['selenium'], _getUnitForKey('selenium', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('iodine', l10n), widget.recipe.nutrients['iodine'], _getUnitForKey('iodine', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('chromium', l10n), widget.recipe.nutrients['chromium'], _getUnitForKey('chromium', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('molybdenum', l10n), widget.recipe.nutrients['molybdenum'], _getUnitForKey('molybdenum', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('fluoride', l10n), widget.recipe.nutrients['fluoride'], _getUnitForKey('fluoride', l10n)),
-            ]),
-            const Divider(height: 24),
-            _nutrientGroup(l10n.vitamins, [
-              _nutrientRow(l10n.vitaminA, widget.recipe.nutrients['vitamin_a'],
-                  l10n.mcg),
-              _nutrientRow(
-                  l10n.vitaminC, widget.recipe.nutrients['vitamin_c'], l10n.mg),
-              _nutrientRow(l10n.vitaminD, widget.recipe.nutrients['vitamin_d'],
-                  l10n.mcg),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_e', l10n), widget.recipe.nutrients['vitamin_e'], _getUnitForKey('vitamin_e', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_k', l10n), widget.recipe.nutrients['vitamin_k'], _getUnitForKey('vitamin_k', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b1', l10n), widget.recipe.nutrients['vitamin_b1'], _getUnitForKey('vitamin_b1', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b2', l10n), widget.recipe.nutrients['vitamin_b2'], _getUnitForKey('vitamin_b2', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b3', l10n), widget.recipe.nutrients['vitamin_b3'], _getUnitForKey('vitamin_b3', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b5', l10n), widget.recipe.nutrients['vitamin_b5'], _getUnitForKey('vitamin_b5', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b6', l10n), widget.recipe.nutrients['vitamin_b6'], _getUnitForKey('vitamin_b6', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b7', l10n), widget.recipe.nutrients['vitamin_b7'], _getUnitForKey('vitamin_b7', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b9', l10n), widget.recipe.nutrients['vitamin_b9'], _getUnitForKey('vitamin_b9', l10n)),
-              _nutrientRow(
-                  _nutrientLabel('vitamin_b12', l10n), widget.recipe.nutrients['vitamin_b12'], _getUnitForKey('vitamin_b12', l10n)),
-            ]),
-            const Divider(height: 24),
-            _nutrientGroup(
-              l10n.heavyMetalsAndContaminants,
-              [
-                _nutrientRow(
-                    _nutrientLabel('lead', l10n), widget.recipe.nutrients['lead'], _getUnitForKey('lead', l10n)),
-                _nutrientRow(
-                    _nutrientLabel('mercury', l10n), widget.recipe.nutrients['mercury'], _getUnitForKey('mercury', l10n)),
-                _nutrientRow(
-                    _nutrientLabel('cadmium', l10n), widget.recipe.nutrients['cadmium'], _getUnitForKey('cadmium', l10n)),
-                _nutrientRow(
-                    _nutrientLabel('arsenic', l10n), widget.recipe.nutrients['arsenic'], _getUnitForKey('arsenic', l10n)),
-                _nutrientRow(
-                    _nutrientLabel('nitrates', l10n), widget.recipe.nutrients['nitrates'], _getUnitForKey('nitrates', l10n)),
-                _nutrientRow(
-                    _nutrientLabel('pesticides', l10n), widget.recipe.nutrients['pesticides'], _getUnitForKey('pesticides', l10n)),
-              ],
+            const SizedBox(height: 16),
+            Center(
+              child: InkWell(
+                onTap: () => setState(() => _showAllRecipeNutrients = !_showAllRecipeNutrients),
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: _showAllRecipeNutrients ? 0.15 : 0.08),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _showAllRecipeNutrients ? Symbols.keyboard_arrow_up : Symbols.keyboard_arrow_down,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _showAllRecipeNutrients
+                            ? (l10n.localeName == 'ru' ? 'Свернуть детали' : (l10n.localeName == 'uk' ? 'Згорнути деталі' : 'Hide details'))
+                            : (l10n.localeName == 'ru' ? 'Показать витамины и минералы' : (l10n.localeName == 'uk' ? 'Показати вітаміни та мінерали' : 'Show vitamins and minerals')),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            ClipRect(
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _showAllRecipeNutrients
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 24),
+                          _nutrientRow(l10n.minerals, null, '', showValue: false, subRows: [
+                            _nutrientSubRow(
+                                l10n.sodium, widget.recipe.nutrients['sodium'], l10n.mg),
+                            _nutrientSubRow(l10n.potassium,
+                                widget.recipe.nutrients['potassium'], l10n.mg),
+                            _nutrientSubRow(
+                                l10n.calcium, widget.recipe.nutrients['calcium'], l10n.mg),
+                            _nutrientSubRow(
+                                l10n.iron, widget.recipe.nutrients['iron'], l10n.mg),
+                            _nutrientSubRow(
+                                _nutrientLabel('magnesium', l10n),
+                                widget.recipe.nutrients['magnesium'],
+                                _getUnitForKey('magnesium', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('phosphorus', l10n),
+                                widget.recipe.nutrients['phosphorus'],
+                                _getUnitForKey('phosphorus', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('zinc', l10n),
+                                widget.recipe.nutrients['zinc'],
+                                _getUnitForKey('zinc', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('copper', l10n),
+                                widget.recipe.nutrients['copper'],
+                                _getUnitForKey('copper', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('manganese', l10n),
+                                widget.recipe.nutrients['manganese'],
+                                _getUnitForKey('manganese', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('selenium', l10n),
+                                widget.recipe.nutrients['selenium'],
+                                _getUnitForKey('selenium', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('iodine', l10n),
+                                widget.recipe.nutrients['iodine'],
+                                _getUnitForKey('iodine', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('chromium', l10n),
+                                widget.recipe.nutrients['chromium'],
+                                _getUnitForKey('chromium', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('molybdenum', l10n),
+                                widget.recipe.nutrients['molybdenum'],
+                                _getUnitForKey('molybdenum', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('fluoride', l10n),
+                                widget.recipe.nutrients['fluoride'],
+                                _getUnitForKey('fluoride', l10n)),
+                          ]),
+                          const Divider(height: 24),
+                          _nutrientRow(l10n.vitamins, null, '', showValue: false, subRows: [
+                            _nutrientSubRow(l10n.vitaminA,
+                                widget.recipe.nutrients['vitamin_a'], l10n.mcg),
+                            _nutrientSubRow(
+                                l10n.vitaminC, widget.recipe.nutrients['vitamin_c'], l10n.mg),
+                            _nutrientSubRow(l10n.vitaminD,
+                                widget.recipe.nutrients['vitamin_d'], l10n.mcg),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_e', l10n),
+                                widget.recipe.nutrients['vitamin_e'],
+                                _getUnitForKey('vitamin_e', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_k', l10n),
+                                widget.recipe.nutrients['vitamin_k'],
+                                _getUnitForKey('vitamin_k', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b1', l10n),
+                                widget.recipe.nutrients['vitamin_b1'],
+                                _getUnitForKey('vitamin_b1', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b2', l10n),
+                                widget.recipe.nutrients['vitamin_b2'],
+                                _getUnitForKey('vitamin_b2', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b3', l10n),
+                                widget.recipe.nutrients['vitamin_b3'],
+                                _getUnitForKey('vitamin_b3', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b5', l10n),
+                                widget.recipe.nutrients['vitamin_b5'],
+                                _getUnitForKey('vitamin_b5', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b6', l10n),
+                                widget.recipe.nutrients['vitamin_b6'],
+                                _getUnitForKey('vitamin_b6', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b7', l10n),
+                                widget.recipe.nutrients['vitamin_b7'],
+                                _getUnitForKey('vitamin_b7', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b9', l10n),
+                                widget.recipe.nutrients['vitamin_b9'],
+                                _getUnitForKey('vitamin_b9', l10n)),
+                            _nutrientSubRow(
+                                _nutrientLabel('vitamin_b12', l10n),
+                                widget.recipe.nutrients['vitamin_b12'],
+                                _getUnitForKey('vitamin_b12', l10n)),
+                          ]),
+                          const Divider(height: 24),
+                          _nutrientRow(l10n.heavyMetalsAndContaminants, null, '',
+                              showValue: false,
+                              subRows: [
+                                _nutrientSubRow(
+                                    _nutrientLabel('lead', l10n),
+                                    widget.recipe.nutrients['lead'],
+                                    _getUnitForKey('lead', l10n)),
+                                _nutrientSubRow(
+                                    _nutrientLabel('mercury', l10n),
+                                    widget.recipe.nutrients['mercury'],
+                                    _getUnitForKey('mercury', l10n)),
+                                _nutrientSubRow(
+                                    _nutrientLabel('cadmium', l10n),
+                                    widget.recipe.nutrients['cadmium'],
+                                    _getUnitForKey('cadmium', l10n)),
+                                _nutrientSubRow(
+                                    _nutrientLabel('arsenic', l10n),
+                                    widget.recipe.nutrients['arsenic'],
+                                    _getUnitForKey('arsenic', l10n)),
+                                _nutrientSubRow(
+                                    _nutrientLabel('nitrates', l10n),
+                                    widget.recipe.nutrients['nitrates'],
+                                    _getUnitForKey('nitrates', l10n)),
+                                _nutrientSubRow(
+                                    _nutrientLabel('pesticides', l10n),
+                                    widget.recipe.nutrients['pesticides'],
+                                    _getUnitForKey('pesticides', l10n)),
+                              ]),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ),
           ],
         ),
@@ -770,7 +887,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _nutrientRow(String label, double? value, String unit,
-      {List<Widget> subRows = const []}) {
+      {List<Widget> subRows = const [], bool showValue = true}) {
     final displayValue = (value ?? 0.0).toStringAsFixed(1);
     final visibleSubRows = subRows.whereType<Widget>().toList();
     return Column(
@@ -781,7 +898,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             Text(label,
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            Text('$displayValue $unit', style: const TextStyle(fontSize: 16)),
+            if (showValue)
+              Text('$displayValue $unit', style: const TextStyle(fontSize: 16)),
           ],
         ),
         if (visibleSubRows.isNotEmpty)
@@ -809,6 +927,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
+
   Widget _buildPremiumAdviceStub(
       BuildContext context, ThemeData theme, AppLocalizations l10n) {
     return Container(
@@ -894,9 +1013,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    context.push('/subscription', extra: SubscriptionTier.premium);
+                    context.push('/subscription',
+                        extra: SubscriptionTier.premium);
                   },
-                  icon: const Icon(Symbols.workspace_premium, size: 18, color: Colors.white),
+                  icon: const Icon(Symbols.workspace_premium,
+                      size: 18, color: Colors.white),
                   label: Text(
                     l10n.upgradeToPremium,
                     style: const TextStyle(
@@ -908,7 +1029,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -963,16 +1085,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         ),
       );
     }
-    
+
     final isNewFormat = _personalAdvice.contains('[[IS_COMPATIBLE]]');
     bool isCompatible = true;
     String incompatibleReason = '';
 
     if (isNewFormat) {
-      final isCompatibleMatch = RegExp(r'\[\[IS_COMPATIBLE\]\](.*?)(?=\[\[|$)').firstMatch(_personalAdvice);
-      final incompatibleReasonMatch = RegExp(r'\[\[INCOMPATIBLE_REASON\]\](.*?)(?=\[\[|$)').firstMatch(_personalAdvice);
+      final isCompatibleMatch = RegExp(r'\[\[IS_COMPATIBLE\]\](.*?)(?=\[\[|$)')
+          .firstMatch(_personalAdvice);
+      final incompatibleReasonMatch =
+          RegExp(r'\[\[INCOMPATIBLE_REASON\]\](.*?)(?=\[\[|$)')
+              .firstMatch(_personalAdvice);
 
-      isCompatible = isCompatibleMatch?.group(1)?.trim().toLowerCase() == 'true';
+      isCompatible =
+          isCompatibleMatch?.group(1)?.trim().toLowerCase() == 'true';
       incompatibleReason = incompatibleReasonMatch?.group(1)?.trim() ?? '';
     }
 
@@ -1019,8 +1145,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isNewFormat 
-                        ? (isCompatible ? 'Совместимо с вашей диетой' : 'Не рекомендуется')
+                    isNewFormat
+                        ? (isCompatible
+                            ? 'Совместимо с вашей диетой'
+                            : 'Не рекомендуется')
                         : 'Анализ и рекомендации ИИ',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -1059,19 +1187,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       children: [
                         _buildDisclaimer(l10n, theme),
                         const SizedBox(height: 12),
-                        if (isNewFormat && !isCompatible && incompatibleReason.isNotEmpty) ...[
+                        if (isNewFormat &&
+                            !isCompatible &&
+                            incompatibleReason.isNotEmpty) ...[
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
                               color: Colors.red.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
+                              border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.15)),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Symbols.error_med, color: Colors.red, size: 16),
+                                const Icon(Symbols.error_med,
+                                    color: Colors.red, size: 16),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -1103,7 +1236,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 const SizedBox(height: 12),
                                 Text(
                                   l10n.moderationChecking,
-                                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                                  style: theme.textTheme.bodySmall
+                                      ?.copyWith(color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -1112,7 +1246,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       : Text(
                           'Загрузка легких рекомендаций по питанию...',
                           key: const ValueKey('advice-content-idle'),
-                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey),
                         ),
             ),
           ],
@@ -1153,7 +1288,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       String advice, ThemeData theme, AppLocalizations l10n) {
     final isNewFormat = advice.contains('[[IS_COMPATIBLE]]');
     if (isNewFormat) {
-      final adviceMatch = RegExp(r'\[\[ADVICE\]\](.*?)(?=\[\[|$)').firstMatch(advice);
+      final adviceMatch =
+          RegExp(r'\[\[ADVICE\]\](.*?)(?=\[\[|$)').firstMatch(advice);
       final mainAdvice = adviceMatch?.group(1)?.trim() ?? advice;
       return [
         Text(

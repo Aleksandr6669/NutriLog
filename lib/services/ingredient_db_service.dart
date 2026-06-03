@@ -72,8 +72,10 @@ class IngredientDbService {
     // Сортируем ключи по времени последнего доступа по возрастанию
     final sortedKeys = _cache.keys.toList()
       ..sort((a, b) {
-        final aTime = _cache[a]?.lastAccessedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bTime = _cache[b]?.lastAccessedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final aTime =
+            _cache[a]?.lastAccessedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime =
+            _cache[b]?.lastAccessedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         return aTime.compareTo(bTime);
       });
 
@@ -102,7 +104,8 @@ class IngredientDbService {
 
     // Если локально нет, запрашиваем общее облако Firebase (shared_ingredients_db)
     try {
-      final cloudData = await CloudDataService.instance.readSharedMap('shared_ingredients_db');
+      final cloudData = await CloudDataService.instance
+          .readSharedMap('shared_ingredients_db');
       if (cloudData != null && cloudData['ingredients'] is Map) {
         final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
         if (ingredientsMap.containsKey(cleanName)) {
@@ -156,7 +159,8 @@ class IngredientDbService {
     await _ensureLoaded();
 
     try {
-      final cloudData = await cloudService.readSharedMap('shared_ingredients_db');
+      final cloudData =
+          await cloudService.readSharedMap('shared_ingredients_db');
       final Map<String, IngredientProduct> cloudCache = {};
       if (cloudData != null && cloudData['ingredients'] is Map) {
         final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
@@ -215,7 +219,8 @@ class IngredientDbService {
     final cloudService = CloudDataService.instance;
 
     try {
-      final cloudData = await cloudService.readSharedMap('shared_ingredients_db');
+      final cloudData =
+          await cloudService.readSharedMap('shared_ingredients_db');
       if (cloudData != null && cloudData['ingredients'] is Map) {
         final ingredientsMap = cloudData['ingredients'] as Map<String, dynamic>;
         _cache.clear();

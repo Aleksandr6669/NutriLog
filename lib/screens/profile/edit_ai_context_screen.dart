@@ -128,7 +128,8 @@ class _EditAiContextScreenState extends State<EditAiContextScreen> {
                 title: l10n.additionalForAi,
                 icon: Symbols.psychology,
                 controller: _aiContextController,
-                hintText: 'Примеры предпочтений: "Не ем рыбу", "Интервальное голодание с 12:00 до 20:00", "Тренируюсь утром натощак", "Сладкоежка, добавь полезные перекусы".',
+                hintText:
+                    'Примеры предпочтений: "Не ем рыбу", "Интервальное голодание с 12:00 до 20:00", "Тренируюсь утром натощак", "Сладкоежка, добавь полезные перекусы".',
               ),
               const SizedBox(height: 16),
               _buildContextCard(
@@ -220,8 +221,8 @@ class _EditAiContextScreenState extends State<EditAiContextScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: AppColors.primary, width: 2),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
                 ),
               ),
               style: const TextStyle(fontWeight: FontWeight.w500),

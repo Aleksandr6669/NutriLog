@@ -70,10 +70,14 @@ class UserProfile {
     final l10n = AppLocalizations.of(context)!;
     final sb = StringBuffer();
     if (aiContext.isNotEmpty) sb.writeln('${l10n.additionalForAi}: $aiContext');
-    if (medicContext.isNotEmpty) sb.writeln('${l10n.medicContextTitle}: $medicContext');
-    if (dietitianContext.isNotEmpty) sb.writeln('${l10n.dietitianContextTitle}: $dietitianContext');
-    if (trainerContext.isNotEmpty) sb.writeln('${l10n.trainerContextTitle}: $trainerContext');
-    if (activityContext.isNotEmpty) sb.writeln('${l10n.activityContextTitle}: $activityContext');
+    if (medicContext.isNotEmpty)
+      sb.writeln('${l10n.medicContextTitle}: $medicContext');
+    if (dietitianContext.isNotEmpty)
+      sb.writeln('${l10n.dietitianContextTitle}: $dietitianContext');
+    if (trainerContext.isNotEmpty)
+      sb.writeln('${l10n.trainerContextTitle}: $trainerContext');
+    if (activityContext.isNotEmpty)
+      sb.writeln('${l10n.activityContextTitle}: $activityContext');
     return sb.toString().trim();
   }
 

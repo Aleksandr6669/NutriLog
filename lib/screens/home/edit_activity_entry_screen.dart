@@ -92,23 +92,44 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
   String _inferIconFromName(String name) {
     final lower = name.toLowerCase();
     if (lower.contains('бег') || lower.contains('run')) return 'directions_run';
-    if (lower.contains('ходьб') || lower.contains('шаг') || lower.contains('walk')) return 'directions_walk';
-    if (lower.contains('вело') || lower.contains('байк') || lower.contains('bike')) return 'directions_bike';
-    if (lower.contains('плав') || lower.contains('бассейн') || lower.contains('swim') || lower.contains('pool')) return 'pool';
-    if (lower.contains('футб') || lower.contains('soccer') || lower.contains('football')) return 'sports_soccer';
-    if (lower.contains('баскет') || lower.contains('basketball')) return 'sports_basketball';
-    if (lower.contains('волей') || lower.contains('volleyball')) return 'sports_volleyball';
-    if (lower.contains('теннис') || lower.contains('tennis')) return 'sports_tennis';
-    if (lower.contains('борьб') || lower.contains('бокс') || lower.contains('каратэ') || lower.contains('martial')) return 'sports_martial_arts';
-    if (lower.contains('йог') || lower.contains('пилатес') || lower.contains('stretch') || lower.contains('yoga')) return 'self_improvement';
-    if (lower.contains('поход') || lower.contains('горы') || lower.contains('hike') || lower.contains('hiking')) return 'hiking';
+    if (lower.contains('ходьб') ||
+        lower.contains('шаг') ||
+        lower.contains('walk')) return 'directions_walk';
+    if (lower.contains('вело') ||
+        lower.contains('байк') ||
+        lower.contains('bike')) return 'directions_bike';
+    if (lower.contains('плав') ||
+        lower.contains('бассейн') ||
+        lower.contains('swim') ||
+        lower.contains('pool')) return 'pool';
+    if (lower.contains('футб') ||
+        lower.contains('soccer') ||
+        lower.contains('football')) return 'sports_soccer';
+    if (lower.contains('баскет') || lower.contains('basketball'))
+      return 'sports_basketball';
+    if (lower.contains('волей') || lower.contains('volleyball'))
+      return 'sports_volleyball';
+    if (lower.contains('теннис') || lower.contains('tennis'))
+      return 'sports_tennis';
+    if (lower.contains('борьб') ||
+        lower.contains('бокс') ||
+        lower.contains('каратэ') ||
+        lower.contains('martial')) return 'sports_martial_arts';
+    if (lower.contains('йог') ||
+        lower.contains('пилатес') ||
+        lower.contains('stretch') ||
+        lower.contains('yoga')) return 'self_improvement';
+    if (lower.contains('поход') ||
+        lower.contains('горы') ||
+        lower.contains('hike') ||
+        lower.contains('hiking')) return 'hiking';
     return 'fitness_center';
   }
 
   Future<void> _estimateCaloriesWithAi() async {
     final l10n = AppLocalizations.of(context)!;
     final source = _descriptionController.text.trim();
-    
+
     if (source.isEmpty) {
       setState(() {
         _aiEstimateStatus = l10n.activityAiNeedContext;
@@ -129,14 +150,14 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
         locale: Localizations.localeOf(context).languageCode,
       );
       if (!mounted) return;
-      
+
       // Option 2: Direct insertion, immediately populates the manual fields and automatically selects matching sport icon
       setState(() {
         _nameController.text = draft.name;
         _descriptionController.text = draft.description;
         _caloriesController.text = draft.calories.toString();
         _selectedIconName = _inferIconFromName(draft.name);
-        
+
         _isAiEstimating = false;
         _isAiEstimateError = false;
         _aiEstimateStatus = l10n.activityAiEstimated(draft.calories);
@@ -167,7 +188,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       extendBodyBehindAppBar: true,
       appBar: buildGlassAppBar(
         title: Text(isEdit ? l10n.editActivity : l10n.newActivity),
@@ -218,14 +240,18 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                   "Умный ввод ИИ",
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : AppColors.textLight,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppColors.textLight,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   "Опишите активность в свободной форме для авторасчета",
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
                                   ),
                                 ),
                               ],
@@ -276,7 +302,8 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
                                     ),
                                   )
                                 : Icon(
@@ -306,11 +333,14 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: (_isAiEstimateError ? Colors.red : Colors.green)
-                                .withValues(alpha: 0.12),
+                            color:
+                                (_isAiEstimateError ? Colors.red : Colors.green)
+                                    .withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: (_isAiEstimateError ? Colors.red : Colors.green)
+                              color: (_isAiEstimateError
+                                      ? Colors.red
+                                      : Colors.green)
                                   .withValues(alpha: 0.3),
                               width: 1.2,
                             ),
@@ -333,8 +363,12 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                   _aiEstimateStatus!,
                                   style: TextStyle(
                                     color: _isAiEstimateError
-                                        ? (isDark ? Colors.red.shade300 : Colors.red.shade700)
-                                        : (isDark ? Colors.green.shade300 : Colors.green.shade700),
+                                        ? (isDark
+                                            ? Colors.red.shade300
+                                            : Colors.red.shade700)
+                                        : (isDark
+                                            ? Colors.green.shade300
+                                            : Colors.green.shade700),
                                     fontWeight: FontWeight.bold,
                                     height: 1.3,
                                   ),
@@ -405,13 +439,17 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Symbols.info, color: AppColors.primary, size: 16),
+                            const Icon(Symbols.info,
+                                color: AppColors.primary, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                Localizations.localeOf(context).languageCode == 'ru'
+                                Localizations.localeOf(context).languageCode ==
+                                        'ru'
                                     ? 'Внесение точного количества сожженных калорий помогает ИИ правильно балансировать ваш дневной рацион.'
-                                    : (Localizations.localeOf(context).languageCode == 'uk'
+                                    : (Localizations.localeOf(context)
+                                                .languageCode ==
+                                            'uk'
                                         ? 'Внесення точної кількості спалених калорій допомагає ШІ правильно балансувати ваш денний раціон.'
                                         : 'Entering accurate calories burned helps AI balance your daily diet and energy intake properly.'),
                                 style: TextStyle(
@@ -451,7 +489,7 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                         children: ActivityEntry.iconOptions.entries.map((e) {
                           final isSelected = _selectedIconName == e.key;
                           final label = _iconLabelsRu[e.key] ?? 'Спорт';
-                          
+
                           return InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
@@ -470,24 +508,31 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                     duration: const Duration(milliseconds: 200),
                                     curve: Curves.easeOutBack,
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
+                                      duration:
+                                          const Duration(milliseconds: 200),
                                       width: 52,
                                       height: 52,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? AppColors.primary.withValues(alpha: 0.15)
-                                            : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
+                                            ? AppColors.primary
+                                                .withValues(alpha: 0.15)
+                                            : (isDark
+                                                ? Colors.grey.shade900
+                                                : Colors.grey.shade100),
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
                                           color: isSelected
                                               ? AppColors.primary
-                                              : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
+                                              : (isDark
+                                                  ? Colors.grey.shade800
+                                                  : Colors.grey.shade300),
                                           width: isSelected ? 2.2 : 1.0,
                                         ),
                                         boxShadow: isSelected
                                             ? [
                                                 BoxShadow(
-                                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                                  color: AppColors.primary
+                                                      .withValues(alpha: 0.2),
                                                   blurRadius: 10,
                                                   offset: const Offset(0, 4),
                                                 ),
@@ -498,7 +543,9 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                         e.value,
                                         color: isSelected
                                             ? AppColors.primary
-                                            : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                                            : (isDark
+                                                ? Colors.grey.shade400
+                                                : Colors.grey.shade700),
                                         size: 24,
                                         fill: isSelected ? 1.0 : 0.0,
                                       ),
@@ -512,10 +559,14 @@ class _EditActivityEntryScreenState extends State<EditActivityEntryScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       fontSize: 10.5,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
                                       color: isSelected
                                           ? AppColors.primary
-                                          : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                                          : (isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey.shade700),
                                     ),
                                   ),
                                 ],

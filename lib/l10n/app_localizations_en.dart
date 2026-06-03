@@ -1910,4 +1910,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alcohol => 'Alcohol';
+
+  @override
+  String get cannotLogFutureMeal => 'You cannot log meals for future dates';
+
+  @override
+  String get recalculationRequiredMessage =>
+      'The recipe ingredients or description have been modified. Please recalculate nutrition values before saving or revert your changes.';
 }

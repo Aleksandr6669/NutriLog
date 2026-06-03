@@ -52,6 +52,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 
   Future<void> _addFromRecipes() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDate =
+        DateTime(widget.date.year, widget.date.month, widget.date.day);
+    if (mealDate.isAfter(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.cannotLogFutureMeal),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     HapticFeedback.selectionClick();
     final selectedRecipes = await Navigator.of(context).push<List<Recipe>>(
       MaterialPageRoute(
@@ -185,6 +199,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       _ => l10n.meals,
     };
 
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDate =
+        DateTime(widget.date.year, widget.date.month, widget.date.day);
+    final isFuture = mealDate.isAfter(today);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -201,11 +221,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             onPressed: () => Navigator.of(context).pop(_hasChanges),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Symbols.add_circle_outline),
-              onPressed: _addFromRecipes,
-              tooltip: l10n.addFromRecipes,
-            ),
+            if (!isFuture)
+              IconButton(
+                icon: const Icon(Symbols.add_circle_outline),
+                onPressed: _addFromRecipes,
+                tooltip: l10n.addFromRecipes,
+              ),
             const SizedBox(width: 8),
           ],
         ),
@@ -534,10 +555,17 @@ class _FoodListItem extends StatelessWidget {
   }
 }
 
-class _NutritionDetailsList extends StatelessWidget {
+class _NutritionDetailsList extends StatefulWidget {
   final NutritionalInfo totalNutrients;
 
   const _NutritionDetailsList({required this.totalNutrients});
+
+  @override
+  State<_NutritionDetailsList> createState() => _NutritionDetailsListState();
+}
+
+class _NutritionDetailsListState extends State<_NutritionDetailsList> {
+  bool _isExpanded = false;
 
   String _nutrientLabel(String key, AppLocalizations l10n) {
     switch (key) {
@@ -626,179 +654,240 @@ class _NutritionDetailsList extends StatelessWidget {
               child: Column(
                 children: [
                   _buildDetailRow(theme, l10n.calories,
-                      '${totalNutrients.calories.toStringAsFixed(1)} ${l10n.kcal}'),
+                      '${widget.totalNutrients.calories.toStringAsFixed(1)} ${l10n.kcal}'),
                   _buildDivider(),
                   _buildDetailRow(theme, l10n.protein,
-                      '${totalNutrients.protein.toStringAsFixed(1)} ${l10n.grams}'),
+                      '${widget.totalNutrients.protein.toStringAsFixed(1)} ${l10n.grams}'),
                   _buildDetailRow(theme, l10n.carbs,
-                      '${totalNutrients.carbs.toStringAsFixed(1)} ${l10n.grams}',
+                      '${widget.totalNutrients.carbs.toStringAsFixed(1)} ${l10n.grams}',
                       isSub: false),
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0),
                     child: Column(
                       children: [
                         _buildDetailRow(theme, l10n.sugarSub,
-                            '${totalNutrients.sugar.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.sugar.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                         _buildDetailRow(theme, l10n.fiberSub,
-                            '${totalNutrients.fiber.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.fiber.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                       ],
                     ),
                   ),
                   _buildDivider(),
                   _buildDetailRow(theme, l10n.fat,
-                      '${totalNutrients.fat.toStringAsFixed(1)} ${l10n.grams}'),
+                      '${widget.totalNutrients.fat.toStringAsFixed(1)} ${l10n.grams}'),
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0),
                     child: Column(
                       children: [
                         _buildDetailRow(theme, l10n.saturatedFatSub,
-                            '${totalNutrients.saturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.saturatedFat.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                         _buildDetailRow(theme, l10n.polyunsaturatedFatSub,
-                            '${totalNutrients.polyunsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.polyunsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                         _buildDetailRow(theme, l10n.monounsaturatedFatSub,
-                            '${totalNutrients.monounsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.monounsaturatedFat.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                         _buildDetailRow(theme, l10n.transFatSub,
-                            '${totalNutrients.transFat.toStringAsFixed(1)} ${l10n.grams}',
+                            '${widget.totalNutrients.transFat.toStringAsFixed(1)} ${l10n.grams}',
                             isSub: true),
                         _buildDetailRow(theme, l10n.cholesterolSub,
-                            '${totalNutrients.cholesterol.toStringAsFixed(1)} ${l10n.mg}',
+                            '${widget.totalNutrients.cholesterol.toStringAsFixed(1)} ${l10n.mg}',
                             isSub: true),
                       ],
                     ),
                   ),
                   _buildDetailRow(theme,
                       l10n.localeName == 'ru' ? 'Алкоголь' : (l10n.localeName == 'uk' ? 'Алкоголь' : 'Alcohol'),
-                      '${totalNutrients.alcohol.toStringAsFixed(1)} ${l10n.grams}',
+                      '${widget.totalNutrients.alcohol.toStringAsFixed(1)} ${l10n.grams}',
                       isSub: false),
-                  _buildDivider(),
-                  _buildCategoryTitle(theme, l10n.minerals),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Column(
-                      children: [
-                        _buildDetailRow(theme, l10n.sodium,
-                            '${totalNutrients.sodium.toStringAsFixed(1)} ${l10n.mg}',
-                            isSub: true),
-                        _buildDetailRow(theme, l10n.potassium,
-                            '${totalNutrients.potassium.toStringAsFixed(1)} ${l10n.mg}',
-                            isSub: true),
-                        _buildDetailRow(theme, l10n.calcium,
-                            '${totalNutrients.calcium.toStringAsFixed(1)} ${l10n.mg}',
-                            isSub: true),
-                        _buildDetailRow(theme, l10n.iron,
-                            '${totalNutrients.iron.toStringAsFixed(1)} ${l10n.mg}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('magnesium', l10n),
-                            '${totalNutrients.magnesium.toStringAsFixed(1)} ${_getUnitForKey('magnesium', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('phosphorus', l10n),
-                            '${totalNutrients.phosphorus.toStringAsFixed(1)} ${_getUnitForKey('phosphorus', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('zinc', l10n),
-                            '${totalNutrients.zinc.toStringAsFixed(1)} ${_getUnitForKey('zinc', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('copper', l10n),
-                            '${totalNutrients.copper.toStringAsFixed(1)} ${_getUnitForKey('copper', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('manganese', l10n),
-                            '${totalNutrients.manganese.toStringAsFixed(1)} ${_getUnitForKey('manganese', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('selenium', l10n),
-                            '${totalNutrients.selenium.toStringAsFixed(1)} ${_getUnitForKey('selenium', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('iodine', l10n),
-                            '${totalNutrients.iodine.toStringAsFixed(1)} ${_getUnitForKey('iodine', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('chromium', l10n),
-                            '${totalNutrients.chromium.toStringAsFixed(1)} ${_getUnitForKey('chromium', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('molybdenum', l10n),
-                            '${totalNutrients.molybdenum.toStringAsFixed(1)} ${_getUnitForKey('molybdenum', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('fluoride', l10n),
-                            '${totalNutrients.fluoride.toStringAsFixed(1)} ${_getUnitForKey('fluoride', l10n)}',
-                            isSub: true),
-                      ],
+                  const SizedBox(height: 16),
+                  Center(
+                    child: InkWell(
+                      onTap: () => setState(() => _isExpanded = !_isExpanded),
+                      borderRadius: BorderRadius.circular(16),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: theme.colorScheme.primary.withValues(alpha: _isExpanded ? 0.15 : 0.08),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isExpanded ? Symbols.keyboard_arrow_up : Symbols.keyboard_arrow_down,
+                              color: theme.colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isExpanded
+                                  ? (l10n.localeName == 'ru' ? 'Свернуть детали' : (l10n.localeName == 'uk' ? 'Згорнути деталі' : 'Hide details'))
+                                  : (l10n.localeName == 'ru' ? 'Показать витамины и минералы' : (l10n.localeName == 'uk' ? 'Показати вітаміни та мінерали' : 'Show vitamins and minerals')),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  _buildDivider(),
-                  _buildCategoryTitle(theme, l10n.vitamins),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Column(
-                      children: [
-                        _buildDetailRow(theme, l10n.vitaminA,
-                            '${totalNutrients.vitaminA.toStringAsFixed(1)} ${l10n.mcg}',
-                            isSub: true),
-                        _buildDetailRow(theme, l10n.vitaminC,
-                            '${totalNutrients.vitaminC.toStringAsFixed(1)} ${l10n.mg}',
-                            isSub: true),
-                        _buildDetailRow(theme, l10n.vitaminD,
-                            '${totalNutrients.vitaminD.toStringAsFixed(1)} ${l10n.mcg}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_e', l10n),
-                            '${totalNutrients.vitaminE.toStringAsFixed(1)} ${_getUnitForKey('vitamin_e', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_k', l10n),
-                            '${totalNutrients.vitaminK.toStringAsFixed(1)} ${_getUnitForKey('vitamin_k', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b1', l10n),
-                            '${totalNutrients.vitaminB1.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b1', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b2', l10n),
-                            '${totalNutrients.vitaminB2.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b2', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b3', l10n),
-                            '${totalNutrients.vitaminB3.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b3', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b5', l10n),
-                            '${totalNutrients.vitaminB5.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b5', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b6', l10n),
-                            '${totalNutrients.vitaminB6.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b6', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b7', l10n),
-                            '${totalNutrients.vitaminB7.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b7', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b9', l10n),
-                            '${totalNutrients.vitaminB9.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b9', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('vitamin_b12', l10n),
-                            '${totalNutrients.vitaminB12.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b12', l10n)}',
-                            isSub: true),
-                      ],
-                    ),
-                  ),
-                  _buildDivider(),
-                  _buildCategoryTitle(theme, l10n.heavyMetalsAndContaminants),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Column(
-                      children: [
-                        _buildDetailRow(theme, _nutrientLabel('lead', l10n),
-                            '${totalNutrients.lead.toStringAsFixed(1)} ${_getUnitForKey('lead', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('mercury', l10n),
-                            '${totalNutrients.mercury.toStringAsFixed(1)} ${_getUnitForKey('mercury', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('cadmium', l10n),
-                            '${totalNutrients.cadmium.toStringAsFixed(1)} ${_getUnitForKey('cadmium', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('arsenic', l10n),
-                            '${totalNutrients.arsenic.toStringAsFixed(1)} ${_getUnitForKey('arsenic', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('nitrates', l10n),
-                            '${totalNutrients.nitrates.toStringAsFixed(1)} ${_getUnitForKey('nitrates', l10n)}',
-                            isSub: true),
-                        _buildDetailRow(theme, _nutrientLabel('pesticides', l10n),
-                            '${totalNutrients.pesticides.toStringAsFixed(1)} ${_getUnitForKey('pesticides', l10n)}',
-                            isSub: true),
-                      ],
+                  ClipRect(
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: _isExpanded
+                          ? Column(
+                              children: [
+                                _buildDivider(),
+                                _buildDetailRow(theme, l10n.minerals, '', isSub: false),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0),
+                                  child: Column(
+                                    children: [
+                                      _buildDetailRow(theme, l10n.sodium,
+                                          '${widget.totalNutrients.sodium.toStringAsFixed(1)} ${l10n.mg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, l10n.potassium,
+                                          '${widget.totalNutrients.potassium.toStringAsFixed(1)} ${l10n.mg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, l10n.calcium,
+                                          '${widget.totalNutrients.calcium.toStringAsFixed(1)} ${l10n.mg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, l10n.iron,
+                                          '${widget.totalNutrients.iron.toStringAsFixed(1)} ${l10n.mg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('magnesium', l10n),
+                                          '${widget.totalNutrients.magnesium.toStringAsFixed(1)} ${_getUnitForKey('magnesium', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('phosphorus', l10n),
+                                          '${widget.totalNutrients.phosphorus.toStringAsFixed(1)} ${_getUnitForKey('phosphorus', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('zinc', l10n),
+                                          '${widget.totalNutrients.zinc.toStringAsFixed(1)} ${_getUnitForKey('zinc', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('copper', l10n),
+                                          '${widget.totalNutrients.copper.toStringAsFixed(1)} ${_getUnitForKey('copper', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('manganese', l10n),
+                                          '${widget.totalNutrients.manganese.toStringAsFixed(1)} ${_getUnitForKey('manganese', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('selenium', l10n),
+                                          '${widget.totalNutrients.selenium.toStringAsFixed(1)} ${_getUnitForKey('selenium', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('iodine', l10n),
+                                          '${widget.totalNutrients.iodine.toStringAsFixed(1)} ${_getUnitForKey('iodine', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('chromium', l10n),
+                                          '${widget.totalNutrients.chromium.toStringAsFixed(1)} ${_getUnitForKey('chromium', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('molybdenum', l10n),
+                                          '${widget.totalNutrients.molybdenum.toStringAsFixed(1)} ${_getUnitForKey('molybdenum', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('fluoride', l10n),
+                                          '${widget.totalNutrients.fluoride.toStringAsFixed(1)} ${_getUnitForKey('fluoride', l10n)}',
+                                          isSub: true),
+                                    ],
+                                  ),
+                                ),
+                                _buildDivider(),
+                                _buildDetailRow(theme, l10n.vitamins, '', isSub: false),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0),
+                                  child: Column(
+                                    children: [
+                                      _buildDetailRow(theme, l10n.vitaminA,
+                                          '${widget.totalNutrients.vitaminA.toStringAsFixed(1)} ${l10n.mcg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, l10n.vitaminC,
+                                          '${widget.totalNutrients.vitaminC.toStringAsFixed(1)} ${l10n.mg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, l10n.vitaminD,
+                                          '${widget.totalNutrients.vitaminD.toStringAsFixed(1)} ${l10n.mcg}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_e', l10n),
+                                          '${widget.totalNutrients.vitaminE.toStringAsFixed(1)} ${_getUnitForKey('vitamin_e', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_k', l10n),
+                                          '${widget.totalNutrients.vitaminK.toStringAsFixed(1)} ${_getUnitForKey('vitamin_k', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_b1', l10n),
+                                          '${widget.totalNutrients.vitaminB1.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b1', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_b2', l10n),
+                                          '${widget.totalNutrients.vitaminB2.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b2', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_b3', l10n),
+                                          '${widget.totalNutrients.vitaminB3.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b3', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_b5', l10n),
+                                          '${widget.totalNutrients.vitaminB5.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b5', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('vitamin_b6', l10n),
+                                          '${widget.totalNutrients.vitaminB6.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b6', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(
+                                          theme,
+                                          _nutrientLabel('vitamin_b7', l10n),
+                                          '${widget.totalNutrients.vitaminB7.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b7', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(
+                                          theme,
+                                          _nutrientLabel('vitamin_b9', l10n),
+                                          '${widget.totalNutrients.vitaminB9.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b9', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(
+                                          theme,
+                                          _nutrientLabel('vitamin_b12', l10n),
+                                          '${widget.totalNutrients.vitaminB12.toStringAsFixed(1)} ${_getUnitForKey('vitamin_b12', l10n)}',
+                                          isSub: true),
+                                    ],
+                                  ),
+                                ),
+                                _buildDivider(),
+                                _buildDetailRow(theme, l10n.heavyMetalsAndContaminants, '',
+                                    isSub: false),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0),
+                                  child: Column(
+                                    children: [
+                                      _buildDetailRow(theme, _nutrientLabel('lead', l10n),
+                                          '${widget.totalNutrients.lead.toStringAsFixed(1)} ${_getUnitForKey('lead', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('mercury', l10n),
+                                          '${widget.totalNutrients.mercury.toStringAsFixed(1)} ${_getUnitForKey('mercury', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('cadmium', l10n),
+                                          '${widget.totalNutrients.cadmium.toStringAsFixed(1)} ${_getUnitForKey('cadmium', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('arsenic', l10n),
+                                          '${widget.totalNutrients.arsenic.toStringAsFixed(1)} ${_getUnitForKey('arsenic', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(theme, _nutrientLabel('nitrates', l10n),
+                                          '${widget.totalNutrients.nitrates.toStringAsFixed(1)} ${_getUnitForKey('nitrates', l10n)}',
+                                          isSub: true),
+                                      _buildDetailRow(
+                                          theme,
+                                          _nutrientLabel('pesticides', l10n),
+                                          '${widget.totalNutrients.pesticides.toStringAsFixed(1)} ${_getUnitForKey('pesticides', l10n)}',
+                                          isSub: true),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ),
                 ],
@@ -821,9 +910,10 @@ class _NutritionDetailsList extends StatelessWidget {
                       ?.copyWith(color: theme.textTheme.bodySmall?.color)
                   : theme.textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold)),
-          Text(value,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          if (value.isNotEmpty)
+            Text(value,
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -833,21 +923,6 @@ class _NutritionDetailsList extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: Divider(height: 1, thickness: 1),
-    );
-  }
-
-  Widget _buildCategoryTitle(ThemeData theme, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
     );
   }
 }

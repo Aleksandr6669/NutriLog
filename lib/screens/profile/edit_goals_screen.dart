@@ -36,17 +36,29 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
   void initState() {
     super.initState();
     _calorieGoalController = TextEditingController(
-        text: widget.profile.calorieGoal == 0 ? '' : widget.profile.calorieGoal.toString());
+        text: widget.profile.calorieGoal == 0
+            ? ''
+            : widget.profile.calorieGoal.toString());
     _waterGoalController = TextEditingController(
-        text: widget.profile.waterGoal == 0 ? '' : widget.profile.waterGoal.toString());
+        text: widget.profile.waterGoal == 0
+            ? ''
+            : widget.profile.waterGoal.toString());
     _stepsGoalController = TextEditingController(
-        text: widget.profile.stepsGoal == 0 ? '' : widget.profile.stepsGoal.toString());
+        text: widget.profile.stepsGoal == 0
+            ? ''
+            : widget.profile.stepsGoal.toString());
     _proteinGoalController = TextEditingController(
-        text: widget.profile.proteinGoal == 0 ? '' : widget.profile.proteinGoal.toString());
+        text: widget.profile.proteinGoal == 0
+            ? ''
+            : widget.profile.proteinGoal.toString());
     _carbsGoalController = TextEditingController(
-        text: widget.profile.carbsGoal == 0 ? '' : widget.profile.carbsGoal.toString());
+        text: widget.profile.carbsGoal == 0
+            ? ''
+            : widget.profile.carbsGoal.toString());
     _fatGoalController = TextEditingController(
-        text: widget.profile.fatGoal == 0 ? '' : widget.profile.fatGoal.toString());
+        text: widget.profile.fatGoal == 0
+            ? ''
+            : widget.profile.fatGoal.toString());
   }
 
   @override

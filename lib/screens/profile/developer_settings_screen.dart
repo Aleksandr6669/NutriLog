@@ -89,13 +89,17 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.developer_mode, color: Colors.red),
-                title: const Text('Выйти из режима разработчика', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                subtitle: const Text('Настройки разработчика будут скрыты из меню настроек.'),
+                title: const Text('Выйти из режима разработчика',
+                    style: TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.bold)),
+                subtitle: const Text(
+                    'Настройки разработчика будут скрыты из меню настроек.'),
                 onTap: () async {
                   await NotificationSettingsService().setDevModeEnabled(false);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Режим разработчика отключен')),
+                      const SnackBar(
+                          content: Text('Режим разработчика отключен')),
                     );
                     Navigator.of(context).pop();
                   }
@@ -410,7 +414,8 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
                             ? const Icon(Icons.check, color: Colors.green)
                             : null,
                         onTap: () {
-                          _saveSettings(_settings!.copyWith(aiThinkingLevel: entry.key));
+                          _saveSettings(
+                              _settings!.copyWith(aiThinkingLevel: entry.key));
                           Navigator.pop(context);
                         },
                       ))

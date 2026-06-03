@@ -1916,4 +1916,12 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get alcohol => 'Алкоголь';
+
+  @override
+  String get cannotLogFutureMeal =>
+      'Не можна вносити прийоми їжі на майбутні дати';
+
+  @override
+  String get recalculationRequiredMessage =>
+      'Склад або опис рецепту було змінено. Будь ласка, виконайте перерозрахунок харчової цінності перед збереженням або поверніть зміни.';
 }
